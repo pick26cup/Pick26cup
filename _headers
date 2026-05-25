@@ -1,0 +1,15 @@
+/*
+  # ── CORS ─────────────────────────────────────────────────────
+  Access-Control-Allow-Origin: https://pick26cup.github.io
+  Access-Control-Allow-Methods: GET, POST, OPTIONS
+  Access-Control-Allow-Headers: Content-Type, Authorization
+  Access-Control-Allow-Credentials: false
+
+  # ── SECURITY ──────────────────────────────────────────────────
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Cache-Control: no-store, no-cache, must-revalidate
