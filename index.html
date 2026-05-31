@@ -1415,8 +1415,18 @@ function signInWithGoogle(){
     return;
   }
   const provider = new firebase.auth.GoogleAuthProvider();
+  // On mobile, popups are unreliable (they get blocked or auto-close, looping
+  // back to the sign-in screen). Use full-page redirect on mobile, popup on desktop.
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  if(isMobile){
+    firebase.auth().signInWithRedirect(provider).catch(function(e){
+      console.warn('Google redirect sign-in failed:', e);
+      showToast(currentLang==='es'?'No se pudo iniciar sesión':'Sign-in failed','error');
+    });
+    return;
+  }
   firebase.auth().signInWithPopup(provider).catch(function(e){
-    // Popup blocked or closed — fall back to full-page redirect (better on mobile).
+    // Popup blocked or closed — fall back to full-page redirect.
     if(e && (e.code==='auth/popup-blocked' || e.code==='auth/cancelled-popup-request' || e.code==='auth/operation-not-supported-in-this-environment')){
       firebase.auth().signInWithRedirect(provider);
     } else {
