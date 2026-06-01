@@ -1567,14 +1567,19 @@ function markTeamNameSaved(matchId){
 
 function syncFromFirebase(){
   if(!db||!currentUser) return;
-  db.ref('picks/'+playerKey()).on('value', snap=>{
+  // Use once() so Firebase rollbacks (from denied writes) can't re-render and reset picks
+  db.ref('picks/'+playerKey()).once('value').then(function(snap){
     const data = snap.val();
-    // Always trust Firebase as source of truth — even if fields are missing/null
-    picks = (data && data.picks) ? data.picks : {};
-    submittedRounds = (data && data.submittedRounds) ? data.submittedRounds : {};
-    // Sync localStorage to match Firebase state
-    localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
-    localStorage.setItem('wc2026_submitted_'+currentUser, JSON.stringify(submittedRounds));
+    if(data){
+      if(data.picks) picks = data.picks;
+      if(data.submittedRounds) submittedRounds = data.submittedRounds;
+      localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
+      localStorage.setItem('wc2026_submitted_'+currentUser, JSON.stringify(submittedRounds));
+    }
+    renderMatches();
+    updateSubmitArea();
+  }).catch(function(){
+    // Firebase read failed (permission denied) — keep local data and render
     renderMatches();
     updateSubmitArea();
   });
