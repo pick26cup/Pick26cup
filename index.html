@@ -559,6 +559,7 @@ nav button:hover,nav button.active{
 }
 /* Hidden helper */
 .hidden{display:none!important}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* Score result badge in lb */
 .pts-breakdown{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
@@ -730,8 +731,16 @@ nav button:hover,nav button.active{
         <h2 style="margin:0">PICK26</h2>
       </div>
 
-      <!-- Step 1: sign in with Google -->
-      <div id="signInStep">
+      <!-- Step 0: loading while Firebase initialises / processes redirect -->
+      <div id="authLoadingStep">
+        <p style="color:var(--text2);font-size:14px;margin-bottom:8px" data-en="Loading…" data-es="Cargando…">Loading…</p>
+        <div style="display:flex;justify-content:center">
+          <div style="width:32px;height:32px;border:3px solid rgba(212,175,55,.3);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite"></div>
+        </div>
+      </div>
+
+      <!-- Step 1: sign in with Google (shown only after Firebase confirms no active session) -->
+      <div id="signInStep" style="display:none">
         <p id="reg-sub" data-en="Sign in to start predicting" data-es="Inicia sesión para empezar a predecir">Sign in to start predicting</p>
         <button class="btn-google" onclick="signInWithGoogle()" id="googleBtn">
           <svg width="18" height="18" viewBox="0 0 48 48" style="vertical-align:middle;margin-right:8px">
@@ -1314,10 +1323,11 @@ async function sha256Hex(str){
 //  INIT
 // ══════════════════════════════════════════════════════
 window.onload = function(){
-  // Show the sign-in overlay by default. onAuthStateChanged (Google) decides
-  // whether to keep showing it, ask for a name, or let the player straight in.
+  // Show the overlay with a loading spinner while Firebase initialises and
+  // resolves the auth state (or processes a pending redirect result).
+  // The Google sign-in button is revealed only once Firebase confirms there
+  // is no active session — this prevents the double-tap loop on mobile.
   document.getElementById('registerOverlay').style.display='flex';
-  // Init Firebase + Google auth
   initFirebase();
   loadCustomTeamNames();
   renderMatches();
@@ -1365,9 +1375,23 @@ function setupFirebase(){
     // The same account = same UID on phone, laptop, anywhere. Admin powers
     // come from a server-set custom claim, so admin works on any device too.
     if(firebase.auth){
-      // Handle the return from a full-page redirect sign-in (mobile-friendly).
-      firebase.auth().getRedirectResult().catch(function(e){
-        if(e && e.code) console.warn('Redirect result:', e.code);
+      // Explicitly process any pending redirect result. On mobile, after
+      // signInWithRedirect, Firebase may fire onAuthStateChanged(null) before
+      // it finishes reading the redirect token — the .then() here ensures the
+      // sign-in completes even in that race-condition window.
+      firebase.auth().getRedirectResult().then(function(result){
+        if(result && result.user){
+          // Redirect completed successfully; onAuthStateChanged will also fire
+          // with this user, so we just ensure the loading state is shown.
+          const s0=document.getElementById('authLoadingStep');
+          const s1=document.getElementById('signInStep');
+          if(s0) s0.style.display='block';
+          if(s1) s1.style.display='none';
+        }
+      }).catch(function(e){
+        if(e && e.code) console.warn('Redirect result error:', e.code);
+        // Redirect failed — reveal the sign-in button so the user can retry.
+        showSignInStep();
       });
       firebase.auth().onAuthStateChanged(function(user){
         if(user){
@@ -1377,7 +1401,7 @@ function setupFirebase(){
           }).catch(function(){ isAdminClaim = false; });
           onSignedIn(user);
         } else {
-          // Not signed in — show the Google sign-in step.
+          // Firebase confirmed: no active session — show the sign-in button.
           currentUID = null;
           currentUser = null;
           showSignInStep();
@@ -1418,21 +1442,41 @@ function signInWithGoogle(){
     return;
   }
   const provider = new firebase.auth.GoogleAuthProvider();
-  // Use popup on all platforms. signInWithRedirect causes a redirect loop on
-  // iOS Safari (ITP blocks the cross-domain cookie exchange), so we avoid it as
-  // the primary path. Redirect is kept as a fallback only when the popup is
-  // explicitly blocked by the browser.
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+  if(isMobile){
+    // On mobile, signInWithPopup opens as a new tab that can't reliably post
+    // the result back to the opener — the account selector appears to repeat.
+    // Use full-page redirect instead, and immediately show the loading spinner
+    // so the user can't tap the button again while the redirect is in flight.
+    const s0=document.getElementById('authLoadingStep');
+    const s1=document.getElementById('signInStep');
+    if(s0) s0.style.display='block';
+    if(s1) s1.style.display='none';
+    firebase.auth().signInWithRedirect(provider).catch(function(e){
+      console.warn('Google redirect sign-in failed:', e);
+      showToast(currentLang==='es'?'No se pudo iniciar sesión':'Sign-in failed','error');
+      showSignInStep();
+    });
+    return;
+  }
+
+  // Desktop: popup works reliably and avoids the extra page load.
   firebase.auth().signInWithPopup(provider).catch(function(e){
     if(!e) return;
     if(e.code==='auth/popup-closed-by-user' || e.code==='auth/cancelled-popup-request'){
-      // User closed the popup — not an error, do nothing.
-      return;
+      return; // user closed popup — not an error
     }
     if(e.code==='auth/popup-blocked' || e.code==='auth/operation-not-supported-in-this-environment'){
-      // Popup was blocked by the browser — fall back to full-page redirect.
+      // Browser blocked the popup — fall back to redirect.
+      const s0=document.getElementById('authLoadingStep');
+      const s1=document.getElementById('signInStep');
+      if(s0) s0.style.display='block';
+      if(s1) s1.style.display='none';
       firebase.auth().signInWithRedirect(provider).catch(function(re){
         console.warn('Google redirect sign-in failed:', re);
         showToast(currentLang==='es'?'No se pudo iniciar sesión':'Sign-in failed','error');
+        showSignInStep();
       });
     } else {
       console.warn('Google sign-in failed:', e);
@@ -1443,12 +1487,14 @@ function signInWithGoogle(){
 
 function showSignInStep(){
   document.getElementById('registerOverlay').style.display='flex';
+  const s0=document.getElementById('authLoadingStep'); if(s0) s0.style.display='none';
   const s1=document.getElementById('signInStep'); if(s1) s1.style.display='block';
   const s2=document.getElementById('nameStep'); if(s2) s2.style.display='none';
 }
 
 function showNameStep(suggested){
   document.getElementById('registerOverlay').style.display='flex';
+  const s0=document.getElementById('authLoadingStep'); if(s0) s0.style.display='none';
   const s1=document.getElementById('signInStep'); if(s1) s1.style.display='none';
   const s2=document.getElementById('nameStep'); if(s2) s2.style.display='block';
   const inp=document.getElementById('regName');
