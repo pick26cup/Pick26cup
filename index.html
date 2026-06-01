@@ -5,53 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Pick26 — Predict. Choose. Win.</title>
 
-<!-- ── SECURITY HEADERS (meta equivalents) ─────────────────── -->
-<!-- Content Security Policy -->
-<meta http-equiv="Content-Security-Policy" content="
-  default-src 'self' data: blob:;
-  script-src 'self' 'unsafe-inline' 'unsafe-eval'
-    https://www.gstatic.com
-    https://apis.google.com
-    https://*.googleapis.com
-    https://cdn.jsdelivr.net
-    https://cdnjs.cloudflare.com;
-  style-src 'self' 'unsafe-inline'
-    https://fonts.googleapis.com;
-  font-src 'self'
-    https://fonts.gstatic.com;
-  img-src 'self' data: blob:
-    https://flagcdn.com
-    https://*.googleusercontent.com
-    https://*.gstatic.com;
-  connect-src 'self'
-    https://*.firebaseio.com
-    wss://*.firebaseio.com
-    https://*.googleapis.com
-    https://*.firebase.com
-    https://apis.google.com
-    https://accounts.google.com
-    https://www.googleapis.com
-    https://securetoken.googleapis.com
-    https://identitytoolkit.googleapis.com;
-  frame-src 'self'
-    https://*.firebaseapp.com
-    https://accounts.google.com
-    https://apis.google.com
-    https://your-world-cup-prediction.firebaseapp.com;
-  media-src 'self' data: blob:;
-  base-uri 'self';
-  form-action 'self';
-">
-<!-- Prevent MIME sniffing -->
-<!-- NOTE: X-Content-Type-Options, Permissions-Policy, X-Frame-Options and HSTS
-     ONLY work as real HTTP response headers, NOT as <meta> tags. Browsers ignore
-     them here. Configure them at your host (GitHub Pages: not supported; use
-     Netlify/Cloudflare _headers, or a netlify.toml / nginx config). Recommended:
-       X-Content-Type-Options: nosniff
-       Referrer-Policy: strict-origin-when-cross-origin
-       Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
-       X-Frame-Options: DENY -->
-<!-- Referrer Policy (this one DOES work as a meta tag) -->
+<!-- Referrer Policy -->
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
 <!-- Cache control — don't cache sensitive data -->
 <!-- Allow caching for faster loads -->
