@@ -731,7 +731,7 @@ nav button:hover,nav button.active{
         <h2 style="margin:0">PICK26</h2>
       </div>
 
-      <!-- Step 0: loading while Firebase initialises / processes redirect -->
+      <!-- Step 0: spinner while Firebase DB connects -->
       <div id="authLoadingStep">
         <p style="color:var(--text2);font-size:14px;margin-bottom:8px" data-en="Loading…" data-es="Cargando…">Loading…</p>
         <div style="display:flex;justify-content:center">
@@ -739,25 +739,12 @@ nav button:hover,nav button.active{
         </div>
       </div>
 
-      <!-- Step 1: sign in with Google (shown only after Firebase confirms no active session) -->
-      <div id="signInStep" style="display:none">
-        <p id="reg-sub" data-en="Sign in to start predicting" data-es="Inicia sesión para empezar a predecir">Sign in to start predicting</p>
-        <button class="btn-google" onclick="signInWithGoogle()" id="googleBtn">
-          <svg width="18" height="18" viewBox="0 0 48 48" style="vertical-align:middle;margin-right:8px">
-            <path fill="#FFC107" d="M43.6 20.5h-1.9V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 8.1 29.3 6 24 6 14.1 6 6 14.1 6 24s8.1 18 18 18 18-8.1 18-18c0-1.2-.1-2.4-.4-3.5z"/>
-            <path fill="#FF3D00" d="M8.3 14.7l6.6 4.8C16.7 16 20 14 24 14c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 8.1 29.3 6 24 6 16.8 6 10.6 10.1 8.3 14.7z"/>
-            <path fill="#4CAF50" d="M24 42c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 33.1 26.7 34 24 34c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C8.5 37.8 15.6 42 24 42z"/>
-            <path fill="#1976D2" d="M43.6 20.5H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.4l6.2 5.2C40.9 36.5 44 31 44 24c0-1.2-.1-2.4-.4-3.5z"/>
-          </svg>
-          <span data-en="Continue with Google" data-es="Continuar con Google">Continue with Google</span>
-        </button>
-      </div>
-
-      <!-- Step 2: choose display name (first time only) -->
-      <div id="nameStep" style="display:none">
-        <p id="reg-sub2" data-en="Choose a display name" data-es="Elige un nombre para mostrar">Choose a display name</p>
-        <input type="text" id="regName" placeholder="Your full name" maxlength="40" autocomplete="off"/>
-        <button class="btn-gold" onclick="doRegister()" id="regBtn">LET'S GO!</button>
+      <!-- Step 1: enter name to log in -->
+      <div id="loginStep" style="display:none">
+        <p id="reg-sub" data-en="Enter your name to start" data-es="Ingresa tu nombre para empezar">Enter your name to start</p>
+        <input type="text" id="regName" placeholder="Your full name" maxlength="40" autocomplete="name"
+          onkeydown="if(event.key==='Enter')doLogin()"/>
+        <button class="btn-gold" onclick="doLogin()" id="regBtn" data-en="LET'S GO!" data-es="¡VAMOS!">LET'S GO!</button>
       </div>
     </div>
   </div>
@@ -1294,9 +1281,7 @@ window._origMatches = {};
 let currentLang = 'en';
 let currentRound = 1;
 let adminRound = 1;
-let currentUser = null;        // display name (label only)
-let currentUID = null;         // real identity from Firebase Auth (anonymous)
-let isAdminClaim = false;      // true only if the server granted admin custom claim
+let currentUser = null;
 let adminLoggedIn = false;
 let editRound = 4;
 let customTeamNames = {}; // {matchId_home: name, matchId_away: name}
@@ -1343,8 +1328,7 @@ function initFirebase(){
   // executing them out of order.
   const scripts = [
     'https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js',
-    'https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js',
-    'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js'
+    'https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js'
   ];
   function loadNext(i){
     if(i >= scripts.length){ setupFirebase(); return; }
@@ -1370,43 +1354,36 @@ function setupFirebase(){
     if(!firebase.apps.length) firebase.initializeApp(config);
     db = firebase.database();
 
-    // ── AUTHENTICATION (Google) ─────────────────────────────────────
-    // Identity follows the PERSON (their Google account), not the device.
-    // The same account = same UID on phone, laptop, anywhere. Admin powers
-    // come from a server-set custom claim, so admin works on any device too.
-    if(firebase.auth){
-      // Explicitly process any pending redirect result. On mobile, after
-      // signInWithRedirect, Firebase may fire onAuthStateChanged(null) before
-      // it finishes reading the redirect token — the .then() here ensures the
-      // sign-in completes even in that race-condition window.
-      firebase.auth().getRedirectResult().then(function(result){
-        if(result && result.user){
-          // Redirect completed successfully; onAuthStateChanged will also fire
-          // with this user, so we just ensure the loading state is shown.
-          const s0=document.getElementById('authLoadingStep');
-          const s1=document.getElementById('signInStep');
-          if(s0) s0.style.display='block';
-          if(s1) s1.style.display='none';
-        }
-      }).catch(function(e){
-        if(e && e.code) console.warn('Redirect result error:', e.code);
-        // Redirect failed — reveal the sign-in button so the user can retry.
-        showSignInStep();
-      });
-      firebase.auth().onAuthStateChanged(function(user){
-        if(user){
-          currentUID = user.uid;
-          user.getIdTokenResult().then(function(res){
-            isAdminClaim = !!(res.claims && res.claims.admin);
-          }).catch(function(){ isAdminClaim = false; });
-          onSignedIn(user);
+    // ── NAME-BASED SESSION ──────────────────────────────────────────
+    // No OAuth — identity is the display name stored in localStorage.
+    // On load, if a name is already saved we verify it still exists in
+    // Firebase and log straight in; otherwise show the login form.
+    const savedName = localStorage.getItem('wc2026_user');
+    if(savedName){
+      currentUser = savedName;
+      const key = playerKey();
+      db.ref('players/'+key+'/name').once('value').then(function(snap){
+        if(snap.val()){
+          // Verified — user exists in DB, let them straight in.
+          hideRegister();
+          loadUserData();
+          syncFromFirebase();
+          renderMatches();
         } else {
-          // Firebase confirmed: no active session — show the sign-in button.
-          currentUID = null;
+          // Name not found in DB (was deleted or wrong device) — ask again.
           currentUser = null;
-          showSignInStep();
+          localStorage.removeItem('wc2026_user');
+          showLoginStep();
         }
+      }).catch(function(){
+        // Offline / DB error — trust localStorage and let them in.
+        hideRegister();
+        loadUserData();
+        syncFromFirebase();
+        renderMatches();
       });
+    } else {
+      showLoginStep();
     }
     // ────────────────────────────────────────────────────────────────
 
@@ -1434,103 +1411,20 @@ function setupFirebase(){
 }
 
 // ══════════════════════════════════════════════════════
-//  REGISTER / GOOGLE SIGN-IN
+//  LOGIN (name-based, no OAuth)
 // ══════════════════════════════════════════════════════
-function signInWithGoogle(){
-  if(!firebase || !firebase.auth){
-    showToast(currentLang==='es'?'Firebase no disponible':'Firebase unavailable','error');
-    return;
-  }
-  const provider = new firebase.auth.GoogleAuthProvider();
-  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-
-  if(isMobile){
-    // On mobile, signInWithPopup opens as a new tab that can't reliably post
-    // the result back to the opener — the account selector appears to repeat.
-    // Use full-page redirect instead, and immediately show the loading spinner
-    // so the user can't tap the button again while the redirect is in flight.
-    const s0=document.getElementById('authLoadingStep');
-    const s1=document.getElementById('signInStep');
-    if(s0) s0.style.display='block';
-    if(s1) s1.style.display='none';
-    firebase.auth().signInWithRedirect(provider).catch(function(e){
-      console.warn('Google redirect sign-in failed:', e);
-      showToast(currentLang==='es'?'No se pudo iniciar sesión':'Sign-in failed','error');
-      showSignInStep();
-    });
-    return;
-  }
-
-  // Desktop: popup works reliably and avoids the extra page load.
-  firebase.auth().signInWithPopup(provider).catch(function(e){
-    if(!e) return;
-    if(e.code==='auth/popup-closed-by-user' || e.code==='auth/cancelled-popup-request'){
-      return; // user closed popup — not an error
-    }
-    if(e.code==='auth/popup-blocked' || e.code==='auth/operation-not-supported-in-this-environment'){
-      // Browser blocked the popup — fall back to redirect.
-      const s0=document.getElementById('authLoadingStep');
-      const s1=document.getElementById('signInStep');
-      if(s0) s0.style.display='block';
-      if(s1) s1.style.display='none';
-      firebase.auth().signInWithRedirect(provider).catch(function(re){
-        console.warn('Google redirect sign-in failed:', re);
-        showToast(currentLang==='es'?'No se pudo iniciar sesión':'Sign-in failed','error');
-        showSignInStep();
-      });
-    } else {
-      console.warn('Google sign-in failed:', e);
-      showToast(currentLang==='es'?'No se pudo iniciar sesión':'Sign-in failed','error');
-    }
-  });
-}
-
-function showSignInStep(){
+function showLoginStep(){
   document.getElementById('registerOverlay').style.display='flex';
   const s0=document.getElementById('authLoadingStep'); if(s0) s0.style.display='none';
-  const s1=document.getElementById('signInStep'); if(s1) s1.style.display='block';
-  const s2=document.getElementById('nameStep'); if(s2) s2.style.display='none';
+  const s1=document.getElementById('loginStep'); if(s1) s1.style.display='block';
+  const inp=document.getElementById('regName'); if(inp) inp.focus();
 }
 
-function showNameStep(suggested){
-  document.getElementById('registerOverlay').style.display='flex';
-  const s0=document.getElementById('authLoadingStep'); if(s0) s0.style.display='none';
-  const s1=document.getElementById('signInStep'); if(s1) s1.style.display='none';
-  const s2=document.getElementById('nameStep'); if(s2) s2.style.display='block';
-  const inp=document.getElementById('regName');
-  if(inp && suggested && !inp.value) inp.value = suggested;
-}
-
-// Called once the user is authenticated with Google.
-function onSignedIn(user){
-  const key = playerKey();
-  if(!db || !key){ return; }
-  db.ref('players/'+key+'/name').once('value').then(function(snap){
-    const savedName = snap.val();
-    if(savedName){
-      // Returning player on any device — load and go straight in.
-      currentUser = savedName;
-      localStorage.setItem('wc2026_user', savedName);
-      hideRegister();
-      loadUserData();
-      syncFromFirebase();
-      renderMatches();
-    } else {
-      // First time: ask for a display name (prefill with Google name).
-      showNameStep(user.displayName || '');
-    }
-  }).catch(function(){
-    showNameStep(user && user.displayName || '');
-  });
-}
-
-function doRegister(){
+function doLogin(){
   let name = document.getElementById('regName').value.trim();
   if(!name){ showToast(currentLang==='es'?'Ingresa tu nombre':'Please enter your name','error'); return; }
-  // Reject control chars / angle brackets and cap length to avoid abuse.
   name = name.replace(/[<>]/g,'').slice(0,40);
   if(!name){ showToast(currentLang==='es'?'Nombre no válido':'Invalid name','error'); return; }
-  if(!currentUID){ showToast(currentLang==='es'?'Inicia sesión con Google primero':'Sign in with Google first','error'); showSignInStep(); return; }
 
   currentUser = name;
   const key = playerKey();
@@ -1539,17 +1433,15 @@ function doRegister(){
   if(db && key){
     db.ref('players/'+key).once('value').then(snap=>{
       if(!snap.val()){
-        // Deleted or brand new player — full clean slate
+        // Brand-new player — create a clean record.
         picks = {};
         submittedRounds = {};
         localStorage.removeItem('wc2026_picks_'+name);
         localStorage.removeItem('wc2026_submitted_'+name);
-        // Create fresh Firebase record (name is a label; uid is the identity)
-        db.ref('players/'+key).set({name, uid:currentUID||null, approved:false, pts:0, submittedRounds:{}});
-        // Also remove any stale picks from Firebase
+        db.ref('players/'+key).set({name, approved:false, pts:0, submittedRounds:{}});
         db.ref('picks/'+key).remove();
       } else {
-        // Returning existing player — load their saved data
+        // Returning player — load their saved data.
         loadUserData();
         syncFromFirebase();
       }
@@ -1557,7 +1449,7 @@ function doRegister(){
       renderMatches();
       showToast((currentLang==='es'?'¡Bienvenido/a, ':'Welcome, ')+name+'! 🎉','success');
     }).catch(()=>{
-      // Firebase unavailable — still let them in with local data
+      // Firebase unavailable — let them in with local data.
       loadUserData();
       hideRegister();
       renderMatches();
@@ -1575,7 +1467,6 @@ function doRegister(){
 function hideRegister(){
   document.getElementById('registerOverlay').style.display='none';
   document.getElementById('logoutBtn').style.display='';
-  document.getElementById('regBtn').innerText = currentLang==='es'?'¡VAMOS!':'LET\'S GO!';
 }
 
 function loadUserData(){
@@ -2145,14 +2036,13 @@ function doSubmitPicks(){
     const key = playerKey();
     db.ref('picks/'+key).set({
       name: currentUser,
-      uid: currentUID || null,
       picks,
       submittedRounds,
       updatedAt: Date.now()
     }).catch(()=>{});
     // Register player if not exists
     db.ref('players/'+key).transaction(cur=>{
-      if(!cur) return {name:currentUser, uid:currentUID||null, approved:false, pts:0, submittedRounds};
+      if(!cur) return {name:currentUser, approved:false, pts:0, submittedRounds};
       return Object.assign(cur, {submittedRounds});
     });
   }
@@ -2537,35 +2427,11 @@ function findMatch(mid){
 //  ADMIN
 // ══════════════════════════════════════════════════════
 async function doAdminLogin(){
-  // Refresh the token to pick up any new custom claims from the server.
-  // This is async, so we need to await it before checking isAdminClaim.
-  if(firebase.auth && firebase.auth().currentUser){
-    try {
-      const res = await firebase.auth().currentUser.getIdTokenResult(true);
-      isAdminClaim = !!(res.claims && res.claims.admin);
-    } catch(e){
-      isAdminClaim = false;
-    }
-  }
-
-  // Preferred path: the server granted this UID an 'admin' custom claim.
-  // This is the only path that is actually enforced by Security Rules — the
-  // password below is a convenience fallback and is NOT real security.
-  if(isAdminClaim){
-    grantAdminUI();
-    return;
-  }
-
   const pwd = document.getElementById('adminPwd').value;
   let ok = false;
   try { ok = (await sha256Hex(pwd)) === ADMIN_PWD_HASH; } catch(e){ ok = false; }
   if(ok){
     grantAdminUI();
-    // Warn that without the custom claim, admin writes will be REJECTED by the
-    // Security Rules once they are enabled.
-    if(!isAdminClaim){
-      console.warn('Admin UI unlocked by password, but this UID lacks the admin custom claim. With strict Security Rules enabled, admin writes will fail until the claim is granted.');
-    }
   } else {
     showToast(currentLang==='es'?'Contraseña incorrecta':'Wrong password','error');
   }
@@ -3247,11 +3113,7 @@ function doLogout(){
   localStorage.removeItem('wc2026_user');
   document.getElementById('logoutBtn').style.display='none';
   const rn=document.getElementById('regName'); if(rn) rn.value='';
-  // Sign out of Google so the next sign-in can choose an account.
-  if(firebase && firebase.auth){
-    firebase.auth().signOut().catch(function(){});
-  }
-  showSignInStep();
+  showLoginStep();
   showToast(t('Sesión cerrada','Logged out'),'success');
 }
 
@@ -3263,7 +3125,6 @@ function doLogout(){
 // name-based key only when Auth is unavailable (offline / degraded mode),
 // so the app still works locally but real security requires Auth + Rules.
 function playerKey(){
-  if(currentUID) return currentUID;
   return currentUser ? safeKey(currentUser) : null;
 }
 
