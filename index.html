@@ -1262,11 +1262,18 @@ async function sha256Hex(str){
 //  INIT
 // ══════════════════════════════════════════════════════
 window.onload = function(){
-  // Show the overlay with a loading spinner while Firebase initialises and
-  // resolves the auth state (or processes a pending redirect result).
-  // The Google sign-in button is revealed only once Firebase confirms there
-  // is no active session — this prevents the double-tap loop on mobile.
-  document.getElementById('registerOverlay').style.display='flex';
+  // Auto-login: check localStorage immediately, before Firebase even loads.
+  // This means returning players never see the login screen.
+  const savedName = localStorage.getItem('wc2026_user');
+  if(savedName){
+    currentUser = savedName;
+    document.getElementById('registerOverlay').style.display = 'none';
+    document.getElementById('logoutBtn').style.display = '';
+    loadUserData();
+  } else {
+    // No saved session — show overlay with spinner while Firebase loads.
+    document.getElementById('registerOverlay').style.display = 'flex';
+  }
   initFirebase();
   loadCustomTeamNames();
   renderMatches();
@@ -1310,15 +1317,10 @@ function setupFirebase(){
 
     // ── NAME-BASED SESSION ──────────────────────────────────────────
     // Trust localStorage directly — no Firebase round-trip needed.
-    // If the name is saved the user is let straight in; syncFromFirebase()
-    // will pull their latest picks from the DB immediately after.
-    const savedName = localStorage.getItem('wc2026_user');
-    if(savedName){
-      currentUser = savedName;
-      hideRegister();
-      loadUserData();
+    // Firebase is now ready — sync picks if user is already logged in,
+    // otherwise reveal the login form.
+    if(currentUser){
       syncFromFirebase();
-      renderMatches();
     } else {
       showLoginStep();
     }
