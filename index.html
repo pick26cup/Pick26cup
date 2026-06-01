@@ -1309,33 +1309,16 @@ function setupFirebase(){
     db = firebase.database();
 
     // ── NAME-BASED SESSION ──────────────────────────────────────────
-    // No OAuth — identity is the display name stored in localStorage.
-    // On load, if a name is already saved we verify it still exists in
-    // Firebase and log straight in; otherwise show the login form.
+    // Trust localStorage directly — no Firebase round-trip needed.
+    // If the name is saved the user is let straight in; syncFromFirebase()
+    // will pull their latest picks from the DB immediately after.
     const savedName = localStorage.getItem('wc2026_user');
     if(savedName){
       currentUser = savedName;
-      const key = playerKey();
-      db.ref('players/'+key+'/name').once('value').then(function(snap){
-        if(snap.val()){
-          // Verified — user exists in DB, let them straight in.
-          hideRegister();
-          loadUserData();
-          syncFromFirebase();
-          renderMatches();
-        } else {
-          // Name not found in DB (was deleted or wrong device) — ask again.
-          currentUser = null;
-          localStorage.removeItem('wc2026_user');
-          showLoginStep();
-        }
-      }).catch(function(){
-        // Offline / DB error — trust localStorage and let them in.
-        hideRegister();
-        loadUserData();
-        syncFromFirebase();
-        renderMatches();
-      });
+      hideRegister();
+      loadUserData();
+      syncFromFirebase();
+      renderMatches();
     } else {
       showLoginStep();
     }
