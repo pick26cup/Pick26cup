@@ -404,7 +404,8 @@ nav button:hover,nav button.active{
 /* ── TABLET PORTRAIT (481–767px) ───────────────────────────── */
 @media(min-width:481px) and (max-width:767px){
   .header-inner{flex-wrap:wrap;padding:6px 0;gap:6px;min-height:auto}
-  nav{order:3;width:100%;justify-content:flex-start;gap:5px;padding:4px 0 2px}
+  .logo{flex:1}
+  nav{order:3;flex:0 0 100%;width:100%;justify-content:flex-start;gap:5px;padding:4px 0 2px}
   nav button{font-size:12px;padding:6px 14px;border-radius:18px}
   nav button.active{background:rgba(212,175,55,.2);border-color:var(--gold);color:var(--gold)}
   #langBtn,#logoutBtn{font-size:11px;padding:5px 12px}
@@ -426,11 +427,12 @@ nav button:hover,nav button.active{
 @media(max-width:480px){
   header{padding:0 10px}
   .header-inner{flex-wrap:wrap;padding:6px 0;gap:6px;min-height:auto}
+  .logo{flex:1}
   /* Logo */
   .logo img{height:36px!important;width:auto!important;max-width:140px!important}
   /* Nav buttons — full width scrollable row */
   nav{
-    order:3;width:100%;
+    order:3;flex:0 0 100%;width:100%;
     display:flex;flex-wrap:nowrap;
     overflow-x:auto;-webkit-overflow-scrolling:touch;
     gap:6px;padding:4px 0 4px;
