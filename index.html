@@ -1328,20 +1328,23 @@ window.onload = function(){
 
 function initFirebase(){
   if(typeof firebase !== 'undefined') return setupFirebase();
-  // Load Firebase dynamically
+  // Load Firebase scripts sequentially — database-compat and auth-compat depend
+  // on firebase-app-compat being initialised first, so parallel loading risks
+  // executing them out of order.
   const scripts = [
     'https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js',
     'https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js',
     'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js'
   ];
-  let loaded = 0;
-  scripts.forEach(src=>{
+  function loadNext(i){
+    if(i >= scripts.length){ setupFirebase(); return; }
     const s = document.createElement('script');
-    s.src = src;
-    s.onload = ()=>{ loaded++; if(loaded===scripts.length) setupFirebase(); };
+    s.src = scripts[i];
+    s.onload = ()=> loadNext(i+1);
     s.onerror = ()=> console.warn('Firebase script failed to load — offline mode');
     document.head.appendChild(s);
-  });
+  }
+  loadNext(0);
 }
 
 function setupFirebase(){
@@ -1415,20 +1418,22 @@ function signInWithGoogle(){
     return;
   }
   const provider = new firebase.auth.GoogleAuthProvider();
-  // On mobile, popups are unreliable (they get blocked or auto-close, looping
-  // back to the sign-in screen). Use full-page redirect on mobile, popup on desktop.
-  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-  if(isMobile){
-    firebase.auth().signInWithRedirect(provider).catch(function(e){
-      console.warn('Google redirect sign-in failed:', e);
-      showToast(currentLang==='es'?'No se pudo iniciar sesión':'Sign-in failed','error');
-    });
-    return;
-  }
+  // Use popup on all platforms. signInWithRedirect causes a redirect loop on
+  // iOS Safari (ITP blocks the cross-domain cookie exchange), so we avoid it as
+  // the primary path. Redirect is kept as a fallback only when the popup is
+  // explicitly blocked by the browser.
   firebase.auth().signInWithPopup(provider).catch(function(e){
-    // Popup blocked or closed — fall back to full-page redirect.
-    if(e && (e.code==='auth/popup-blocked' || e.code==='auth/cancelled-popup-request' || e.code==='auth/operation-not-supported-in-this-environment')){
-      firebase.auth().signInWithRedirect(provider);
+    if(!e) return;
+    if(e.code==='auth/popup-closed-by-user' || e.code==='auth/cancelled-popup-request'){
+      // User closed the popup — not an error, do nothing.
+      return;
+    }
+    if(e.code==='auth/popup-blocked' || e.code==='auth/operation-not-supported-in-this-environment'){
+      // Popup was blocked by the browser — fall back to full-page redirect.
+      firebase.auth().signInWithRedirect(provider).catch(function(re){
+        console.warn('Google redirect sign-in failed:', re);
+        showToast(currentLang==='es'?'No se pudo iniciar sesión':'Sign-in failed','error');
+      });
     } else {
       console.warn('Google sign-in failed:', e);
       showToast(currentLang==='es'?'No se pudo iniciar sesión':'Sign-in failed','error');
