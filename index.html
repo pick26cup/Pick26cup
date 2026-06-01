@@ -1262,11 +1262,18 @@ async function sha256Hex(str){
 //  INIT
 // ══════════════════════════════════════════════════════
 window.onload = function(){
-  // Show the overlay with a loading spinner while Firebase initialises and
-  // resolves the auth state (or processes a pending redirect result).
-  // The Google sign-in button is revealed only once Firebase confirms there
-  // is no active session — this prevents the double-tap loop on mobile.
-  document.getElementById('registerOverlay').style.display='flex';
+  // Auto-login: check localStorage immediately, before Firebase even loads.
+  // This means returning players never see the login screen.
+  const savedName = localStorage.getItem('wc2026_user');
+  if(savedName){
+    currentUser = savedName;
+    document.getElementById('registerOverlay').style.display = 'none';
+    document.getElementById('logoutBtn').style.display = '';
+    loadUserData();
+  } else {
+    // No saved session — show overlay with spinner while Firebase loads.
+    document.getElementById('registerOverlay').style.display = 'flex';
+  }
   initFirebase();
   loadCustomTeamNames();
   renderMatches();
@@ -1309,33 +1316,11 @@ function setupFirebase(){
     db = firebase.database();
 
     // ── NAME-BASED SESSION ──────────────────────────────────────────
-    // No OAuth — identity is the display name stored in localStorage.
-    // On load, if a name is already saved we verify it still exists in
-    // Firebase and log straight in; otherwise show the login form.
-    const savedName = localStorage.getItem('wc2026_user');
-    if(savedName){
-      currentUser = savedName;
-      const key = playerKey();
-      db.ref('players/'+key+'/name').once('value').then(function(snap){
-        if(snap.val()){
-          // Verified — user exists in DB, let them straight in.
-          hideRegister();
-          loadUserData();
-          syncFromFirebase();
-          renderMatches();
-        } else {
-          // Name not found in DB (was deleted or wrong device) — ask again.
-          currentUser = null;
-          localStorage.removeItem('wc2026_user');
-          showLoginStep();
-        }
-      }).catch(function(){
-        // Offline / DB error — trust localStorage and let them in.
-        hideRegister();
-        loadUserData();
-        syncFromFirebase();
-        renderMatches();
-      });
+    // Trust localStorage directly — no Firebase round-trip needed.
+    // Firebase is now ready — sync picks if user is already logged in,
+    // otherwise reveal the login form.
+    if(currentUser){
+      syncFromFirebase();
     } else {
       showLoginStep();
     }
