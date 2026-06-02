@@ -1609,7 +1609,7 @@ function renderAvatarSVG(cfg, size){
   const h = Math.round(w * 96 / 80);
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 96" width="${w}" height="${h}">
-    <text x="40" y="78" text-anchor="middle" font-size="46" opacity="0.28" style="user-select:none">${jersey.flag}</text>
+    <text x="40" y="80" text-anchor="middle" font-size="72" opacity="0.7" style="user-select:none">${jersey.flag}</text>
     <path d="M12 72 Q10 96 40 96 Q70 96 68 72 L56 66 L52 78 L28 78 L24 66 Z" fill="${c1}"/>
     <path d="M24 66 Q24 60 32 58 Q32 63 40 63 Q48 63 48 58 Q56 60 56 66 Q40 74 24 66 Z" fill="${c2}" opacity="0.5"/>
     <text x="40" y="88" text-anchor="middle" font-family="sans-serif" font-size="8" font-weight="bold" fill="${txt}">${cfg.jerseyNum||10}</text>
@@ -1741,6 +1741,7 @@ function showAvatarStep(){
   if(s1) s1.style.display = 'none';
   const s2 = document.getElementById('avatarStep');
   if(s2) s2.style.display = 'block';
+  updateLang(); // apply current language to all static labels before building pickers
   try{ initAvatarPicker(); } catch(e){ console.error('Avatar picker error:', e); }
 }
 
