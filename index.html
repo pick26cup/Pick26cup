@@ -2404,18 +2404,32 @@ function adminLogout(){
 function activateSelectedWeek(){
   const val = parseInt(document.getElementById('activeWeekSelect').value);
   activeWeek = val;
-  if(db) db.ref('activeWeek').set(activeWeek);
   updateWeekBanner();
   updateWeekStatusBadge();
-  showToast((currentLang==='es'?'Jornada activada: ':'Round activated: ')+val,'success');
+  if(db){
+    db.ref('activeWeek').set(activeWeek).then(function(){
+      showToast((currentLang==='es'?'Jornada activada: ':'Round activated: ')+val,'success');
+    }).catch(function(){
+      showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+    });
+  } else {
+    showToast((currentLang==='es'?'Jornada activada (local): ':'Round activated (local): ')+val,'success');
+  }
 }
 
 function deactivateWeek(){
   activeWeek = 0;
-  if(db) db.ref('activeWeek').set(0);
   updateWeekBanner();
   updateWeekStatusBadge();
-  showToast(currentLang==='es'?'Todas las jornadas desactivadas 🔒':'All rounds deactivated 🔒','success');
+  if(db){
+    db.ref('activeWeek').set(0).then(function(){
+      showToast(currentLang==='es'?'Todas las jornadas desactivadas 🔒':'All rounds deactivated 🔒','success');
+    }).catch(function(){
+      showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+    });
+  } else {
+    showToast(currentLang==='es'?'Desactivadas (local) 🔒':'Deactivated (local) 🔒','success');
+  }
 }
 
 function setActiveWeek(val){
@@ -2509,10 +2523,18 @@ function saveResult(matchId){
   if(isNaN(h)||isNaN(a)){ showToast(currentLang==='es'?'Ingresa un marcador válido':'Enter valid score','error'); return; }
   const result = {scoreH:h, scoreA:a, updatedAt:Date.now()};
   localStorage.setItem('wc2026_result_'+matchId, JSON.stringify(result));
-  if(db) db.ref('results/'+matchId).set(result);
-  markSaveBtnSaved(matchId);
-  showToast((currentLang==='es'?'Resultado guardado ✅':'Result saved ✅'),'success');
-  recalcAllPoints();
+  if(db){
+    db.ref('results/'+matchId).set(result).then(function(){
+      markSaveBtnSaved(matchId);
+      showToast(currentLang==='es'?'Resultado guardado ✅':'Result saved ✅','success');
+      recalcAllPoints();
+    }).catch(function(){
+      showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+    });
+  } else {
+    markSaveBtnSaved(matchId);
+    showToast(currentLang==='es'?'Guardado local (sin Firebase)':'Saved locally (no Firebase)','success');
+  }
 }
 
 function markSaveBtnSaved(matchId){
@@ -2530,7 +2552,9 @@ function markSaveBtnSaved(matchId){
 function clearResult(matchId){
   if(!confirm(currentLang==='es'?'¿Borrar este resultado?':'Delete this result?')) return;
   localStorage.removeItem('wc2026_result_'+matchId);
-  if(db) db.ref('results/'+matchId).remove();
+  if(db) db.ref('results/'+matchId).remove().catch(function(){
+    showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+  });
   // Reset inputs
   const hEl = document.getElementById('rs_h_'+matchId);
   const aEl = document.getElementById('rs_a_'+matchId);
@@ -2685,38 +2709,29 @@ function renderAdminPlayers(){
   }
 
   if(db){
-    // First load with once() for reliability
     Promise.all([
       db.ref('players').once('value'),
       db.ref('picks').once('value')
     ]).then(function(snaps){
       display(snaps[0].val()||{}, snaps[1].val()||{});
-    }).catch(function(err){
-      cont.innerHTML='<p style="color:var(--red);font-size:13px">Error loading — retrying...<br><button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ Retry</button></p>';
-      // Retry after 2s
-      setTimeout(function(){ renderAdminPlayers(); }, 2000);
-    });
-    // Also attach live listener for real-time updates
-    db.ref('players').on('value', function(pSnap){
-      db.ref('picks').once('value').then(function(pickSnap){
-        display(pSnap.val()||{}, pickSnap.val()||{});
-      }).catch(function(){
-        display(pSnap.val()||{}, {});
-      });
+    }).catch(function(){
+      cont.innerHTML='<p style="color:var(--red);font-size:13px">⚠️ Firebase: permiso denegado.<br>Ve a Firebase Console → Realtime Database → Rules y pon <code>".read":true, ".write":true</code><br><button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ Reintentar</button></p>';
     });
   } else {
-    // Firebase not ready yet — retry
-    cont.innerHTML='<p style="color:var(--text2);font-size:13px">Connecting... <button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ Retry</button></p>';
+    cont.innerHTML='<p style="color:var(--text2);font-size:13px">Conectando... <button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ Reintentar</button></p>';
     setTimeout(function(){ if(db) renderAdminPlayers(); }, 2000);
   }
 }
 
 function setPlayerApproval(key, approved){
-  if(db) db.ref('players/'+key+'/approved').set(approved);
-  showToast((approved?'Player approved ✅':'Player revoked'),'success');
-  // Recalculate points so a newly approved player gets their score right away.
-  if(approved) setTimeout(recalcAllPoints, 400);
-  renderAdminPlayers();
+  if(!db){ showToast(t('Firebase no disponible','Firebase unavailable'),'error'); return; }
+  db.ref('players/'+key+'/approved').set(approved).then(function(){
+    showToast(approved?'Player approved ✅':'Player revoked','success');
+    if(approved) setTimeout(recalcAllPoints, 400);
+    renderAdminPlayers();
+  }).catch(function(){
+    showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+  });
 }
 
 function deletePlayer(key){
