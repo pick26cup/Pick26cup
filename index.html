@@ -759,6 +759,18 @@ nav button:hover,nav button.active{
                    border-radius:8px;color:var(--text);font-size:18px;font-weight:700;text-align:center;font-family:'DM Sans'"
             oninput="setAvatarOpt('jerseyNum', Math.min(99,Math.max(1,parseInt(this.value)||10)))"/>
         </div>
+        <div class="av-section">
+          <span class="av-label" data-en="🧢 Hat" data-es="🧢 Gorra / Sombrero">🧢 Hat</span>
+          <div class="av-row" id="hatPicker"></div>
+        </div>
+        <div class="av-section" id="hatColorSection" style="display:none">
+          <span class="av-label" data-en="🎨 Hat color" data-es="🎨 Color de gorra">🎨 Hat color</span>
+          <div class="av-row" id="hatColorPicker"></div>
+        </div>
+        <div class="av-section">
+          <span class="av-label" data-en="🕶️ Glasses" data-es="🕶️ Gafas">🕶️ Glasses</span>
+          <div class="av-row" id="glassesPicker"></div>
+        </div>
         <button class="btn-gold" onclick="saveAvatar()" style="width:100%;margin-top:14px" data-en="✅ Done!" data-es="✅ ¡Listo!">✅ Done!</button>
       </div>
     </div>
@@ -1371,7 +1383,7 @@ let db = null;
 let picks = {}; // {matchId: {pick:'home'|'draw'|'away', scoreH:n, scoreA:n}}
 let submittedRounds = {}; // {1:true, 2:true, 3:true}
 let activeWeek = 1;
-let avatarConfig = {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro', jerseyNum:10};
+let avatarConfig = {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro', jerseyNum:10, hat:0, hatColor:0, glasses:0};
 
 // ⚠️ CLIENT-SIDE ADMIN GATE — NOT REAL SECURITY.
 // This only hides the literal password from casual "View Source". Anyone who
@@ -1595,6 +1607,26 @@ function renderAvatarSVG(cfg, size){
       break;
   }
 
+  const hatColors = ['#1A1A1A','#002868','#C60B1E','#7B4F2E','#F0E8D0','#006847'];
+  const hh = hatColors[cfg.hatColor] || hatColors[0];
+  const hhDark = hh==='#F0E8D0' ? '#c8b87a' : 'rgba(0,0,0,0.35)';
+
+  let hat = '';
+  switch(cfg.hat){
+    case 1: // Baseball cap
+      hat = `
+        <path d="M20 35 Q20 14 40 14 Q60 14 60 35 Q52 26 40 26 Q28 26 20 35" fill="${hh}"/>
+        <path d="M40 36 Q54 33 66 37 Q64 41 40 39" fill="${hh}"/>
+        <path d="M20 35 Q40 31 60 35" stroke="${hhDark}" stroke-width="2" fill="none"/>`;
+      break;
+    case 2: // Fedora / wide hat
+      hat = `
+        <rect x="27" y="16" width="26" height="16" rx="6" fill="${hh}"/>
+        <rect x="28" y="28" width="24" height="3" rx="1" fill="${hhDark}"/>
+        <ellipse cx="40" cy="31" rx="27" ry="5.5" fill="${hh}"/>`;
+      break;
+  }
+
   let beard = '';
   switch(cfg.beard){
     case 1: // Short
@@ -1639,6 +1671,19 @@ function renderAvatarSVG(cfg, size){
       <ellipse cx="40" cy="43" rx="3" ry="2" fill="${ns}" opacity="0.5"/>
       <path d="M34 50 Q40 55 46 50" stroke="#7B4F2E" stroke-width="1.5" fill="none" stroke-linecap="round"/>
       ${beard}
+      ${cfg.glasses===1 ? `
+        <rect x="24" y="31" width="13" height="10" rx="4" fill="rgba(0,0,0,0.85)"/>
+        <rect x="43" y="31" width="13" height="10" rx="4" fill="rgba(0,0,0,0.85)"/>
+        <line x1="37" y1="36" x2="43" y2="36" stroke="#555" stroke-width="1.5"/>
+        <line x1="24" y1="35" x2="18" y2="34" stroke="#555" stroke-width="1.5"/>
+        <line x1="56" y1="35" x2="62" y2="34" stroke="#555" stroke-width="1.5"/>` :
+      cfg.glasses===2 ? `
+        <ellipse cx="31" cy="36" rx="7.5" ry="5.5" fill="rgba(180,220,255,0.12)" stroke="#A0A0A0" stroke-width="1.5"/>
+        <ellipse cx="49" cy="36" rx="7.5" ry="5.5" fill="rgba(180,220,255,0.12)" stroke="#A0A0A0" stroke-width="1.5"/>
+        <path d="M38.5 35 Q40 34 41.5 35" stroke="#A0A0A0" stroke-width="1.5" fill="none"/>
+        <line x1="23.5" y1="34" x2="18" y2="33" stroke="#A0A0A0" stroke-width="1.5"/>
+        <line x1="56.5" y1="34" x2="62" y2="33" stroke="#A0A0A0" stroke-width="1.5"/>` : ''}
+      ${hat}
     </g>
     <!-- Outer ring (jersey primary color) -->
     <circle cx="40" cy="48" r="44" fill="none" stroke="${c1}" stroke-width="4"/>
@@ -1658,12 +1703,18 @@ function setAvatarOpt(key, val){
     const hcs = document.getElementById('hairColorSection');
     if(hcs) hcs.style.display = (val===2) ? 'none' : '';
   }
-  // Refresh active states for all pickers
+  if(key==='hat'){
+    const htcs = document.getElementById('hatColorSection');
+    if(htcs) htcs.style.display = (val===0) ? 'none' : '';
+  }
   document.querySelectorAll('.av-skin-btn').forEach((b,i)=>{b.classList.toggle('active', i===avatarConfig.skin);});
   document.querySelectorAll('[data-av-hair]').forEach(b=>{b.classList.toggle('active', parseInt(b.dataset.avHair)===avatarConfig.hair);});
   document.querySelectorAll('.av-hair-btn').forEach((b,i)=>{b.classList.toggle('active', i===avatarConfig.hairColor);});
   document.querySelectorAll('[data-av-beard]').forEach(b=>{b.classList.toggle('active', parseInt(b.dataset.avBeard)===avatarConfig.beard);});
   document.querySelectorAll('[data-av-jersey]').forEach(b=>{b.classList.toggle('active', b.dataset.avJersey===avatarConfig.jersey);});
+  document.querySelectorAll('[data-av-hat]').forEach(b=>{b.classList.toggle('active', parseInt(b.dataset.avHat)===avatarConfig.hat);});
+  document.querySelectorAll('.av-hat-btn').forEach((b,i)=>{b.classList.toggle('active', i===avatarConfig.hatColor);});
+  document.querySelectorAll('[data-av-glasses]').forEach(b=>{b.classList.toggle('active', parseInt(b.dataset.avGlasses)===avatarConfig.glasses);});
   updateAvatarPreview();
 }
 
@@ -1751,6 +1802,59 @@ function initAvatarPicker(){
 
   const ni = document.getElementById('jerseyNumInput');
   if(ni) ni.value = avatarConfig.jerseyNum || 10;
+
+  // Hat picker
+  const hatStyleLabels = currentLang==='es'
+    ? ['Sin gorra','Gorra','Sombrero']
+    : ['No hat','Cap','Fedora'];
+  const hatPicker = document.getElementById('hatPicker');
+  if(hatPicker){
+    hatPicker.innerHTML = '';
+    hatStyleLabels.forEach((label,i)=>{
+      const b = document.createElement('button');
+      b.className = 'av-style-btn'+(i===avatarConfig.hat?' active':'');
+      b.dataset.avHat = i;
+      b.textContent = label;
+      b.onclick = ()=>setAvatarOpt('hat',i);
+      hatPicker.appendChild(b);
+    });
+  }
+
+  // Hat color picker
+  const hatColorArr = ['#1A1A1A','#002868','#C60B1E','#7B4F2E','#F0E8D0','#006847'];
+  const hatColorPicker = document.getElementById('hatColorPicker');
+  if(hatColorPicker){
+    hatColorPicker.innerHTML = '';
+    hatColorArr.forEach((c,i)=>{
+      const b = document.createElement('button');
+      b.className = 'av-hat-btn av-skin-btn'+(i===avatarConfig.hatColor?' active':'');
+      b.style.background = c;
+      b.title = 'Hat color '+i;
+      b.onclick = ()=>setAvatarOpt('hatColor',i);
+      hatColorPicker.appendChild(b);
+    });
+  }
+
+  // Show/hide hat color section
+  const htcs = document.getElementById('hatColorSection');
+  if(htcs) htcs.style.display = (avatarConfig.hat===0) ? 'none' : '';
+
+  // Glasses picker
+  const glassesLabels = currentLang==='es'
+    ? ['Sin gafas','Oscuras','De leer']
+    : ['No glasses','Sunglasses','Reading'];
+  const glassesPicker = document.getElementById('glassesPicker');
+  if(glassesPicker){
+    glassesPicker.innerHTML = '';
+    glassesLabels.forEach((label,i)=>{
+      const b = document.createElement('button');
+      b.className = 'av-style-btn'+(i===avatarConfig.glasses?' active':'');
+      b.dataset.avGlasses = i;
+      b.textContent = label;
+      b.onclick = ()=>setAvatarOpt('glasses',i);
+      glassesPicker.appendChild(b);
+    });
+  }
 
   updateAvatarPreview();
 }
