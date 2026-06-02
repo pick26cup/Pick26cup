@@ -2404,18 +2404,32 @@ function adminLogout(){
 function activateSelectedWeek(){
   const val = parseInt(document.getElementById('activeWeekSelect').value);
   activeWeek = val;
-  if(db) db.ref('activeWeek').set(activeWeek);
   updateWeekBanner();
   updateWeekStatusBadge();
-  showToast((currentLang==='es'?'Jornada activada: ':'Round activated: ')+val,'success');
+  if(db){
+    db.ref('activeWeek').set(activeWeek).then(function(){
+      showToast((currentLang==='es'?'Jornada activada: ':'Round activated: ')+val,'success');
+    }).catch(function(){
+      showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+    });
+  } else {
+    showToast((currentLang==='es'?'Jornada activada (local): ':'Round activated (local): ')+val,'success');
+  }
 }
 
 function deactivateWeek(){
   activeWeek = 0;
-  if(db) db.ref('activeWeek').set(0);
   updateWeekBanner();
   updateWeekStatusBadge();
-  showToast(currentLang==='es'?'Todas las jornadas desactivadas 🔒':'All rounds deactivated 🔒','success');
+  if(db){
+    db.ref('activeWeek').set(0).then(function(){
+      showToast(currentLang==='es'?'Todas las jornadas desactivadas 🔒':'All rounds deactivated 🔒','success');
+    }).catch(function(){
+      showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+    });
+  } else {
+    showToast(currentLang==='es'?'Desactivadas (local) 🔒':'Deactivated (local) 🔒','success');
+  }
 }
 
 function setActiveWeek(val){
@@ -2509,10 +2523,18 @@ function saveResult(matchId){
   if(isNaN(h)||isNaN(a)){ showToast(currentLang==='es'?'Ingresa un marcador válido':'Enter valid score','error'); return; }
   const result = {scoreH:h, scoreA:a, updatedAt:Date.now()};
   localStorage.setItem('wc2026_result_'+matchId, JSON.stringify(result));
-  if(db) db.ref('results/'+matchId).set(result);
-  markSaveBtnSaved(matchId);
-  showToast((currentLang==='es'?'Resultado guardado ✅':'Result saved ✅'),'success');
-  recalcAllPoints();
+  if(db){
+    db.ref('results/'+matchId).set(result).then(function(){
+      markSaveBtnSaved(matchId);
+      showToast(currentLang==='es'?'Resultado guardado ✅':'Result saved ✅','success');
+      recalcAllPoints();
+    }).catch(function(){
+      showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+    });
+  } else {
+    markSaveBtnSaved(matchId);
+    showToast(currentLang==='es'?'Guardado local (sin Firebase)':'Saved locally (no Firebase)','success');
+  }
 }
 
 function markSaveBtnSaved(matchId){
@@ -2530,7 +2552,9 @@ function markSaveBtnSaved(matchId){
 function clearResult(matchId){
   if(!confirm(currentLang==='es'?'¿Borrar este resultado?':'Delete this result?')) return;
   localStorage.removeItem('wc2026_result_'+matchId);
-  if(db) db.ref('results/'+matchId).remove();
+  if(db) db.ref('results/'+matchId).remove().catch(function(){
+    showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+  });
   // Reset inputs
   const hEl = document.getElementById('rs_h_'+matchId);
   const aEl = document.getElementById('rs_a_'+matchId);
@@ -2685,38 +2709,29 @@ function renderAdminPlayers(){
   }
 
   if(db){
-    // First load with once() for reliability
     Promise.all([
       db.ref('players').once('value'),
       db.ref('picks').once('value')
     ]).then(function(snaps){
       display(snaps[0].val()||{}, snaps[1].val()||{});
-    }).catch(function(err){
-      cont.innerHTML='<p style="color:var(--red);font-size:13px">Error loading — retrying...<br><button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ Retry</button></p>';
-      // Retry after 2s
-      setTimeout(function(){ renderAdminPlayers(); }, 2000);
-    });
-    // Also attach live listener for real-time updates
-    db.ref('players').on('value', function(pSnap){
-      db.ref('picks').once('value').then(function(pickSnap){
-        display(pSnap.val()||{}, pickSnap.val()||{});
-      }).catch(function(){
-        display(pSnap.val()||{}, {});
-      });
+    }).catch(function(){
+      cont.innerHTML='<p style="color:var(--red);font-size:13px">⚠️ Firebase: permiso denegado.<br>Ve a Firebase Console → Realtime Database → Rules y pon <code>".read":true, ".write":true</code><br><button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ Reintentar</button></p>';
     });
   } else {
-    // Firebase not ready yet — retry
-    cont.innerHTML='<p style="color:var(--text2);font-size:13px">Connecting... <button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ Retry</button></p>';
+    cont.innerHTML='<p style="color:var(--text2);font-size:13px">Conectando... <button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ Reintentar</button></p>';
     setTimeout(function(){ if(db) renderAdminPlayers(); }, 2000);
   }
 }
 
 function setPlayerApproval(key, approved){
-  if(db) db.ref('players/'+key+'/approved').set(approved);
-  showToast((approved?'Player approved ✅':'Player revoked'),'success');
-  // Recalculate points so a newly approved player gets their score right away.
-  if(approved) setTimeout(recalcAllPoints, 400);
-  renderAdminPlayers();
+  if(!db){ showToast(t('Firebase no disponible','Firebase unavailable'),'error'); return; }
+  db.ref('players/'+key+'/approved').set(approved).then(function(){
+    showToast(approved?'Player approved ✅':'Player revoked','success');
+    if(approved) setTimeout(recalcAllPoints, 400);
+    renderAdminPlayers();
+  }).catch(function(){
+    showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+  });
 }
 
 function deletePlayer(key){
@@ -2919,41 +2934,87 @@ function generatePDFAllRounds(playerName, playerPicks, rounds, isAdminCopy=false
         let rowCount = 0;
         roundMatches.forEach((m, idx)=>{
           if(y > 272){ doc.addPage(); y = 20; }
-          const bg = rowCount%2===0 ? [255,255,255] : [248,244,232];
+          const p = playerPicks[m.id] || {};
+          const pick = p.pick; // 'home' | 'draw' | 'away' | undefined
+
+          // Alternating row background
+          const bg = rowCount%2===0 ? [255,255,255] : [250,247,238];
           doc.setFillColor(...bg);
           doc.rect(10,y-4,190,7,'F');
-          doc.setTextColor(30,30,30);
-          doc.setFont('helvetica','normal');
-          doc.setFontSize(8);
 
+          // ── Team cell highlights ──────────────────────────────────
+          if(!(m.closer||m.final)){
+            if(pick==='home'){
+              doc.setFillColor(190,245,208); // soft green on home
+              doc.rect(17,y-3.5,66,5.5,'F');
+            } else if(pick==='away'){
+              doc.setFillColor(255,198,193); // soft red on away
+              doc.rect(85,y-3.5,43,5.5,'F');
+            } else if(pick==='draw'){
+              doc.setFillColor(190,218,255); // soft blue on both
+              doc.rect(17,y-3.5,66,5.5,'F');
+              doc.rect(85,y-3.5,43,5.5,'F');
+            }
+            // Pick badge background
+            const badgeBg = pick==='home'?[190,245,208]:pick==='draw'?[190,218,255]:pick==='away'?[255,198,193]:[238,238,238];
+            doc.setFillColor(...badgeBg);
+            doc.rect(128,y-3.5,38,5.5,'F');
+          } else {
+            // Closer/Final: gold highlight on score cell
+            doc.setFillColor(255,238,160);
+            doc.rect(128,y-3.5,38,5.5,'F');
+          }
+
+          // ── Pick label & color ────────────────────────────────────
+          let pickLabel = '—';
+          let pickColor = [150,150,150];
+          if(m.closer||m.final){
+            const sh = p.scoreH!==undefined?p.scoreH:'?';
+            const sa = p.scoreA!==undefined?p.scoreA:'?';
+            pickLabel = sh+' — '+sa;
+            pickColor = [130,95,0];
+          } else if(pick==='home'){
+            pickLabel = currentLang==='es'?'LOCAL':'HOME WIN';
+            pickColor = [0,115,48];
+          } else if(pick==='draw'){
+            pickLabel = currentLang==='es'?'EMPATE':'DRAW';
+            pickColor = [0,68,158];
+          } else if(pick==='away'){
+            pickLabel = currentLang==='es'?'VISITANTE':'AWAY WIN';
+            pickColor = [165,28,18];
+          }
+
+          // ── Row text ──────────────────────────────────────────────
+          doc.setFontSize(8);
+          doc.setFont('helvetica','normal');
+          doc.setTextColor(60,60,60);
           doc.text(String(idx+1), 13, y);
-          const pdfHome = (customTeamNames[m.id+'_home'] || m.home || '').substring(0,15);
-          const pdfAway = (customTeamNames[m.id+'_away'] || m.away || '').substring(0,15);
+
+          const pdfHome = (customTeamNames[m.id+'_home']||m.home||'').substring(0,17);
+          const pdfAway = (customTeamNames[m.id+'_away']||m.away||'').substring(0,17);
+
+          // Home team: bold+colored when selected
+          if(pick==='home'){ doc.setFont('helvetica','bold'); doc.setTextColor(0,105,42); }
+          else if(pick==='draw'){ doc.setFont('helvetica','bold'); doc.setTextColor(0,62,148); }
+          else { doc.setFont('helvetica','normal'); doc.setTextColor(40,40,40); }
           doc.text(pdfHome, 20, y);
+
+          // Away team: bold+colored when selected
+          if(pick==='away'){ doc.setFont('helvetica','bold'); doc.setTextColor(155,22,12); }
+          else if(pick==='draw'){ doc.setFont('helvetica','bold'); doc.setTextColor(0,62,148); }
+          else { doc.setFont('helvetica','normal'); doc.setTextColor(40,40,40); }
           doc.text(pdfAway, 88, y);
 
-          const p = playerPicks[m.id] || {};
-          let pickLabel = '—';
-          if(m.closer || m.final){
-            const sh = p.scoreH!==undefined ? p.scoreH : '?';
-            const sa = p.scoreA!==undefined ? p.scoreA : '?';
-            pickLabel = sh + ' — ' + sa;
-          } else if(p.pick==='home') pickLabel = 'HOME WIN';
-          else if(p.pick==='draw') pickLabel = 'DRAW';
-          else if(p.pick==='away') pickLabel = 'AWAY WIN';
-
-          const pickColor = (m.closer||m.final) ? [180,134,11]
-            : p.pick==='home'?[0,140,70]
-            : p.pick==='draw'?[0,90,170]
-            : p.pick==='away'?[170,40,20]
-            : [150,150,150];
+          // Pick label: bold + pick color
           doc.setTextColor(...pickColor);
           doc.setFont('helvetica','bold');
           doc.text(pickLabel, 132, y);
 
-          doc.setTextColor(30,30,30);
+          // Date/time
+          doc.setTextColor(80,80,80);
           doc.setFont('helvetica','normal');
           doc.text(m.date+' '+m.time, 208, y, {align:'right'});
+
           y += 7;
           rowCount++;
         });
@@ -2971,6 +3032,34 @@ function generatePDFAllRounds(playerName, playerPicks, rounds, isAdminCopy=false
         doc.setFont('helvetica','normal');
         doc.setTextColor(100,80,0);
         doc.text('This document is the official record of predictions for this round.', 14, y+11);
+
+        // Color legend
+        y += 20;
+        if(y > 275){ doc.addPage(); y = 20; }
+        doc.setFontSize(7);
+        doc.setFont('helvetica','bold');
+        doc.setTextColor(60,60,60);
+        doc.text(currentLang==='es'?'Leyenda de colores:':'Color legend:', 14, y);
+        // Green swatch
+        doc.setFillColor(190,245,208);
+        doc.rect(50,y-3,8,4,'F');
+        doc.setTextColor(0,105,42);
+        doc.text(currentLang==='es'?'Local/Home':'Home Win', 60, y);
+        // Blue swatch
+        doc.setFillColor(190,218,255);
+        doc.rect(92,y-3,8,4,'F');
+        doc.setTextColor(0,62,148);
+        doc.text(currentLang==='es'?'Empate':'Draw', 102, y);
+        // Red swatch
+        doc.setFillColor(255,198,193);
+        doc.rect(120,y-3,8,4,'F');
+        doc.setTextColor(155,22,12);
+        doc.text(currentLang==='es'?'Visitante/Away':'Away Win', 130, y);
+        // Gold swatch
+        doc.setFillColor(255,238,160);
+        doc.rect(166,y-3,8,4,'F');
+        doc.setTextColor(130,95,0);
+        doc.text(currentLang==='es'?'Marcador exacto':'Exact score', 176, y);
       });
 
       // Footer on last page
