@@ -3518,8 +3518,7 @@ function generatePDFAllRounds(playerName, playerPicks, rounds, isAdminCopy=false
         doc.text('#', 13, y);
         doc.text('Home Team', 20, y);
         doc.text('Away Team', 88, y);
-        doc.text('Pick', 132, y);
-        doc.text('Score', 158, y);
+        doc.text('H   D   A  /  Score', 132, y);
         doc.text('Date/Time', 185, y);
         y += 7;
 
@@ -3539,46 +3538,19 @@ function generatePDFAllRounds(playerName, playerPicks, rounds, isAdminCopy=false
           // ── Team cell highlights ──────────────────────────────────
           if(!(m.closer||m.final)){
             if(pick==='home'){
-              doc.setFillColor(190,245,208); // soft green on home
+              doc.setFillColor(190,245,208);
               doc.rect(17,y-3.5,66,5.5,'F');
             } else if(pick==='away'){
-              doc.setFillColor(255,198,193); // soft red on away
+              doc.setFillColor(255,198,193);
               doc.rect(85,y-3.5,43,5.5,'F');
             } else if(pick==='draw'){
-              doc.setFillColor(190,218,255); // soft blue on both
+              doc.setFillColor(190,218,255);
               doc.rect(17,y-3.5,66,5.5,'F');
               doc.rect(85,y-3.5,43,5.5,'F');
             }
-            // Pick badge background
-            const badgeBg = pick==='home'?[190,245,208]:pick==='draw'?[190,218,255]:pick==='away'?[255,198,193]:[238,238,238];
-            doc.setFillColor(...badgeBg);
-            doc.rect(128,y-3.5,38,5.5,'F');
-          } else {
-            // Closer/Final: gold highlight on score cell
-            doc.setFillColor(255,238,160);
-            doc.rect(128,y-3.5,38,5.5,'F');
           }
 
-          // ── Pick label & color ────────────────────────────────────
-          let pickLabel = '—';
-          let pickColor = [150,150,150];
-          if(m.closer||m.final){
-            const sh = p.scoreH!==undefined?p.scoreH:'?';
-            const sa = p.scoreA!==undefined?p.scoreA:'?';
-            pickLabel = sh+' — '+sa;
-            pickColor = [130,95,0];
-          } else if(pick==='home'){
-            pickLabel = currentLang==='es'?'LOCAL':'HOME WIN';
-            pickColor = [0,115,48];
-          } else if(pick==='draw'){
-            pickLabel = currentLang==='es'?'EMPATE':'DRAW';
-            pickColor = [0,68,158];
-          } else if(pick==='away'){
-            pickLabel = currentLang==='es'?'VISITANTE':'AWAY WIN';
-            pickColor = [165,28,18];
-          }
-
-          // ── Row text ──────────────────────────────────────────────
+          // ── Row text: # + teams ───────────────────────────────────
           doc.setFontSize(8);
           doc.setFont('helvetica','normal');
           doc.setTextColor(60,60,60);
@@ -3587,26 +3559,62 @@ function generatePDFAllRounds(playerName, playerPicks, rounds, isAdminCopy=false
           const pdfHome = (customTeamNames[m.id+'_home']||m.home||'').substring(0,17);
           const pdfAway = (customTeamNames[m.id+'_away']||m.away||'').substring(0,17);
 
-          // Home team: bold+colored when selected
           if(pick==='home'){ doc.setFont('helvetica','bold'); doc.setTextColor(0,105,42); }
           else if(pick==='draw'){ doc.setFont('helvetica','bold'); doc.setTextColor(0,62,148); }
           else { doc.setFont('helvetica','normal'); doc.setTextColor(40,40,40); }
           doc.text(pdfHome, 20, y);
 
-          // Away team: bold+colored when selected
           if(pick==='away'){ doc.setFont('helvetica','bold'); doc.setTextColor(155,22,12); }
           else if(pick==='draw'){ doc.setFont('helvetica','bold'); doc.setTextColor(0,62,148); }
           else { doc.setFont('helvetica','normal'); doc.setTextColor(40,40,40); }
           doc.text(pdfAway, 88, y);
 
-          // Pick label: bold + pick color
-          doc.setTextColor(...pickColor);
-          doc.setFont('helvetica','bold');
-          doc.text(pickLabel, 132, y);
+          // ── Pick column: circles ──────────────────────────────────
+          if(!(m.closer||m.final)){
+            // Three circles H / D / A — selected one filled & circled
+            const opts = [
+              {lbl:'H', cx:136, sel:pick==='home', fill:[190,245,208], stroke:[0,115,48]},
+              {lbl:'D', cx:148, sel:pick==='draw', fill:[190,218,255], stroke:[0,68,158]},
+              {lbl:'A', cx:160, sel:pick==='away', fill:[255,198,193], stroke:[165,28,18]},
+            ];
+            opts.forEach(o=>{
+              if(o.sel){
+                doc.setFillColor(...o.fill);
+                doc.setDrawColor(...o.stroke);
+                doc.setLineWidth(0.9);
+                doc.circle(o.cx, y-0.8, 3.4, 'FD');
+                doc.setFont('helvetica','bold');
+                doc.setFontSize(7);
+                doc.setTextColor(...o.stroke);
+              } else {
+                doc.setDrawColor(185,185,185);
+                doc.setLineWidth(0.3);
+                doc.circle(o.cx, y-0.8, 3.4, 'S');
+                doc.setFont('helvetica','normal');
+                doc.setFontSize(7);
+                doc.setTextColor(185,185,185);
+              }
+              doc.text(o.lbl, o.cx, y+0.5, {align:'center'});
+            });
+          } else {
+            // Closer / Final: oval around the exact score
+            const sh = p.scoreH!==undefined?p.scoreH:'?';
+            const sa = p.scoreA!==undefined?p.scoreA:'?';
+            const scoreStr = String(sh)+' — '+String(sa);
+            doc.setFillColor(255,242,175);
+            doc.setDrawColor(160,110,0);
+            doc.setLineWidth(0.9);
+            doc.roundedRect(130,y-4,36,6.5,3,3,'FD');
+            doc.setFont('helvetica','bold');
+            doc.setFontSize(9);
+            doc.setTextColor(110,72,0);
+            doc.text(scoreStr, 148, y+0.3, {align:'center'});
+          }
 
           // Date/time
           doc.setTextColor(80,80,80);
           doc.setFont('helvetica','normal');
+          doc.setFontSize(8);
           doc.text(m.date+' '+m.time, 208, y, {align:'right'});
 
           y += 7;
@@ -3627,33 +3635,41 @@ function generatePDFAllRounds(playerName, playerPicks, rounds, isAdminCopy=false
         doc.setTextColor(100,80,0);
         doc.text('This document is the official record of predictions for this round.', 14, y+11);
 
-        // Color legend
+        // Circle legend
         y += 20;
         if(y > 275){ doc.addPage(); y = 20; }
         doc.setFontSize(7);
         doc.setFont('helvetica','bold');
         doc.setTextColor(60,60,60);
-        doc.text(currentLang==='es'?'Leyenda de colores:':'Color legend:', 14, y);
-        // Green swatch
-        doc.setFillColor(190,245,208);
-        doc.rect(50,y-3,8,4,'F');
-        doc.setTextColor(0,105,42);
-        doc.text(currentLang==='es'?'Local/Home':'Home Win', 60, y);
-        // Blue swatch
-        doc.setFillColor(190,218,255);
-        doc.rect(92,y-3,8,4,'F');
-        doc.setTextColor(0,62,148);
-        doc.text(currentLang==='es'?'Empate':'Draw', 102, y);
-        // Red swatch
-        doc.setFillColor(255,198,193);
-        doc.rect(120,y-3,8,4,'F');
-        doc.setTextColor(155,22,12);
-        doc.text(currentLang==='es'?'Visitante/Away':'Away Win', 130, y);
-        // Gold swatch
-        doc.setFillColor(255,238,160);
-        doc.rect(166,y-3,8,4,'F');
-        doc.setTextColor(130,95,0);
-        doc.text(currentLang==='es'?'Marcador exacto':'Exact score', 176, y);
+        doc.text(currentLang==='es'?'Leyenda:':'Legend:', 14, y);
+        // H circle
+        doc.setFillColor(190,245,208); doc.setDrawColor(0,115,48); doc.setLineWidth(0.8);
+        doc.circle(52, y-1.5, 3, 'FD');
+        doc.setFont('helvetica','bold'); doc.setFontSize(6); doc.setTextColor(0,115,48);
+        doc.text('H', 52, y-0.5, {align:'center'});
+        doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(0,105,42);
+        doc.text(currentLang==='es'?'= Local':'= Home Win', 57, y);
+        // D circle
+        doc.setFillColor(190,218,255); doc.setDrawColor(0,68,158); doc.setLineWidth(0.8);
+        doc.circle(95, y-1.5, 3, 'FD');
+        doc.setFont('helvetica','bold'); doc.setFontSize(6); doc.setTextColor(0,68,158);
+        doc.text('D', 95, y-0.5, {align:'center'});
+        doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(0,62,148);
+        doc.text(currentLang==='es'?'= Empate':'= Draw', 100, y);
+        // A circle
+        doc.setFillColor(255,198,193); doc.setDrawColor(165,28,18); doc.setLineWidth(0.8);
+        doc.circle(126, y-1.5, 3, 'FD');
+        doc.setFont('helvetica','bold'); doc.setFontSize(6); doc.setTextColor(165,28,18);
+        doc.text('A', 126, y-0.5, {align:'center'});
+        doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(155,22,12);
+        doc.text(currentLang==='es'?'= Visitante':'= Away Win', 131, y);
+        // Score oval
+        doc.setFillColor(255,242,175); doc.setDrawColor(160,110,0); doc.setLineWidth(0.8);
+        doc.roundedRect(163,y-4,18,6,2.5,2.5,'FD');
+        doc.setFont('helvetica','bold'); doc.setFontSize(6); doc.setTextColor(110,72,0);
+        doc.text('0—0', 172, y-0.5, {align:'center'});
+        doc.setFont('helvetica','normal'); doc.setFontSize(7);
+        doc.text(currentLang==='es'?'= Marcador exacto':'= Exact score', 183, y);
       });
 
       // Footer on last page
