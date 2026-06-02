@@ -1616,8 +1616,8 @@ function renderAvatarSVG(cfg, size){
         <circle cx="40" cy="48" r="44"/>
       </clipPath>
     </defs>
-    <!-- Circle background -->
-    <circle cx="40" cy="48" r="44" fill="rgba(10,10,10,0.85)"/>
+    <!-- Circle background (dark-tinted so flag shows clearly) -->
+    <circle cx="40" cy="48" r="44" fill="rgba(15,10,5,0.55)"/>
     <!-- Flag emoji clipped to circle -->
     <text x="40" y="82" text-anchor="middle" font-size="72" opacity="0.7" style="user-select:none" clip-path="url(#${uid})">${jersey.flag}</text>
     <!-- Avatar figure clipped to circle -->
@@ -1754,6 +1754,9 @@ function initAvatarPicker(){
 }
 
 function showAvatarStep(){
+  // Always make sure the overlay is visible when showing the avatar step
+  document.getElementById('registerOverlay').style.display = 'flex';
+  const s0 = document.getElementById('authLoadingStep'); if(s0) s0.style.display = 'none';
   const s1 = document.getElementById('loginStep');
   if(s1) s1.style.display = 'none';
   const s2 = document.getElementById('avatarStep');
