@@ -1556,6 +1556,7 @@ function loadUserData(){
 // ══════════════════════════════════════════════════════
 //  AVATAR CUSTOMIZER
 // ══════════════════════════════════════════════════════
+let _avUid = 0;
 function renderAvatarSVG(cfg, size){
   const skins = ['#FDDBB4','#F1C27D','#C68642','#8D5524','#5C3317','#2A1506'];
   const hairColors = ['#1A1A1A','#3B2314','#7B4F2E','#C48B3D','#E8C96E','#B85C38','#888888','#E8E8E8'];
@@ -1605,26 +1606,42 @@ function renderAvatarSVG(cfg, size){
       break;
   }
 
+  const uid = 'av' + (++_avUid);
   const w = size || 80;
-  const h = Math.round(w * 96 / 80);
+  const h = Math.round(w * 104 / 96);
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 96" width="${w}" height="${h}">
-    <text x="40" y="80" text-anchor="middle" font-size="72" opacity="0.7" style="user-select:none">${jersey.flag}</text>
-    <path d="M12 72 Q10 96 40 96 Q70 96 68 72 L56 66 L52 78 L28 78 L24 66 Z" fill="${c1}"/>
-    <path d="M24 66 Q24 60 32 58 Q32 63 40 63 Q48 63 48 58 Q56 60 56 66 Q40 74 24 66 Z" fill="${c2}" opacity="0.5"/>
-    <text x="40" y="88" text-anchor="middle" font-family="sans-serif" font-size="8" font-weight="bold" fill="${txt}">${cfg.jerseyNum||10}</text>
-    <rect x="34" y="57" width="12" height="10" fill="${sk}" rx="2"/>
-    ${hairBehind}
-    <circle cx="40" cy="38" r="21" fill="${sk}"/>
-    <path d="M30 31 Q33 29 36 31" stroke="#1A1A1A" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-    <path d="M44 31 Q47 29 50 31" stroke="#1A1A1A" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-    <circle cx="33" cy="36" r="3.5" fill="#1A1A1A"/>
-    <circle cx="47" cy="36" r="3.5" fill="#1A1A1A"/>
-    <circle cx="34.5" cy="34.5" r="1" fill="#fff"/>
-    <circle cx="48.5" cy="34.5" r="1" fill="#fff"/>
-    <ellipse cx="40" cy="43" rx="3" ry="2" fill="${ns}" opacity="0.5"/>
-    <path d="M34 50 Q40 55 46 50" stroke="#7B4F2E" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-    ${beard}
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-8 -4 96 104" width="${w}" height="${h}">
+    <defs>
+      <clipPath id="${uid}">
+        <circle cx="40" cy="48" r="44"/>
+      </clipPath>
+    </defs>
+    <!-- Circle background -->
+    <circle cx="40" cy="48" r="44" fill="rgba(10,10,10,0.85)"/>
+    <!-- Flag emoji clipped to circle -->
+    <text x="40" y="82" text-anchor="middle" font-size="72" opacity="0.7" style="user-select:none" clip-path="url(#${uid})">${jersey.flag}</text>
+    <!-- Avatar figure clipped to circle -->
+    <g clip-path="url(#${uid})">
+      <path d="M12 72 Q10 100 40 100 Q70 100 68 72 L56 66 L52 80 L28 80 L24 66 Z" fill="${c1}"/>
+      <path d="M24 66 Q24 60 32 58 Q32 63 40 63 Q48 63 48 58 Q56 60 56 66 Q40 74 24 66 Z" fill="${c2}" opacity="0.5"/>
+      <text x="40" y="90" text-anchor="middle" font-family="sans-serif" font-size="8" font-weight="bold" fill="${txt}">${cfg.jerseyNum||10}</text>
+      <rect x="34" y="57" width="12" height="10" fill="${sk}" rx="2"/>
+      ${hairBehind}
+      <circle cx="40" cy="38" r="21" fill="${sk}"/>
+      <path d="M30 31 Q33 29 36 31" stroke="#1A1A1A" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M44 31 Q47 29 50 31" stroke="#1A1A1A" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <circle cx="33" cy="36" r="3.5" fill="#1A1A1A"/>
+      <circle cx="47" cy="36" r="3.5" fill="#1A1A1A"/>
+      <circle cx="34.5" cy="34.5" r="1" fill="#fff"/>
+      <circle cx="48.5" cy="34.5" r="1" fill="#fff"/>
+      <ellipse cx="40" cy="43" rx="3" ry="2" fill="${ns}" opacity="0.5"/>
+      <path d="M34 50 Q40 55 46 50" stroke="#7B4F2E" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      ${beard}
+    </g>
+    <!-- Outer ring (jersey primary color) -->
+    <circle cx="40" cy="48" r="44" fill="none" stroke="${c1}" stroke-width="4"/>
+    <!-- Inner ring (jersey secondary color) -->
+    <circle cx="40" cy="48" r="40" fill="none" stroke="${c2}" stroke-width="1.5" opacity="0.8"/>
   </svg>`;
 }
 
