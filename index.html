@@ -752,6 +752,13 @@ nav button:hover,nav button.active{
           <span class="av-label">👕 Camiseta del equipo</span>
           <div class="av-row" id="jerseyPicker" style="max-height:90px;overflow-y:auto;padding-right:4px"></div>
         </div>
+        <div class="av-section">
+          <span class="av-label">🔢 Número de camiseta</span>
+          <input type="number" id="jerseyNumInput" min="1" max="99" value="10"
+            style="width:72px;padding:6px 10px;background:rgba(255,255,255,.07);border:1.5px solid var(--gray);
+                   border-radius:8px;color:var(--text);font-size:18px;font-weight:700;text-align:center;font-family:'DM Sans'"
+            oninput="setAvatarOpt('jerseyNum', Math.min(99,Math.max(1,parseInt(this.value)||10)))"/>
+        </div>
         <button class="btn-gold" onclick="saveAvatar()" style="width:100%;margin-top:14px">✅ ¡Listo!</button>
       </div>
     </div>
@@ -1287,28 +1294,67 @@ window._origMatches = {};
 //  JERSEY TEAMS (for avatar customizer)
 // ══════════════════════════════════════════════════════
 const JERSEY_TEAMS = [
-  {id:'neutro',   name:'⚽ Neutral',         c1:'#555555', c2:'#333333', txt:'#fff'},
-  {id:'argentina',name:'🇦🇷 Argentina',      c1:'#74ACDF', c2:'#FFFFFF', txt:'#002868'},
-  {id:'brasil',   name:'🇧🇷 Brasil',          c1:'#FFDF00', c2:'#009C3B', txt:'#002868'},
-  {id:'mexico',   name:'🇲🇽 México',          c1:'#006847', c2:'#CE1126', txt:'#FFFFFF'},
-  {id:'colombia', name:'🇨🇴 Colombia',        c1:'#FCD116', c2:'#003087', txt:'#003087'},
-  {id:'usa',      name:'🇺🇸 EE.UU.',          c1:'#002868', c2:'#BF0A30', txt:'#FFFFFF'},
-  {id:'espana',   name:'🇪🇸 España',          c1:'#C60B1E', c2:'#F1BF00', txt:'#F1BF00'},
-  {id:'francia',  name:'🇫🇷 Francia',         c1:'#002395', c2:'#ED2939', txt:'#FFFFFF'},
-  {id:'alemania', name:'🇩🇪 Alemania',        c1:'#FFFFFF', c2:'#000000', txt:'#111111'},
-  {id:'portugal', name:'🇵🇹 Portugal',        c1:'#006600', c2:'#C8102E', txt:'#FFFFFF'},
-  {id:'canada',   name:'🇨🇦 Canadá',          c1:'#CC0000', c2:'#FFFFFF', txt:'#FFFFFF'},
-  {id:'marruecos',name:'🇲🇦 Marruecos',      c1:'#006233', c2:'#C1272D', txt:'#FFFFFF'},
-  {id:'japon',    name:'🇯🇵 Japón',           c1:'#003087', c2:'#BC002D', txt:'#FFFFFF'},
-  {id:'senegal',  name:'🇸🇳 Senegal',         c1:'#00853F', c2:'#FDEF42', txt:'#FFFFFF'},
-  {id:'uruguay',  name:'🇺🇾 Uruguay',         c1:'#5EB6E4', c2:'#FFFFFF', txt:'#002868'},
-  {id:'australia',name:'🇦🇺 Australia',      c1:'#FFD700', c2:'#00843D', txt:'#00843D'},
-  {id:'holanda',  name:'🇳🇱 Países Bajos',    c1:'#FF6600', c2:'#FFFFFF', txt:'#FFFFFF'},
-  {id:'belgica',  name:'🇧🇪 Bélgica',         c1:'#EF3340', c2:'#000000', txt:'#F4DC00'},
-  {id:'suecia',   name:'🇸🇪 Suecia',          c1:'#006AA7', c2:'#FECC02', txt:'#FECC02'},
-  {id:'corea',    name:'🇰🇷 Corea del Sur',   c1:'#C8102E', c2:'#FFFFFF', txt:'#FFFFFF'},
-  {id:'iran',     name:'🇮🇷 Irán',            c1:'#239F40', c2:'#FFFFFF', txt:'#FFFFFF'},
-  {id:'arabia',   name:'🇸🇦 Arabia Saudí',    c1:'#006C35', c2:'#FFFFFF', txt:'#FFFFFF'},
+  // ── Americas (16) ──────────────────────────────────────────
+  {id:'usa',        flag:'🇺🇸', name:'EE.UU.',          c1:'#002868', c2:'#BF0A30', txt:'#FFFFFF'},
+  {id:'canada',     flag:'🇨🇦', name:'Canadá',          c1:'#CC0000', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'mexico',     flag:'🇲🇽', name:'México',          c1:'#006847', c2:'#CE1126', txt:'#FFFFFF'},
+  {id:'argentina',  flag:'🇦🇷', name:'Argentina',      c1:'#74ACDF', c2:'#FFFFFF', txt:'#002868'},
+  {id:'brasil',     flag:'🇧🇷', name:'Brasil',          c1:'#FFDF00', c2:'#009C3B', txt:'#002868'},
+  {id:'colombia',   flag:'🇨🇴', name:'Colombia',        c1:'#FCD116', c2:'#003087', txt:'#003087'},
+  {id:'uruguay',    flag:'🇺🇾', name:'Uruguay',         c1:'#5EB6E4', c2:'#FFFFFF', txt:'#002868'},
+  {id:'ecuador',    flag:'🇪🇨', name:'Ecuador',         c1:'#FFD100', c2:'#003DA5', txt:'#003DA5'},
+  {id:'paraguay',   flag:'🇵🇾', name:'Paraguay',        c1:'#D52B1E', c2:'#FFFFFF', txt:'#002868'},
+  {id:'chile',      flag:'🇨🇱', name:'Chile',           c1:'#D52B1E', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'venezuela',  flag:'🇻🇪', name:'Venezuela',       c1:'#CF142B', c2:'#003082', txt:'#FFFFFF'},
+  {id:'peru',       flag:'🇵🇪', name:'Perú',            c1:'#FFFFFF', c2:'#D91023', txt:'#D91023'},
+  {id:'bolivia',    flag:'🇧🇴', name:'Bolivia',         c1:'#007934', c2:'#D52B1E', txt:'#FFFFFF'},
+  {id:'haiti',      flag:'🇭🇹', name:'Haití',           c1:'#00209F', c2:'#D21034', txt:'#FFFFFF'},
+  {id:'panama',     flag:'🇵🇦', name:'Panamá',          c1:'#FFFFFF', c2:'#DA121A', txt:'#003893'},
+  {id:'costarica',  flag:'🇨🇷', name:'Costa Rica',      c1:'#002B7F', c2:'#CE1126', txt:'#FFFFFF'},
+  {id:'honduras',   flag:'🇭🇳', name:'Honduras',        c1:'#0073CF', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'jamaika',    flag:'🇯🇲', name:'Jamaica',         c1:'#000000', c2:'#FED100', txt:'#009B3A'},
+  // ── Europe (13) ────────────────────────────────────────────
+  {id:'espana',     flag:'🇪🇸', name:'España',          c1:'#C60B1E', c2:'#F1BF00', txt:'#F1BF00'},
+  {id:'francia',    flag:'🇫🇷', name:'Francia',         c1:'#002395', c2:'#ED2939', txt:'#FFFFFF'},
+  {id:'alemania',   flag:'🇩🇪', name:'Alemania',        c1:'#FFFFFF', c2:'#000000', txt:'#111111'},
+  {id:'portugal',   flag:'🇵🇹', name:'Portugal',        c1:'#006600', c2:'#C8102E', txt:'#FFFFFF'},
+  {id:'holanda',    flag:'🇳🇱', name:'Países Bajos',    c1:'#FF6600', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'belgica',    flag:'🇧🇪', name:'Bélgica',         c1:'#EF3340', c2:'#000000', txt:'#F4DC00'},
+  {id:'suecia',     flag:'🇸🇪', name:'Suecia',          c1:'#006AA7', c2:'#FECC02', txt:'#FECC02'},
+  {id:'escocia',    flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿', name:'Escocia',         c1:'#003865', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'noruega',    flag:'🇳🇴', name:'Noruega',         c1:'#EF2B2D', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'dinamarca',  flag:'🇩🇰', name:'Dinamarca',       c1:'#C60C30', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'austria',    flag:'🇦🇹', name:'Austria',         c1:'#ED2939', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'rumania',    flag:'🇷🇴', name:'Rumania',         c1:'#002B7F', c2:'#FCD116', txt:'#CE1126'},
+  {id:'eslovaquia', flag:'🇸🇰', name:'Eslovaquia',      c1:'#FFFFFF', c2:'#0B4EA2', txt:'#CE1126'},
+  {id:'croacia',    flag:'🇭🇷', name:'Croacia',         c1:'#FF0000', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'ucrania',    flag:'🇺🇦', name:'Ucrania',         c1:'#005BBB', c2:'#FFD500', txt:'#FFD500'},
+  {id:'turquia',    flag:'🇹🇷', name:'Turquía',         c1:'#E30A17', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'bosnia',     flag:'🇧🇦', name:'Bosnia Herz.',    c1:'#002395', c2:'#FECC02', txt:'#FECC02'},
+  // ── Africa (9) ─────────────────────────────────────────────
+  {id:'marruecos',  flag:'🇲🇦', name:'Marruecos',      c1:'#006233', c2:'#C1272D', txt:'#FFFFFF'},
+  {id:'senegal',    flag:'🇸🇳', name:'Senegal',         c1:'#00853F', c2:'#FDEF42', txt:'#FFFFFF'},
+  {id:'nigeria',    flag:'🇳🇬', name:'Nigeria',         c1:'#008751', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'costademarfil',flag:'🇨🇮',name:'Costa Marfil',  c1:'#F77F00', c2:'#009A44', txt:'#FFFFFF'},
+  {id:'sudafrica',  flag:'🇿🇦', name:'Sudáfrica',      c1:'#007A4D', c2:'#FFB81C', txt:'#FFFFFF'},
+  {id:'egipto',     flag:'🇪🇬', name:'Egipto',          c1:'#CE1126', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'ghana',      flag:'🇬🇭', name:'Ghana',           c1:'#FFFFFF', c2:'#006B3F', txt:'#006B3F'},
+  {id:'camerun',    flag:'🇨🇲', name:'Camerún',         c1:'#007A5E', c2:'#CE1126', txt:'#FCD116'},
+  {id:'argelia',    flag:'🇩🇿', name:'Argelia',         c1:'#FFFFFF', c2:'#006233', txt:'#006233'},
+  {id:'tunez',      flag:'🇹🇳', name:'Túnez',           c1:'#E70013', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'caboverde',  flag:'🇨🇻', name:'Cabo Verde',      c1:'#003893', c2:'#CF2027', txt:'#FFFFFF'},
+  // ── Asia / Oceania (6) ─────────────────────────────────────
+  {id:'japon',      flag:'🇯🇵', name:'Japón',           c1:'#003087', c2:'#BC002D', txt:'#FFFFFF'},
+  {id:'corea',      flag:'🇰🇷', name:'Corea del Sur',   c1:'#C8102E', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'iran',       flag:'🇮🇷', name:'Irán',            c1:'#239F40', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'arabia',     flag:'🇸🇦', name:'Arabia Saudí',    c1:'#006C35', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'australia',  flag:'🇦🇺', name:'Australia',      c1:'#FFD700', c2:'#00843D', txt:'#00843D'},
+  {id:'iraq',       flag:'🇮🇶', name:'Iraq',            c1:'#CE1126', c2:'#000000', txt:'#FFFFFF'},
+  {id:'qatar',      flag:'🇶🇦', name:'Qatar',           c1:'#8D1B3D', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'nzelanda',   flag:'🇳🇿', name:'Nueva Zelanda',   c1:'#000000', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'curacao',    flag:'🇨🇼', name:'Curaçao',         c1:'#002B7F', c2:'#F9E300', txt:'#F9E300'},
+  // ── Neutral ────────────────────────────────────────────────
+  {id:'neutro',     flag:'⚽', name:'Neutral',          c1:'#555555', c2:'#333333', txt:'#FFFFFF'},
 ];
 
 // ══════════════════════════════════════════════════════
@@ -1325,7 +1371,7 @@ let db = null;
 let picks = {}; // {matchId: {pick:'home'|'draw'|'away', scoreH:n, scoreA:n}}
 let submittedRounds = {}; // {1:true, 2:true, 3:true}
 let activeWeek = 1;
-let avatarConfig = {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro'};
+let avatarConfig = {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro', jerseyNum:10};
 
 // ⚠️ CLIENT-SIDE ADMIN GATE — NOT REAL SECURITY.
 // This only hides the literal password from casual "View Source". Anyone who
@@ -1512,10 +1558,13 @@ function renderAvatarSVG(cfg, size){
     case 0: // Short
       hairBehind = `<path d="M19 40 Q19 16 40 16 Q61 16 61 40 Q57 28 40 28 Q23 28 19 40" fill="${hc}"/>`;
       break;
-    case 1: // Long
-      hairBehind = `<path d="M19 40 Q19 16 40 16 Q61 16 61 40 Q57 28 40 28 Q23 28 19 40" fill="${hc}"/>
-        <rect x="14" y="40" width="9" height="26" rx="4" fill="${hc}"/>
-        <rect x="57" y="40" width="9" height="26" rx="4" fill="${hc}"/>`;
+    case 1: // Long — organic flowing sides
+      hairBehind = `
+        <path d="M19 40 Q19 16 40 16 Q61 16 61 40 Q57 28 40 28 Q23 28 19 40" fill="${hc}"/>
+        <path d="M19 38 Q10 50 11 68 Q13 78 19 76 Q18 62 22 48 Q21 44 19 38" fill="${hc}"/>
+        <path d="M61 38 Q70 50 69 68 Q67 78 61 76 Q62 62 58 48 Q59 44 61 38" fill="${hc}"/>
+        <path d="M19 76 Q21 84 26 84 Q28 82 22 76" fill="${hc}" opacity="0.7"/>
+        <path d="M61 76 Q59 84 54 84 Q52 82 58 76" fill="${hc}" opacity="0.7"/>`;
       break;
     case 2: // Bald
       hairBehind = '';
@@ -1547,9 +1596,10 @@ function renderAvatarSVG(cfg, size){
   const h = Math.round(w * 96 / 80);
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 96" width="${w}" height="${h}">
+    <text x="40" y="84" text-anchor="middle" font-size="52" opacity="0.13" style="user-select:none">${jersey.flag}</text>
     <path d="M12 72 Q10 96 40 96 Q70 96 68 72 L56 66 L52 78 L28 78 L24 66 Z" fill="${c1}"/>
     <path d="M24 66 Q24 60 32 58 Q32 63 40 63 Q48 63 48 58 Q56 60 56 66 Q40 74 24 66 Z" fill="${c2}" opacity="0.5"/>
-    <text x="40" y="88" text-anchor="middle" font-family="sans-serif" font-size="8" font-weight="bold" fill="${txt}">26</text>
+    <text x="40" y="88" text-anchor="middle" font-family="sans-serif" font-size="8" font-weight="bold" fill="${txt}">${cfg.jerseyNum||10}</text>
     <rect x="34" y="57" width="12" height="10" fill="${sk}" rx="2"/>
     ${hairBehind}
     <circle cx="40" cy="38" r="21" fill="${sk}"/>
@@ -1662,6 +1712,9 @@ function initAvatarPicker(){
   // Show/hide hair color based on bald selection
   const hcs = document.getElementById('hairColorSection');
   if(hcs) hcs.style.display = (avatarConfig.hair===2) ? 'none' : '';
+
+  const ni = document.getElementById('jerseyNumInput');
+  if(ni) ni.value = avatarConfig.jerseyNum || 10;
 
   updateAvatarPreview();
 }
