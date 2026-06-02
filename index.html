@@ -359,6 +359,7 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
   border-radius:8px;color:var(--text);font-size:15px;margin-bottom:14px;
 }
 .admin-login input:focus{outline:none;border-color:var(--gold)}
+#adminTOTP{font-family:'DM Sans',monospace}
 
 /* ── MY PICKS summary ────────────────────────────────── */
 .my-picks-summary{
@@ -911,7 +912,21 @@ nav button:hover,nav button.active{
         <div class="admin-login">
           <h2>🔐 <span data-en="Admin Panel" data-es="Panel Admin">Admin Panel</span></h2>
           <input type="password" id="adminPwd" placeholder="Password" onkeydown="if(event.key==='Enter')doAdminLogin()"/>
+          <input type="text" id="adminTOTP" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+            placeholder="6-digit code (Authenticator)"
+            style="letter-spacing:6px;font-size:20px;font-weight:700;text-align:center"
+            onkeydown="if(event.key==='Enter')doAdminLogin()"/>
           <button class="btn-gold" style="width:100%;font-size:18px;padding:12px" onclick="doAdminLogin()" data-en="Access" data-es="Acceder">Access</button>
+          <button onclick="toggleTOTPSetup()" style="background:none;border:none;color:var(--text2);font-size:12px;margin-top:8px;cursor:pointer;text-decoration:underline">
+            <span data-en="📱 First time? Show setup QR code" data-es="📱 ¿Primera vez? Ver código QR de configuración">📱 First time? Show setup QR code</span>
+          </button>
+          <div id="totpSetup" style="display:none;margin-top:16px;padding:16px;background:rgba(255,255,255,.05);border-radius:12px;border:1px solid rgba(212,175,55,.3);text-align:center">
+            <p style="font-size:12px;color:var(--gold);margin-bottom:10px;font-weight:700" data-en="Scan with Google Authenticator or Authy" data-es="Escanea con Google Authenticator o Authy">Scan with Google Authenticator or Authy</p>
+            <div id="totpQR" style="display:inline-block;background:#fff;padding:8px;border-radius:8px;margin-bottom:10px"></div>
+            <p style="font-size:11px;color:var(--text2);margin-bottom:6px" data-en="Or enter key manually:" data-es="O ingresa la clave manualmente:">Or enter key manually:</p>
+            <code id="totpSecretDisplay" style="font-size:13px;color:var(--gold2);letter-spacing:2px;word-break:break-all"></code>
+            <p style="font-size:10px;color:var(--text2);margin-top:8px" data-en="App: Pick26 Cup · Account: Admin" data-es="App: Pick26 Cup · Cuenta: Admin">App: Pick26 Cup · Account: Admin</p>
+          </div>
         </div>
       </div>
 
@@ -1416,9 +1431,82 @@ let avatarConfig = {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro', jerse
 //   echo -n 'YOUR_NEW_PASSWORD' | sha256sum
 const ADMIN_PWD_HASH = 'cd7bfe22819aec51412cef21226c714f27bf470da7afb4412aea088e02764ca1';
 
+// TOTP secret (base32). Scan the QR code in Admin → first-time setup.
+const TOTP_SECRET = '3AQAMDUPV4WLMGLCBANQJGTZTBIG6C4C';
+const TOTP_ISSUER = 'Pick26Cup';
+const TOTP_ACCOUNT = 'Admin';
+
 async function sha256Hex(str){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── TOTP (RFC 6238) ──────────────────────────────────────
+function base32Decode(s){
+  const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = 0, val = 0;
+  const out = [];
+  for(const c of s.toUpperCase().replace(/=+$/, '')){
+    const idx = alpha.indexOf(c);
+    if(idx < 0) continue;
+    val = (val << 5) | idx; bits += 5;
+    if(bits >= 8){ out.push((val >>> (bits-8)) & 0xff); bits -= 8; }
+  }
+  return new Uint8Array(out);
+}
+
+async function hotp(keyBytes, counter){
+  const data = new ArrayBuffer(8);
+  const view = new DataView(data);
+  // counter as 8-byte big-endian (JavaScript can only write 32-bit safely)
+  view.setUint32(0, Math.floor(counter / 0x100000000), false);
+  view.setUint32(4, counter >>> 0, false);
+  const key = await crypto.subtle.importKey('raw', keyBytes, {name:'HMAC',hash:'SHA-1'}, false, ['sign']);
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, data));
+  const off = sig[19] & 0xf;
+  const code = (((sig[off] & 0x7f) << 24)|((sig[off+1])<<16)|((sig[off+2])<<8)|(sig[off+3])) % 1000000;
+  return String(code).padStart(6, '0');
+}
+
+async function verifyTOTP(token){
+  const key = base32Decode(TOTP_SECRET);
+  const now = Math.floor(Date.now() / 1000);
+  for(let d = -1; d <= 1; d++){
+    const counter = Math.floor((now + d * 30) / 30);
+    if(await hotp(key, counter) === String(token).trim()) return true;
+  }
+  return false;
+}
+
+// ── TOTP Setup QR ────────────────────────────────────────
+function totpOtpauthURL(){
+  return `otpauth://totp/${encodeURIComponent(TOTP_ISSUER)}:${encodeURIComponent(TOTP_ACCOUNT)}?secret=${TOTP_SECRET}&issuer=${encodeURIComponent(TOTP_ISSUER)}&algorithm=SHA1&digits=6&period=30`;
+}
+
+let _totpSetupOpen = false;
+function toggleTOTPSetup(){
+  _totpSetupOpen = !_totpSetupOpen;
+  const box = document.getElementById('totpSetup');
+  box.style.display = _totpSetupOpen ? 'block' : 'none';
+  if(_totpSetupOpen) renderTOTPSetup();
+}
+
+function renderTOTPSetup(){
+  // Show secret key
+  const secret = TOTP_SECRET;
+  const display = secret.match(/.{1,4}/g).join(' ');
+  document.getElementById('totpSecretDisplay').textContent = display;
+  // QR code via qrcodejs (loaded on demand)
+  const qrDiv = document.getElementById('totpQR');
+  qrDiv.innerHTML = '';
+  function drawQR(){
+    new QRCode(qrDiv, {text: totpOtpauthURL(), width:160, height:160, colorDark:'#000', colorLight:'#fff', correctLevel: QRCode.CorrectLevel.M});
+  }
+  if(window.QRCode){ drawQR(); return; }
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
+  s.onload = drawQR;
+  document.head.appendChild(s);
 }
 
 // ══════════════════════════════════════════════════════
@@ -2873,12 +2961,16 @@ function findMatch(mid){
 // ══════════════════════════════════════════════════════
 async function doAdminLogin(){
   const pwd = document.getElementById('adminPwd').value;
-  let ok = false;
-  try { ok = (await sha256Hex(pwd)) === ADMIN_PWD_HASH; } catch(e){ ok = false; }
-  if(ok){
-    grantAdminUI();
+  const totp = document.getElementById('adminTOTP').value.trim();
+  let pwdOk = false, totpOk = false;
+  try { pwdOk = (await sha256Hex(pwd)) === ADMIN_PWD_HASH; } catch(e){}
+  try { totpOk = await verifyTOTP(totp); } catch(e){}
+  if(!pwdOk){
+    showToast(currentLang==='es'?'❌ Contraseña incorrecta':'❌ Wrong password','error');
+  } else if(!totpOk){
+    showToast(currentLang==='es'?'❌ Código 2FA incorrecto o expirado':'❌ Wrong or expired 2FA code','error');
   } else {
-    showToast(currentLang==='es'?'Contraseña incorrecta':'Wrong password','error');
+    grantAdminUI();
   }
 }
 
@@ -2898,6 +2990,9 @@ function adminLogout(){
   document.getElementById('adminLogin').classList.remove('hidden');
   document.getElementById('adminContent').classList.add('hidden');
   document.getElementById('adminPwd').value='';
+  document.getElementById('adminTOTP').value='';
+  _totpSetupOpen = false;
+  document.getElementById('totpSetup').style.display='none';
 }
 
 function activateSelectedWeek(){
