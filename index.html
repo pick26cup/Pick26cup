@@ -73,15 +73,15 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
 /* ── REGISTER OVERLAY ───────────────────────────────── */
 #registerOverlay{
   position:fixed;inset:0;z-index:999;
-  background:rgba(0,0,0,.92);backdrop-filter:blur(6px);
+  background:rgba(0,0,0,.75);backdrop-filter:blur(8px);
   display:flex;align-items:center;justify-content:center;
 }
 .register-box{
-  background:linear-gradient(135deg,var(--dark3),var(--dark2));
-  border:2px solid var(--gold3);border-radius:16px;
+  background:linear-gradient(135deg,#2a2010,#1c1608);
+  border:2px solid var(--gold);border-radius:16px;
   padding:40px 32px;width:100%;max-width:420px;
-  box-shadow:0 0 60px rgba(212,175,55,.3);text-align:center;
-  overflow-y:auto;max-height:88vh;
+  box-shadow:0 0 0 1px rgba(212,175,55,.4),0 0 60px rgba(212,175,55,.5);
+  text-align:center;overflow-y:auto;max-height:88vh;
 }
 
 /* ── AVATAR CUSTOMIZER ──────────────────────────────── */
@@ -1545,12 +1545,14 @@ function hideRegister(){
 }
 
 function loadUserData(){
-  const savedPicks = localStorage.getItem('wc2026_picks_'+currentUser);
-  if(savedPicks) picks = JSON.parse(savedPicks);
-  const savedSubmitted = localStorage.getItem('wc2026_submitted_'+currentUser);
-  if(savedSubmitted) submittedRounds = JSON.parse(savedSubmitted);
-  const savedAvatar = localStorage.getItem('wc2026_avatar_'+currentUser);
-  if(savedAvatar) try{ avatarConfig = JSON.parse(savedAvatar); } catch(e){}
+  try{
+    const savedPicks = localStorage.getItem('wc2026_picks_'+currentUser);
+    if(savedPicks) picks = JSON.parse(savedPicks);
+    const savedSubmitted = localStorage.getItem('wc2026_submitted_'+currentUser);
+    if(savedSubmitted) submittedRounds = JSON.parse(savedSubmitted);
+    const savedAvatar = localStorage.getItem('wc2026_avatar_'+currentUser);
+    if(savedAvatar) avatarConfig = JSON.parse(savedAvatar);
+  } catch(e){ console.warn('loadUserData parse error:', e); }
 }
 
 // ══════════════════════════════════════════════════════
