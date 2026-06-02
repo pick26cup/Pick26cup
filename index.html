@@ -19,10 +19,11 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100vh;font-family:'DM Sans',sans-serif;background:#000;color:var(--text);overflow-x:hidden}
-body{
+body{background-color:#0a0a0a;}
+#bg-layer{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
   background-image:url('fondo.png');
-  background-size:cover;background-position:center 35%;background-attachment:fixed;
-  background-color:#0a0a0a;
+  background-size:cover;background-position:center 35%;
   filter:saturate(1.6) brightness(1.08) contrast(1.05);
 }
 body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:0;pointer-events:none}
@@ -703,6 +704,8 @@ nav button:hover,nav button.active{
 </style>
 </head>
 <body>
+<!-- Background layer (separate from body so CSS filter doesn't break position:fixed on Android) -->
+<div id="bg-layer"></div>
 <div id="root">
   <!-- REGISTER OVERLAY -->
   <div id="registerOverlay">
