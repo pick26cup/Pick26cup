@@ -86,27 +86,27 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
 
 /* ── AVATAR CUSTOMIZER ──────────────────────────────── */
 .av-section{margin-bottom:12px;text-align:left}
-.av-label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:6px}
+.av-label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
 .av-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .av-skin-btn,.av-hair-btn{
-  width:28px;height:28px;border-radius:50%;border:2.5px solid transparent;
+  width:28px;height:28px;border-radius:50%;border:2px solid transparent;
   cursor:pointer;transition:.15s;padding:0;flex-shrink:0;
 }
 .av-skin-btn:hover,.av-hair-btn:hover{border-color:var(--gold3);transform:scale(1.1)}
-.av-skin-btn.active,.av-hair-btn.active{border-color:var(--gold);transform:scale(1.15);box-shadow:0 0 0 1px var(--gold)}
+.av-skin-btn.active,.av-hair-btn.active{border-color:var(--gold);transform:scale(1.25);box-shadow:0 0 0 1px rgba(212,175,55,.5)}
 .av-style-btn{
-  padding:5px 10px;border-radius:14px;border:1.5px solid var(--gray);
-  background:rgba(255,255,255,.05);color:var(--text2);
-  font-family:'DM Sans';font-size:12px;font-weight:600;cursor:pointer;transition:.15s;
+  padding:4px 10px;border-radius:20px;border:1.5px solid var(--gray);
+  background:rgba(255,255,255,.05);color:var(--text);
+  font-family:'DM Sans';font-size:12px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap;
 }
 .av-style-btn:hover{border-color:var(--gold3);color:var(--gold);background:rgba(212,175,55,.1)}
-.av-style-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(212,175,55,.18)}
+.av-style-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(212,175,55,.15)}
 .av-jersey-btn{
-  padding:4px 8px;border-radius:12px;border:1.5px solid transparent;
-  font-family:'DM Sans';font-size:11px;font-weight:700;cursor:pointer;transition:.15s;
+  padding:3px 8px;border-radius:16px;border:1.5px solid transparent;
+  font-family:'DM Sans';font-size:11px;font-weight:700;cursor:pointer;transition:.15s;white-space:nowrap;
 }
 .av-jersey-btn:hover{opacity:.85;transform:scale(1.04)}
-.av-jersey-btn.active{box-shadow:0 0 0 2px var(--gold);transform:scale(1.06)}
+.av-jersey-btn.active{box-shadow:0 0 0 2px var(--gold);transform:scale(1.08)}
 .register-box h2{font-family:'Bebas Neue';font-size:36px;color:var(--gold);letter-spacing:3px;margin-bottom:6px}
 .register-box p{color:var(--text2);font-size:14px;margin-bottom:24px}
 .register-box input{
@@ -127,35 +127,6 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
   transition:.2s;display:flex;align-items:center;justify-content:center;
 }
 .btn-google:hover{background:#f5f5f5;transform:translateY(-1px);box-shadow:0 4px 20px rgba(255,255,255,.2)}
-
-/* ── AVATAR CUSTOMIZER ──────────────────────────────── */
-.register-box{overflow-y:auto;max-height:88vh}
-.av-section{margin-bottom:12px;text-align:left}
-.av-label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
-.av-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.av-skin-btn,.av-hair-btn{
-  width:28px;height:28px;border-radius:50%;border:2px solid transparent;
-  cursor:pointer;padding:0;transition:.15s;flex-shrink:0;
-}
-.av-skin-btn.active,.av-hair-btn.active{
-  border-color:var(--gold);transform:scale(1.25);box-shadow:0 0 0 1px rgba(212,175,55,.5);
-}
-.av-style-btn{
-  padding:4px 10px;border-radius:20px;border:1.5px solid var(--gray);
-  background:rgba(255,255,255,.05);color:var(--text);font-family:'DM Sans';
-  font-size:12px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap;
-}
-.av-style-btn.active{
-  border-color:var(--gold);background:rgba(212,175,55,.15);color:var(--gold);
-}
-.av-jersey-btn{
-  padding:3px 8px;border-radius:16px;border:1.5px solid transparent;
-  font-family:'DM Sans';font-size:11px;font-weight:700;cursor:pointer;transition:.15s;
-  white-space:nowrap;
-}
-.av-jersey-btn.active{
-  transform:scale(1.08);box-shadow:0 0 0 2px var(--gold);
-}
 
 /* ── SECTION TITLES ─────────────────────────────────── */
 .section-title{
