@@ -1425,7 +1425,7 @@ function initFirebase(){
     const s = document.createElement('script');
     s.src = scripts[i];
     s.onload = ()=> loadNext(i+1);
-    s.onerror = ()=> console.warn('Firebase script failed to load — offline mode');
+    s.onerror = ()=>{ console.warn('Firebase script failed to load — offline mode'); showLoginStep(); };
     document.head.appendChild(s);
   }
   loadNext(0);
@@ -1489,17 +1489,35 @@ function showLoginStep(){
 }
 
 function doLogin(){
+  const btn = document.getElementById('regBtn');
+  if(btn && btn.disabled) return; // prevent double-click while waiting
+
   let name = document.getElementById('regName').value.trim();
   if(!name){ showToast(currentLang==='es'?'Ingresa tu nombre':'Please enter your name','error'); return; }
   name = name.replace(/[<>]/g,'').slice(0,40);
   if(!name){ showToast(currentLang==='es'?'Nombre no válido':'Invalid name','error'); return; }
 
+  if(btn){ btn.disabled = true; btn.textContent = '⏳'; }
+
   currentUser = name;
   const key = playerKey();
   localStorage.setItem('wc2026_user', name);
 
+  function proceed(isNew){
+    if(!isNew){ loadUserData(); syncFromFirebase(); }
+    if(btn){ btn.disabled = false; btn.textContent = currentLang==='es'?'¡VAMOS!':'LET\'S GO!'; }
+    showAvatarStep();
+  }
+
   if(db && key){
+    let settled = false;
+    // Safety net: if Firebase doesn't respond in 4 s, proceed anyway.
+    const timer = setTimeout(()=>{
+      if(!settled){ settled = true; proceed(false); }
+    }, 4000);
+
     db.ref('players/'+key).once('value').then(snap=>{
+      if(settled) return; settled = true; clearTimeout(timer);
       if(!snap.val()){
         // Brand-new player — create a clean record.
         picks = {};
@@ -1508,21 +1526,16 @@ function doLogin(){
         localStorage.removeItem('wc2026_submitted_'+name);
         db.ref('players/'+key).set({name, approved:false, pts:0, submittedRounds:{}});
         db.ref('picks/'+key).remove();
+        proceed(true);
       } else {
-        // Returning player — load their saved data.
-        loadUserData();
-        syncFromFirebase();
+        proceed(false);
       }
-      showAvatarStep();
     }).catch(()=>{
-      // Firebase unavailable — let them in with local data.
-      loadUserData();
-      showAvatarStep();
+      if(settled) return; settled = true; clearTimeout(timer);
+      proceed(false);
     });
   } else {
-    // Offline mode
-    loadUserData();
-    showAvatarStep();
+    proceed(false);
   }
 }
 
@@ -1728,7 +1741,7 @@ function showAvatarStep(){
   if(s1) s1.style.display = 'none';
   const s2 = document.getElementById('avatarStep');
   if(s2) s2.style.display = 'block';
-  initAvatarPicker();
+  try{ initAvatarPicker(); } catch(e){ console.error('Avatar picker error:', e); }
 }
 
 function saveAvatar(){
