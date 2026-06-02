@@ -730,36 +730,36 @@ nav button:hover,nav button.active{
 
       <!-- Step 2: Avatar customizer -->
       <div id="avatarStep" style="display:none">
-        <p style="font-family:'Bebas Neue';font-size:22px;color:var(--gold);letter-spacing:2px;margin-bottom:10px">🎨 Personaliza tu avatar</p>
+        <p style="font-family:'Bebas Neue';font-size:22px;color:var(--gold);letter-spacing:2px;margin-bottom:10px" data-en="🎨 Customize your avatar" data-es="🎨 Personaliza tu avatar">🎨 Customize your avatar</p>
         <div id="avatarPreview" style="display:flex;justify-content:center;margin:8px 0"></div>
         <div class="av-section">
-          <span class="av-label">🎨 Color de piel</span>
+          <span class="av-label" data-en="🎨 Skin tone" data-es="🎨 Color de piel">🎨 Skin tone</span>
           <div class="av-row" id="skinPicker"></div>
         </div>
         <div class="av-section">
-          <span class="av-label">💇 Cabello</span>
+          <span class="av-label" data-en="💇 Hair style" data-es="💇 Cabello">💇 Hair style</span>
           <div class="av-row" id="hairStylePicker"></div>
         </div>
         <div class="av-section" id="hairColorSection">
-          <span class="av-label">🖌️ Color de cabello</span>
+          <span class="av-label" data-en="🖌️ Hair color" data-es="🖌️ Color de cabello">🖌️ Hair color</span>
           <div class="av-row" id="hairColorPicker"></div>
         </div>
         <div class="av-section">
-          <span class="av-label">🧔 Barba</span>
+          <span class="av-label" data-en="🧔 Beard" data-es="🧔 Barba">🧔 Beard</span>
           <div class="av-row" id="beardPicker"></div>
         </div>
         <div class="av-section">
-          <span class="av-label">👕 Camiseta del equipo</span>
+          <span class="av-label" data-en="👕 Team jersey" data-es="👕 Camiseta del equipo">👕 Team jersey</span>
           <div class="av-row" id="jerseyPicker" style="max-height:90px;overflow-y:auto;padding-right:4px"></div>
         </div>
         <div class="av-section">
-          <span class="av-label">🔢 Número de camiseta</span>
+          <span class="av-label" data-en="🔢 Jersey number" data-es="🔢 Número de camiseta">🔢 Jersey number</span>
           <input type="number" id="jerseyNumInput" min="1" max="99" value="10"
             style="width:72px;padding:6px 10px;background:rgba(255,255,255,.07);border:1.5px solid var(--gray);
                    border-radius:8px;color:var(--text);font-size:18px;font-weight:700;text-align:center;font-family:'DM Sans'"
             oninput="setAvatarOpt('jerseyNum', Math.min(99,Math.max(1,parseInt(this.value)||10)))"/>
         </div>
-        <button class="btn-gold" onclick="saveAvatar()" style="width:100%;margin-top:14px">✅ ¡Listo!</button>
+        <button class="btn-gold" onclick="saveAvatar()" style="width:100%;margin-top:14px" data-en="✅ Done!" data-es="✅ ¡Listo!">✅ Done!</button>
       </div>
     </div>
   </div>
@@ -1596,7 +1596,7 @@ function renderAvatarSVG(cfg, size){
   const h = Math.round(w * 96 / 80);
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 96" width="${w}" height="${h}">
-    <text x="40" y="84" text-anchor="middle" font-size="52" opacity="0.13" style="user-select:none">${jersey.flag}</text>
+    <text x="40" y="78" text-anchor="middle" font-size="46" opacity="0.28" style="user-select:none">${jersey.flag}</text>
     <path d="M12 72 Q10 96 40 96 Q70 96 68 72 L56 66 L52 78 L28 78 L24 66 Z" fill="${c1}"/>
     <path d="M24 66 Q24 60 32 58 Q32 63 40 63 Q48 63 48 58 Q56 60 56 66 Q40 74 24 66 Z" fill="${c2}" opacity="0.5"/>
     <text x="40" y="88" text-anchor="middle" font-family="sans-serif" font-size="8" font-weight="bold" fill="${txt}">${cfg.jerseyNum||10}</text>
@@ -1638,8 +1638,12 @@ function setAvatarOpt(key, val){
 function initAvatarPicker(){
   const skins = ['#FDDBB4','#F1C27D','#C68642','#8D5524','#5C3317','#2A1506'];
   const hairColors = ['#1A1A1A','#3B2314','#7B4F2E','#C48B3D','#E8C96E','#B85C38','#888888','#E8E8E8'];
-  const hairStyles = ['Corto','Largo','Sin cabello','Rizado','Afro'];
-  const beardStyles = ['Sin barba','Corta','Completa','Chiva'];
+  const hairStyles = currentLang==='es'
+    ? ['Corto','Largo','Sin cabello','Rizado','Afro']
+    : ['Short','Long','Bald','Curly','Afro'];
+  const beardStyles = currentLang==='es'
+    ? ['Sin barba','Corta','Completa','Chiva']
+    : ['No beard','Short','Full','Goatee'];
 
   const skinPicker = document.getElementById('skinPicker');
   if(skinPicker){
@@ -1648,7 +1652,7 @@ function initAvatarPicker(){
       const b = document.createElement('button');
       b.className = 'av-skin-btn'+(i===avatarConfig.skin?' active':'');
       b.style.background = c;
-      b.title = 'Tono '+i;
+      b.title = (currentLang==='es'?'Tono ':'Tone ')+i;
       b.onclick = ()=>setAvatarOpt('skin',i);
       skinPicker.appendChild(b);
     });
@@ -1734,7 +1738,7 @@ function saveAvatar(){
   }
   hideRegister();
   renderMatches();
-  showToast('¡Bienvenido '+currentUser+'! 🎉','success');
+  showToast(t('¡Bienvenido '+currentUser+'! 🎉','Welcome '+currentUser+'! 🎉'),'success');
   renderWelcomeBanner();
   startCountdown();
 }
@@ -3041,10 +3045,10 @@ function renderAdminPlayers(){
     ]).then(function(snaps){
       display(snaps[0].val()||{}, snaps[1].val()||{});
     }).catch(function(){
-      cont.innerHTML='<p style="color:var(--red);font-size:13px">⚠️ Firebase: permiso denegado.<br>Ve a Firebase Console → Realtime Database → Rules y pon <code>".read":true, ".write":true</code><br><button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ Reintentar</button></p>';
+      cont.innerHTML=`<p style="color:var(--red);font-size:13px">⚠️ Firebase: ${t('permiso denegado','permission denied')}.<br>${t('Ve a Firebase Console → Realtime Database → Rules y pon','Go to Firebase Console → Realtime Database → Rules and set')} <code>".read":true, ".write":true</code><br><button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ ${t('Reintentar','Retry')}</button></p>`;
     });
   } else {
-    cont.innerHTML='<p style="color:var(--text2);font-size:13px">Conectando... <button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ Reintentar</button></p>';
+    cont.innerHTML=`<p style="color:var(--text2);font-size:13px">${t('Conectando...','Connecting...')} <button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ ${t('Reintentar','Retry')}</button></p>`;
     setTimeout(function(){ if(db) renderAdminPlayers(); }, 2000);
   }
 }
@@ -3052,7 +3056,7 @@ function renderAdminPlayers(){
 function setPlayerApproval(key, approved){
   if(!db){ showToast(t('Firebase no disponible','Firebase unavailable'),'error'); return; }
   db.ref('players/'+key+'/approved').set(approved).then(function(){
-    showToast(approved?'Player approved ✅':'Player revoked','success');
+    showToast(approved?t('Jugador aprobado ✅','Player approved ✅'):t('Jugador revocado','Player revoked'),'success');
     if(approved) setTimeout(recalcAllPoints, 400);
     renderAdminPlayers();
   }).catch(function(){
@@ -3462,6 +3466,9 @@ function updateLang(){
   // logout
   const lb = document.getElementById('logoutBtn');
   if(lb) lb.textContent = currentLang==='es'?'Salir':'Logout';
+  // re-render avatar picker if open so hair/beard labels update
+  const avatarStep = document.getElementById('avatarStep');
+  if(avatarStep && avatarStep.style.display !== 'none') initAvatarPicker();
 }
 
 // ══════════════════════════════════════════════════════
