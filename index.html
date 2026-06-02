@@ -81,7 +81,32 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
   border:2px solid var(--gold3);border-radius:16px;
   padding:40px 32px;width:100%;max-width:420px;
   box-shadow:0 0 60px rgba(212,175,55,.3);text-align:center;
+  overflow-y:auto;max-height:88vh;
 }
+
+/* ── AVATAR CUSTOMIZER ──────────────────────────────── */
+.av-section{margin-bottom:12px;text-align:left}
+.av-label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.av-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.av-skin-btn,.av-hair-btn{
+  width:28px;height:28px;border-radius:50%;border:2px solid transparent;
+  cursor:pointer;transition:.15s;padding:0;flex-shrink:0;
+}
+.av-skin-btn:hover,.av-hair-btn:hover{border-color:var(--gold3);transform:scale(1.1)}
+.av-skin-btn.active,.av-hair-btn.active{border-color:var(--gold);transform:scale(1.25);box-shadow:0 0 0 1px rgba(212,175,55,.5)}
+.av-style-btn{
+  padding:4px 10px;border-radius:20px;border:1.5px solid var(--gray);
+  background:rgba(255,255,255,.05);color:var(--text);
+  font-family:'DM Sans';font-size:12px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.av-style-btn:hover{border-color:var(--gold3);color:var(--gold);background:rgba(212,175,55,.1)}
+.av-style-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(212,175,55,.15)}
+.av-jersey-btn{
+  padding:3px 8px;border-radius:16px;border:1.5px solid transparent;
+  font-family:'DM Sans';font-size:11px;font-weight:700;cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.av-jersey-btn:hover{opacity:.85;transform:scale(1.04)}
+.av-jersey-btn.active{box-shadow:0 0 0 2px var(--gold);transform:scale(1.08)}
 .register-box h2{font-family:'Bebas Neue';font-size:36px;color:var(--gold);letter-spacing:3px;margin-bottom:6px}
 .register-box p{color:var(--text2);font-size:14px;margin-bottom:24px}
 .register-box input{
@@ -702,6 +727,33 @@ nav button:hover,nav button.active{
           onkeydown="if(event.key==='Enter')doLogin()"/>
         <button class="btn-gold" onclick="doLogin()" id="regBtn" data-en="LET'S GO!" data-es="¡VAMOS!">LET'S GO!</button>
       </div>
+
+      <!-- Step 2: Avatar customizer -->
+      <div id="avatarStep" style="display:none">
+        <p style="font-family:'Bebas Neue';font-size:22px;color:var(--gold);letter-spacing:2px;margin-bottom:10px">🎨 Personaliza tu avatar</p>
+        <div id="avatarPreview" style="display:flex;justify-content:center;margin:8px 0"></div>
+        <div class="av-section">
+          <span class="av-label">🎨 Color de piel</span>
+          <div class="av-row" id="skinPicker"></div>
+        </div>
+        <div class="av-section">
+          <span class="av-label">💇 Cabello</span>
+          <div class="av-row" id="hairStylePicker"></div>
+        </div>
+        <div class="av-section" id="hairColorSection">
+          <span class="av-label">🖌️ Color de cabello</span>
+          <div class="av-row" id="hairColorPicker"></div>
+        </div>
+        <div class="av-section">
+          <span class="av-label">🧔 Barba</span>
+          <div class="av-row" id="beardPicker"></div>
+        </div>
+        <div class="av-section">
+          <span class="av-label">👕 Camiseta del equipo</span>
+          <div class="av-row" id="jerseyPicker" style="max-height:90px;overflow-y:auto;padding-right:4px"></div>
+        </div>
+        <button class="btn-gold" onclick="saveAvatar()" style="width:100%;margin-top:14px">✅ ¡Listo!</button>
+      </div>
     </div>
   </div>
 
@@ -742,7 +794,7 @@ nav button:hover,nav button.active{
         padding:14px 20px;margin-bottom:16px;
         align-items:center;gap:14px;flex-wrap:wrap;
       ">
-        <div style="font-size:36px">⚽</div>
+        <div id="welcomeAvatarIcon" style="flex-shrink:0;display:flex;align-items:center"></div>
         <div style="flex:1;min-width:0">
           <div id="welcomeMsg" style="font-family:'Bebas Neue';font-size:22px;color:var(--gold);letter-spacing:2px;line-height:1.2"></div>
           <div id="welcomeSub" style="font-size:13px;color:var(--text2);margin-top:2px"></div>
@@ -1232,6 +1284,34 @@ window._origMatches = {};
 })();
 
 // ══════════════════════════════════════════════════════
+//  JERSEY TEAMS (for avatar customizer)
+// ══════════════════════════════════════════════════════
+const JERSEY_TEAMS = [
+  {id:'neutro',   name:'⚽ Neutral',         c1:'#555555', c2:'#333333', txt:'#fff'},
+  {id:'argentina',name:'🇦🇷 Argentina',      c1:'#74ACDF', c2:'#FFFFFF', txt:'#002868'},
+  {id:'brasil',   name:'🇧🇷 Brasil',          c1:'#FFDF00', c2:'#009C3B', txt:'#002868'},
+  {id:'mexico',   name:'🇲🇽 México',          c1:'#006847', c2:'#CE1126', txt:'#FFFFFF'},
+  {id:'colombia', name:'🇨🇴 Colombia',        c1:'#FCD116', c2:'#003087', txt:'#003087'},
+  {id:'usa',      name:'🇺🇸 EE.UU.',          c1:'#002868', c2:'#BF0A30', txt:'#FFFFFF'},
+  {id:'espana',   name:'🇪🇸 España',          c1:'#C60B1E', c2:'#F1BF00', txt:'#F1BF00'},
+  {id:'francia',  name:'🇫🇷 Francia',         c1:'#002395', c2:'#ED2939', txt:'#FFFFFF'},
+  {id:'alemania', name:'🇩🇪 Alemania',        c1:'#FFFFFF', c2:'#000000', txt:'#111111'},
+  {id:'portugal', name:'🇵🇹 Portugal',        c1:'#006600', c2:'#C8102E', txt:'#FFFFFF'},
+  {id:'canada',   name:'🇨🇦 Canadá',          c1:'#CC0000', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'marruecos',name:'🇲🇦 Marruecos',      c1:'#006233', c2:'#C1272D', txt:'#FFFFFF'},
+  {id:'japon',    name:'🇯🇵 Japón',           c1:'#003087', c2:'#BC002D', txt:'#FFFFFF'},
+  {id:'senegal',  name:'🇸🇳 Senegal',         c1:'#00853F', c2:'#FDEF42', txt:'#FFFFFF'},
+  {id:'uruguay',  name:'🇺🇾 Uruguay',         c1:'#5EB6E4', c2:'#FFFFFF', txt:'#002868'},
+  {id:'australia',name:'🇦🇺 Australia',      c1:'#FFD700', c2:'#00843D', txt:'#00843D'},
+  {id:'holanda',  name:'🇳🇱 Países Bajos',    c1:'#FF6600', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'belgica',  name:'🇧🇪 Bélgica',         c1:'#EF3340', c2:'#000000', txt:'#F4DC00'},
+  {id:'suecia',   name:'🇸🇪 Suecia',          c1:'#006AA7', c2:'#FECC02', txt:'#FECC02'},
+  {id:'corea',    name:'🇰🇷 Corea del Sur',   c1:'#C8102E', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'iran',     name:'🇮🇷 Irán',            c1:'#239F40', c2:'#FFFFFF', txt:'#FFFFFF'},
+  {id:'arabia',   name:'🇸🇦 Arabia Saudí',    c1:'#006C35', c2:'#FFFFFF', txt:'#FFFFFF'},
+];
+
+// ══════════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════════
 let currentLang = 'en';
@@ -1245,6 +1325,7 @@ let db = null;
 let picks = {}; // {matchId: {pick:'home'|'draw'|'away', scoreH:n, scoreA:n}}
 let submittedRounds = {}; // {1:true, 2:true, 3:true}
 let activeWeek = 1;
+let avatarConfig = {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro'};
 
 // ⚠️ CLIENT-SIDE ADMIN GATE — NOT REAL SECURITY.
 // This only hides the literal password from casual "View Source". Anyone who
@@ -1386,22 +1467,16 @@ function doLogin(){
         loadUserData();
         syncFromFirebase();
       }
-      hideRegister();
-      renderMatches();
-      showToast((currentLang==='es'?'¡Bienvenido/a, ':'Welcome, ')+name+'! 🎉','success');
+      showAvatarStep();
     }).catch(()=>{
       // Firebase unavailable — let them in with local data.
       loadUserData();
-      hideRegister();
-      renderMatches();
-      showToast((currentLang==='es'?'¡Bienvenido/a, ':'Welcome, ')+name+'! 🎉','success');
+      showAvatarStep();
     });
   } else {
     // Offline mode
     loadUserData();
-    hideRegister();
-    renderMatches();
-    showToast((currentLang==='es'?'¡Bienvenido/a, ':'Welcome, ')+name+'! 🎉','success');
+    showAvatarStep();
   }
 }
 
@@ -1415,6 +1490,200 @@ function loadUserData(){
   if(savedPicks) picks = JSON.parse(savedPicks);
   const savedSubmitted = localStorage.getItem('wc2026_submitted_'+currentUser);
   if(savedSubmitted) submittedRounds = JSON.parse(savedSubmitted);
+  const savedAvatar = localStorage.getItem('wc2026_avatar_'+currentUser);
+  if(savedAvatar) try{ avatarConfig = JSON.parse(savedAvatar); } catch(e){}
+}
+
+// ══════════════════════════════════════════════════════
+//  AVATAR CUSTOMIZER
+// ══════════════════════════════════════════════════════
+function renderAvatarSVG(cfg, size){
+  const skins = ['#FDDBB4','#F1C27D','#C68642','#8D5524','#5C3317','#2A1506'];
+  const hairColors = ['#1A1A1A','#3B2314','#7B4F2E','#C48B3D','#E8C96E','#B85C38','#888888','#E8E8E8'];
+  const noseShades = ['#d4956e','#c47e45','#9a6230','#6B3E1E','#4A2810','#1E0E05'];
+  const sk = skins[cfg.skin] || skins[0];
+  const hc = hairColors[cfg.hairColor] || hairColors[0];
+  const ns = noseShades[cfg.skin] || noseShades[0];
+  const jersey = JERSEY_TEAMS.find(t=>t.id===cfg.jersey) || JERSEY_TEAMS[0];
+  const c1 = jersey.c1, c2 = jersey.c2, txt = jersey.txt;
+
+  let hairBehind = '';
+  switch(cfg.hair){
+    case 0: // Short
+      hairBehind = `<path d="M19 40 Q19 16 40 16 Q61 16 61 40 Q57 28 40 28 Q23 28 19 40" fill="${hc}"/>`;
+      break;
+    case 1: // Long
+      hairBehind = `<path d="M19 40 Q19 16 40 16 Q61 16 61 40 Q57 28 40 28 Q23 28 19 40" fill="${hc}"/>
+        <rect x="14" y="40" width="9" height="26" rx="4" fill="${hc}"/>
+        <rect x="57" y="40" width="9" height="26" rx="4" fill="${hc}"/>`;
+      break;
+    case 2: // Bald
+      hairBehind = '';
+      break;
+    case 3: // Curly
+      hairBehind = `<circle cx="27" cy="34" r="12" fill="${hc}"/>
+        <circle cx="40" cy="22" r="14" fill="${hc}"/>
+        <circle cx="53" cy="34" r="12" fill="${hc}"/>`;
+      break;
+    case 4: // Afro
+      hairBehind = `<ellipse cx="40" cy="28" rx="27" ry="24" fill="${hc}"/>`;
+      break;
+  }
+
+  let beard = '';
+  switch(cfg.beard){
+    case 1: // Short
+      beard = `<ellipse cx="40" cy="56" rx="13" ry="5" fill="${hc}" opacity="0.5"/>`;
+      break;
+    case 2: // Full
+      beard = `<path d="M26 50 Q27 68 40 70 Q53 68 54 50 Q48 58 40 58 Q32 58 26 50" fill="${hc}"/>`;
+      break;
+    case 3: // Goatee
+      beard = `<ellipse cx="40" cy="61" rx="8" ry="9" fill="${hc}"/>`;
+      break;
+  }
+
+  const w = size || 80;
+  const h = Math.round(w * 96 / 80);
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 96" width="${w}" height="${h}">
+    <path d="M12 72 Q10 96 40 96 Q70 96 68 72 L56 66 L52 78 L28 78 L24 66 Z" fill="${c1}"/>
+    <path d="M24 66 Q24 60 32 58 Q32 63 40 63 Q48 63 48 58 Q56 60 56 66 Q40 74 24 66 Z" fill="${c2}" opacity="0.5"/>
+    <text x="40" y="88" text-anchor="middle" font-family="sans-serif" font-size="8" font-weight="bold" fill="${txt}">26</text>
+    <rect x="34" y="57" width="12" height="10" fill="${sk}" rx="2"/>
+    ${hairBehind}
+    <circle cx="40" cy="38" r="21" fill="${sk}"/>
+    <path d="M30 31 Q33 29 36 31" stroke="#1A1A1A" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M44 31 Q47 29 50 31" stroke="#1A1A1A" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <circle cx="33" cy="36" r="3.5" fill="#1A1A1A"/>
+    <circle cx="47" cy="36" r="3.5" fill="#1A1A1A"/>
+    <circle cx="34.5" cy="34.5" r="1" fill="#fff"/>
+    <circle cx="48.5" cy="34.5" r="1" fill="#fff"/>
+    <ellipse cx="40" cy="43" rx="3" ry="2" fill="${ns}" opacity="0.5"/>
+    <path d="M34 50 Q40 55 46 50" stroke="#7B4F2E" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    ${beard}
+  </svg>`;
+}
+
+function updateAvatarPreview(){
+  const el = document.getElementById('avatarPreview');
+  if(el) el.innerHTML = renderAvatarSVG(avatarConfig, 90);
+}
+
+function setAvatarOpt(key, val){
+  avatarConfig[key] = val;
+  if(key==='hair'){
+    const hcs = document.getElementById('hairColorSection');
+    if(hcs) hcs.style.display = (val===2) ? 'none' : '';
+  }
+  // Refresh active states for all pickers
+  document.querySelectorAll('.av-skin-btn').forEach((b,i)=>{b.classList.toggle('active', i===avatarConfig.skin);});
+  document.querySelectorAll('[data-av-hair]').forEach(b=>{b.classList.toggle('active', parseInt(b.dataset.avHair)===avatarConfig.hair);});
+  document.querySelectorAll('.av-hair-btn').forEach((b,i)=>{b.classList.toggle('active', i===avatarConfig.hairColor);});
+  document.querySelectorAll('[data-av-beard]').forEach(b=>{b.classList.toggle('active', parseInt(b.dataset.avBeard)===avatarConfig.beard);});
+  document.querySelectorAll('[data-av-jersey]').forEach(b=>{b.classList.toggle('active', b.dataset.avJersey===avatarConfig.jersey);});
+  updateAvatarPreview();
+}
+
+function initAvatarPicker(){
+  const skins = ['#FDDBB4','#F1C27D','#C68642','#8D5524','#5C3317','#2A1506'];
+  const hairColors = ['#1A1A1A','#3B2314','#7B4F2E','#C48B3D','#E8C96E','#B85C38','#888888','#E8E8E8'];
+  const hairStyles = ['Corto','Largo','Sin cabello','Rizado','Afro'];
+  const beardStyles = ['Sin barba','Corta','Completa','Chiva'];
+
+  const skinPicker = document.getElementById('skinPicker');
+  if(skinPicker){
+    skinPicker.innerHTML = '';
+    skins.forEach((c,i)=>{
+      const b = document.createElement('button');
+      b.className = 'av-skin-btn'+(i===avatarConfig.skin?' active':'');
+      b.style.background = c;
+      b.title = 'Tono '+i;
+      b.onclick = ()=>setAvatarOpt('skin',i);
+      skinPicker.appendChild(b);
+    });
+  }
+
+  const hairStylePicker = document.getElementById('hairStylePicker');
+  if(hairStylePicker){
+    hairStylePicker.innerHTML = '';
+    hairStyles.forEach((label,i)=>{
+      const b = document.createElement('button');
+      b.className = 'av-style-btn'+(i===avatarConfig.hair?' active':'');
+      b.dataset.avHair = i;
+      b.textContent = label;
+      b.onclick = ()=>setAvatarOpt('hair',i);
+      hairStylePicker.appendChild(b);
+    });
+  }
+
+  const hairColorPicker = document.getElementById('hairColorPicker');
+  if(hairColorPicker){
+    hairColorPicker.innerHTML = '';
+    hairColors.forEach((c,i)=>{
+      const b = document.createElement('button');
+      b.className = 'av-hair-btn'+(i===avatarConfig.hairColor?' active':'');
+      b.style.background = c;
+      b.title = 'Color '+i;
+      b.onclick = ()=>setAvatarOpt('hairColor',i);
+      hairColorPicker.appendChild(b);
+    });
+  }
+
+  const beardPicker = document.getElementById('beardPicker');
+  if(beardPicker){
+    beardPicker.innerHTML = '';
+    beardStyles.forEach((label,i)=>{
+      const b = document.createElement('button');
+      b.className = 'av-style-btn'+(i===avatarConfig.beard?' active':'');
+      b.dataset.avBeard = i;
+      b.textContent = label;
+      b.onclick = ()=>setAvatarOpt('beard',i);
+      beardPicker.appendChild(b);
+    });
+  }
+
+  const jerseyPicker = document.getElementById('jerseyPicker');
+  if(jerseyPicker){
+    jerseyPicker.innerHTML = '';
+    JERSEY_TEAMS.forEach(t=>{
+      const b = document.createElement('button');
+      b.className = 'av-jersey-btn'+(t.id===avatarConfig.jersey?' active':'');
+      b.dataset.avJersey = t.id;
+      b.style.background = t.c1;
+      b.style.color = t.txt;
+      b.style.borderColor = t.c2;
+      b.textContent = t.name;
+      b.onclick = ()=>setAvatarOpt('jersey',t.id);
+      jerseyPicker.appendChild(b);
+    });
+  }
+
+  // Show/hide hair color based on bald selection
+  const hcs = document.getElementById('hairColorSection');
+  if(hcs) hcs.style.display = (avatarConfig.hair===2) ? 'none' : '';
+
+  updateAvatarPreview();
+}
+
+function showAvatarStep(){
+  const s1 = document.getElementById('loginStep');
+  if(s1) s1.style.display = 'none';
+  const s2 = document.getElementById('avatarStep');
+  if(s2) s2.style.display = 'block';
+  initAvatarPicker();
+}
+
+function saveAvatar(){
+  localStorage.setItem('wc2026_avatar_'+currentUser, JSON.stringify(avatarConfig));
+  if(db){
+    db.ref('players/'+playerKey()+'/avatar').set(avatarConfig).catch(()=>{});
+  }
+  hideRegister();
+  renderMatches();
+  showToast('¡Bienvenido '+currentUser+'! 🎉','success');
+  renderWelcomeBanner();
+  startCountdown();
 }
 
 function loadCustomTeamNames(){
@@ -1616,6 +1885,10 @@ function renderWelcomeBanner(){
 }
 
 function _renderWelcomeContent(banner, msgEl, subEl, name){
+  // Render avatar in banner
+  const avatarIconEl = document.getElementById('welcomeAvatarIcon');
+  if(avatarIconEl) avatarIconEl.innerHTML = renderAvatarSVG(avatarConfig, 56);
+
   const hour = new Date().getHours();
   let greeting;
   if(currentLang === 'es'){
@@ -1796,7 +2069,7 @@ function renderRoundTabs(){
 // ══════════════════════════════════════════════════════
 function setPick(matchId, outcome, btn){
   if(isRoundLocked(currentRound)){
-    showToast(currentLang==='es'?'🔒 La jornada ya comenzó. No se puede modificar.':'🔒 Round already started. Editing is closed.','error');
+    showToast(currentLang==='es'?'🔒 Predicciones cerradas (5 h antes del partido).':'🔒 Picks locked — closes 5 h before kickoff.','error');
     return;
   }
   if(!picks[matchId]) picks[matchId] = {};
@@ -1811,7 +2084,7 @@ function setPick(matchId, outcome, btn){
 
 function setScore(matchId, side, val){
   if(isRoundLocked(currentRound)){
-    showToast(currentLang==='es'?'🔒 La jornada ya comenzó. No se puede modificar.':'🔒 Round already started. Editing is closed.','error');
+    showToast(currentLang==='es'?'🔒 Predicciones cerradas (5 h antes del partido).':'🔒 Picks locked — closes 5 h before kickoff.','error');
     renderMatches();
     return;
   }
@@ -1932,7 +2205,7 @@ function printMyPicks(){
 function openSubmitModal(){
   if(!currentUser){ showToast(t('Primero regístrate','Please register first'),'error'); return; }
   if(isRoundLocked(currentRound)){
-    showToast(currentLang==='es'?'🔒 La jornada ya comenzó. El envío está cerrado.':'🔒 Round already started. Submissions are closed.','error');
+    showToast(currentLang==='es'?'🔒 Predicciones cerradas (5 h antes del partido).':'🔒 Picks locked — closes 5 h before kickoff.','error');
     return;
   }
   // Scroll to top so modal is visible without user needing to scroll
@@ -2231,7 +2504,7 @@ function renderLeaderboard(){
       }
 
       const noSubmit = !hasSubmittedActive;
-      ranked.push({name:player.name||key, pts, exact, close, result, key, noSubmit});
+      ranked.push({name:player.name||key, pts, exact, close, result, key, noSubmit, avatar:player.avatar||null});
     });
     ranked.sort((a,b)=>b.pts-a.pts);
 
@@ -2260,8 +2533,8 @@ function renderLeaderboard(){
       row.className = 'lb-row';
       const rankClass = i===0?'r1':i===1?'r2':i===2?'r3':'';
       const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-      const avatarIdx = getPlayerAvatarIndex(p.name);
-      const avatarSvg = PLAYER_AVATARS[avatarIdx]||'';
+      const lbAvatarCfg = p.avatar || {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro'};
+      const avatarSvg = renderAvatarSVG(lbAvatarCfg, 36);
       const pendingNote = p.noSubmit
         ? `<span style="font-size:10px;color:#666;font-style:italic;padding:1px 6px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid #333">${currentLang==='es'?'Sin enviar':'Not submitted'}</span>`
         : `<span class="pts-chip g">⭐ ${p.exact} ${currentLang==='es'?'exactos':'exact'}</span>
@@ -3212,15 +3485,17 @@ function parseMatchDate(match){
   return new Date(utcMs);
 }
 
-// Has a given match already kicked off? Used to lock picks server-side cannot
-// be enforced from here, but this at least closes the easy editing path in UI.
+// Lock threshold: 5 hours before kickoff (in ms).
+const LOCK_BEFORE_MS = 5 * 60 * 60 * 1000;
+
+// Is a round locked? Yes once we are within LOCK_BEFORE_MS of the first match.
 function hasMatchStarted(match){
   const d = parseMatchDate(match);
   if(!d) return false;
-  return Date.now() >= d.getTime();
+  return Date.now() >= d.getTime() - LOCK_BEFORE_MS;
 }
 
-// A round is locked for editing once its FIRST match has started.
+// A round is locked for editing once we are within 5 h of its first match.
 function isRoundLocked(round){
   const matches = MATCHES[round] || [];
   if(matches.length === 0) return false;
@@ -3245,17 +3520,19 @@ function updateCountdown(){
     return;
   }
 
-  const target = getNextMatchDate();
-  if(!target){ banner.style.display='none'; return; }
+  const kickoff = getNextMatchDate();
+  if(!kickoff){ banner.style.display='none'; return; }
 
+  // Countdown to lock time (5 h before kickoff), not to kickoff itself.
+  const target = new Date(kickoff.getTime() - LOCK_BEFORE_MS);
   const now = new Date();
   const diff = target - now;
 
   banner.style.display = 'flex';
 
   if(diff <= 0){
-    if(title) title.textContent = currentLang==='es'?'¡JORNADA EN CURSO!':'ROUND IN PROGRESS!';
-    units.innerHTML = `<span class="countdown-expired">⚽ ${currentLang==='es'?'Los partidos han comenzado':'Matches have started'}</span>`;
+    if(title) title.textContent = currentLang==='es'?'🔒 PREDICCIONES CERRADAS':'🔒 PICKS LOCKED';
+    units.innerHTML = `<span class="countdown-expired">${currentLang==='es'?'Las predicciones ya no se pueden modificar':'Picks can no longer be changed'}</span>`;
     return;
   }
 
