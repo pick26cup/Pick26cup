@@ -917,16 +917,6 @@ nav button:hover,nav button.active{
             style="letter-spacing:6px;font-size:20px;font-weight:700;text-align:center"
             onkeydown="if(event.key==='Enter')doAdminLogin()"/>
           <button class="btn-gold" style="width:100%;font-size:18px;padding:12px" onclick="doAdminLogin()" data-en="Access" data-es="Acceder">Access</button>
-          <button onclick="toggleTOTPSetup()" style="background:none;border:none;color:var(--text2);font-size:12px;margin-top:8px;cursor:pointer;text-decoration:underline">
-            <span data-en="📱 First time? Show setup QR code" data-es="📱 ¿Primera vez? Ver código QR de configuración">📱 First time? Show setup QR code</span>
-          </button>
-          <div id="totpSetup" style="display:none;margin-top:16px;padding:16px;background:rgba(255,255,255,.05);border-radius:12px;border:1px solid rgba(212,175,55,.3);text-align:center">
-            <p style="font-size:12px;color:var(--gold);margin-bottom:10px;font-weight:700" data-en="Scan with Google Authenticator or Authy" data-es="Escanea con Google Authenticator o Authy">Scan with Google Authenticator or Authy</p>
-            <div id="totpQR" style="display:inline-block;background:#fff;padding:8px;border-radius:8px;margin-bottom:10px"></div>
-            <p style="font-size:11px;color:var(--text2);margin-bottom:6px" data-en="Or enter key manually:" data-es="O ingresa la clave manualmente:">Or enter key manually:</p>
-            <code id="totpSecretDisplay" style="font-size:13px;color:var(--gold2);letter-spacing:2px;word-break:break-all"></code>
-            <p style="font-size:10px;color:var(--text2);margin-top:8px" data-en="App: Pick26 Cup · Account: Admin" data-es="App: Pick26 Cup · Cuenta: Admin">App: Pick26 Cup · Account: Admin</p>
-          </div>
         </div>
       </div>
 
