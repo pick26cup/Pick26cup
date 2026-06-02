@@ -183,13 +183,16 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
 .pick-btn.selected-away{background:rgba(231,76,60,.2)!important;border-color:var(--red)!important;color:var(--red)!important}
 
 /* Score input for closers / final */
-.score-row{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}
-.score-row label{font-size:12px;color:var(--text2);white-space:nowrap}
+.score-board{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;padding:12px 10px;background:rgba(255,255,255,.05);border-radius:12px;border:1px solid rgba(212,175,55,.25)}
+.score-team{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:72px}
+.score-team-lbl{font-size:11px;font-weight:700;color:var(--text2);text-align:center;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
+.score-team-lbl .sf{font-size:18px;display:block}
+.score-dash{font-size:24px;font-weight:900;color:var(--gold);line-height:1;padding-top:18px}
 .score-input{
-  width:52px;padding:6px 8px;background:rgba(255,255,255,.07);border:1.5px solid var(--gray);
-  border-radius:8px;color:var(--text);font-size:16px;font-weight:700;text-align:center;
+  width:56px;padding:8px 4px;background:rgba(255,255,255,.09);border:2px solid var(--gray);
+  border-radius:8px;color:var(--text);font-size:22px;font-weight:900;text-align:center;
 }
-.score-input:focus{outline:none;border-color:var(--gold)}
+.score-input:focus{outline:none;border-color:var(--gold);background:rgba(212,175,55,.1)}
 .badge-final{
   font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:1px;
   background:rgba(212,175,55,.2);border:1px solid var(--gold3);color:var(--gold);
@@ -493,7 +496,8 @@ nav button:hover,nav button.active{
   .team-name{font-size:12px}
   .flag img{height:20px;width:26px}
   .pick-btn{font-size:11px;padding:7px 2px;min-width:60px}
-  .score-row{flex-wrap:wrap;gap:6px;justify-content:center}
+  .score-board{gap:8px;padding:10px 6px}
+  .score-input{width:52px;font-size:20px}
   .round-tabs{gap:4px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px}
   .round-tab{font-size:11px;padding:5px 10px;white-space:nowrap}
   .submit-area{padding:16px 10px}
@@ -2174,21 +2178,27 @@ function renderMatches(){
 
     let scoreSection = '';
     if(isCloser || isFinal){
-      const sh = userPick.scoreH!==undefined?userPick.scoreH:'';
-      const sa = userPick.scoreA!==undefined?userPick.scoreA:'';
+      // Default to 0 if not set — blank input means 0 goals
+      const sh = userPick.scoreH!==undefined ? userPick.scoreH : 0;
+      const sa = userPick.scoreA!==undefined ? userPick.scoreA : 0;
       const disabledScore = isSubmitted?'disabled':'';
+      const scoreLbl = currentLang==='es'?'⭐ Marcador exacto':'⭐ Exact score';
       scoreSection = `
-        <div class="score-row">
-          <label>${currentLang==='es'?'Marcador exacto:':'Exact score:'}</label>
-          <span style="font-size:13px;font-weight:600">${homeFlag} ${homeName}</span>
-          <input class="score-input" type="number" min="0" max="20" value="${sh}" 
-            ${disabledScore} onchange="setScore('${m.id}','home',this.value)" placeholder="0"/>
-          <span style="color:var(--gold);font-weight:700">—</span>
-          <input class="score-input" type="number" min="0" max="20" value="${sa}"
-            ${disabledScore} onchange="setScore('${m.id}','away',this.value)" placeholder="0"/>
-          <span style="font-size:13px;font-weight:600">${awayName} ${awayFlag}</span>
-        </div>`;
-      if(isFinal) scoreSection += `<p style="font-size:11px;color:var(--gold);margin-top:6px;font-style:italic">⚽ ${currentLang==='es'?'Solo ingresa los goles. El ganador se deduce del marcador.':'Just enter the goals. The winner is determined by the score.'}</p>`;
+        <div class="score-board">
+          <div class="score-team">
+            <span class="score-team-lbl"><span class="sf">${homeFlag}</span>${homeName}</span>
+            <input class="score-input" type="number" min="0" max="20" value="${sh}"
+              ${disabledScore} onchange="setScore('${m.id}','home',this.value)"/>
+          </div>
+          <span class="score-dash">—</span>
+          <div class="score-team">
+            <span class="score-team-lbl"><span class="sf">${awayFlag}</span>${awayName}</span>
+            <input class="score-input" type="number" min="0" max="20" value="${sa}"
+              ${disabledScore} onchange="setScore('${m.id}','away',this.value)"/>
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--gold);text-align:center;margin-top:5px;font-style:italic">${scoreLbl}</p>`;
+      if(isFinal) scoreSection += `<p style="font-size:11px;color:var(--text2);text-align:center;margin-top:2px;font-style:italic">⚽ ${currentLang==='es'?'El ganador se deduce del marcador.':'Winner is decided by the score.'}</p>`;
     }
 
     card.innerHTML = `
@@ -2304,19 +2314,17 @@ function setScore(matchId, side, val){
     return;
   }
   if(!picks[matchId]) picks[matchId] = {};
-  const v = parseInt(val);
-  if(!isNaN(v) && v >= 0){
-    picks[matchId][side==='home'?'scoreH':'scoreA'] = v;
-    // For final match: auto-derive pick from scores
-    const match = findMatch(matchId);
-    if(match && match.final){
-      const h = picks[matchId].scoreH;
-      const a = picks[matchId].scoreA;
-      if(h!==undefined && a!==undefined){
-        if(h > a) picks[matchId].pick = 'home';
-        else if(a > h) picks[matchId].pick = 'away';
-        else picks[matchId].pick = 'draw';
-      }
+  const parsed = (val===''||val===null||val===undefined) ? 0 : parseInt(val);
+  picks[matchId][side==='home'?'scoreH':'scoreA'] = isNaN(parsed) ? 0 : Math.max(0, parsed);
+  // For final match: auto-derive pick from scores
+  const match = findMatch(matchId);
+  if(match && match.final){
+    const h = picks[matchId].scoreH;
+    const a = picks[matchId].scoreA;
+    if(h!==undefined && a!==undefined){
+      if(h > a) picks[matchId].pick = 'home';
+      else if(a > h) picks[matchId].pick = 'away';
+      else picks[matchId].pick = 'draw';
     }
   }
   savePicks();
@@ -2431,8 +2439,11 @@ function openSubmitModal(){
   roundMatches.forEach(m=>{
     const p = picks[m.id];
     if(!m.final && !m.closer && (!p || !p.pick)) missing.push(m.home+' vs '+m.away);
-    if((m.closer||m.final) && (!p || p.scoreH===undefined || p.scoreA===undefined)){
-      missing.push((currentLang==='es'?'[Falta marcador] ':'[Score needed] ')+m.home+' vs '+m.away);
+    if((m.closer||m.final)){
+      // Auto-default missing scores to 0 (blank input = 0 goals)
+      if(!picks[m.id]) picks[m.id] = {};
+      if(picks[m.id].scoreH===undefined) picks[m.id].scoreH = 0;
+      if(picks[m.id].scoreA===undefined) picks[m.id].scoreA = 0;
     }
   });
   if(missing.length > 0){
