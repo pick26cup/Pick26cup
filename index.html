@@ -353,6 +353,27 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
   max-width:400px;margin:40px auto;padding:32px;
   background:rgba(20,16,0,.9);border:2px solid var(--gold3);border-radius:16px;
 }
+/* ── NOTIFICATIONS & PENDING ─────────────────────────── */
+.notif-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:#e74c3c;color:#fff;font-size:10px;font-weight:900;
+  padding:0 5px;border-radius:10px;margin-left:4px;
+  min-width:18px;height:16px;line-height:1;vertical-align:middle;
+  animation:badge-pop .3s ease;
+}
+@keyframes badge-pop{from{transform:scale(0)}to{transform:scale(1)}}
+.pending-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 10px;border-radius:8px;margin-bottom:4px;
+  background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);
+}
+.pending-name{font-size:13px;font-weight:600;color:var(--text)}
+.pending-sub{font-size:11px;color:var(--text2)}
+.submitted-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:5px 10px;border-radius:8px;margin-bottom:3px;
+  background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.15);
+}
 .admin-login h2{font-family:'Bebas Neue';font-size:32px;color:var(--gold);text-align:center;margin-bottom:20px;letter-spacing:3px}
 .admin-login input{
   width:100%;padding:12px 14px;background:rgba(255,255,255,.07);border:1.5px solid var(--gray);
@@ -798,7 +819,7 @@ nav button:hover,nav button.active{
         <button class="active" onclick="showSection('picks')" data-section="picks" data-en="My Picks" data-es="Mis Picks">My Picks</button>
         <button onclick="showSection('leaderboard')" data-section="leaderboard" data-en="Leaderboard" data-es="Tabla">Leaderboard</button>
         <button onclick="showSection('results')" data-section="results" data-en="My Results" data-es="Mis Resultados">My Results</button>
-        <button onclick="showSection('admin')" data-section="admin" data-en="Admin" data-es="Admin">Admin</button>
+        <button onclick="showSection('admin')" data-section="admin" data-en="Admin" data-es="Admin">Admin <span id="adminNavBadge" style="display:none" class="notif-badge">0</span></button>
       </nav>
       <div class="header-right">
         <button id="helpBtn" onclick="openRulesModal()" title="Cómo funciona / How it works" aria-label="Reglas">❓</button>
@@ -982,6 +1003,15 @@ nav button:hover,nav button.active{
               <button class="round-tab" onclick="setEditRound(7)" id="ertab7">Round 7</button>
             </div>
             <div id="editTeamsContent"></div>
+          </div>
+
+          <!-- Pending Picks -->
+          <div class="admin-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <h3 style="margin:0">⏳ <span data-en="Pending Round" data-es="Pendientes Jornada">Pending Round</span> <span id="pendingRoundLabel">—</span></h3>
+              <button class="btn-sm btn-save" onclick="renderPendingPlayers()" style="font-size:11px;padding:4px 10px">↺</button>
+            </div>
+            <div id="pendingPlayerList"><p style="color:var(--text2);font-size:12px">Loading...</p></div>
           </div>
 
           <!-- Players -->
@@ -1405,6 +1435,8 @@ let adminRound = 1;
 let currentUser = null;
 let adminLoggedIn = false;
 let editRound = 4;
+let _watchedPlayerKeys = null;
+let _newPlayerCount = 0;
 let customTeamNames = {}; // {matchId_home: name, matchId_away: name}
 let db = null;
 let picks = {}; // {matchId: {pick:'home'|'draw'|'away', scoreH:n, scoreA:n}}
@@ -1580,6 +1612,7 @@ function setupFirebase(){
     // Sync user state from Firebase (overrides localStorage)
     if(currentUser) syncFromFirebase();
     console.log('Firebase ready');
+    startPlayerWatcher();
     // Re-render any open sections now that Firebase is connected
     const openSection = document.querySelector('section:not(.hidden)');
     if(openSection){
@@ -1588,6 +1621,81 @@ function setupFirebase(){
       if(id==='sec-results') renderMyResults();
     }
   } catch(e){ console.warn('Firebase setup failed:', e); }
+}
+
+function startPlayerWatcher(){
+  if(!db) return;
+  // Snapshot existing keys first so child_added doesn't fire for pre-existing players
+  db.ref('players').once('value').then(snap=>{
+    _watchedPlayerKeys = new Set(Object.keys(snap.val()||{}));
+    db.ref('players').on('child_added', childSnap=>{
+      if(!_watchedPlayerKeys) return;
+      if(_watchedPlayerKeys.has(childSnap.key)) return; // pre-existing player
+      _watchedPlayerKeys.add(childSnap.key);
+      const name = (childSnap.val()&&childSnap.val().name)||childSnap.key;
+      _newPlayerCount++;
+      updateAdminBadge();
+      showToast(t('🆕 Nuevo jugador registrado: ','🆕 New player registered: ')+name, 'success');
+    });
+  }).catch(()=>{});
+}
+
+function updateAdminBadge(){
+  const badge = document.getElementById('adminNavBadge');
+  if(!badge) return;
+  if(_newPlayerCount>0){
+    badge.textContent = _newPlayerCount;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function renderPendingPlayers(){
+  const cont = document.getElementById('pendingPlayerList');
+  const lbl  = document.getElementById('pendingRoundLabel');
+  if(!cont) return;
+  const round = activeWeek;
+  if(lbl) lbl.textContent = round || '—';
+  cont.innerHTML = `<p style="color:var(--text2);font-size:12px">Loading...</p>`;
+  if(!db){ cont.innerHTML='<p style="color:var(--text2);font-size:12px">No connection.</p>'; return; }
+  Promise.all([
+    db.ref('players').once('value'),
+    db.ref('picks').once('value')
+  ]).then(([pSnap, pickSnap])=>{
+    const players = pSnap.val()||{};
+    const allPicks = pickSnap.val()||{};
+    const pending = [], submitted = [];
+    Object.entries(players).forEach(([key, player])=>{
+      const sub = (allPicks[key]&&allPicks[key].submittedRounds)||{};
+      const hasSub = sub[String(round)] || sub[round];
+      const totalSub = Object.values(sub).filter(Boolean).length;
+      if(hasSub) submitted.push({name:player.name||key, totalSub});
+      else        pending.push({name:player.name||key, totalSub});
+    });
+    const total = pending.length + submitted.length;
+    if(total===0){
+      cont.innerHTML='<p style="color:var(--text2);font-size:12px">No players registered.</p>';
+      return;
+    }
+    let html = `<p style="font-size:11px;color:var(--text2);margin-bottom:8px">`
+      + `<strong style="color:var(--green)">${submitted.length}</strong>/${total} `
+      + t('enviaron la jornada','submitted round')+' '+round+'</p>';
+    if(pending.length===0){
+      html += `<p style="color:var(--green);font-size:13px;font-weight:700">✅ `+t('¡Todos enviaron!','All players submitted!')+`</p>`;
+    } else {
+      html += `<p style="font-size:11px;color:var(--red);font-weight:700;margin-bottom:6px">`
+        + `⚠️ `+pending.length+` `+t('sin enviar:','not submitted:')+`</p>`;
+      html += pending.map(p=>`
+        <div class="pending-row">
+          <span class="pending-name">${escapeHtml(p.name)}</span>
+          <span class="pending-sub">${p.totalSub}/7 ${t('jornadas','rounds')}</span>
+        </div>`).join('');
+    }
+    cont.innerHTML = html;
+  }).catch(()=>{
+    cont.innerHTML=`<p style="color:var(--red);font-size:12px">Error loading data.</p>`;
+  });
 }
 
 // ══════════════════════════════════════════════════════
@@ -2972,6 +3080,9 @@ function grantAdminUI(){
   renderAdminPlayers();
   renderEditTeams();
   loadCustomTeamNames();
+  renderPendingPlayers();
+  _newPlayerCount = 0;
+  updateAdminBadge();
   showToast(t('Acceso de administrador concedido 🔓','Admin access granted 🔓'),'success');
 }
 
@@ -3694,6 +3805,9 @@ function showSection(name){
   if(name==='admin' && adminLoggedIn){
     document.getElementById('adminLogin').classList.add('hidden');
     document.getElementById('adminContent').classList.remove('hidden');
+    _newPlayerCount = 0;
+    updateAdminBadge();
+    renderPendingPlayers();
   }
 }
 
