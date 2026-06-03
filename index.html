@@ -67,6 +67,30 @@ nav button:hover,nav button.active{background:rgba(212,175,55,.15);border-color:
   letter-spacing:.5px;display:none;transition:.2s;
 }
 #logoutBtn:hover{background:rgba(231,76,60,.3)}
+/* ── SETTINGS GEAR ───────────────────────────────────── */
+#settingsWrap{position:relative}
+#settingsBtn{
+  background:rgba(212,175,55,.12);border:1px solid var(--gold3);color:var(--gold);
+  font-size:17px;width:32px;height:32px;border-radius:50%;
+  cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;
+}
+#settingsBtn:hover{background:rgba(212,175,55,.3)}
+.settings-dropdown{
+  position:absolute;top:42px;right:0;
+  background:#1c1600;border:1.5px solid var(--gold3);border-radius:12px;
+  padding:6px;min-width:200px;z-index:999;
+  box-shadow:0 8px 32px rgba(0,0,0,.85);
+  animation:sd-in .15s ease;
+}
+@keyframes sd-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.settings-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;
+  cursor:pointer;color:var(--text);font-size:13px;font-weight:600;
+  transition:.15s;border:none;background:none;width:100%;text-align:left;
+}
+.settings-item:hover{background:rgba(212,175,55,.12);color:var(--gold2)}
+.si{font-size:16px;width:22px;text-align:center;flex-shrink:0}
+.settings-div{height:1px;background:rgba(212,175,55,.18);margin:4px 0}
 
 /* ── MAIN CONTENT ───────────────────────────────────── */
 main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
@@ -823,7 +847,20 @@ nav button:hover,nav button.active{
       </nav>
       <div class="header-right">
         <button id="helpBtn" onclick="openRulesModal()" title="Cómo funciona / How it works" aria-label="Reglas">❓</button>
-        <button id="langBtn" onclick="toggleLang()">ES</button>
+        <div id="settingsWrap">
+          <button id="settingsBtn" onclick="toggleSettingsMenu()" title="Settings / Configuración">⚙️</button>
+          <div class="settings-dropdown" id="settingsMenu" style="display:none">
+            <button class="settings-item" onclick="toggleLang();closeSettingsMenu()">
+              <span class="si">🌐</span>
+              <span id="settingsLangLabel">Cambiar a Español</span>
+            </button>
+            <div class="settings-div"></div>
+            <button class="settings-item" id="settingsAvatarBtn" onclick="openAvatarEditor()" style="display:none">
+              <span class="si">👤</span>
+              <span data-en="Edit Avatar" data-es="Editar Avatar">Edit Avatar</span>
+            </button>
+          </div>
+        </div>
         <button id="logoutBtn" onclick="doLogout()">Logout</button>
       </div>
     </div>
@@ -1437,6 +1474,7 @@ let adminLoggedIn = false;
 let editRound = 4;
 let _watchedPlayerKeys = null;
 let _newPlayerCount = 0;
+let _avatarEditMode = false;
 let customTeamNames = {}; // {matchId_home: name, matchId_away: name}
 let db = null;
 let picks = {}; // {matchId: {pick:'home'|'draw'|'away', scoreH:n, scoreA:n}}
@@ -1553,6 +1591,14 @@ window.onload = function(){
   updateLang();
   renderRoundTabs();
   startCountdown();
+  // Show avatar button in settings once logged in
+  const avBtn = document.getElementById('settingsAvatarBtn');
+  if(avBtn && currentUser) avBtn.style.display = 'flex';
+  // Close settings dropdown on outside click
+  document.addEventListener('click', function(e){
+    const wrap = document.getElementById('settingsWrap');
+    if(wrap && !wrap.contains(e.target)) closeSettingsMenu();
+  });
 };
 
 function initFirebase(){
@@ -1762,6 +1808,8 @@ function doLogin(){
 function hideRegister(){
   document.getElementById('registerOverlay').style.display='none';
   document.getElementById('logoutBtn').style.display='';
+  const avBtn = document.getElementById('settingsAvatarBtn');
+  if(avBtn) avBtn.style.display = 'flex';
 }
 
 function loadUserData(){
@@ -2086,7 +2134,12 @@ function saveAvatar(){
   }
   hideRegister();
   renderMatches();
-  showToast(t('¡Bienvenido '+currentUser+'! 🎉','Welcome '+currentUser+'! 🎉'),'success');
+  if(_avatarEditMode){
+    _avatarEditMode = false;
+    showToast(t('Avatar guardado ✅','Avatar saved ✅'),'success');
+  } else {
+    showToast(t('¡Bienvenido '+currentUser+'! 🎉','Welcome '+currentUser+'! 🎉'),'success');
+  }
   renderWelcomeBanner();
   startCountdown();
 }
@@ -3829,10 +3882,34 @@ function setRound(r){
 // ══════════════════════════════════════════════════════
 //  LANGUAGE
 // ══════════════════════════════════════════════════════
+function toggleSettingsMenu(){
+  const menu = document.getElementById('settingsMenu');
+  const isOpen = menu.style.display !== 'none';
+  menu.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){
+    const lbl = document.getElementById('settingsLangLabel');
+    if(lbl) lbl.textContent = currentLang==='en' ? 'Cambiar a Español' : 'Switch to English';
+    const avBtn = document.getElementById('settingsAvatarBtn');
+    if(avBtn) avBtn.style.display = currentUser ? 'flex' : 'none';
+  }
+}
+
+function closeSettingsMenu(){
+  const m = document.getElementById('settingsMenu');
+  if(m) m.style.display = 'none';
+}
+
+function openAvatarEditor(){
+  closeSettingsMenu();
+  _avatarEditMode = true;
+  showAvatarStep();
+}
+
 function toggleLang(){
   currentLang = currentLang==='en'?'es':'en';
-  document.getElementById('langBtn').textContent = currentLang==='en'?'ES':'EN';
   document.documentElement.lang = currentLang;
+  const lbl = document.getElementById('settingsLangLabel');
+  if(lbl) lbl.textContent = currentLang==='en' ? 'Cambiar a Español' : 'Switch to English';
   updateLang();
   renderMatches();
   updateWeekBanner();
@@ -3864,6 +3941,9 @@ function doLogout(){
   submittedRounds = {};
   localStorage.removeItem('wc2026_user');
   document.getElementById('logoutBtn').style.display='none';
+  const avBtn = document.getElementById('settingsAvatarBtn');
+  if(avBtn) avBtn.style.display = 'none';
+  closeSettingsMenu();
   const rn=document.getElementById('regName'); if(rn) rn.value='';
   showLoginStep();
   showToast(t('Sesión cerrada','Logged out'),'success');
