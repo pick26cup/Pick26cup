@@ -2427,13 +2427,19 @@ function renderMatches(){
           <div class="score-team">
             <span class="score-team-lbl"><span class="sf">${homeFlag}</span>${homeName}</span>
             <input class="score-input" type="number" min="0" max="20" value="${sh}"
-              ${disabledScore} onchange="setScore('${m.id}','home',this.value)"/>
+              ${disabledScore}
+              onfocus="if(this.value==='0')this.value=''"
+              onblur="if(this.value==='')this.value='0';setScore('${m.id}','home',this.value)"
+              onchange="setScore('${m.id}','home',this.value)"/>
           </div>
           <span class="score-dash">—</span>
           <div class="score-team">
             <span class="score-team-lbl"><span class="sf">${awayFlag}</span>${awayName}</span>
             <input class="score-input" type="number" min="0" max="20" value="${sa}"
-              ${disabledScore} onchange="setScore('${m.id}','away',this.value)"/>
+              ${disabledScore}
+              onfocus="if(this.value==='0')this.value=''"
+              onblur="if(this.value==='')this.value='0';setScore('${m.id}','away',this.value)"
+              onchange="setScore('${m.id}','away',this.value)"/>
           </div>
         </div>
         <p style="font-size:11px;color:var(--gold);text-align:center;margin-top:5px;font-style:italic">${scoreLbl}</p>`;
