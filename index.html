@@ -700,6 +700,8 @@ nav button:hover,nav button.active{
 }
 .result-badge.exact{background:rgba(212,175,55,.25);border:1px solid var(--gold);color:var(--gold)}
 .result-badge.close{background:rgba(52,152,219,.2);border:1px solid var(--blue);color:var(--blue)}
+.result-badge.close-over{background:rgba(230,126,34,.18);border:1px solid #E67E22;color:#E67E22}
+.result-badge.near{background:rgba(149,165,166,.15);border:1px solid #7F8C8D;color:#95A5A6}
 .result-badge.correct{background:rgba(46,204,113,.2);border:1px solid var(--green);color:var(--green)}
 .result-badge.wrong{background:rgba(231,76,60,.15);border:1px solid var(--red);color:var(--red)}
 .result-badge.pending{background:rgba(255,255,255,.07);border:1px solid #555;color:#888}
@@ -953,7 +955,7 @@ nav button:hover,nav button.active{
     <section id="sec-leaderboard" class="hidden">
       <div class="section-title">🥇 <span data-en="Leaderboard" data-es="Tabla de Posiciones">Leaderboard</span></div>
       <p class="section-sub" data-en="Points shown for the active round only. Each round has its own winner." data-es="Puntos mostrados solo para la jornada activa. Cada jornada tiene su propio ganador.">
-        Rankings update automatically. 3pts exact score · 2pts close · 1pt correct result · 0 miss.
+        Rankings update automatically. ⭐: 3pts exact · 2pts under ±1 · 1.5pts over ±1 · 0.5pts off ±2. Other matches: 1pt correct.
       </p>
 
       <div id="hofContent" style="margin-bottom:4px"></div>
@@ -1121,12 +1123,14 @@ nav button:hover,nav button.active{
     <div class="rules-block">
       <div class="rules-h" data-en="🎯 Scoring" data-es="🎯 Puntuación">🎯 Scoring</div>
       <ul class="rules-list">
-        <li><strong style="color:var(--gold)">3 pts</strong> — <span data-en="Exact score — only available on the marked ⭐ match each round." data-es="Marcador exacto — solo disponible en el partido marcado ⭐ de cada jornada.">Exact score — only available on the marked ⭐ match each round.</span></li>
-        <li><strong style="color:var(--blue)">2 pts</strong> — <span data-en="Correct winner AND goal difference within ±1 (score matches only)." data-es="Ganador correcto Y diferencia de goles a ±1 (solo partidos con marcador).">Correct winner AND goal difference within ±1 (score matches only).</span></li>
-        <li><strong style="color:var(--green)">1 pt</strong> — <span data-en="Correct result: Home Win / Draw / Away Win." data-es="Resultado correcto: Victoria Local / Empate / Visitante.">Correct result: Home Win / Draw / Away Win.</span></li>
-        <li><strong style="color:var(--red)">0 pts</strong> — <span data-en="Wrong prediction." data-es="Predicción incorrecta.">Wrong prediction.</span></li>
+        <li><strong style="color:var(--green)">1 pt</strong> — <span data-en="Correct result: Home Win / Draw / Away Win (regular matches)." data-es="Resultado correcto: Victoria Local / Empate / Visitante (partidos regulares).">Correct result: Home Win / Draw / Away Win (regular matches).</span></li>
+        <li><strong style="color:var(--gold)">3 pts</strong> — <span data-en="Exact score on the ⭐ match — replaces the 1pt result." data-es="Marcador exacto en el partido ⭐ — reemplaza el punto de resultado.">Exact score on the ⭐ match — replaces the 1pt result.</span></li>
+        <li><strong style="color:var(--blue)">2 pts</strong> — <span data-en="⭐ match: score off by 1 goal, predicted UNDER (fewer total goals than actual)." data-es="Partido ⭐: marcador a 1 gol de diferencia, predicción POR DEBAJO (menos goles que el real).">⭐ match: score off by 1 goal, predicted UNDER (fewer total goals than actual).</span></li>
+        <li><strong style="color:#E67E22">1.5 pts</strong> — <span data-en="⭐ match: score off by 1 goal, predicted OVER (more total goals than actual)." data-es="Partido ⭐: marcador a 1 gol de diferencia, predicción POR ENCIMA (más goles que el real).">⭐ match: score off by 1 goal, predicted OVER (more total goals than actual).</span></li>
+        <li><strong style="color:#95A5A6">0.5 pts</strong> — <span data-en="⭐ match: score off by exactly 2 goals total." data-es="Partido ⭐: marcador a exactamente 2 goles de diferencia total.">⭐ match: score off by exactly 2 goals total.</span></li>
+        <li><strong style="color:var(--red)">0 pts</strong> — <span data-en="Wrong prediction or score off by 3+ goals on the ⭐ match." data-es="Predicción incorrecta o marcador a 3+ goles de diferencia en el partido ⭐.">Wrong prediction or score off by 3+ goals on the ⭐ match.</span></li>
       </ul>
-      <p class="rules-note" data-en="Note: 2 pts requires getting the winner right too — matching only the goal difference is not enough." data-es="Nota: 2 pts exige acertar también el ganador — solo acertar la diferencia de goles no es suficiente.">Note: 2 pts requires getting the winner right too — matching only the goal difference is not enough.</p>
+      <p class="rules-note" data-en="Tiebreaker (same total points): the player who predicted UNDER wins. If still tied, the one closest on the losing team's goals wins — ensuring one winner per round." data-es="Desempate (mismos puntos totales): gana quien predijo POR DEBAJO. Si sigue el empate, gana quien estuvo más cerca en los goles del equipo contrario — siempre hay un único ganador por jornada.">Tiebreaker (same total points): the player who predicted UNDER wins. If still tied, the one closest on the losing team's goals wins — ensuring one winner per round.</p>
     </div>
 
     <div class="rules-block">
@@ -3018,13 +3022,20 @@ function renderHallOfFame(players, allPicks, results){
         if(!res || !p) return;
         pts += scoreMatch(m, p, res);
       });
-      scores.push({name: player.name||key, pts});
+      const tb = closerTBData(pp, results, round);
+      scores.push({name: player.name||key, pts, tb});
     });
 
     if(scores.length===0){ roundData.push({round, winners:[], pts:0, hasResults:true}); return; }
-    const maxPts = Math.max(...scores.map(s=>s.pts));
-    const winners = scores.filter(s=>s.pts===maxPts);
-    roundData.push({round, winners, pts:maxPts, hasResults:true});
+    scores.sort((a,b)=>{
+      if(b.pts !== a.pts) return b.pts - a.pts;
+      return tbCompare(a.tb, b.tb);
+    });
+    const maxPts = scores[0].pts;
+    // Check if tiebreaker was needed (multiple players had same pts before tiebreaker)
+    const tiedCount = scores.filter(s=>s.pts===maxPts).length;
+    const tiebroken = tiedCount > 1;
+    roundData.push({round, winners:[scores[0]], pts:maxPts, hasResults:true, tiebroken});
   });
 
   const anyActive = roundData.some(r=>r.hasResults);
@@ -3045,21 +3056,16 @@ function renderHallOfFame(players, allPicks, results){
         <div class="hof-pending">${currentLang==='es'?'Sin picks':'No picks'}</div>
       </div>`;
 
-    const tied = rd.winners.length > 1;
-    const fontSize = rd.winners.length > 2 ? '15px' : '19px';
-    const names = rd.winners.map(w=>
-      `<div class="hof-winner-name" style="font-size:${fontSize}">${escapeHtml(w.name)}</div>`
-    ).join('');
-    const tiedBadge = tied
-      ? `<div class="hof-tied-badge">🤝 ${currentLang==='es'?'EMPATE':'TIED'} ×${rd.winners.length}</div>`
+    const tiebrokenBadge = rd.tiebroken
+      ? `<div class="hof-tied-badge" style="background:rgba(212,175,55,.15);border-color:var(--gold3);color:var(--gold)">🔬 ${currentLang==='es'?'DESEMPATE':'TIEBREAKER'}</div>`
       : '';
 
     return `
       <div class="hof-card active">
         <div class="hof-round-label">🏆 ${rl(rd.round)}</div>
-        ${tiedBadge}
-        ${names}
-        <div class="hof-pts-label">${rd.pts} pts</div>
+        ${tiebrokenBadge}
+        <div class="hof-winner-name">${escapeHtml(rd.winners[0].name)}</div>
+        <div class="hof-pts-label">${Number.isInteger(rd.pts)?rd.pts:rd.pts.toFixed(1)} pts</div>
       </div>`;
   }).join('');
 
@@ -3097,7 +3103,7 @@ function renderLeaderboard(){
       const scoringRound = activeWeek && activeWeek > 0 ? activeWeek : null;
       const hasSubmittedActive = scoringRound && hasSubmittedRound(allPicks[key], player, scoringRound);
 
-      let pts=0, exact=0, close=0, result=0;
+      let pts=0, exact=0, close=0, closeOver=0, near=0, result=0;
 
       if(results && scoringRound && hasSubmittedActive){
         const roundMatches = MATCHES[scoringRound] || [];
@@ -3109,14 +3115,23 @@ function renderLeaderboard(){
           pts += mp;
           if(mp===3) exact++;
           else if(mp===2) close++;
+          else if(mp===1.5) closeOver++;
+          else if(mp===0.5) near++;
           else if(mp===1) result++;
         });
       }
 
+      const tb = (results && scoringRound && hasSubmittedActive)
+        ? closerTBData(playerPickData, results, scoringRound)
+        : {diff:9999, under:null, counterDiff:9999};
+
       const noSubmit = !hasSubmittedActive;
-      ranked.push({name:player.name||key, pts, exact, close, result, key, noSubmit, avatar:player.avatar||null});
+      ranked.push({name:player.name||key, pts, exact, close, closeOver, near, result, key, noSubmit, avatar:player.avatar||null, tb});
     });
-    ranked.sort((a,b)=>b.pts-a.pts);
+    ranked.sort((a,b)=>{
+      if(b.pts !== a.pts) return b.pts - a.pts;
+      return tbCompare(a.tb, b.tb);
+    });
 
     if(ranked.length===0){
       cont.innerHTML = '<p style="color:var(--text2);text-align:center;padding:40px">No approved players yet.</p>';
@@ -3138,6 +3153,10 @@ function renderLeaderboard(){
 
     renderHallOfFame(players, allPicks, results||{});
     cont.innerHTML = '';
+    // Detect if rank-1 was resolved by tiebreaker (same pts as rank-2)
+    const firstPts = ranked.length > 0 ? ranked[0].pts : -1;
+    const tiebrokenTop = ranked.length > 1 && ranked[1].pts === firstPts && !ranked[0].noSubmit;
+
     ranked.forEach((p,i)=>{
       const row = document.createElement('div');
       row.className = 'lb-row';
@@ -3145,19 +3164,25 @@ function renderLeaderboard(){
       const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
       const lbAvatarCfg = p.avatar || {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro'};
       const avatarSvg = renderAvatarSVG(lbAvatarCfg, 36);
+      const tbTag = (i===0 && tiebrokenTop)
+        ? `<span style="font-size:9px;background:rgba(212,175,55,.18);border:1px solid var(--gold3);color:var(--gold);border-radius:6px;padding:1px 5px;margin-left:4px;vertical-align:middle">🔬 ${currentLang==='es'?'desempate':'tiebreaker'}</span>`
+        : '';
+      const ptsDisp = Number.isInteger(p.pts) ? p.pts : p.pts.toFixed(1);
       const pendingNote = p.noSubmit
         ? `<span style="font-size:10px;color:#666;font-style:italic;padding:1px 6px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid #333">${currentLang==='es'?'Sin enviar':'Not submitted'}</span>`
         : `<span class="pts-chip g">⭐ ${p.exact} ${currentLang==='es'?'exactos':'exact'}</span>
-           <span class="pts-chip b">≈ ${p.close} ${currentLang==='es'?'aprox':'close'}</span>
+           <span class="pts-chip b">▼ ${p.close}</span>
+           ${p.closeOver ? `<span class="pts-chip" style="background:rgba(230,126,34,.15);color:#E67E22;border-color:#E67E22">▲ ${p.closeOver}</span>` : ''}
+           ${p.near ? `<span class="pts-chip" style="background:rgba(149,165,166,.12);color:#95A5A6;border-color:#7F8C8D">≈ ${p.near}</span>` : ''}
            <span class="pts-chip s">✓ ${p.result} ${currentLang==='es'?'resultado':'result'}</span>`;
       row.innerHTML = `
         <div class="lb-rank ${rankClass}">${medal||'#'+(i+1)}</div>
         <div class="lb-avatar" style="width:36px;height:36px;border:none;padding:0;overflow:hidden;border-radius:50%">${avatarSvg}</div>
         <div style="flex:1">
-          <div class="lb-name">${escapeHtml(p.name)}</div>
+          <div class="lb-name">${escapeHtml(p.name)}${tbTag}</div>
           <div class="pts-breakdown">${pendingNote}</div>
         </div>
-        <div class="lb-pts">${p.pts} <span>pts</span></div>
+        <div class="lb-pts">${ptsDisp} <span>pts</span></div>
       `;
       cont.appendChild(row);
     });
@@ -3220,28 +3245,56 @@ function hasSubmittedRound(pickNode, playerNode, round){
 }
 
 // Single source of truth for scoring one match.
-// Rules (must match the UI legend):
-//   exact score          -> 3 pts
-//   correct 1X2 + close   -> 2 pts (score diff within 1 AND winner correct)
-//   correct 1X2 only      -> 1 pt
-//   wrong                 -> 0 pts
-// Non score-required matches award 1 pt for a correct 1X2 only.
+// Rules:
+//   Regular match  : correct H/D/A pick         -> 1 pt
+//   Closer/Final   : exact score (diff=0)        -> 3 pts  (replaces result pts)
+//   Closer/Final   : diff=1 AND under (less goals predicted) -> 2 pts
+//   Closer/Final   : diff=1 AND over  (more goals predicted) -> 1.5 pts
+//   Closer/Final   : diff=2                      -> 0.5 pts
+//   Closer/Final   : diff≥3                      -> 0 pts
+//   Tiebreaker (same total pts): under beats over → closest on equipo contrario
 function scoreMatch(match, pick, res){
   if(!pick || !res) return 0;
   const requiresScore = match && (match.closer || match.final);
   if(requiresScore){
-    if(pick.scoreH===undefined || pick.scoreA===undefined){
-      // No score entered: fall back to 1X2 if a pick exists.
-      return pickMatchesResult(pick.pick, res) ? 1 : 0;
-    }
-    if(pick.scoreH===res.scoreH && pick.scoreA===res.scoreA) return 3;
-    const correctWinner = pickMatchesResult(pick.pick, res);
-    const closeDiff = Math.abs((pick.scoreH-pick.scoreA)-(res.scoreH-res.scoreA))<=1;
-    if(correctWinner && closeDiff) return 2;
-    if(correctWinner) return 1;
+    const sH = pick.scoreH, sA = pick.scoreA;
+    if(sH == null || sA == null) return 0;
+    const rH = Number(res.scoreH), rA = Number(res.scoreA);
+    if(isNaN(rH) || isNaN(rA)) return 0;
+    const pH = Number(sH), pA = Number(sA);
+    const diff = Math.abs(pH - rH) + Math.abs(pA - rA);
+    if(diff === 0) return 3;
+    if(diff === 1) return (pH + pA) < (rH + rA) ? 2 : 1.5;
+    if(diff === 2) return 0.5;
     return 0;
   }
   return pickMatchesResult(pick.pick, res) ? 1 : 0;
+}
+
+// Returns tiebreaker data for a player's closer match in a given round.
+function closerTBData(playerPicks, results, round){
+  const closerM = (MATCHES[round]||[]).find(m => m.closer || m.final);
+  const out = {diff:9999, under:null, counterDiff:9999};
+  if(!closerM || !results) return out;
+  const res = results[closerM.id];
+  const p = playerPicks[closerM.id];
+  if(!res || !p || p.scoreH == null || p.scoreA == null ||
+     res.scoreH == null || res.scoreA == null) return out;
+  const pH = Number(p.scoreH), pA = Number(p.scoreA);
+  const rH = Number(res.scoreH), rA = Number(res.scoreA);
+  if(isNaN(pH)||isNaN(pA)||isNaN(rH)||isNaN(rA)) return out;
+  out.diff = Math.abs(pH - rH) + Math.abs(pA - rA);
+  out.under = (pH + pA) < (rH + rA);
+  // equipo contrario = team that scored fewer goals (losing side)
+  out.counterDiff = (rA > rH) ? Math.abs(pH - rH) : Math.abs(pA - rA);
+  return out;
+}
+
+// Compare two tiebreaker objects. Returns <0 if a wins, >0 if b wins, 0 if still equal.
+function tbCompare(a, b){
+  if(a.diff !== b.diff) return a.diff - b.diff;
+  if(a.under !== b.under && a.under !== null && b.under !== null) return a.under ? -1 : 1;
+  return a.counterDiff - b.counterDiff;
 }
 
 function findMatch(mid){
@@ -4353,7 +4406,7 @@ function renderMyResults(){
 
     // Calculate stats for selected round
     const roundMatches = MATCHES[resultsRound]||[];
-    let totalExact=0, totalClose=0, totalCorrect=0, totalWrong=0, totalPts=0, totalPending=0;
+    let totalExact=0, totalClose=0, totalOver=0, totalNear=0, totalCorrect=0, totalWrong=0, totalPts=0, totalPending=0;
     const matchResults = [];
 
     roundMatches.forEach(m=>{
@@ -4366,6 +4419,8 @@ function renderMyResults(){
       pts = scoreMatch(m, p, res);
       if(pts===3){ status='exact'; totalExact++; }
       else if(pts===2){ status='close'; totalClose++; }
+      else if(pts===1.5){ status='close-over'; totalOver++; }
+      else if(pts===0.5){ status='near'; totalNear++; }
       else if(pts===1){ status='correct'; totalCorrect++; }
       else { totalWrong++; }
       totalPts += pts;
@@ -4373,10 +4428,13 @@ function renderMyResults(){
     });
 
     // Stats grid
+    const ptsDisplay = Number.isInteger(totalPts) ? totalPts : totalPts.toFixed(1);
     statsEl.innerHTML = `
-      <div class="stat-card"><div class="stat-num" style="color:#D4AF37">${totalPts}</div><div class="stat-label">${currentLang==='es'?'PUNTOS TOTALES':'TOTAL POINTS'}</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#D4AF37">${ptsDisplay}</div><div class="stat-label">${currentLang==='es'?'PUNTOS TOTALES':'TOTAL POINTS'}</div></div>
       <div class="stat-card"><div class="stat-num" style="color:#D4AF37">${totalExact}</div><div class="stat-label">${currentLang==='es'?'EXACTOS':'EXACT'}</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:#3498DB">${totalClose}</div><div class="stat-label">${currentLang==='es'?'APROXIMADOS':'CLOSE'}</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#3498DB">${totalClose}</div><div class="stat-label">${currentLang==='es'?'APROX ▼':'CLOSE ▼'}</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#E67E22">${totalOver}</div><div class="stat-label">${currentLang==='es'?'APROX ▲':'CLOSE ▲'}</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#95A5A6">${totalNear}</div><div class="stat-label">${currentLang==='es'?'CERCA':'NEAR'}</div></div>
       <div class="stat-card"><div class="stat-num" style="color:#2ECC71">${totalCorrect}</div><div class="stat-label">${currentLang==='es'?'CORRECTOS':'CORRECT'}</div></div>
       <div class="stat-card"><div class="stat-num" style="color:#E74C3C">${totalWrong}</div><div class="stat-label">${currentLang==='es'?'FALLIDOS':'WRONG'}</div></div>
     `;
@@ -4407,11 +4465,13 @@ function renderMyResults(){
       }
 
       const statusLabels = {
-        exact: currentLang==='es'?'⭐ EXACTO':'⭐ EXACT',
-        close: currentLang==='es'?'≈ APROXIMADO':'≈ CLOSE',
-        correct: currentLang==='es'?'✓ CORRECTO':'✓ CORRECT',
-        wrong: currentLang==='es'?'✗ FALLIDO':'✗ WRONG',
-        pending: currentLang==='es'?'⏳ PENDIENTE':'⏳ PENDING'
+        exact:      currentLang==='es'?'⭐ EXACTO (+3)':'⭐ EXACT (+3)',
+        close:      currentLang==='es'?'▼ APROX (+2)':'▼ CLOSE (+2)',
+        'close-over': currentLang==='es'?'▲ APROX (+1.5)':'▲ CLOSE (+1.5)',
+        near:       currentLang==='es'?'≈ CERCA (+0.5)':'≈ NEAR (+0.5)',
+        correct:    currentLang==='es'?'✓ CORRECTO (+1)':'✓ CORRECT (+1)',
+        wrong:      currentLang==='es'?'✗ FALLIDO':'✗ WRONG',
+        pending:    currentLang==='es'?'⏳ PENDIENTE':'⏳ PENDING'
       };
 
       const card = document.createElement('div');
