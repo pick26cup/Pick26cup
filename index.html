@@ -398,6 +398,14 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
   padding:5px 10px;border-radius:8px;margin-bottom:3px;
   background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.15);
 }
+/* ── MATCH EDITOR ────────────────────────────────────── */
+.match-edit-row{padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.match-edit-row:last-child{border-bottom:none}
+.match-edit-display{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.match-edit-teams{font-size:13px;font-weight:600;flex:1;min-width:100px}
+.match-edit-dt{font-size:11px;color:var(--text2);white-space:nowrap}
+.match-edit-form{padding:8px;background:rgba(255,255,255,.04);border-radius:8px;margin-top:4px;border:1px solid rgba(212,175,55,.2)}
+.match-edit-form label{font-size:11px;color:var(--text2);display:block;margin-bottom:3px}
 .admin-login h2{font-family:'Bebas Neue';font-size:32px;color:var(--gold);text-align:center;margin-bottom:20px;letter-spacing:3px}
 .admin-login input{
   width:100%;padding:12px 14px;background:rgba(255,255,255,.07);border:1.5px solid var(--gray);
@@ -1042,6 +1050,22 @@ nav button:hover,nav button.active{
             <div id="editTeamsContent"></div>
           </div>
 
+          <!-- Edit Matches -->
+          <div class="admin-card" id="editMatchesCard">
+            <h3 data-en="📅 Edit Matches" data-es="📅 Editar Partidos">📅 Edit Matches</h3>
+            <p style="font-size:12px;color:var(--text2);margin-bottom:10px" data-en="Update date, time or teams if FIFA makes changes." data-es="Actualiza fecha, hora o equipos si FIFA hace cambios.">Update date, time or teams if FIFA makes changes.</p>
+            <div class="round-tabs" style="margin-bottom:10px;flex-wrap:wrap">
+              <button class="round-tab active" onclick="setMatchEditRound(1)" id="metab1">R1</button>
+              <button class="round-tab" onclick="setMatchEditRound(2)" id="metab2">R2</button>
+              <button class="round-tab" onclick="setMatchEditRound(3)" id="metab3">R3</button>
+              <button class="round-tab" onclick="setMatchEditRound(4)" id="metab4">R4</button>
+              <button class="round-tab" onclick="setMatchEditRound(5)" id="metab5">R5</button>
+              <button class="round-tab" onclick="setMatchEditRound(6)" id="metab6">R6</button>
+              <button class="round-tab" onclick="setMatchEditRound(7)" id="metab7">R7</button>
+            </div>
+            <div id="editMatchesContent"></div>
+          </div>
+
           <!-- Pending Picks -->
           <div class="admin-card">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -1386,12 +1410,12 @@ const MATCHES = {
   ]
 };
 
-// Store original match names for reset
-window._origMatches = {};
+// Store original match data for reset (all rounds, all fields)
+const MATCH_ORIG = {};
 (function(){
-  for(const r of [4,5,6,7]){
+  for(const r of [1,2,3,4,5,6,7]){
     (MATCHES[r]||[]).forEach(m=>{
-      window._origMatches[m.id] = {home:m.home, away:m.away};
+      MATCH_ORIG[m.id] = {home:m.home, away:m.away, date:m.date, time:m.time};
     });
   }
 })();
@@ -1475,6 +1499,8 @@ let editRound = 4;
 let _watchedPlayerKeys = null;
 let _newPlayerCount = 0;
 let _avatarEditMode = false;
+let matchOverrides = {}; // {matchId: {home,away,date,time}}
+let matchEditRound = 1;
 let customTeamNames = {}; // {matchId_home: name, matchId_away: name}
 let db = null;
 let picks = {}; // {matchId: {pick:'home'|'draw'|'away', scoreH:n, scoreA:n}}
@@ -1658,6 +1684,7 @@ function setupFirebase(){
     // Sync user state from Firebase (overrides localStorage)
     if(currentUser) syncFromFirebase();
     console.log('Firebase ready');
+    loadMatchOverrides();
     startPlayerWatcher();
     // Re-render any open sections now that Firebase is connected
     const openSection = document.querySelector('section:not(.hidden)');
@@ -1684,6 +1711,118 @@ function startPlayerWatcher(){
       showToast(t('🆕 Nuevo jugador registrado: ','🆕 New player registered: ')+name, 'success');
     });
   }).catch(()=>{});
+}
+
+// ══════════════════════════════════════════════════════
+//  MATCH OVERRIDES
+// ══════════════════════════════════════════════════════
+function loadMatchOverrides(){
+  if(!db) return;
+  db.ref('matchOverrides').on('value', snap=>{
+    applyMatchOverrides(snap.val());
+    if(currentUser) renderMatches();
+    if(adminLoggedIn) renderEditMatches();
+  });
+}
+
+function applyMatchOverrides(data){
+  matchOverrides = data || {};
+  // Reset all matches to original values first
+  for(const r of [1,2,3,4,5,6,7]){
+    (MATCHES[r]||[]).forEach(m=>{
+      const orig = MATCH_ORIG[m.id];
+      if(!orig) return;
+      m.home = orig.home; m.away = orig.away;
+      m.date = orig.date; m.time = orig.time;
+    });
+  }
+  // Apply overrides on top
+  Object.entries(matchOverrides).forEach(([id, ov])=>{
+    for(const r of [1,2,3,4,5,6,7]){
+      const m = (MATCHES[r]||[]).find(x=>x.id===id);
+      if(!m) continue;
+      if(ov.home !== undefined) m.home = ov.home;
+      if(ov.away !== undefined) m.away = ov.away;
+      if(ov.date !== undefined) m.date = ov.date;
+      if(ov.time !== undefined) m.time = ov.time;
+    }
+  });
+  // Re-apply teamName overrides on top (rounds 4-7)
+  for(const r of [4,5,6,7]){
+    (MATCHES[r]||[]).forEach(m=>{
+      if(customTeamNames[m.id+'_home']) m.home = customTeamNames[m.id+'_home'];
+      if(customTeamNames[m.id+'_away']) m.away = customTeamNames[m.id+'_away'];
+    });
+  }
+}
+
+function setMatchEditRound(r){
+  matchEditRound = r;
+  for(let i=1;i<=7;i++){
+    const t = document.getElementById('metab'+i);
+    if(t) t.classList.toggle('active', i===r);
+  }
+  renderEditMatches();
+}
+
+function renderEditMatches(){
+  const cont = document.getElementById('editMatchesContent');
+  if(!cont) return;
+  const matches = MATCHES[matchEditRound] || [];
+  if(!matches.length){ cont.innerHTML='<p style="color:var(--text2);font-size:12px">No matches.</p>'; return; }
+  cont.innerHTML = matches.map(m=>{
+    const ov = matchOverrides[m.id] || {};
+    const changed = Object.keys(ov).length > 0;
+    const changedMark = changed ? ' <span style="color:var(--gold);font-size:10px">●</span>' : '';
+    return `<div class="match-edit-row" id="mer_${m.id}">
+      <div class="match-edit-display" id="med_${m.id}">
+        <span class="match-edit-teams">${escapeHtml(m.home)} <span style="color:var(--text2);font-weight:400">vs</span> ${escapeHtml(m.away)}${changedMark}</span>
+        <span class="match-edit-dt">${m.date} ${m.time}</span>
+        <button class="btn-sm btn-save" onclick="startMatchEdit('${m.id}')" style="font-size:11px;padding:3px 8px">✏️</button>
+        ${changed?`<button class="btn-sm btn-revoke" onclick="clearMatchOverride('${m.id}')" style="font-size:11px;padding:3px 8px" title="${t('Restaurar original','Restore original')}">↺</button>`:''}
+      </div>
+      <div class="match-edit-form" id="mef_${m.id}" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div><label>🏠 ${t('Local','Home')}</label><input id="mei_home_${m.id}" class="rename-input" value="${escapeHtml(m.home)}"/></div>
+          <div><label>✈️ ${t('Visitante','Away')}</label><input id="mei_away_${m.id}" class="rename-input" value="${escapeHtml(m.away)}"/></div>
+          <div><label>📆 ${t('Fecha (DD/MM)','Date (DD/MM)')}</label><input id="mei_date_${m.id}" class="rename-input" value="${m.date}" placeholder="11/06" style="font-family:monospace"/></div>
+          <div><label>⏰ ${t('Hora','Time')}</label><input id="mei_time_${m.id}" class="rename-input" value="${m.time}" placeholder="21:00" style="font-family:monospace"/></div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-sm btn-save" onclick="saveMatchEdit('${m.id}')" style="padding:5px 14px">✅ ${t('Guardar','Save')}</button>
+          <button class="btn-sm btn-revoke" onclick="cancelMatchEdit('${m.id}')" style="padding:5px 12px">✕</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function startMatchEdit(id){
+  document.getElementById('med_'+id).style.display='none';
+  document.getElementById('mef_'+id).style.display='block';
+}
+function cancelMatchEdit(id){
+  document.getElementById('med_'+id).style.display='flex';
+  document.getElementById('mef_'+id).style.display='none';
+}
+async function saveMatchEdit(id){
+  const home = document.getElementById('mei_home_'+id)?.value.trim();
+  const away = document.getElementById('mei_away_'+id)?.value.trim();
+  const date = document.getElementById('mei_date_'+id)?.value.trim();
+  const time = document.getElementById('mei_time_'+id)?.value.trim();
+  if(!home||!away||!date||!time){ showToast(t('Completa todos los campos','Fill all fields'),'error'); return; }
+  if(!db){ showToast('No connection','error'); return; }
+  try{
+    await db.ref('matchOverrides/'+id).set({home,away,date,time});
+    showToast(t('Partido actualizado ✅','Match updated ✅'),'success');
+  } catch(e){ showToast(t('Error al guardar','Save error'),'error'); }
+}
+async function clearMatchOverride(id){
+  if(!confirm(t('¿Restaurar datos originales de este partido?','Restore original match data?'))) return;
+  try{
+    await db.ref('matchOverrides/'+id).remove();
+    showToast(t('Partido restaurado ✅','Match restored ✅'),'success');
+  } catch(e){ showToast(t('Error','Error'),'error'); }
 }
 
 function updateAdminBadge(){
@@ -2249,7 +2388,7 @@ function clearTeamName(matchId){
   delete customTeamNames[matchId+'_away'];
   // Restore original placeholder in MATCHES
   for(const r of [4,5,6,7]){
-    const orig = (window._origMatches||{})[matchId];
+    const orig = MATCH_ORIG[matchId];
     if(orig){
       const m = MATCHES[r] && MATCHES[r].find(x=>x.id===matchId);
       if(m){ m.home = orig.home; m.away = orig.away; }
@@ -3140,6 +3279,7 @@ function grantAdminUI(){
   renderEditTeams();
   loadCustomTeamNames();
   renderPendingPlayers();
+  renderEditMatches();
   _newPlayerCount = 0;
   updateAdminBadge();
   showToast(t('Acceso de administrador concedido 🔓','Admin access granted 🔓'),'success');
