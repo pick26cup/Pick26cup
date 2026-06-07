@@ -2024,7 +2024,28 @@ function renderAvatarSVG(cfg, size){
         <rect x="19" y="26" width="42" height="3" rx="1" fill="${hhDark}"/>
         <ellipse cx="40" cy="29" rx="29" ry="6" fill="${hh}"/>`;
       break;
+    case 3: // Sombrero Vueltiao (Colombia)
+      hat = `
+        <path d="M23 32 Q22 17 40 8 Q58 17 57 32 Z" fill="#F2E4C0"/>
+        <g clip-path="url(#${uid}vc)">
+          <line x1="10" y1="38" x2="22" y2="4" stroke="#1A1A1A" stroke-width="3.5"/>
+          <line x1="17" y1="38" x2="29" y2="4" stroke="#1A1A1A" stroke-width="3.5"/>
+          <line x1="24" y1="38" x2="36" y2="4" stroke="#1A1A1A" stroke-width="3.5"/>
+          <line x1="31" y1="38" x2="43" y2="4" stroke="#1A1A1A" stroke-width="3.5"/>
+          <line x1="38" y1="38" x2="50" y2="4" stroke="#1A1A1A" stroke-width="3.5"/>
+          <line x1="45" y1="38" x2="57" y2="4" stroke="#1A1A1A" stroke-width="3.5"/>
+          <line x1="52" y1="38" x2="64" y2="4" stroke="#1A1A1A" stroke-width="3.5"/>
+          <line x1="59" y1="38" x2="71" y2="4" stroke="#1A1A1A" stroke-width="3.5"/>
+        </g>
+        <path d="M23 32 Q22 17 40 8 Q58 17 57 32" stroke="#1A1A1A" stroke-width="1.5" fill="none"/>
+        <ellipse cx="40" cy="32" rx="17" ry="2.5" fill="${hh}"/>
+        <ellipse cx="40" cy="32" rx="37" ry="5.5" fill="#F2E4C0"/>
+        <ellipse cx="40" cy="29.5" rx="37" ry="1.5" fill="#1A1A1A" opacity="0.2"/>
+        <ellipse cx="40" cy="34.5" rx="37" ry="1.5" fill="#1A1A1A" opacity="0.2"/>
+        <ellipse cx="40" cy="32" rx="37" ry="5.5" fill="none" stroke="#1A1A1A" stroke-width="1.5"/>`;
+      break;
   }
+  const hatDefs = cfg.hat===3 ? `<clipPath id="${uid}vc"><path d="M23 32 Q22 17 40 8 Q58 17 57 32 Z"/></clipPath>` : '';
 
   let beard = '';
   switch(cfg.beard){
@@ -2048,6 +2069,7 @@ function renderAvatarSVG(cfg, size){
       <clipPath id="${uid}">
         <circle cx="40" cy="48" r="44"/>
       </clipPath>
+      ${hatDefs}
     </defs>
     <!-- Circle background (dark-tinted so flag shows clearly) -->
     <circle cx="40" cy="48" r="44" fill="rgba(15,10,5,0.55)"/>
@@ -2204,8 +2226,8 @@ function initAvatarPicker(){
 
   // Hat picker
   const hatStyleLabels = currentLang==='es'
-    ? ['Sin gorra','Gorra','Sombrero']
-    : ['No hat','Cap','Fedora'];
+    ? ['Sin gorra','Gorra','Sombrero','Vueltiao 🇨🇴']
+    : ['No hat','Cap','Fedora','Vueltiao 🇨🇴'];
   const hatPicker = document.getElementById('hatPicker');
   if(hatPicker){
     hatPicker.innerHTML = '';
@@ -2236,7 +2258,13 @@ function initAvatarPicker(){
 
   // Show/hide hat color section
   const htcs = document.getElementById('hatColorSection');
-  if(htcs) htcs.style.display = (avatarConfig.hat===0) ? 'none' : '';
+  if(htcs){
+    htcs.style.display = (avatarConfig.hat===0) ? 'none' : '';
+    const htLabel = htcs.querySelector('.av-label');
+    if(htLabel) htLabel.textContent = avatarConfig.hat===3
+      ? (currentLang==='es' ? '🎨 Color banda' : '🎨 Band color')
+      : (currentLang==='es' ? '🎨 Color de gorra' : '🎨 Hat color');
+  }
 
   // Glasses picker
   const glassesLabels = currentLang==='es'
