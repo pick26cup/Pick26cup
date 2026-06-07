@@ -2006,6 +2006,7 @@ function renderAvatarSVG(cfg, size){
       break;
   }
 
+  const uid = 'av' + (++_avUid);
   const hatColors = ['#1A1A1A','#002868','#C60B1E','#7B4F2E','#F0E8D0','#006847'];
   const hh = hatColors[cfg.hatColor] || hatColors[0];
   const hhDark = hh==='#F0E8D0' ? '#c8b87a' : 'rgba(0,0,0,0.35)';
@@ -2060,7 +2061,6 @@ function renderAvatarSVG(cfg, size){
       break;
   }
 
-  const uid = 'av' + (++_avUid);
   const w = size || 80;
   const h = Math.round(w * 104 / 96);
 
