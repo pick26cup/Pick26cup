@@ -2483,6 +2483,36 @@ function syncFromFirebase(){
   db.ref('results').on('value', function(){
     setTimeout(function(){ refreshLeaderboardIfVisible(); }, 300);
   });
+  // Live listener: detect when admin clears picks for this player so they can re-submit
+  db.ref('picks/'+playerKey()+'/submittedRounds').on('value', function(snap){
+    const fbSubmitted = snap.val() || {};
+    let cleared = false;
+    Object.keys(submittedRounds).forEach(function(r){
+      if(submittedRounds[r] && !fbSubmitted[r] && !fbSubmitted[String(r)]){
+        delete submittedRounds[r];
+        cleared = true;
+      }
+    });
+    if(cleared){
+      localStorage.setItem('wc2026_submitted_'+currentUser, JSON.stringify(submittedRounds));
+      // Re-sync picks from Firebase so player sees clean fields after admin clear
+      db.ref('picks/'+playerKey()+'/picks').once('value').then(function(psnap){
+        picks = psnap.val() || {};
+        localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
+        renderMatches();
+        updateSubmitArea();
+      }).catch(function(){
+        renderMatches();
+        updateSubmitArea();
+      });
+      showToast(
+        currentLang==='es'
+          ? '🔓 El administrador desbloqueó tus predicciones — puedes reenviar'
+          : '🔓 Admin unlocked your picks — you can re-submit',
+        'info'
+      );
+    }
+  });
 }
 
 // ══════════════════════════════════════════════════════
