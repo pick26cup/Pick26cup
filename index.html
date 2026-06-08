@@ -1080,6 +1080,9 @@ nav button:hover,nav button.active{
           <!-- Players -->
           <div class="admin-card">
             <h3 data-en="Players" data-es="Jugadores">Players</h3>
+            <input id="adminPlayerSearch" type="text" placeholder="🔍 Buscar jugador…"
+              oninput="filterAdminPlayers(this.value)"
+              style="width:100%;box-sizing:border-box;padding:7px 10px;border-radius:8px;border:1px solid #333;background:#1a1a1a;color:var(--text);font-size:13px;margin-bottom:10px"/>
             <div id="adminPlayerList">
               <p style="color:var(--text2);font-size:13px">Loading...</p>
             </div>
@@ -3613,22 +3616,43 @@ function recalcAllPoints(){
   });
 }
 
+function filterAdminPlayers(query){
+  const q = (query||'').toLowerCase().trim();
+  document.querySelectorAll('#adminPlayerList .player-row').forEach(row => {
+    const name = (row.querySelector('.player-name')||{}).textContent||'';
+    row.style.display = (!q || name.toLowerCase().includes(q)) ? '' : 'none';
+  });
+}
+
 function renderAdminPlayers(){
   const cont = document.getElementById('adminPlayerList');
   cont.innerHTML='<p style="color:var(--text2);font-size:13px">Loading...</p>';
 
   function display(players, allPicks){
-    if(!players||Object.keys(players).length===0){
+    // Merge: also show entries that have picks but no players node (orphan registrations)
+    const merged = Object.assign({}, players || {});
+    Object.keys(allPicks || {}).forEach(k => {
+      if(!merged[k] && allPicks[k] && allPicks[k].name){
+        merged[k] = {name: allPicks[k].name, approved: false, pts: 0, _orphan: true};
+      }
+    });
+    if(Object.keys(merged).length === 0){
       cont.innerHTML='<p style="color:var(--text2);font-size:13px">No players registered.</p>';
       return;
     }
     cont.innerHTML='';
-    Object.entries(players).forEach(([key, player])=>{
+    Object.entries(merged).forEach(([key, player])=>{
+      if(player._orphan){
+        // Recreate the players node for this orphan so future loads include them
+        if(db) db.ref('players/'+key).set({name:player.name, approved:false, pts:0, submittedRounds:{}}).catch(()=>{});
+      }
       const row = document.createElement('div');
       row.className='player-row';
       const statusLabel = player.approved
         ? `<span class="lb-status approved">Approved</span>`
-        : `<span class="lb-status pending">Pending</span>`;
+        : player._orphan
+          ? `<span class="lb-status pending" style="background:rgba(231,76,60,.15);border-color:#E74C3C;color:#E74C3C">⚠️ Sin registro</span>`
+          : `<span class="lb-status pending">Pending</span>`;
       const approveBtn = player.approved
         ? `<button class="btn-sm btn-revoke" onclick="setPlayerApproval('${key}',false)">Revoke</button>`
         : `<button class="btn-sm btn-approve" onclick="setPlayerApproval('${key}',true)">Approve</button>`;
