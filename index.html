@@ -1083,7 +1083,10 @@ nav button:hover,nav button.active{
 
           <!-- Players -->
           <div class="admin-card">
-            <h3 data-en="Players" data-es="Jugadores">Players</h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <h3 style="margin:0" data-en="Players" data-es="Jugadores">Players</h3>
+              <button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="font-size:11px;padding:4px 10px">↺</button>
+            </div>
             <input id="adminPlayerSearch" type="text" placeholder="🔍 Buscar jugador…"
               oninput="filterAdminPlayers(this.value)"
               style="width:100%;box-sizing:border-box;padding:7px 10px;border-radius:8px;border:1px solid #333;background:#1a1a1a;color:var(--text);font-size:13px;margin-bottom:10px"/>
@@ -1509,6 +1512,7 @@ let adminLoggedIn = false;
 let editRound = 4;
 let _watchedPlayerKeys = null;
 let _newPlayerCount = 0;
+let _adminPlayersListener = null;
 let _avatarEditMode = false;
 let matchOverrides = {}; // {matchId: {home,away,date,time}}
 let matchEditRound = 1;
@@ -3453,6 +3457,11 @@ function grantAdminUI(){
 
 function adminLogout(){
   adminLoggedIn = false;
+  // Detach live player listener
+  if(_adminPlayersListener && db){
+    db.ref('players').off('value', _adminPlayersListener);
+    _adminPlayersListener = null;
+  }
   document.getElementById('adminLogin').classList.remove('hidden');
   document.getElementById('adminContent').classList.add('hidden');
   document.getElementById('adminPwd').value='';
@@ -3790,12 +3799,20 @@ function renderAdminPlayers(){
   }
 
   if(db){
-    Promise.all([
-      db.ref('players').once('value'),
-      db.ref('picks').once('value')
-    ]).then(function(snaps){
-      display(snaps[0].val()||{}, snaps[1].val()||{});
-    }).catch(function(){
+    // Detach any previous listener to avoid duplicates
+    if(_adminPlayersListener){
+      db.ref('players').off('value', _adminPlayersListener);
+      _adminPlayersListener = null;
+    }
+    // Live listener: auto-refreshes whenever a player is added or changed
+    _adminPlayersListener = function(pSnap){
+      db.ref('picks').once('value').then(function(pickSnap){
+        display(pSnap.val()||{}, pickSnap.val()||{});
+      }).catch(function(){
+        display(pSnap.val()||{}, {});
+      });
+    };
+    db.ref('players').on('value', _adminPlayersListener, function(err){
       cont.innerHTML=`<p style="color:var(--red);font-size:13px">⚠️ Firebase: ${t('permiso denegado','permission denied')}.<br>${t('Ve a Firebase Console → Realtime Database → Rules y pon','Go to Firebase Console → Realtime Database → Rules and set')} <code>".read":true, ".write":true</code><br><button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ ${t('Reintentar','Retry')}</button></p>`;
     });
   } else {
