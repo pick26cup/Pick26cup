@@ -3368,8 +3368,8 @@ function renderLeaderboard(){
       cont.appendChild(row);
     });
 
-    // Show winner celebration modal once per user per round
-    if(scoringRound && ranked.length > 0 && !ranked[0].noSubmit){
+    // Show winner celebration modal once per user per round (only when there are real points)
+    if(scoringRound && ranked.length > 0 && !ranked[0].noSubmit && ranked[0].pts > 0){
       setTimeout(function(){
         showWinnerCelebration(ranked[0], scoringRound);
       }, 600);
@@ -4534,7 +4534,7 @@ function launchConfetti(){
 // ══════════════════════════════════════════════════════════════
 function showWinnerCelebration(winner, round){
   // Show only once per user per round
-  const seenKey = 'wc2026_winner_seen_' + currentUser + '_R' + round;
+  const seenKey = 'wc2026_winner_seen2_' + currentUser + '_R' + round;
   if(localStorage.getItem(seenKey)) return;
   localStorage.setItem(seenKey, '1');
 
