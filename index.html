@@ -3368,8 +3368,11 @@ function renderLeaderboard(){
       cont.appendChild(row);
     });
 
-    // Show winner celebration modal once per user per round (only when there are real points)
-    if(scoringRound && ranked.length > 0 && !ranked[0].noSubmit && ranked[0].pts > 0){
+    // Show winner celebration modal only when ALL matches in the round have results
+    const roundMatchList = MATCHES[scoringRound] || [];
+    const roundComplete = scoringRound && roundMatchList.length > 0 &&
+      roundMatchList.every(function(m){ return results && results[m.id]; });
+    if(roundComplete && ranked.length > 0 && !ranked[0].noSubmit && ranked[0].pts > 0){
       setTimeout(function(){
         showWinnerCelebration(ranked[0], scoringRound);
       }, 600);
