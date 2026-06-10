@@ -728,6 +728,70 @@ nav button:hover,nav button.active{
   100%{transform:translateY(100vh) rotate(720deg);opacity:0}
 }
 
+/* ── WINNER MODAL ───────────────────────────────────────── */
+#winnerOverlay{
+  position:fixed;inset:0;z-index:10000;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  animation:overlayFadeIn .35s ease forwards;
+}
+@keyframes overlayFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes overlayFadeOut{from{opacity:1}to{opacity:0}}
+#winnerCard{
+  background:linear-gradient(145deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);
+  border:2px solid var(--gold);border-radius:24px;padding:36px 32px 28px;
+  max-width:340px;width:90%;text-align:center;
+  box-shadow:0 0 60px rgba(212,175,55,.35),0 24px 80px rgba(0,0,0,.6);
+  animation:winnerModalIn .5s cubic-bezier(.34,1.56,.64,1) forwards;
+  position:relative;
+}
+@keyframes winnerModalIn{
+  from{opacity:0;transform:scale(.6) translateY(40px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+.winner-trophy{
+  font-size:64px;display:block;margin-bottom:8px;
+  animation:trophyBounce 1.2s ease-in-out infinite;
+  filter:drop-shadow(0 0 16px rgba(212,175,55,.6));
+}
+@keyframes trophyBounce{
+  0%,100%{transform:scale(1) rotate(-4deg)}
+  50%{transform:scale(1.15) rotate(4deg)}
+}
+.winner-round-label{
+  font-size:11px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--gold3);font-weight:700;margin-bottom:4px;
+}
+.winner-heading{
+  font-size:22px;font-weight:900;color:var(--gold);
+  text-shadow:0 0 20px rgba(212,175,55,.5);margin-bottom:16px;
+  line-height:1.2;
+}
+.winner-avatar-wrap{
+  width:72px;height:72px;border-radius:50%;
+  border:3px solid var(--gold);margin:0 auto 10px;overflow:hidden;
+  box-shadow:0 0 20px rgba(212,175,55,.4);
+}
+.winner-name{
+  font-size:20px;font-weight:800;color:#fff;margin-bottom:4px;
+}
+.winner-pts{
+  font-size:14px;color:var(--gold3);font-weight:600;margin-bottom:16px;
+}
+.winner-msg{
+  font-size:14px;color:var(--text2);line-height:1.5;
+  padding:10px 14px;background:rgba(255,255,255,.05);
+  border-radius:12px;border:1px solid rgba(212,175,55,.15);
+  margin-bottom:20px;
+}
+.winner-close-btn{
+  background:linear-gradient(135deg,#B8860B,var(--gold));color:#000;
+  border:none;border-radius:12px;padding:11px 28px;
+  font-size:14px;font-weight:700;cursor:pointer;width:100%;
+  transition:opacity .2s;letter-spacing:.5px;
+}
+.winner-close-btn:hover{opacity:.85}
+
 /* ── HISTORY ROUNDS ─────────────────────────────────────── */
 .history-tab{
   display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;
@@ -3303,6 +3367,13 @@ function renderLeaderboard(){
       `;
       cont.appendChild(row);
     });
+
+    // Show winner celebration modal once per user per round
+    if(scoringRound && ranked.length > 0 && !ranked[0].noSubmit){
+      setTimeout(function(){
+        showWinnerCelebration(ranked[0], scoringRound);
+      }, 600);
+    }
   }
 
   if(db){
@@ -4456,6 +4527,63 @@ function launchConfetti(){
       setTimeout(()=> piece.remove(), 3500);
     }, i*30);
   }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  FEATURE: WINNER CELEBRATION MODAL
+// ══════════════════════════════════════════════════════════════
+function showWinnerCelebration(winner, round){
+  // Show only once per user per round
+  const seenKey = 'wc2026_winner_seen_' + currentUser + '_R' + round;
+  if(localStorage.getItem(seenKey)) return;
+  localStorage.setItem(seenKey, '1');
+
+  const isCurrentUser = winner.key === currentUser;
+  const ptsDisp = Number.isInteger(winner.pts) ? winner.pts : winner.pts.toFixed(1);
+  const avatarSvg = renderAvatarSVG(winner.avatar || {skin:0,hair:0,hairColor:0,beard:0,jersey:'neutro'}, 72);
+
+  const heading = currentLang==='es'
+    ? `CAMPEÓN JORNADA ${round}`
+    : `ROUND ${round} CHAMPION`;
+
+  const msg = isCurrentUser
+    ? (currentLang==='es'
+        ? '🎉 ¡Eres el campeón de esta jornada! ¡Excelentes predicciones!'
+        : '🎉 You are this round\'s champion! Amazing predictions!')
+    : (currentLang==='es'
+        ? `¡El mejor de esta jornada fue <strong>${escapeHtml(winner.name)}</strong>!`
+        : `The best this round was <strong>${escapeHtml(winner.name)}</strong>!`);
+
+  const closeLabel = currentLang==='es' ? '¡Genial! 🎊' : 'Awesome! 🎊';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'winnerOverlay';
+  overlay.innerHTML = `
+    <div id="winnerCard">
+      <span class="winner-trophy">🏆</span>
+      <div class="winner-round-label">${currentLang==='es'?'JORNADA':'ROUND'} ${round}</div>
+      <div class="winner-heading">${heading}</div>
+      <div class="winner-avatar-wrap">${avatarSvg}</div>
+      <div class="winner-name">${escapeHtml(winner.name)}</div>
+      <div class="winner-pts">${ptsDisp} ${currentLang==='es'?'puntos':'points'}</div>
+      <div class="winner-msg">${msg}</div>
+      <button class="winner-close-btn" onclick="closeWinnerModal()">${closeLabel}</button>
+    </div>
+  `;
+
+  overlay.addEventListener('click', function(e){
+    if(e.target === overlay) closeWinnerModal();
+  });
+
+  document.body.appendChild(overlay);
+  launchConfetti();
+}
+
+function closeWinnerModal(){
+  const overlay = document.getElementById('winnerOverlay');
+  if(!overlay) return;
+  overlay.style.animation = 'overlayFadeOut .3s ease forwards';
+  setTimeout(() => overlay.remove(), 300);
 }
 
 // ══════════════════════════════════════════════════════════════
