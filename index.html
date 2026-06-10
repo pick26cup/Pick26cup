@@ -3368,14 +3368,22 @@ function renderLeaderboard(){
       cont.appendChild(row);
     });
 
-    // Show winner celebration modal only when ALL matches in the round have results
+    // Show winner celebration only when round is truly finished:
+    // 1) All match results entered  2) Last match's scheduled time has passed (+2h buffer)
     const roundMatchList = MATCHES[scoringRound] || [];
-    const roundComplete = scoringRound && roundMatchList.length > 0 &&
+    const allResultsIn = scoringRound && roundMatchList.length > 0 &&
       roundMatchList.every(function(m){ return results && results[m.id]; });
-    if(roundComplete && ranked.length > 0 && !ranked[0].noSubmit && ranked[0].pts > 0){
-      setTimeout(function(){
-        showWinnerCelebration(ranked[0], scoringRound);
-      }, 600);
+    if(allResultsIn && ranked.length > 0 && !ranked[0].noSubmit && ranked[0].pts > 0){
+      const lastMatchTs = Math.max.apply(null, roundMatchList.map(function(m){
+        // Times stored as EDT (UTC-4); convert to UTC by adding 4h
+        const dp = m.date.split('/'), tp = m.time.split(':');
+        return Date.UTC(2026, parseInt(dp[1])-1, parseInt(dp[0]), parseInt(tp[0])+4, parseInt(tp[1]));
+      }));
+      if(Date.now() > lastMatchTs + 2*3600*1000){
+        setTimeout(function(){
+          showWinnerCelebration(ranked[0], scoringRound);
+        }, 600);
+      }
     }
   }
 
