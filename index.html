@@ -3356,11 +3356,14 @@ function renderLeaderboard(){
            ${p.closeOver ? `<span class="pts-chip" style="background:rgba(230,126,34,.15);color:#E67E22;border-color:#E67E22">▲ ${p.closeOver}</span>` : ''}
            ${p.near ? `<span class="pts-chip" style="background:rgba(149,165,166,.12);color:#95A5A6;border-color:#7F8C8D">≈ ${p.near}</span>` : ''}
            <span class="pts-chip s">✓ ${p.result} ${currentLang==='es'?'resultado':'result'}</span>`;
+      const adminDelBtn = adminLoggedIn
+        ? `<button onclick="deletePlayer('${p.key}')" title="Delete player" style="margin-left:6px;background:rgba(231,76,60,.2);border:1px solid #E74C3C;color:#E74C3C;border-radius:6px;padding:2px 7px;font-size:11px;cursor:pointer;line-height:1.4">🗑</button>`
+        : '';
       row.innerHTML = `
         <div class="lb-rank ${rankClass}">${medal||'#'+(i+1)}</div>
         <div class="lb-avatar" style="width:36px;height:36px;border:none;padding:0;overflow:hidden;border-radius:50%">${avatarSvg}</div>
         <div style="flex:1">
-          <div class="lb-name">${escapeHtml(p.name)}${tbTag}</div>
+          <div class="lb-name">${escapeHtml(p.name)}${tbTag}${adminDelBtn}</div>
           <div class="pts-breakdown">${pendingNote}</div>
         </div>
         <div class="lb-pts">${ptsDisp} <span>pts</span></div>
