@@ -1085,6 +1085,12 @@ nav button:hover,nav button.active{
             border-radius:8px;cursor:pointer;transition:.2s;letter-spacing:.5px">
             🔒 Deactivate All
           </button>
+          <button onclick="announceRoundWinner()" style="
+            background:rgba(212,175,55,.15);border:1.5px solid var(--gold);color:var(--gold);
+            font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 16px;
+            border-radius:8px;cursor:pointer;transition:.2s;letter-spacing:.5px">
+            🏆 Anunciar Ganador
+          </button>
           <span id="weekStatusBadge" style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;
             background:rgba(212,175,55,.15);border:1px solid var(--gold3);color:var(--gold)">
             Active: —
@@ -1756,6 +1762,24 @@ function setupFirebase(){
       activeWeek = (w !== null && w !== undefined) ? w : 0;
       updateWeekBanner();
       updateWeekStatusBadge();
+    });
+
+    // Listen for admin-announced round winners
+    db.ref('roundAnnouncements').on('value', function(snap){
+      const data = snap.val();
+      if(!data || !currentUser) return;
+      Object.keys(data).forEach(function(round){
+        const ann = data[round];
+        if(!ann || !ann.winnerKey) return;
+        const seenKey = 'wc2026_winner_seen2_' + currentUser + '_R' + round;
+        if(localStorage.getItem(seenKey)) return;
+        showWinnerCelebration({
+          key: ann.winnerKey,
+          name: ann.winnerName,
+          pts: ann.winnerPts,
+          avatar: ann.winnerAvatar || null
+        }, parseInt(round));
+      });
     });
     // Attach the live team-names listener now that Firebase is ready, so rounds
     // 4-7 names stay in sync across all devices in real time.
@@ -3372,23 +3396,6 @@ function renderLeaderboard(){
       cont.appendChild(row);
     });
 
-    // Show winner celebration only when round is truly finished:
-    // 1) All match results entered  2) Last match's scheduled time has passed (+2h buffer)
-    const roundMatchList = MATCHES[scoringRound] || [];
-    const allResultsIn = scoringRound && roundMatchList.length > 0 &&
-      roundMatchList.every(function(m){ return results && results[m.id]; });
-    if(allResultsIn && ranked.length > 0 && !ranked[0].noSubmit && ranked[0].pts > 0){
-      const lastMatchTs = Math.max.apply(null, roundMatchList.map(function(m){
-        // Times stored as EDT (UTC-4); convert to UTC by adding 4h
-        const dp = m.date.split('/'), tp = m.time.split(':');
-        return Date.UTC(2026, parseInt(dp[1])-1, parseInt(dp[0]), parseInt(tp[0])+4, parseInt(tp[1]));
-      }));
-      if(Date.now() > lastMatchTs + 2*3600*1000){
-        setTimeout(function(){
-          showWinnerCelebration(ranked[0], scoringRound);
-        }, 600);
-      }
-    }
   }
 
   if(db){
@@ -3587,8 +3594,59 @@ function deactivateWeek(){
   }
 }
 
+function announceRoundWinner(){
+  const round = activeWeek;
+  if(!round || round <= 0){
+    showToast('Primero activa una jornada', 'error'); return;
+  }
+  if(!db){
+    showToast('Sin conexión a Firebase', 'error'); return;
+  }
+  Promise.all([
+    db.ref('players').once('value'),
+    db.ref('picks').once('value'),
+    db.ref('results').once('value')
+  ]).then(function(snaps){
+    const players = snaps[0].val() || {};
+    const allPicks = snaps[1].val() || {};
+    const results  = snaps[2].val() || {};
+    const roundMatches = MATCHES[round] || [];
+    let best = null;
+    Object.keys(players).forEach(function(key){
+      const player = players[key];
+      if(!player || !player.approved) return;
+      const pickData = allPicks[key] ? allPicks[key].picks : {};
+      if(!hasSubmittedRound(allPicks[key], player, round)) return;
+      let pts = 0;
+      roundMatches.forEach(function(m){
+        const res = results[m.id];
+        const p = pickData[m.id];
+        if(res && p) pts += scoreMatch(m, p, res);
+      });
+      if(!best || pts > best.pts){
+        best = {key, name: player.name||key, pts, avatar: player.avatar||null};
+      }
+    });
+    if(!best || best.pts <= 0){
+      showToast('Aún no hay un ganador con puntos', 'error'); return;
+    }
+    const msg = '🏆 Anunciar ganador de Jornada ' + round + ':\n' + best.name + ' con ' + best.pts + ' pts\n\n¿Confirmar?';
+    if(!confirm(msg)) return;
+    db.ref('roundAnnouncements/' + round).set({
+      winnerKey: best.key,
+      winnerName: best.name,
+      winnerPts: best.pts,
+      winnerAvatar: best.avatar,
+      announcedAt: Date.now()
+    }).then(function(){
+      showToast('¡Ganador anunciado! 🎉', 'success');
+    }).catch(function(){
+      showToast('Error guardando en Firebase', 'error');
+    });
+  });
+}
+
 function setActiveWeek(val){
-  // kept for Firebase listener compatibility
   activeWeek = parseInt(val)||0;
   updateWeekBanner();
   updateWeekStatusBadge();
