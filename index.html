@@ -1129,7 +1129,10 @@ nav button:hover,nav button.active{
 
           <!-- Edit Matches -->
           <div class="admin-card" id="editMatchesCard">
-            <h3 data-en="📅 Edit Matches" data-es="📅 Editar Partidos">📅 Edit Matches</h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <h3 style="margin:0" data-en="📅 Edit Matches" data-es="📅 Editar Partidos">📅 Edit Matches</h3>
+              <button onclick="clearAllMatchOverrides()" style="background:rgba(231,76,60,.15);border:1px solid var(--red);color:var(--red);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">🧹 Reset All Times</button>
+            </div>
             <p style="font-size:12px;color:var(--text2);margin-bottom:10px" data-en="Update date, time or teams if FIFA makes changes." data-es="Actualiza fecha, hora o equipos si FIFA hace cambios.">Update date, time or teams if FIFA makes changes.</p>
             <div class="round-tabs" style="margin-bottom:10px;flex-wrap:wrap">
               <button class="round-tab active" onclick="setMatchEditRound(1)" id="metab1">R1</button>
@@ -1920,6 +1923,14 @@ async function saveMatchEdit(id){
     await db.ref('matchOverrides/'+id).set({home,away,date,time});
     showToast(t('Partido actualizado ✅','Match updated ✅'),'success');
   } catch(e){ showToast(t('Error al guardar','Save error'),'error'); }
+}
+async function clearAllMatchOverrides(){
+  if(!confirm(t('¿Eliminar TODOS los cambios de horario/partido y restaurar los horarios originales de Florida (EDT)?','Delete ALL match overrides and restore original Florida (EDT) times?'))) return;
+  if(!db){ showToast('No connection','error'); return; }
+  try{
+    await db.ref('matchOverrides').remove();
+    showToast(t('✅ Horarios restaurados a EDT (Florida)','✅ All times restored to EDT (Florida)'),'success');
+  } catch(e){ showToast(t('Error al limpiar','Clear error'),'error'); }
 }
 async function clearMatchOverride(id){
   if(!confirm(t('¿Restaurar datos originales de este partido?','Restore original match data?'))) return;
