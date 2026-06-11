@@ -3377,7 +3377,10 @@ function renderLeaderboard(){
     ranked.forEach((p,i)=>{
       const row = document.createElement('div');
       row.className = 'lb-row';
-      const hasScores = ranked[0].pts > 0;
+      const roundMatchList2 = MATCHES[scoringRound] || [];
+      const roundDone = scoringRound && roundMatchList2.length > 0 &&
+        roundMatchList2.every(function(m){ return results && results[m.id]; });
+      const hasScores = roundDone && ranked[0].pts > 0;
       const rankClass = (hasScores && i<=2) ? (i===0?'r1':i===1?'r2':'r3') : '';
       const medal = hasScores ? (i===0?'🥇':i===1?'🥈':i===2?'🥉':'') : '';
       const lbAvatarCfg = p.avatar || {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro'};
