@@ -3310,14 +3310,14 @@ function renderLeaderboard(){
       cont.innerHTML = '<p style="color:var(--text2);text-align:center;padding:40px">No approved players yet.</p>';
       return;
     }
+    // Points for the ACTIVE ROUND only (each round is independent)
+    const scoringRound = activeWeek && activeWeek > 0 ? activeWeek : null;
     // Compute points
     const ranked = [];
     Object.entries(players).forEach(([key, player])=>{
       if(!player.approved) return;
       const playerPickData = allPicks[key] ? allPicks[key].picks : {};
 
-      // Points for the ACTIVE ROUND only (each round is independent)
-      const scoringRound = activeWeek && activeWeek > 0 ? activeWeek : null;
       const hasSubmittedActive = scoringRound && hasSubmittedRound(allPicks[key], player, scoringRound);
 
       let pts=0, exact=0, close=0, closeOver=0, near=0, result=0;
@@ -3370,6 +3370,10 @@ function renderLeaderboard(){
 
     renderHallOfFame(players, allPicks, results||{});
     cont.innerHTML = '';
+    // Medals only when ALL matches in the round have results
+    const roundMatchList = MATCHES[scoringRound] || [];
+    const roundComplete = scoringRound && roundMatchList.length > 0 &&
+      roundMatchList.every(function(m){ return results && results[m.id]; });
     // Detect if rank-1 was resolved by tiebreaker (same pts as rank-2)
     const firstPts = ranked.length > 0 ? ranked[0].pts : -1;
     const tiebrokenTop = ranked.length > 1 && ranked[1].pts === firstPts && !ranked[0].noSubmit;
@@ -3377,10 +3381,7 @@ function renderLeaderboard(){
     ranked.forEach((p,i)=>{
       const row = document.createElement('div');
       row.className = 'lb-row';
-      const roundMatchList2 = MATCHES[scoringRound] || [];
-      const roundDone = scoringRound && roundMatchList2.length > 0 &&
-        roundMatchList2.every(function(m){ return results && results[m.id]; });
-      const hasScores = roundDone && ranked[0].pts > 0;
+      const hasScores = roundComplete && ranked[0].pts > 0;
       const rankClass = (hasScores && i<=2) ? (i===0?'r1':i===1?'r2':'r3') : '';
       const medal = hasScores ? (i===0?'🥇':i===1?'🥈':i===2?'🥉':'') : '';
       const lbAvatarCfg = p.avatar || {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro'};
