@@ -3221,7 +3221,7 @@ function renderHallOfFame(players, allPicks, results){
 
   rounds.forEach(round=>{
     const roundMatches = MATCHES[round];
-    const hasResults = roundMatches.some(m => results && results[m.id]);
+    const hasResults = roundMatches.length > 0 && roundMatches.every(m => results && results[m.id]);
     if(!hasResults){ roundData.push({round, winners:[], pts:0, hasResults:false}); return; }
 
     const scores = [];
