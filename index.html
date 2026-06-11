@@ -3374,9 +3374,9 @@ function renderLeaderboard(){
     const roundMatchList = MATCHES[scoringRound] || [];
     const roundComplete = scoringRound && roundMatchList.length > 0 &&
       roundMatchList.every(function(m){ return results && results[m.id]; });
-    // Detect if rank-1 was resolved by tiebreaker (same pts as rank-2)
+    // Detect if rank-1 was resolved by tiebreaker — only show when round is complete
     const firstPts = ranked.length > 0 ? ranked[0].pts : -1;
-    const tiebrokenTop = ranked.length > 1 && ranked[1].pts === firstPts && !ranked[0].noSubmit;
+    const tiebrokenTop = roundComplete && ranked.length > 1 && ranked[1].pts === firstPts && !ranked[0].noSubmit;
 
     ranked.forEach((p,i)=>{
       const row = document.createElement('div');
