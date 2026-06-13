@@ -2271,13 +2271,22 @@ function _doNarrate(){
   function speakNow(){
     window.speechSynthesis.cancel();
     var utt = new SpeechSynthesisUtterance(p.text);
-    utt.lang = currentLang === 'es' ? 'es-ES' : 'en-US';
     utt.rate = 0.92;
     utt.pitch = 1.05;
     var voices = window.speechSynthesis.getVoices();
-    var voice = voices.find(function(v){ return v.lang === utt.lang; })
-             || voices.find(function(v){ return v.lang.startsWith(utt.lang.split('-')[0]); });
-    if(voice) utt.voice = voice;
+    if(currentLang === 'es'){
+      // Try every Spanish locale — Latin American devices often have es-US or es-419
+      var esVoice = voices.find(function(v){ return v.lang==='es-US'; })
+                 || voices.find(function(v){ return v.lang==='es-MX'; })
+                 || voices.find(function(v){ return v.lang==='es-ES'; })
+                 || voices.find(function(v){ return v.lang.startsWith('es'); });
+      if(esVoice){ utt.voice = esVoice; utt.lang = esVoice.lang; }
+      else { utt.lang = 'es-US'; }
+    } else {
+      var enVoice = voices.find(function(v){ return v.lang.startsWith('en'); });
+      if(enVoice){ utt.voice = enVoice; utt.lang = enVoice.lang; }
+      else { utt.lang = 'en-US'; }
+    }
     var music = document.getElementById('bgMusic');
     var origVol = null;
     if(music && !music.paused && music.volume > 0){ origVol = music.volume; music.volume = 0.04; }
