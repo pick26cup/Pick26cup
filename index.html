@@ -2290,19 +2290,25 @@ function _doNarrate(){
     utt.rate = 0.92;
     utt.pitch = 1.05;
     var voices = window.speechSynthesis.getVoices();
-    if(currentLang === 'es'){
-      // Try every Spanish locale — Latin American devices often have es-US or es-419
-      var esVoice = voices.find(function(v){ return v.lang==='es-US'; })
-                 || voices.find(function(v){ return v.lang==='es-MX'; })
-                 || voices.find(function(v){ return v.lang==='es-ES'; })
-                 || voices.find(function(v){ return v.lang.startsWith('es'); });
-      if(esVoice){ utt.voice = esVoice; utt.lang = esVoice.lang; }
-      else { utt.lang = 'es-US'; }
-    } else {
-      var enVoice = voices.find(function(v){ return v.lang.startsWith('en'); });
-      if(enVoice){ utt.voice = enVoice; utt.lang = enVoice.lang; }
-      else { utt.lang = 'en-US'; }
+    function pickVoice(lang){
+      var prefix = lang.split('-')[0];
+      // 1. Online/neural voices (localService=false) sound most natural — prefer them
+      var online = voices.filter(function(v){ return !v.localService && v.lang.startsWith(prefix); });
+      if(online.length){
+        // Prefer Google voices on Chrome Android
+        return online.find(function(v){ return v.name.toLowerCase().includes('google'); }) || online[0];
+      }
+      // 2. Fall back to any matching local voice
+      return voices.find(function(v){ return v.lang==='es-US'; })
+          || voices.find(function(v){ return v.lang==='es-MX'; })
+          || voices.find(function(v){ return v.lang==='es-ES'; })
+          || voices.find(function(v){ return v.lang.startsWith(prefix); })
+          || null;
     }
+    var targetLang = currentLang === 'es' ? 'es-US' : 'en-US';
+    var picked = pickVoice(targetLang);
+    if(picked){ utt.voice = picked; utt.lang = picked.lang; }
+    else { utt.lang = targetLang; }
     var music = document.getElementById('bgMusic');
     var origVol = null;
     if(music && !music.paused && music.volume > 0){ origVol = music.volume; music.volume = 0.04; }
