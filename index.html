@@ -2136,60 +2136,115 @@ function initLiveBar(){
 }
 
 // ── NARRATOR ──────────────────────────────────────────────────
+// iOS blocks TTS until a user gesture; desktop is unlocked immediately.
+var _narratorPayload = null;
+var _narratorSpeechReady = !/iPhone|iPad|iPod/.test(navigator.userAgent);
+
+(function(){
+  var evts = ['click','touchstart','pointerdown'];
+  function onFirstGesture(){
+    evts.forEach(function(e){ document.removeEventListener(e, onFirstGesture); });
+    if(!_narratorSpeechReady && window.speechSynthesis){
+      _narratorSpeechReady = true;
+      // Unlock iOS TTS engine with a silent utterance
+      var silent = new SpeechSynthesisUtterance('');
+      silent.volume = 0;
+      window.speechSynthesis.speak(silent);
+    }
+    // If data already loaded, speak after the unlock settles
+    if(_narratorPayload) setTimeout(_doNarrate, 280);
+  }
+  evts.forEach(function(e){ document.addEventListener(e, onFirstGesture, {passive:true}); });
+})();
+
 function initNarrator(){
   if(!window.speechSynthesis) return;
   if(sessionStorage.getItem('wc2026_narrator_done')) return;
   if(!db) return;
 
   db.ref('schedules').once('value').then(function(snap){
-    const schedules = snap.val() || {};
-    const now = Date.now();
-    const todayStart = new Date();
-    todayStart.setHours(0,0,0,0);
-    const todayEnd = todayStart.getTime() + 86400000;
+    var schedules = snap.val() || {};
+    var now = Date.now();
+    var todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    var todayEnd = todayStart.getTime() + 86400000;
 
-    // Collect today's upcoming matches, sorted by kick-off time
-    const upcoming = [];
+    var upcoming = [];
     Object.entries(schedules).forEach(function(entry){
-      const matchId = entry[0], s = entry[1];
-      const t = new Date(s.utcDate).getTime();
-      if(t > now && t < todayEnd) upcoming.push({ matchId, t });
+      var matchId = entry[0], s = entry[1];
+      var t = new Date(s.utcDate).getTime();
+      if(t > now && t < todayEnd) upcoming.push({matchId:matchId, t:t});
     });
     if(!upcoming.length) return;
     upcoming.sort(function(a,b){ return a.t - b.t; });
 
-    const next = upcoming[0];
-    const orig = MATCH_ORIG[next.matchId] || {};
-    const home = displayTeamName(orig.home || next.matchId);
-    const away = displayTeamName(orig.away || next.matchId);
-    const diffMs = next.t - now;
-    const hoursLeft = Math.floor(diffMs / 3600000);
-    const minsLeft  = Math.round(diffMs / 60000);
+    var next = upcoming[0];
+    var orig = MATCH_ORIG[next.matchId] || {};
+    var home = displayTeamName(orig.home || next.matchId);
+    var away = displayTeamName(orig.away || next.matchId);
+    var diffMs = next.t - now;
+    var hoursLeft = Math.floor(diffMs / 3600000);
+    var minsLeft  = Math.round(diffMs / 60000);
 
-    let text, lang;
+    var text, lang;
     if(currentLang === 'es'){
       lang = 'es-ES';
-      if(minsLeft < 60){
-        text = 'Faltan '+(minsLeft === 1 ? 'un minuto' : minsLeft+' minutos')+' para que comience el partido '+home+' contra '+away+'. ¡Haz fuerza para quedarte con esos puntos hoy!';
-      } else {
-        text = 'Faltan '+(hoursLeft === 1 ? 'una hora' : hoursLeft+' horas')+' para que comience el partido '+home+' contra '+away+'. ¡Haz fuerza para quedarte con esos puntos hoy!';
-      }
+      text = minsLeft < 60
+        ? 'Faltan '+(minsLeft===1?'un minuto':minsLeft+' minutos')+' para que comience el partido '+home+' contra '+away+'. ¡Haz fuerza para quedarte con esos puntos hoy!'
+        : 'Faltan '+(hoursLeft===1?'una hora':hoursLeft+' horas')+' para que comience el partido '+home+' contra '+away+'. ¡Haz fuerza para quedarte con esos puntos hoy!';
     } else {
       lang = 'en-US';
-      if(minsLeft < 60){
-        text = (minsLeft === 1 ? 'One minute' : minsLeft+' minutes')+' until '+home+' vs '+away+' kicks off. Make your picks count today!';
-      } else {
-        text = (hoursLeft === 1 ? 'One hour' : hoursLeft+' hours')+' until '+home+' vs '+away+' kicks off. Make your picks count today!';
-      }
+      text = minsLeft < 60
+        ? (minsLeft===1?'One minute':minsLeft+' minutes')+' until '+home+' vs '+away+' kicks off. Make your picks count today!'
+        : (hoursLeft===1?'One hour':hoursLeft+' hours')+' until '+home+' vs '+away+' kicks off. Make your picks count today!';
     }
 
-    sessionStorage.setItem('wc2026_narrator_done', '1');
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = lang;
-    utt.rate = 0.93;
-    utt.pitch = 1.05;
-    window.speechSynthesis.speak(utt);
+    _narratorPayload = {text:text, lang:lang};
+    if(_narratorSpeechReady) _doNarrate();
+    // else: will fire on first user gesture (iOS)
   }).catch(function(){});
+}
+
+function _doNarrate(){
+  if(!_narratorPayload) return;
+  if(sessionStorage.getItem('wc2026_narrator_done')) return;
+  var p = _narratorPayload;
+  _narratorPayload = null;
+  sessionStorage.setItem('wc2026_narrator_done','1');
+
+  var utt = new SpeechSynthesisUtterance(p.text);
+  utt.lang = p.lang;
+  utt.rate = 0.92;
+  utt.pitch = 1.05;
+
+  // Pick best matching voice
+  var voices = window.speechSynthesis.getVoices();
+  var voice = voices.find(function(v){ return v.lang === p.lang; })
+           || voices.find(function(v){ return v.lang.startsWith(p.lang.split('-')[0]); });
+  if(voice) utt.voice = voice;
+
+  // Manually duck & restore the background music (avoids OS-level 0.25 duck)
+  var music = document.getElementById('bgMusic');
+  var origVol = null;
+  if(music && !music.paused && music.volume > 0){
+    origVol = music.volume;
+    music.volume = 0.04;
+  }
+  function restoreMusic(){ if(origVol !== null && music){ music.volume = origVol; origVol = null; } }
+  utt.onend   = restoreMusic;
+  utt.onerror = restoreMusic;
+
+  function doSpeak(){ window.speechSynthesis.speak(utt); }
+
+  if(voices.length > 0){
+    doSpeak();
+  } else {
+    // Voices load asynchronously on Chrome desktop
+    window.speechSynthesis.onvoiceschanged = function(){
+      window.speechSynthesis.onvoiceschanged = null;
+      doSpeak();
+    };
+    setTimeout(doSpeak, 1500); // Safety fallback
+  }
 }
 
 // ── LIVE DETAIL MODAL ─────────────────────────────────────────
