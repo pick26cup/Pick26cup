@@ -2240,24 +2240,44 @@ function initNarrator(){
     var hoursLeft = Math.floor(diffMs / 3600000);
     var daysLeft  = Math.floor(diffMs / 86400000);
 
-    var remMins = minsLeft - hoursLeft * 60; // leftover minutes after full hours
+    var remMins = minsLeft - hoursLeft * 60;
     var timeLabel, text;
+    function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
     if(currentLang === 'es'){
       var hStr = hoursLeft===1 ? '1 hora' : hoursLeft+' horas';
       var mStr = remMins===1   ? '1 minuto' : remMins+' minutos';
       var hm   = hoursLeft > 0 ? hStr+(remMins > 0 ? ' y '+mStr : '') : mStr;
       if(minsLeft < 60){
         timeLabel = 'FALTAN '+(minsLeft===1?'1 MIN':minsLeft+' MIN');
-        text = '¡El partido está por comenzar! '+home+' contra '+away+'. ¡Que gane el mejor!';
+        text = pick([
+          '¡El partido está por comenzar! '+home+' contra '+away+'. ¡Que gane el mejor!',
+          '¡Ya mero! '+home+' contra '+away+' arranca en minutos. ¡A disfrutarlo!',
+          '¡Esto es fútbol! '+home+' vs '+away+' comienza muy pronto. ¡Prepárate!',
+          '¡Faltan solo '+minsLeft+' minutos! '+home+' contra '+away+'. ¡Va a ser épico!'
+        ]);
       } else if(hoursLeft < 24){
         timeLabel = 'FALTAN '+hoursLeft+'H'+(remMins>0?' '+remMins+'MIN':'');
-        text = 'Faltan '+hm+' para que arranque '+home+' contra '+away+'. ¡Va a ser un partidazo, no te lo pierdas!';
+        text = pick([
+          'Faltan '+hm+' para que arranque '+home+' contra '+away+'. ¡Va a ser un partidazo, no te lo pierdas!',
+          'En '+hm+' tenemos '+home+' contra '+away+'. ¡El fútbol llama!',
+          '¡Tic tac! Faltan '+hm+' para el partido de '+home+' contra '+away+'. ¡Que emoción!',
+          'En '+hm+' arranca '+home+' frente a '+away+'. ¡Prepárate para el espectáculo!'
+        ]);
       } else if(daysLeft === 1){
         timeLabel = 'MAÑANA';
-        text = '¡Mañana juegan '+home+' contra '+away+'! Prepárate para un gran partido.';
+        text = pick([
+          '¡Mañana juegan '+home+' contra '+away+'! Prepárate para un gran partido.',
+          'Mañana es el día. '+home+' contra '+away+'. ¡No te lo puedes perder!',
+          '¡El partido de mañana se acerca! '+home+' vs '+away+'. ¡Va a ser increíble!'
+        ]);
       } else {
         timeLabel = 'EN '+daysLeft+' DÍAS';
-        text = 'En '+daysLeft+' días el partido de '+home+' contra '+away+'. ¡Se viene lo bueno!';
+        text = pick([
+          'En '+daysLeft+' días el partido de '+home+' contra '+away+'. ¡Se viene lo bueno!',
+          '¡Quedan '+daysLeft+' días para ver '+home+' contra '+away+'! La emoción ya se siente.',
+          'En '+daysLeft+' días: '+home+' vs '+away+'. ¡El fútbol no para!'
+        ]);
       }
     } else {
       var hStrEn = hoursLeft===1 ? '1 hour' : hoursLeft+' hours';
@@ -2265,16 +2285,32 @@ function initNarrator(){
       var hmEn   = hoursLeft > 0 ? hStrEn+(remMins > 0 ? ' and '+mStrEn : '') : mStrEn;
       if(minsLeft < 60){
         timeLabel = (minsLeft===1?'1 MIN':minsLeft+' MIN')+' LEFT';
-        text = 'Kickoff is almost here! '+home+' vs '+away+'. May the best team win!';
+        text = pick([
+          'Kickoff is almost here! '+home+' vs '+away+'. May the best team win!',
+          'Only '+minsLeft+' minutes left! '+home+' vs '+away+' is about to start!',
+          'Get ready! '+home+' vs '+away+' kicks off any minute now!'
+        ]);
       } else if(hoursLeft < 24){
         timeLabel = hoursLeft+'H'+(remMins>0?' '+remMins+'MIN':'')+' LEFT';
-        text = hmEn+' until '+home+' vs '+away+'. It\'s going to be a great match!';
+        text = pick([
+          hmEn+' until '+home+' vs '+away+'. It\'s going to be a great match!',
+          'In '+hmEn+': '+home+' vs '+away+'. Football is calling!',
+          'Just '+hmEn+' to go before '+home+' takes on '+away+'. Get excited!'
+        ]);
       } else if(daysLeft === 1){
         timeLabel = 'TOMORROW';
-        text = 'Tomorrow: '+home+' vs '+away+'! Get ready for a great game.';
+        text = pick([
+          'Tomorrow: '+home+' vs '+away+'! Get ready for a great game.',
+          'Big match tomorrow! '+home+' vs '+away+'. Don\'t miss it!',
+          'One more day until '+home+' vs '+away+'! The excitement is building.'
+        ]);
       } else {
         timeLabel = 'IN '+daysLeft+' DAYS';
-        text = 'In '+daysLeft+' days: '+home+' vs '+away+'. The excitement is building!';
+        text = pick([
+          'In '+daysLeft+' days: '+home+' vs '+away+'. The excitement is building!',
+          'Only '+daysLeft+' days until '+home+' vs '+away+'. Football never stops!',
+          'Mark your calendar — in '+daysLeft+' days: '+home+' vs '+away+'!'
+        ]);
       }
     }
 
