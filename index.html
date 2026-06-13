@@ -2244,30 +2244,30 @@ function initNarrator(){
     if(currentLang === 'es'){
       if(minsLeft < 60){
         timeLabel = 'FALTAN '+(minsLeft===1?'1 MIN':minsLeft+' MIN');
-        text = '¡El partido está por comenzar! '+home+' contra '+away+'. ¡Vuela a hacer tu pronóstico antes de que empiece!';
+        text = '¡El partido está por comenzar! '+home+' contra '+away+'. ¡Que gane el mejor!';
       } else if(hoursLeft < 24){
         timeLabel = 'FALTAN '+(hoursLeft===1?'1 HORA':hoursLeft+' HORAS');
-        text = 'En '+hoursLeft+(hoursLeft===1?' hora':' horas')+' arranca el partido '+home+' contra '+away+'. ¡Haz tu pronóstico ahora y súbete al tope del marcador!';
+        text = 'En '+hoursLeft+(hoursLeft===1?' hora':' horas')+' arranca '+home+' contra '+away+'. ¡Va a ser un partidazo, no te lo pierdas!';
       } else if(daysLeft === 1){
         timeLabel = 'MAÑANA';
-        text = '¡Mañana es el partido de '+home+' contra '+away+'! No te olvides de hacer tu pronóstico y demostrar que eres el mejor.';
+        text = '¡Mañana juegan '+home+' contra '+away+'! Prepárate para un gran partido.';
       } else {
         timeLabel = 'EN '+daysLeft+' DÍAS';
-        text = 'En '+daysLeft+' días juegan '+home+' contra '+away+'. ¡Prepárate, haz tu pronóstico y escala al primer lugar!';
+        text = 'En '+daysLeft+' días el partido de '+home+' contra '+away+'. ¡Se viene lo bueno!';
       }
     } else {
       if(minsLeft < 60){
         timeLabel = (minsLeft===1?'1 MIN':minsLeft+' MIN')+' LEFT';
-        text = 'Kickoff is almost here! '+home+' vs '+away+'. Lock in your prediction before it\'s too late!';
+        text = 'Kickoff is almost here! '+home+' vs '+away+'. May the best team win!';
       } else if(hoursLeft < 24){
         timeLabel = (hoursLeft===1?'1 HOUR':hoursLeft+' HOURS')+' LEFT';
-        text = hoursLeft+(hoursLeft===1?' hour':' hours')+' until '+home+' vs '+away+'. Make your prediction now and climb to the top of the leaderboard!';
+        text = hoursLeft+(hoursLeft===1?' hour':' hours')+' until '+home+' vs '+away+'. It\'s going to be a great match!';
       } else if(daysLeft === 1){
         timeLabel = 'TOMORROW';
-        text = 'Tomorrow: '+home+' vs '+away+'! Don\'t forget your prediction and show everyone who\'s boss.';
+        text = 'Tomorrow: '+home+' vs '+away+'! Get ready for a great game.';
       } else {
         timeLabel = 'IN '+daysLeft+' DAYS';
-        text = 'In '+daysLeft+' days: '+home+' vs '+away+'. Get ready, make your pick and go for the top spot!';
+        text = 'In '+daysLeft+' days: '+home+' vs '+away+'. The excitement is building!';
       }
     }
 
