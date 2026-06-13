@@ -2271,11 +2271,12 @@ function _doNarrate(){
   function speakNow(){
     window.speechSynthesis.cancel();
     var utt = new SpeechSynthesisUtterance(p.text);
+    utt.lang = currentLang === 'es' ? 'es-ES' : 'en-US';
     utt.rate = 0.92;
     utt.pitch = 1.05;
-    var targetLang = currentLang === 'es' ? 'es' : 'en';
     var voices = window.speechSynthesis.getVoices();
-    var voice = voices.find(function(v){ return v.lang.startsWith(targetLang); });
+    var voice = voices.find(function(v){ return v.lang === utt.lang; })
+             || voices.find(function(v){ return v.lang.startsWith(utt.lang.split('-')[0]); });
     if(voice) utt.voice = voice;
     var music = document.getElementById('bgMusic');
     var origVol = null;
