@@ -2832,6 +2832,7 @@ function renderMatches(){
   const isSubmitted = submittedRounds[currentRound];
 
   container.innerHTML = '';
+  if(isSubmitted){ updateSubmitArea(); return; }
   roundMatches.forEach((m, idx)=>{
     const isFinal = m.final;
     const isCloser = m.closer;
@@ -2935,11 +2936,14 @@ function updateSubmitArea(){
   const isSubmitted = submittedRounds[currentRound];
   const btn = document.getElementById('submitBtn');
   const banner = document.getElementById('submittedBanner');
+  const note = document.getElementById('submitNote');
   if(isSubmitted){
     btn.classList.add('hidden');
+    if(note) note.classList.add('hidden');
     banner.classList.remove('hidden');
   } else {
     btn.classList.remove('hidden');
+    if(note) note.classList.remove('hidden');
     banner.classList.add('hidden');
   }
 }
