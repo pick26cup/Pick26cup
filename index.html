@@ -2240,14 +2240,18 @@ function initNarrator(){
     var hoursLeft = Math.floor(diffMs / 3600000);
     var daysLeft  = Math.floor(diffMs / 86400000);
 
+    var remMins = minsLeft - hoursLeft * 60; // leftover minutes after full hours
     var timeLabel, text;
     if(currentLang === 'es'){
+      var hStr = hoursLeft===1 ? '1 hora' : hoursLeft+' horas';
+      var mStr = remMins===1   ? '1 minuto' : remMins+' minutos';
+      var hm   = hoursLeft > 0 ? hStr+(remMins > 0 ? ' y '+mStr : '') : mStr;
       if(minsLeft < 60){
         timeLabel = 'FALTAN '+(minsLeft===1?'1 MIN':minsLeft+' MIN');
         text = '¡El partido está por comenzar! '+home+' contra '+away+'. ¡Que gane el mejor!';
       } else if(hoursLeft < 24){
-        timeLabel = 'FALTAN '+(hoursLeft===1?'1 HORA':hoursLeft+' HORAS');
-        text = 'En '+hoursLeft+(hoursLeft===1?' hora':' horas')+' arranca '+home+' contra '+away+'. ¡Va a ser un partidazo, no te lo pierdas!';
+        timeLabel = 'FALTAN '+hoursLeft+'H'+(remMins>0?' '+remMins+'MIN':'');
+        text = 'Faltan '+hm+' para que arranque '+home+' contra '+away+'. ¡Va a ser un partidazo, no te lo pierdas!';
       } else if(daysLeft === 1){
         timeLabel = 'MAÑANA';
         text = '¡Mañana juegan '+home+' contra '+away+'! Prepárate para un gran partido.';
@@ -2256,12 +2260,15 @@ function initNarrator(){
         text = 'En '+daysLeft+' días el partido de '+home+' contra '+away+'. ¡Se viene lo bueno!';
       }
     } else {
+      var hStrEn = hoursLeft===1 ? '1 hour' : hoursLeft+' hours';
+      var mStrEn = remMins===1   ? '1 minute' : remMins+' minutes';
+      var hmEn   = hoursLeft > 0 ? hStrEn+(remMins > 0 ? ' and '+mStrEn : '') : mStrEn;
       if(minsLeft < 60){
         timeLabel = (minsLeft===1?'1 MIN':minsLeft+' MIN')+' LEFT';
         text = 'Kickoff is almost here! '+home+' vs '+away+'. May the best team win!';
       } else if(hoursLeft < 24){
-        timeLabel = (hoursLeft===1?'1 HOUR':hoursLeft+' HOURS')+' LEFT';
-        text = hoursLeft+(hoursLeft===1?' hour':' hours')+' until '+home+' vs '+away+'. It\'s going to be a great match!';
+        timeLabel = hoursLeft+'H'+(remMins>0?' '+remMins+'MIN':'')+' LEFT';
+        text = hmEn+' until '+home+' vs '+away+'. It\'s going to be a great match!';
       } else if(daysLeft === 1){
         timeLabel = 'TOMORROW';
         text = 'Tomorrow: '+home+' vs '+away+'! Get ready for a great game.';
