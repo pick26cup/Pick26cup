@@ -930,6 +930,7 @@ nav button:hover,nav button.active{
   box-shadow:0 0 80px rgba(212,175,55,.9),0 0 30px rgba(255,215,0,.6);
   animation:goal-in .35s cubic-bezier(.17,.67,.35,1.3), goal-out .5s 3.2s ease-in forwards;
 }
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes goal-in{from{transform:scale(.2) translateY(-40px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
 @keyframes goal-out{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.4) translateY(-30px)}}
 .goal-txt{font-family:'Bebas Neue';font-size:58px;color:#000;letter-spacing:5px;line-height:1;text-shadow:0 2px 0 rgba(0,0,0,.2)}
@@ -3615,6 +3616,39 @@ function renderLeaderboard(){
 
     renderHallOfFame(players, allPicks, results||{});
     cont.innerHTML = '';
+
+    // ── Leader congratulation — only for the current player when they're #1 ──
+    const myKey = playerKey();
+    const myRank = ranked.findIndex(function(p){ return p.key === myKey; });
+    if(myKey && myRank === 0 && ranked[0].pts > 0){
+      const seenKey = 'wc2026_leader_seen_' + myKey + '_r' + (scoringRound||0) + '_' + ranked[0].pts;
+      if(!localStorage.getItem(seenKey)){
+        localStorage.setItem(seenKey, '1');
+        const banner = document.createElement('div');
+        banner.id = 'leaderCelebBanner';
+        banner.style.cssText = [
+          'background:linear-gradient(135deg,rgba(212,175,55,.18),rgba(184,134,11,.12))',
+          'border:1.5px solid var(--gold3)',
+          'border-radius:14px',
+          'padding:14px 20px',
+          'margin-bottom:16px',
+          'display:flex',
+          'align-items:center',
+          'gap:14px',
+          'animation:fadeInDown .5s ease-out',
+          'position:relative',
+        ].join(';');
+        const ptsDisp = Number.isInteger(ranked[0].pts) ? ranked[0].pts : ranked[0].pts.toFixed(1);
+        const msg = currentLang==='es'
+          ? '¡Felicitaciones, <strong>'+escapeHtml(ranked[0].name)+'</strong>! Vas en primer lugar con <strong>'+ptsDisp+' pts</strong>. ¡Sigue así!'
+          : 'Congrats, <strong>'+escapeHtml(ranked[0].name)+'</strong>! You\'re leading with <strong>'+ptsDisp+' pts</strong>. Keep it up!';
+        banner.innerHTML = '<span style="font-size:32px;flex-shrink:0">🏆</span>'
+          +'<div style="flex:1;font-size:14px;color:var(--text)">' + msg + '</div>'
+          +'<button onclick="this.parentElement.remove()" style="background:transparent;border:none;color:var(--text2);font-size:18px;cursor:pointer;flex-shrink:0;padding:0 4px" title="Dismiss">✕</button>';
+        cont.appendChild(banner);
+      }
+    }
+
     // Medals only when ALL matches in the round have results
     const roundMatchList = MATCHES[scoringRound] || [];
     const roundComplete = scoringRound && roundMatchList.length > 0 &&
