@@ -1970,7 +1970,7 @@ function initLiveBar(){
     if(!bar || !list) return;
     const entries = Object.entries(data);
     if(entries.length === 0){ bar.style.display = 'none'; return; }
-    bar.style.display = '';
+    bar.style.display = 'block';
     list.innerHTML = entries.map(function(entry){
       const id = entry[0], m = entry[1];
       const orig = MATCH_ORIG[id] || {};
