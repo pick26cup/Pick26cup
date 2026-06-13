@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="version" content="2026.06.11.1"/>
+<meta name="version" content="2026.06.13.1"/>
 <title>Pick26 — Predict. Choose. Win.</title>
 
 <!-- Referrer Policy -->
@@ -879,7 +879,6 @@ nav button:hover,nav button.active{
   padding:7px 16px;
   position:sticky;top:62px;z-index:90;
   backdrop-filter:blur(10px);
-  display:none;
 }
 .live-bar-inner{
   max-width:1100px;margin:0 auto;
@@ -1039,7 +1038,7 @@ nav button:hover,nav button.active{
   </header>
 
   <!-- LIVE BAR — visible only when matches are IN_PLAY -->
-  <div id="liveBar">
+  <div id="liveBar" style="display:none">
     <div class="live-bar-inner">
       <div class="live-badge"><span class="live-dot"></span>LIVE</div>
       <div class="live-match-list" id="liveMatchList"></div>
