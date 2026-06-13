@@ -248,6 +248,11 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
   transition:.2s;
 }
 .lb-row:hover{border-color:var(--gold3)}
+.lb-me{
+  border-color:var(--gold)!important;
+  background:linear-gradient(135deg,rgba(212,175,55,.18),rgba(180,134,11,.12))!important;
+  box-shadow:0 0 16px rgba(212,175,55,.35),inset 0 0 20px rgba(212,175,55,.06)!important;
+}
 .lb-rank{
   font-family:'Bebas Neue';font-size:28px;color:var(--gold3);min-width:40px;text-align:center;
 }
@@ -3476,7 +3481,8 @@ function renderLeaderboard(){
 
     ranked.forEach((p,i)=>{
       const row = document.createElement('div');
-      row.className = 'lb-row';
+      const isMe = p.key === playerKey();
+      row.className = 'lb-row' + (isMe ? ' lb-me' : '');
       const hasScores = roundComplete && ranked[0].pts > 0;
       const rankClass = (hasScores && i<=2) ? (i===0?'r1':i===1?'r2':'r3') : '';
       const medal = hasScores ? (i===0?'🥇':i===1?'🥈':i===2?'🥉':'') : '';
