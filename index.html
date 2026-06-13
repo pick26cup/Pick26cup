@@ -865,6 +865,13 @@ nav button:hover,nav button.active{
 .fc-loss{background:rgba(231,76,60,.2);border-color:#E74C3C;color:#E74C3C}
 .fc-draw{background:rgba(241,196,15,.15);border-color:#F1C40F;color:#F1C40F}
 .fc-empty{background:transparent;border-color:rgba(255,255,255,.15);color:transparent}
+.fc-live{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;font-size:8px;font-weight:800;border:1.5px solid #ff4444;color:#ff4444;background:rgba(255,68,68,.15);flex-shrink:0}
+.gt-live-dot{width:7px;height:7px;border-radius:50%;background:#ff4444;flex-shrink:0;animation:live-pulse .9s ease-in-out infinite}
+.gt-live-row td{background:rgba(255,68,68,.04)!important}
+.group-live-tag{font-size:10px;font-family:system-ui,sans-serif;background:rgba(255,68,68,.2);border:1px solid rgba(255,68,68,.5);color:#ff6b6b;border-radius:4px;padding:1px 6px;margin-left:10px;letter-spacing:0;vertical-align:middle;font-weight:700}
+.group-box-live{border-color:rgba(255,68,68,.35)!important;box-shadow:0 0 12px rgba(255,68,68,.12)}
+.group-box-live .group-header{border-bottom-color:rgba(255,68,68,.25)}
+@keyframes live-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
 @media(max-width:480px){
   .groups-grid{grid-template-columns:1fr}
   .gt-col-gf,.gt-col-ga{display:none}
@@ -5495,15 +5502,19 @@ function renderGroups(){
   }
   container.innerHTML = '<p style="color:var(--text2);text-align:center;padding:20px">Loading...</p>';
 
-  db.ref('results').once('value').then(snap=>{
-    const results = snap.val()||{};
-    const es = currentLang==='es';
+  Promise.all([
+    db.ref('results').once('value'),
+    db.ref('liveScores').once('value')
+  ]).then(([resSnap, liveSnap])=>{
+    const results   = resSnap.val()||{};
+    const liveData  = liveSnap.val()||{};
+    const es        = currentLang==='es';
+    const hasLive   = Object.keys(liveData).length > 0;
 
     const html = Object.entries(GROUPS).map(([letter, group])=>{
       const st = {};
-      group.teams.forEach(t=>{ st[t]={played:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,form:[]}; });
+      group.teams.forEach(t=>{ st[t]={played:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,isLive:false}; });
 
-      // Build per-team match list ordered by round
       const teamMatchList = {};
       group.teams.forEach(t=>{ teamMatchList[t]=[]; });
       group.matches.forEach(mid=>{
@@ -5516,45 +5527,55 @@ function renderGroups(){
       });
       Object.values(teamMatchList).forEach(arr=>arr.sort((a,b)=>a.round-b.round));
 
+      // Merge: live score overrides finished result for in-progress matches
+      const liveMatchIds = new Set(group.matches.filter(mid=>liveData[mid]));
+      const merged = Object.assign({}, results);
+      liveMatchIds.forEach(mid=>{ merged[mid] = liveData[mid]; });
+
       group.matches.forEach(mid=>{
-        const res=results[mid];
+        const res=merged[mid];
         if(!res) return;
         let md=null;
         for(const r of [1,2,3]){ const m=(MATCHES[r]||[]).find(x=>x.id===mid); if(m){md=m;break;} }
         if(!md||!st[md.home]||!st[md.away]) return;
-        const sh=res.scoreH,sa=res.scoreA;
+        const sh=res.scoreH, sa=res.scoreA;
+        const live=liveMatchIds.has(mid);
         st[md.home].played++; st[md.away].played++;
-        st[md.home].gf+=sh; st[md.home].ga+=sa;
-        st[md.away].gf+=sa; st[md.away].ga+=sh;
-        if(sh>sa){ st[md.home].w++; st[md.home].pts+=3; st[md.away].l++; }
+        st[md.home].gf+=sh;  st[md.home].ga+=sa;
+        st[md.away].gf+=sa;  st[md.away].ga+=sh;
+        if(live){ st[md.home].isLive=true; st[md.away].isLive=true; }
+        if(sh>sa){      st[md.home].w++; st[md.home].pts+=3; st[md.away].l++; }
         else if(sh===sa){ st[md.home].d++; st[md.home].pts++; st[md.away].d++; st[md.away].pts++; }
-        else { st[md.away].w++; st[md.away].pts+=3; st[md.home].l++; }
+        else {           st[md.away].w++; st[md.away].pts+=3; st[md.home].l++; }
       });
 
       const sorted = Object.entries(st).sort(([,a],[,b])=>{
         if(b.pts!==a.pts) return b.pts-a.pts;
-        const gdA=a.gf-a.ga,gdB=b.gf-b.ga;
+        const gdA=a.gf-a.ga, gdB=b.gf-b.ga;
         if(gdB!==gdA) return gdB-gdA;
         return b.gf-a.gf;
       });
+
+      const groupHasLive = liveMatchIds.size > 0;
 
       const rows = sorted.map(([name,t],i)=>{
         const gd=t.gf-t.ga;
         const gdStr=gd>0?'+'+gd:String(gd);
         const advClass=i<2?'gt-adv':'';
+        const liveDot=t.isLive?'<span class="gt-live-dot"></span>':'';
 
-        // Form circles: 3 matches in round order
         const formHtml = (teamMatchList[name]||[]).map(({mid,isHome})=>{
-          const res=results[mid];
+          const res=merged[mid];
           if(!res) return '<span class="fc-empty"></span>';
+          if(liveMatchIds.has(mid)) return '<span class="fc-live">●</span>';
           const ts=isHome?res.scoreH:res.scoreA, os=isHome?res.scoreA:res.scoreH;
           if(ts>os) return '<span class="fc-win">✓</span>';
           if(ts<os) return '<span class="fc-loss">✗</span>';
           return '<span class="fc-draw">−</span>';
         }).join('');
 
-        return `<tr class="${advClass}">
-          <td><div class="gt-team"><span class="gt-flag">${getTeamVisual(name)}</span><span class="gt-name">${escapeHtml(displayTeamName(name))}</span></div></td>
+        return `<tr class="${advClass}${t.isLive?' gt-live-row':''}">
+          <td><div class="gt-team">${liveDot}<span class="gt-flag">${getTeamVisual(name)}</span><span class="gt-name">${escapeHtml(displayTeamName(name))}</span></div></td>
           <td>${t.played}</td><td class="gt-pts">${t.pts}</td>
           <td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>
           <td class="gt-col-gf">${t.gf}</td><td class="gt-col-ga">${t.ga}</td>
@@ -5563,8 +5584,9 @@ function renderGroups(){
         </tr>`;
       }).join('');
 
-      return `<div class="group-box">
-        <div class="group-header">${es?'GRUPO ':'GROUP '}${letter}</div>
+      const liveTag=groupHasLive?`<span class="group-live-tag">🔴 ${es?'EN VIVO':'LIVE'}</span>`:'';
+      return `<div class="group-box${groupHasLive?' group-box-live':''}">
+        <div class="group-header">${es?'GRUPO ':'GROUP '}${letter}${liveTag}</div>
         <div class="group-table-wrap"><table class="group-table">
           <thead><tr>
             <th style="width:38%">${es?'Equipo':'Team'}</th>
@@ -5583,9 +5605,11 @@ function renderGroups(){
       </div>`;
     }).join('');
 
+    const liveNote=hasLive?`<p style="font-size:11px;color:#ff6b6b;text-align:center;margin-top:10px">🔴 ${es?'Puntaje provisional basado en marcador en vivo':'Provisional standings — live score included'}</p>`:'';
     container.innerHTML = `
       <div class="groups-grid">${html}</div>
-      <p style="font-size:11px;color:var(--text2);text-align:center;margin-top:16px">
+      ${liveNote}
+      <p style="font-size:11px;color:var(--text2);text-align:center;margin-top:6px">
         🟢 ${es?'Top 2 avanzan a eliminatorias':'Top 2 advance to knockout round'}
       </p>`;
   });
