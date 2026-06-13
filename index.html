@@ -989,9 +989,16 @@ nav button:hover,nav button.active{
 .evt-side-h{color:var(--green)}
 .evt-side-a{color:var(--red)}
 /* Lineups */
-.lineup-team{margin-bottom:18px}
-.lineup-head{font-family:'Bebas Neue';font-size:16px;color:var(--gold);letter-spacing:2px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.lineup-formation{font-size:11px;background:rgba(212,175,55,.15);border:1px solid var(--gold3);border-radius:10px;padding:1px 8px;color:var(--gold2);letter-spacing:1px}
+.lineup-team{margin-bottom:4px;border-radius:10px;padding:10px 12px}
+.lineup-team.home{background:rgba(46,204,113,.06);border-left:3px solid #2ECC71}
+.lineup-team.away{background:rgba(231,76,60,.06);border-left:3px solid #E74C3C}
+.lineup-head{font-family:'Bebas Neue';font-size:16px;letter-spacing:2px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.lineup-team.home .lineup-head{color:#2ECC71}
+.lineup-team.away .lineup-head{color:#E74C3C}
+.lineup-badge{font-size:9px;font-weight:800;letter-spacing:1px;padding:2px 7px;border-radius:8px;font-family:'DM Sans'}
+.lineup-team.home .lineup-badge{background:rgba(46,204,113,.2);color:#2ECC71;border:1px solid rgba(46,204,113,.4)}
+.lineup-team.away .lineup-badge{background:rgba(231,76,60,.2);color:#E74C3C;border:1px solid rgba(231,76,60,.4)}
+.lineup-formation{font-size:11px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:1px 8px;color:var(--text2);letter-spacing:1px}
 .lineup-xi{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
 .lineup-player{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);padding:3px 0}
 .lineup-num{width:24px;text-align:center;font-weight:800;color:var(--text2);font-size:12px;flex-shrink:0}
@@ -2202,28 +2209,36 @@ function renderLdmTimeline(m, orig){
 function renderLdmLineups(m, orig){
   const homeName = displayTeamName(orig.home || m.homeEn || '');
   const awayName = displayTeamName(orig.away || m.awayEn || '');
-  function teamBlock(name, formation, xi, bench){
-    if(!xi || !xi.length) return '<p style="color:var(--text2);font-size:13px;padding:8px 0">'+
-      (currentLang==='es'?'Alineación no disponible.':'Lineup not available.')+'</p>';
+  const homeLabel = currentLang==='es' ? 'LOCAL' : 'HOME';
+  const awayLabel = currentLang==='es' ? 'VISITANTE' : 'AWAY';
+  const benchLabel = currentLang==='es' ? 'Suplentes' : 'Substitutes';
+  const noLineup = currentLang==='es' ? 'Alineación no disponible.' : 'Lineup not available.';
+
+  function teamBlock(name, formation, xi, bench, side){
+    const cls = 'lineup-team '+side;
+    if(!xi || !xi.length) return '<div class="'+cls+'"><p style="color:var(--text2);font-size:13px">'+noLineup+'</p></div>';
+    const badge = side==='home' ? homeLabel : awayLabel;
     const xiRows = xi.map(function(p){
       return '<div class="lineup-player"><span class="lineup-num">'+escapeHtml(String(p.num||''))+'</span>'
         +'<span>'+escapeHtml(p.n||'')+'</span></div>';
     }).join('');
     let benchRows = '';
     if(bench && bench.length){
-      benchRows = '<div class="lineup-bench-lbl">'+(currentLang==='es'?'Suplentes':'Substitutes')+'</div>'
+      benchRows = '<div class="lineup-bench-lbl">'+benchLabel+'</div>'
         + bench.map(function(p){
           return '<div class="lineup-bench-player"><span class="lineup-num">'+escapeHtml(String(p.num||''))+'</span>'
             +'<span>'+escapeHtml(p.n||'')+'</span></div>';
         }).join('');
     }
-    return '<div class="lineup-team"><div class="lineup-head">'+escapeHtml(name)
+    return '<div class="'+cls+'"><div class="lineup-head">'
+      +'<span class="lineup-badge">'+badge+'</span>'
+      +escapeHtml(name)
       +(formation?'<span class="lineup-formation">'+escapeHtml(formation)+'</span>':'')
       +'</div><div class="lineup-xi">'+xiRows+'</div>'+benchRows+'</div>';
   }
-  return teamBlock(homeName, m.homeFormation, m.homeXI, m.homeBench)
-    +'<hr style="border:none;border-top:1px solid rgba(255,255,255,.08);margin:12px 0"/>'
-    + teamBlock(awayName, m.awayFormation, m.awayXI, m.awayBench);
+  return teamBlock(homeName, m.homeFormation, m.homeXI, m.homeBench, 'home')
+    +'<div style="height:8px"></div>'
+    + teamBlock(awayName, m.awayFormation, m.awayXI, m.awayBench, 'away');
 }
 
 function startPlayerWatcher(){
