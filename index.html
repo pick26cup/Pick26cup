@@ -2178,18 +2178,20 @@ function initLiveBar(){
 }
 
 // ── NARRATOR ──────────────────────────────────────────────────
+// Guard: sessionStorage (clears when tab closes). On mobile, visibilitychange
+// resets the guard after 5+ min in background so re-opening the app replays.
+localStorage.removeItem('wc2026_narrator_ts'); // clean up old key
 var _narratorPayload     = null;
 var _narratorSpeechReady = !/iPhone|iPad|iPod/.test(navigator.userAgent);
-var _narratorLastPlayed  = parseInt(localStorage.getItem('wc2026_narrator_ts') || '0');
 var _narratorHiddenAt    = 0;
-var _NARRATOR_COOLDOWN   = 5 * 60 * 1000;
+var _NARRATOR_BG_COOLDOWN = 5 * 60 * 1000;
 
 document.addEventListener('visibilitychange', function(){
   if(document.visibilityState === 'hidden'){
     _narratorHiddenAt = Date.now();
-  } else if(_narratorHiddenAt > 0 && Date.now() - _narratorHiddenAt >= _NARRATOR_COOLDOWN){
+  } else if(_narratorHiddenAt > 0 && Date.now() - _narratorHiddenAt >= _NARRATOR_BG_COOLDOWN){
     _narratorHiddenAt = 0;
-    _narratorLastPlayed = 0;
+    sessionStorage.removeItem('wc2026_narrator_done');
     _narratorPayload = null;
     initNarrator();
   }
@@ -2212,7 +2214,7 @@ document.addEventListener('visibilitychange', function(){
 
 function initNarrator(){
   if(!window.speechSynthesis) return;
-  if(Date.now() - _narratorLastPlayed < _NARRATOR_COOLDOWN) return;
+  if(sessionStorage.getItem('wc2026_narrator_done')) return;
   if(!db) return;
 
   db.ref('schedules').once('value').then(function(snap){
@@ -2260,11 +2262,10 @@ function initNarrator(){
 
 function _doNarrate(){
   if(!_narratorPayload) return;
-  if(Date.now() - _narratorLastPlayed < _NARRATOR_COOLDOWN) return;
+  if(sessionStorage.getItem('wc2026_narrator_done')) return;
   var p = _narratorPayload;
   _narratorPayload = null;
-  _narratorLastPlayed = Date.now();
-  localStorage.setItem('wc2026_narrator_ts', String(_narratorLastPlayed));
+  sessionStorage.setItem('wc2026_narrator_done', '1');
 
   // Build a speak function — tied to gesture for iOS compatibility
   function speakNow(){
