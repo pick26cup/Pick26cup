@@ -841,7 +841,8 @@ nav button:hover,nav button.active{
 .gt-team{display:flex;align-items:center;gap:7px}
 .gt-flag{font-size:15px;min-width:18px}
 .gt-name{font-weight:600;font-size:12px}
-.gt-pts{font-weight:800;color:var(--gold)}
+.gt-pts{font-weight:800;color:var(--green)}
+.gt-pts-hdr{color:var(--green)!important;font-weight:800!important}
 .gt-adv td{background:rgba(46,204,113,.07)}
 .gt-adv .gt-name{color:#2ECC71}
 .form-circles{display:flex;gap:3px;justify-content:center;align-items:center}
@@ -4910,7 +4911,7 @@ function renderGroups(){
           <thead><tr>
             <th style="width:38%">${es?'Equipo':'Team'}</th>
             <th title="${es?'Partidos Jugados':'Matches Played'}">${es?'PJ':'MP'}</th>
-            <th>PTS</th>
+            <th class="gt-pts-hdr">PTS</th>
             <th title="${es?'Ganados':'Won'}">${es?'G':'W'}</th>
             <th title="${es?'Empatados':'Drawn'}">${es?'E':'D'}</th>
             <th title="${es?'Perdidos':'Lost'}">${es?'P':'L'}</th>
