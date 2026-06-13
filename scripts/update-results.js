@@ -325,6 +325,40 @@ async function run() {
     }
   }
 
+  // ── Fetch ALL matches → store utcDate in schedules/ (for narrator) ──────────
+  console.log('Fetching match schedule...');
+  try {
+    const schedRes = await fetch(
+      'https://api.football-data.org/v4/competitions/WC/matches?season=2026',
+      { headers: { 'X-Auth-Token': apiKey } }
+    );
+    if (schedRes.ok) {
+      const schedData = await schedRes.json();
+      const allMatches = schedData.matches || [];
+      console.log(`Schedule: ${allMatches.length} match(es) found`);
+      let schedUpdated = 0;
+      for (const match of allMatches) {
+        const utcDate = match.utcDate;
+        if (!utcDate) continue;
+        const homeEn = match.homeTeam?.name || '';
+        const awayEn = match.awayTeam?.name || '';
+        const matchId = findMatchId(homeEn, awayEn);
+        if (!matchId) continue;
+        const snap = await db.ref(`schedules/${matchId}`).once('value');
+        if (snap.val()?.utcDate !== utcDate) {
+          await db.ref(`schedules/${matchId}`).set({ utcDate });
+          schedUpdated++;
+        }
+      }
+      console.log(`Schedule: ${schedUpdated} entry(s) updated.`);
+    } else {
+      const txt = await schedRes.text();
+      console.warn(`Schedule API ${schedRes.status}: ${txt}`);
+    }
+  } catch (schedErr) {
+    console.warn('Schedule fetch error:', schedErr.message);
+  }
+
   process.exit(0);
 }
 

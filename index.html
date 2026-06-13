@@ -2055,6 +2055,7 @@ function setupFirebase(){
     // 4-7 names stay in sync across all devices in real time.
     loadCustomTeamNames();
     initLiveBar();
+    initNarrator();
     // Sync user state from Firebase (overrides localStorage)
     if(currentUser) syncFromFirebase();
     console.log('Firebase ready');
@@ -2132,6 +2133,63 @@ function initLiveBar(){
       _liveBarInitialized = true;
     }
   });
+}
+
+// ── NARRATOR ──────────────────────────────────────────────────
+function initNarrator(){
+  if(!window.speechSynthesis) return;
+  if(sessionStorage.getItem('wc2026_narrator_done')) return;
+  if(!db) return;
+
+  db.ref('schedules').once('value').then(function(snap){
+    const schedules = snap.val() || {};
+    const now = Date.now();
+    const todayStart = new Date();
+    todayStart.setHours(0,0,0,0);
+    const todayEnd = todayStart.getTime() + 86400000;
+
+    // Collect today's upcoming matches, sorted by kick-off time
+    const upcoming = [];
+    Object.entries(schedules).forEach(function(entry){
+      const matchId = entry[0], s = entry[1];
+      const t = new Date(s.utcDate).getTime();
+      if(t > now && t < todayEnd) upcoming.push({ matchId, t });
+    });
+    if(!upcoming.length) return;
+    upcoming.sort(function(a,b){ return a.t - b.t; });
+
+    const next = upcoming[0];
+    const orig = MATCH_ORIG[next.matchId] || {};
+    const home = displayTeamName(orig.home || next.matchId);
+    const away = displayTeamName(orig.away || next.matchId);
+    const diffMs = next.t - now;
+    const hoursLeft = Math.floor(diffMs / 3600000);
+    const minsLeft  = Math.round(diffMs / 60000);
+
+    let text, lang;
+    if(currentLang === 'es'){
+      lang = 'es-ES';
+      if(minsLeft < 60){
+        text = 'Faltan '+(minsLeft === 1 ? 'un minuto' : minsLeft+' minutos')+' para que comience el partido '+home+' contra '+away+'. ¡Haz fuerza para quedarte con esos puntos hoy!';
+      } else {
+        text = 'Faltan '+(hoursLeft === 1 ? 'una hora' : hoursLeft+' horas')+' para que comience el partido '+home+' contra '+away+'. ¡Haz fuerza para quedarte con esos puntos hoy!';
+      }
+    } else {
+      lang = 'en-US';
+      if(minsLeft < 60){
+        text = (minsLeft === 1 ? 'One minute' : minsLeft+' minutes')+' until '+home+' vs '+away+' kicks off. Make your picks count today!';
+      } else {
+        text = (hoursLeft === 1 ? 'One hour' : hoursLeft+' hours')+' until '+home+' vs '+away+' kicks off. Make your picks count today!';
+      }
+    }
+
+    sessionStorage.setItem('wc2026_narrator_done', '1');
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = lang;
+    utt.rate = 0.93;
+    utt.pitch = 1.05;
+    window.speechSynthesis.speak(utt);
+  }).catch(function(){});
 }
 
 // ── LIVE DETAIL MODAL ─────────────────────────────────────────
