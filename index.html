@@ -830,6 +830,7 @@ nav button:hover,nav button.active{
 /* ── GROUP STANDINGS ─────────────────────────────────────── */
 .groups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
 .group-box{background:linear-gradient(135deg,rgba(26,26,26,.95),rgba(20,16,0,.9));border:1px solid rgba(212,175,55,.2);border-radius:var(--radius);overflow:hidden}
+.group-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .group-header{background:rgba(212,175,55,.15);padding:9px 14px;font-family:'Bebas Neue';font-size:17px;color:var(--gold);letter-spacing:2px;border-bottom:1px solid rgba(212,175,55,.2)}
 .group-table{width:100%;border-collapse:collapse;font-size:12px}
 .group-table th{padding:5px 8px;color:var(--text2);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.5px;text-align:center;border-bottom:1px solid rgba(212,175,55,.12)}
@@ -852,7 +853,13 @@ nav button:hover,nav button.active{
 .fc-loss{background:rgba(231,76,60,.2);border-color:#E74C3C;color:#E74C3C}
 .fc-draw{background:rgba(241,196,15,.15);border-color:#F1C40F;color:#F1C40F}
 .fc-empty{background:transparent;border-color:rgba(255,255,255,.15);color:transparent}
-@media(max-width:480px){.groups-grid{grid-template-columns:1fr}}
+@media(max-width:480px){
+  .groups-grid{grid-template-columns:1fr}
+  .gt-col-gf,.gt-col-ga{display:none}
+  .group-table th,.group-table td{padding:6px 5px;font-size:11px}
+  .gt-name{font-size:11px}
+  .gt-flag{font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -4891,7 +4898,7 @@ function renderGroups(){
           <td><div class="gt-team"><span class="gt-flag">${getTeamVisual(name)}</span><span class="gt-name">${escapeHtml(displayTeamName(name))}</span></div></td>
           <td>${t.played}</td><td class="gt-pts">${t.pts}</td>
           <td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>
-          <td>${t.gf}</td><td>${t.ga}</td>
+          <td class="gt-col-gf">${t.gf}</td><td class="gt-col-ga">${t.ga}</td>
           <td style="color:${gd>0?'var(--green)':gd<0?'var(--red)':'var(--text2)'}">${gdStr}</td>
           <td><div class="form-circles">${formHtml}</div></td>
         </tr>`;
@@ -4899,7 +4906,7 @@ function renderGroups(){
 
       return `<div class="group-box">
         <div class="group-header">${es?'GRUPO ':'GROUP '}${letter}</div>
-        <table class="group-table">
+        <div class="group-table-wrap"><table class="group-table">
           <thead><tr>
             <th style="width:38%">${es?'Equipo':'Team'}</th>
             <th title="${es?'Partidos Jugados':'Matches Played'}">${es?'PJ':'MP'}</th>
@@ -4907,13 +4914,13 @@ function renderGroups(){
             <th title="${es?'Ganados':'Won'}">${es?'G':'W'}</th>
             <th title="${es?'Empatados':'Drawn'}">${es?'E':'D'}</th>
             <th title="${es?'Perdidos':'Lost'}">${es?'P':'L'}</th>
-            <th title="${es?'Goles a Favor':'Goals For'}">GF</th>
-            <th title="${es?'Goles en Contra':'Goals Against'}">${es?'GC':'GA'}</th>
+            <th class="gt-col-gf" title="${es?'Goles a Favor':'Goals For'}">GF</th>
+            <th class="gt-col-ga" title="${es?'Goles en Contra':'Goals Against'}">${es?'GC':'GA'}</th>
             <th title="${es?'Diferencia de Goles':'Goal Difference'}">${es?'DG':'GD'}</th>
             <th title="${es?'Últimos 3':'Last 3'}">${es?'Últ':'Form'}</th>
           </tr></thead>
           <tbody>${rows}</tbody>
-        </table>
+        </table></div>
       </div>`;
     }).join('');
 
