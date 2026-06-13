@@ -953,9 +953,12 @@ nav button:hover,nav button.active{
 }
 @keyframes narr-in{from{transform:scale(.3) translateY(-60px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
 @keyframes narr-out{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.5) translateY(30px)}}
-.narrator-icon{font-size:52px;margin-bottom:8px;display:block;
+.narrator-icon{
+  width:72px;height:72px;border-radius:16px;object-fit:cover;
+  margin:0 auto 10px;display:block;
+  border:2px solid rgba(57,255,20,.5);
+  box-shadow:0 0 20px rgba(57,255,20,.6),0 0 40px rgba(57,255,20,.25);
   animation:ball-pulse 1.2s ease-in-out infinite;
-  filter:drop-shadow(0 0 12px rgba(57,255,20,.8));
 }
 @keyframes ball-pulse{0%,100%{transform:scale(1) rotate(-5deg)}50%{transform:scale(1.18) rotate(5deg)}}
 .narrator-time{
@@ -2386,7 +2389,7 @@ function showNarratorOverlay(timeLabel, home, away, speakFn){
   var speakLbl   = currentLang==='es' ? '🔊 Escuchar' : '🔊 Listen';
   var dismissLbl = currentLang==='es' ? 'Cerrar' : 'Close';
   el.innerHTML = '<div class="narrator-card">'
-    +'<span class="narrator-icon">⚽</span>'
+    +'<img src="logo_1.jpg" class="narrator-icon" alt="Pick26"/>'
     +'<div class="narrator-time">'+timeLabel+'</div>'
     +'<div class="narrator-match">'+home+'<span class="narrator-vs">VS</span>'+away+'</div>'
     +'<div class="narrator-actions">'
