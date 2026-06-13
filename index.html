@@ -1844,7 +1844,7 @@ const JERSEY_TEAMS = [
 // ══════════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════════
-let currentLang = 'en';
+let currentLang = localStorage.getItem('wc2026_lang') || 'en';
 let currentRound = 1;
 let adminRound = 1;
 let currentUser = null;
@@ -5007,6 +5007,7 @@ function openAvatarEditor(){
 
 function toggleLang(){
   currentLang = currentLang==='en'?'es':'en';
+  localStorage.setItem('wc2026_lang', currentLang);
   document.documentElement.lang = currentLang;
   const lbl = document.getElementById('settingsLangLabel');
   if(lbl) lbl.textContent = currentLang==='en' ? 'Cambiar a Español' : 'Switch to English';
