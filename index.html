@@ -872,6 +872,52 @@ nav button:hover,nav button.active{
   .gt-name{font-size:11px}
   .gt-flag{font-size:13px}
 }
+/* ── LIVE BAR ────────────────────────────────────────── */
+#liveBar{
+  background:linear-gradient(135deg,rgba(90,0,0,.97),rgba(50,0,0,.97));
+  border-bottom:1px solid rgba(231,76,60,.45);
+  padding:7px 16px;
+  position:sticky;top:62px;z-index:90;
+  backdrop-filter:blur(10px);
+  display:none;
+}
+.live-bar-inner{
+  max-width:1100px;margin:0 auto;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-height:28px;
+}
+.live-badge{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(231,76,60,.22);border:1px solid #E74C3C;
+  border-radius:20px;padding:3px 10px;
+  font-size:11px;font-weight:800;color:#ff7060;letter-spacing:1.5px;
+  white-space:nowrap;flex-shrink:0;
+}
+.live-dot{
+  width:7px;height:7px;border-radius:50%;background:#E74C3C;flex-shrink:0;
+  animation:blink-live 1s ease-in-out infinite;
+}
+@keyframes blink-live{0%,100%{opacity:1}50%{opacity:.15}}
+.live-match-list{display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex:1}
+.live-pill{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(231,76,60,.35);
+  border-radius:7px;padding:4px 10px;
+  font-size:12px;font-weight:600;color:var(--text);
+  white-space:nowrap;
+}
+.live-pill-score{
+  font-family:'Bebas Neue';font-size:16px;color:#fff;letter-spacing:1px;
+  background:rgba(180,20,20,.4);padding:0 7px;border-radius:4px;
+}
+.live-pill-min{
+  font-size:10px;font-weight:700;color:rgba(255,110,90,.9);
+  background:rgba(231,76,60,.15);padding:1px 5px;border-radius:4px;
+}
+@media(max-width:480px){
+  .live-pill{font-size:11px;padding:3px 7px}
+  .live-pill-score{font-size:14px}
+}
 </style>
 </head>
 <body>
@@ -991,6 +1037,14 @@ nav button:hover,nav button.active{
       </div>
     </div>
   </header>
+
+  <!-- LIVE BAR — visible only when matches are IN_PLAY -->
+  <div id="liveBar">
+    <div class="live-bar-inner">
+      <div class="live-badge"><span class="live-dot"></span>LIVE</div>
+      <div class="live-match-list" id="liveMatchList"></div>
+    </div>
+  </div>
 
   <!-- MAIN -->
   <main>
@@ -1891,6 +1945,7 @@ function setupFirebase(){
     // Attach the live team-names listener now that Firebase is ready, so rounds
     // 4-7 names stay in sync across all devices in real time.
     loadCustomTeamNames();
+    initLiveBar();
     // Sync user state from Firebase (overrides localStorage)
     if(currentUser) syncFromFirebase();
     console.log('Firebase ready');
@@ -1904,6 +1959,29 @@ function setupFirebase(){
       if(id==='sec-results') renderMyResults();
     }
   } catch(e){ console.warn('Firebase setup failed:', e); }
+}
+
+function initLiveBar(){
+  if(!db) return;
+  db.ref('liveScores').on('value', function(snap){
+    const data = snap.val() || {};
+    const bar = document.getElementById('liveBar');
+    const list = document.getElementById('liveMatchList');
+    if(!bar || !list) return;
+    const entries = Object.entries(data);
+    if(entries.length === 0){ bar.style.display = 'none'; return; }
+    bar.style.display = '';
+    list.innerHTML = entries.map(function(entry){
+      const id = entry[0], m = entry[1];
+      const orig = MATCH_ORIG[id] || {};
+      const home = displayTeamName(orig.home || m.homeEn || id);
+      const away = displayTeamName(orig.away || m.awayEn || id);
+      const min = m.minute ? '<span class="live-pill-min">'+m.minute+"'</span>" : '';
+      return '<div class="live-pill"><span>'+home+'</span>'
+        +'<span class="live-pill-score">'+(m.scoreH??0)+' – '+(m.scoreA??0)+'</span>'
+        +'<span>'+away+'</span>'+min+'</div>';
+    }).join('');
+  });
 }
 
 function startPlayerWatcher(){

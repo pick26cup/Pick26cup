@@ -227,6 +227,62 @@ async function run() {
 
   if (notFound.length) console.log('⚠️  No ID found for:', notFound.join(' | '));
   console.log(`Finished. ${updated} result(s) updated.`);
+
+  // ── Fetch IN_PLAY matches → write/clear liveScores/ ─────────────────────
+  console.log('Fetching IN_PLAY World Cup 2026 matches...');
+  const liveMatchIds = new Set();
+
+  try {
+    const liveRes = await fetch(
+      'https://api.football-data.org/v4/competitions/WC/matches?status=IN_PLAY&season=2026',
+      { headers: { 'X-Auth-Token': apiKey } }
+    );
+
+    if (liveRes.ok) {
+      const liveData = await liveRes.json();
+      const liveMatches = liveData.matches || [];
+      console.log(`API returned ${liveMatches.length} live match(es)`);
+
+      for (const match of liveMatches) {
+        const homeEn = match.homeTeam?.name || '';
+        const awayEn = match.awayTeam?.name || '';
+        const matchId = findMatchId(homeEn, awayEn);
+
+        if (!matchId) {
+          console.log(`⚠️  No ID found for live: ${homeEn} vs ${awayEn}`);
+          continue;
+        }
+
+        const s = match.score || {};
+        const scoreH = s.fullTime?.home ?? s.regularTime?.home ?? s.halfTime?.home ?? 0;
+        const scoreA = s.fullTime?.away ?? s.regularTime?.away ?? s.halfTime?.away ?? 0;
+        const minute = match.minute ?? null;
+
+        liveMatchIds.add(matchId);
+        const payload = { scoreH, scoreA, homeEn, awayEn, updatedAt: Date.now() };
+        if (minute !== null) payload.minute = minute;
+
+        await db.ref(`liveScores/${matchId}`).set(payload);
+        console.log(`⚽ LIVE ${matchId}: ${homeEn} ${scoreH}-${scoreA} ${awayEn}${minute ? ` (${minute}')` : ''}`);
+      }
+    } else {
+      const txt = await liveRes.text();
+      console.warn(`Live API ${liveRes.status}: ${txt}`);
+    }
+  } catch (liveErr) {
+    console.warn('Live fetch error:', liveErr.message);
+  }
+
+  // Clear matches that are no longer IN_PLAY
+  const liveSnap = await db.ref('liveScores').once('value');
+  const existingLive = liveSnap.val() || {};
+  for (const matchId of Object.keys(existingLive)) {
+    if (!liveMatchIds.has(matchId)) {
+      await db.ref(`liveScores/${matchId}`).remove();
+      console.log(`🏁 Cleared live: ${matchId}`);
+    }
+  }
+
   process.exit(0);
 }
 
