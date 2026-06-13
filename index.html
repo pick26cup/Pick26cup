@@ -951,12 +951,27 @@ nav button:hover,nav button.active{
 .ldm-header{
   position:sticky;top:0;background:#141414;
   border-bottom:1px solid rgba(255,255,255,.08);
-  padding:14px 18px;display:flex;align-items:center;justify-content:space-between;z-index:1;
+  padding:10px 16px 10px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;z-index:1;
 }
-.ldm-title{font-family:'Bebas Neue';font-size:22px;color:var(--gold);letter-spacing:2px}
-.ldm-score{font-family:'Bebas Neue';font-size:28px;color:#fff;letter-spacing:3px;text-align:center;margin:0 8px}
-.ldm-close{background:transparent;border:none;color:var(--text2);font-size:22px;cursor:pointer;line-height:1;padding:0 4px}
+.ldm-close{
+  position:absolute;top:8px;right:12px;
+  background:transparent;border:none;color:var(--text2);
+  font-size:20px;cursor:pointer;line-height:1;padding:4px;
+}
 .ldm-close:hover{color:var(--text)}
+.ldm-teams-row{display:flex;align-items:center;justify-content:center;gap:6px;width:100%}
+.ldm-team-name{
+  font-size:13px;font-weight:700;color:var(--text);
+  flex:1;text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:38%;
+}
+.ldm-score{
+  font-family:'Bebas Neue';font-size:34px;color:#fff;
+  letter-spacing:4px;flex-shrink:0;line-height:1;
+}
+.ldm-minute{font-size:11px;color:#E74C3C;font-weight:700;letter-spacing:1px;margin-top:1px}
 .ldm-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.08);padding:0 18px}
 .ldm-tab{
   background:transparent;border:none;color:var(--text2);
@@ -1109,10 +1124,13 @@ nav button:hover,nav button.active{
   <div id="liveDetailModal" onclick="if(event.target===this)closeLiveDetail()">
     <div class="ldm-box">
       <div class="ldm-header">
-        <span class="ldm-title" id="ldmHomeTeam"></span>
-        <span class="ldm-score" id="ldmScore"></span>
-        <span class="ldm-title" id="ldmAwayTeam"></span>
         <button class="ldm-close" onclick="closeLiveDetail()">✕</button>
+        <div class="ldm-teams-row">
+          <span class="ldm-team-name" id="ldmHomeTeam"></span>
+          <span class="ldm-score" id="ldmScore"></span>
+          <span class="ldm-team-name" id="ldmAwayTeam"></span>
+        </div>
+        <span class="ldm-minute" id="ldmMinute"></span>
       </div>
       <div class="ldm-tabs">
         <button class="ldm-tab active" onclick="switchLdmTab('timeline',this)" data-en="Timeline" data-es="Cronología">Timeline</button>
@@ -2124,6 +2142,7 @@ function openLiveDetail(matchId){
     document.getElementById('ldmHomeTeam').textContent = displayTeamName(orig.home || m.homeEn || '');
     document.getElementById('ldmAwayTeam').textContent = displayTeamName(orig.away || m.awayEn || '');
     document.getElementById('ldmScore').textContent = (m.scoreH??0)+' – '+(m.scoreA??0);
+    document.getElementById('ldmMinute').textContent = m.minute ? m.minute+"' "+( currentLang==='es'?'EN VIVO':'LIVE') : (currentLang==='es'?'EN VIVO':'LIVE');
     _ldmActiveTab = 'timeline';
     document.querySelectorAll('.ldm-tab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
     renderLdmTab('timeline', m, orig);
