@@ -2136,30 +2136,46 @@ function initLiveBar(){
 }
 
 // ── NARRATOR ──────────────────────────────────────────────────
-// iOS blocks TTS until a user gesture; desktop is unlocked immediately.
-var _narratorPayload = null;
+// Plays once per visit (5-min cooldown prevents double-play on refresh).
+// On mobile, "closing" the app hides the tab — visibilitychange re-triggers.
+// iOS requires a user gesture before TTS; desktop is unlocked immediately.
+var _narratorPayload  = null;
 var _narratorSpeechReady = !/iPhone|iPad|iPod/.test(navigator.userAgent);
+var _narratorLastPlayed  = parseInt(localStorage.getItem('wc2026_narrator_ts') || '0');
+var _narratorHiddenAt    = 0;
+var _NARRATOR_COOLDOWN   = 5 * 60 * 1000; // 5 minutes
 
+// Re-trigger when user returns to the app after 5+ min away
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'hidden'){
+    _narratorHiddenAt = Date.now();
+  } else if(_narratorHiddenAt > 0 && Date.now() - _narratorHiddenAt >= _NARRATOR_COOLDOWN){
+    _narratorHiddenAt = 0;
+    _narratorLastPlayed = 0; // Force a new narration
+    _narratorPayload = null;
+    initNarrator();
+  }
+});
+
+// iOS gesture unlock
 (function(){
   var evts = ['click','touchstart','pointerdown'];
   function onFirstGesture(){
     evts.forEach(function(e){ document.removeEventListener(e, onFirstGesture); });
     if(!_narratorSpeechReady && window.speechSynthesis){
       _narratorSpeechReady = true;
-      // Unlock iOS TTS engine with a silent utterance
       var silent = new SpeechSynthesisUtterance('');
       silent.volume = 0;
       window.speechSynthesis.speak(silent);
     }
-    // If data already loaded, speak after the unlock settles
-    if(_narratorPayload) setTimeout(_doNarrate, 280);
+    if(_narratorPayload) setTimeout(_doNarrate, 300);
   }
   evts.forEach(function(e){ document.addEventListener(e, onFirstGesture, {passive:true}); });
 })();
 
 function initNarrator(){
   if(!window.speechSynthesis) return;
-  if(sessionStorage.getItem('wc2026_narrator_done')) return;
+  if(Date.now() - _narratorLastPlayed < _NARRATOR_COOLDOWN) return;
   if(!db) return;
 
   db.ref('schedules').once('value').then(function(snap){
@@ -2206,23 +2222,24 @@ function initNarrator(){
 
 function _doNarrate(){
   if(!_narratorPayload) return;
-  if(sessionStorage.getItem('wc2026_narrator_done')) return;
+  if(Date.now() - _narratorLastPlayed < _NARRATOR_COOLDOWN) return;
   var p = _narratorPayload;
   _narratorPayload = null;
-  sessionStorage.setItem('wc2026_narrator_done','1');
+  _narratorLastPlayed = Date.now();
+  localStorage.setItem('wc2026_narrator_ts', String(_narratorLastPlayed));
 
   var utt = new SpeechSynthesisUtterance(p.text);
   utt.lang = p.lang;
   utt.rate = 0.92;
   utt.pitch = 1.05;
 
-  // Pick best matching voice
+  // Pick best matching voice for the language
   var voices = window.speechSynthesis.getVoices();
   var voice = voices.find(function(v){ return v.lang === p.lang; })
            || voices.find(function(v){ return v.lang.startsWith(p.lang.split('-')[0]); });
   if(voice) utt.voice = voice;
 
-  // Manually duck & restore the background music (avoids OS-level 0.25 duck)
+  // Manually duck the background music — avoids OS-level random duck
   var music = document.getElementById('bgMusic');
   var origVol = null;
   if(music && !music.paused && music.volume > 0){
@@ -2235,15 +2252,14 @@ function _doNarrate(){
 
   function doSpeak(){ window.speechSynthesis.speak(utt); }
 
-  if(voices.length > 0){
+  if(window.speechSynthesis.getVoices().length > 0){
     doSpeak();
   } else {
-    // Voices load asynchronously on Chrome desktop
     window.speechSynthesis.onvoiceschanged = function(){
       window.speechSynthesis.onvoiceschanged = null;
       doSpeak();
     };
-    setTimeout(doSpeak, 1500); // Safety fallback
+    setTimeout(doSpeak, 1500);
   }
 }
 
