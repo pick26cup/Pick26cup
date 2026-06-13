@@ -926,6 +926,7 @@ nav button:hover,nav button.active{
       </nav>
       <div class="header-right">
         <button id="helpBtn" onclick="openRulesModal()" title="Cómo funciona / How it works" aria-label="Reglas">❓</button>
+        <button id="langBtn" onclick="toggleLang()" title="Switch language / Cambiar idioma">ES</button>
         <div id="settingsWrap">
           <button id="settingsBtn" onclick="toggleSettingsMenu()" title="Settings / Configuración">⚙️</button>
           <div class="settings-dropdown" id="settingsMenu" style="display:none">
@@ -1507,6 +1508,28 @@ const MATCH_ORIG = {};
     });
   }
 })();
+
+// ── Spanish → English team name map ─────────────────
+const TEAM_ES_TO_EN = {
+  'México':'Mexico','Sudáfrica':'South Africa','Corea del Sur':'South Korea',
+  'República Checa':'Czech Republic','Canadá':'Canada',
+  'Bosnia Herzegovina':'Bosnia-Herzegovina','Estados Unidos':'USA',
+  'Suiza':'Switzerland','Brasil':'Brazil','Marruecos':'Morocco',
+  'Haití':'Haiti','Escocia':'Scotland','Turquía':'Turkey',
+  'Alemania':'Germany','Países Bajos':'Netherlands','Japón':'Japan',
+  'Costa de Marfil':'Ivory Coast','Suecia':'Sweden','Túnez':'Tunisia',
+  'España':'Spain','Cabo Verde':'Cape Verde','Bélgica':'Belgium',
+  'Egipto':'Egypt','Arabia Saudí':'Saudi Arabia','Irán':'Iran',
+  'Nueva Zelanda':'New Zealand','Francia':'France','Noruega':'Norway',
+  'Argelia':'Algeria','Jordania':'Jordan','Congo':'DR Congo',
+  'Inglaterra':'England','Croacia':'Croatia','Panamá':'Panama',
+  'Uzbekistán':'Uzbekistan',
+};
+function displayTeamName(name){
+  if(!name) return name;
+  if(currentLang==='en') return TEAM_ES_TO_EN[name] || name;
+  return name;
+}
 
 // ══════════════════════════════════════════════════════
 //  JERSEY TEAMS (for avatar customizer)
@@ -2759,8 +2782,8 @@ function renderMatches(){
     // human-readable version of the bracket placeholder ("2A" -> "2nd Group A").
     const rawHome = customTeamNames[m.id+'_home'] || m.home;
     const rawAway = customTeamNames[m.id+'_away'] || m.away;
-    const homeName = escapeHtml(isPlaceholderTeam(rawHome) ? prettyTeamLabel(rawHome) : rawHome);
-    const awayName = escapeHtml(isPlaceholderTeam(rawAway) ? prettyTeamLabel(rawAway) : rawAway);
+    const homeName = escapeHtml(isPlaceholderTeam(rawHome) ? prettyTeamLabel(rawHome) : displayTeamName(rawHome));
+    const awayName = escapeHtml(isPlaceholderTeam(rawAway) ? prettyTeamLabel(rawAway) : displayTeamName(rawAway));
 
     const homeFlag = getTeamVisual(rawHome);
     const awayFlag = getTeamVisual(rawAway);
@@ -4420,6 +4443,8 @@ function toggleLang(){
   document.documentElement.lang = currentLang;
   const lbl = document.getElementById('settingsLangLabel');
   if(lbl) lbl.textContent = currentLang==='en' ? 'Cambiar a Español' : 'Switch to English';
+  const lb = document.getElementById('langBtn');
+  if(lb) lb.textContent = currentLang==='en' ? 'ES' : 'EN';
   updateLang();
   renderMatches();
   updateWeekBanner();
@@ -4812,8 +4837,8 @@ function renderMyResults(){
     matchResults.forEach(({m,p,res,status,pts})=>{
       const rawHome = customTeamNames[m.id+'_home']||m.home;
       const rawAway = customTeamNames[m.id+'_away']||m.away;
-      const homeName = escapeHtml(isPlaceholderTeam(rawHome)?prettyTeamLabel(rawHome):rawHome);
-      const awayName = escapeHtml(isPlaceholderTeam(rawAway)?prettyTeamLabel(rawAway):rawAway);
+      const homeName = escapeHtml(isPlaceholderTeam(rawHome)?prettyTeamLabel(rawHome):displayTeamName(rawHome));
+      const awayName = escapeHtml(isPlaceholderTeam(rawAway)?prettyTeamLabel(rawAway):displayTeamName(rawAway));
       const homeFlag = getTeamVisual(rawHome);
       const awayFlag = getTeamVisual(rawAway);
 
