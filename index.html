@@ -917,6 +917,24 @@ nav button:hover,nav button.active{
   .live-pill{font-size:11px;padding:3px 7px}
   .live-pill-score{font-size:14px}
 }
+/* ── GOAL CELEBRATION ────────────────────────────────── */
+#goalCelebration{
+  position:fixed;inset:0;z-index:9999;
+  display:none;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.goal-banner{
+  background:linear-gradient(135deg,#D4AF37,#F5D060,#B8860B);
+  border:3px solid #FFD700;
+  border-radius:20px;padding:24px 48px;text-align:center;
+  box-shadow:0 0 80px rgba(212,175,55,.9),0 0 30px rgba(255,215,0,.6);
+  animation:goal-in .35s cubic-bezier(.17,.67,.35,1.3), goal-out .5s 3.2s ease-in forwards;
+}
+@keyframes goal-in{from{transform:scale(.2) translateY(-40px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+@keyframes goal-out{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.4) translateY(-30px)}}
+.goal-txt{font-family:'Bebas Neue';font-size:58px;color:#000;letter-spacing:5px;line-height:1;text-shadow:0 2px 0 rgba(0,0,0,.2)}
+.goal-team{font-size:20px;font-weight:800;color:#000;margin-top:6px;letter-spacing:1px}
+.goal-flag{font-size:36px;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -1036,6 +1054,9 @@ nav button:hover,nav button.active{
       </div>
     </div>
   </header>
+
+  <!-- GOAL CELEBRATION OVERLAY -->
+  <div id="goalCelebration"></div>
 
   <!-- LIVE BAR — visible only when matches are IN_PLAY -->
   <div id="liveBar" style="display:none">
@@ -1960,6 +1981,23 @@ function setupFirebase(){
   } catch(e){ console.warn('Firebase setup failed:', e); }
 }
 
+const _prevLiveScores = {};
+let _liveBarInitialized = false;
+
+function showGoalCelebration(teamName){
+  const el = document.getElementById('goalCelebration');
+  if(!el) return;
+  const label = currentLang==='es' ? '¡GOOOOL!' : 'GOOOOOL!';
+  const sub = currentLang==='es' ? 'anotó '+teamName : teamName+' scored!';
+  el.innerHTML = '<div class="goal-banner">'
+    +'<div class="goal-flag">⚽</div>'
+    +'<div class="goal-txt">'+label+'</div>'
+    +'<div class="goal-team">'+sub+'</div>'
+    +'</div>';
+  el.style.display = 'flex';
+  setTimeout(function(){ el.style.display = 'none'; }, 3800);
+}
+
 function initLiveBar(){
   if(!db) return;
   db.ref('liveScores').on('value', function(snap){
@@ -1980,6 +2018,29 @@ function initLiveBar(){
         +'<span class="live-pill-score">'+(m.scoreH??0)+' – '+(m.scoreA??0)+'</span>'
         +'<span>'+away+'</span>'+min+'</div>';
     }).join('');
+    // Goal detection — skip first load to avoid false celebrations on page open
+    if(_liveBarInitialized){
+      entries.forEach(function(entry){
+        const id = entry[0], m = entry[1];
+        const prev = _prevLiveScores[id];
+        if(prev){
+          const orig = MATCH_ORIG[id] || {};
+          if((m.scoreH||0) > (prev.scoreH||0)){
+            showGoalCelebration(displayTeamName(orig.home || m.homeEn || id));
+          } else if((m.scoreA||0) > (prev.scoreA||0)){
+            showGoalCelebration(displayTeamName(orig.away || m.awayEn || id));
+          }
+        }
+        _prevLiveScores[id] = {scoreH: m.scoreH||0, scoreA: m.scoreA||0};
+      });
+    } else {
+      // First load — just store current scores, don't celebrate
+      entries.forEach(function(entry){
+        const id = entry[0], m = entry[1];
+        _prevLiveScores[id] = {scoreH: m.scoreH||0, scoreA: m.scoreA||0};
+      });
+      _liveBarInitialized = true;
+    }
   });
 }
 
