@@ -229,90 +229,129 @@ async function run() {
   console.log(`Finished. ${updated} result(s) updated.`);
 
   // ── Fetch IN_PLAY matches → write/clear liveScores/ ─────────────────────
-  console.log('Fetching IN_PLAY World Cup 2026 matches...');
+  const rapidKey = process.env.RAPIDAPI_KEY;
   const liveMatchIds = new Set();
 
-  try {
-    const liveRes = await fetch(
-      'https://api.football-data.org/v4/competitions/WC/matches?status=IN_PLAY&season=2026',
-      { headers: { 'X-Auth-Token': apiKey } }
-    );
+  if (rapidKey) {
+    // ── API-Football (RapidAPI) — provides lineups + events on free tier ──
+    console.log('Fetching live data from API-Football...');
+    try {
+      const RAPID_HOST = 'api-football-v1.p.rapidapi.com';
+      const rapidHeaders = { 'X-RapidAPI-Key': rapidKey, 'X-RapidAPI-Host': RAPID_HOST };
 
-    if (liveRes.ok) {
-      const liveData = await liveRes.json();
-      const liveMatches = liveData.matches || [];
-      console.log(`API returned ${liveMatches.length} live match(es)`);
+      const liveRes = await fetch(
+        'https://api-football-v1.p.rapidapi.com/v3/fixtures?live=all&league=1&season=2026',
+        { headers: rapidHeaders }
+      );
 
-      for (const match of liveMatches) {
-        const homeEn = match.homeTeam?.name || '';
-        const awayEn = match.awayTeam?.name || '';
-        const matchId = findMatchId(homeEn, awayEn);
+      if (liveRes.ok) {
+        const liveData = await liveRes.json();
+        const fixtures = liveData.response || [];
+        console.log(`API-Football: ${fixtures.length} live fixture(s)`);
 
-        if (!matchId) {
-          console.log(`⚠️  No ID found for live: ${homeEn} vs ${awayEn}`);
-          continue;
+        for (const f of fixtures) {
+          const homeEn = f.teams?.home?.name || '';
+          const awayEn = f.teams?.away?.name || '';
+          const matchId = findMatchId(homeEn, awayEn);
+          if (!matchId) { console.log(`⚠️  No ID: ${homeEn} vs ${awayEn}`); continue; }
+
+          const fixtureId = f.fixture?.id;
+          const scoreH   = f.goals?.home ?? 0;
+          const scoreA   = f.goals?.away ?? 0;
+          const minute   = f.fixture?.status?.elapsed ?? null;
+          const homeId   = f.teams?.home?.id;
+
+          liveMatchIds.add(matchId);
+          const payload = { scoreH, scoreA, homeEn, awayEn, updatedAt: Date.now() };
+          if (minute !== null) payload.minute = minute;
+
+          // Lineups
+          try {
+            const linRes = await fetch(
+              `https://api-football-v1.p.rapidapi.com/v3/fixtures/lineups?fixture=${fixtureId}`,
+              { headers: rapidHeaders }
+            );
+            if (linRes.ok) {
+              const linData = await linRes.json();
+              const lineups = linData.response || [];
+              const homeL = lineups.find(l => l.team?.id === homeId) || lineups[0] || {};
+              const awayL = lineups.find(l => l.team?.id !== homeId) || lineups[1] || {};
+              payload.homeFormation = homeL.formation || '';
+              payload.awayFormation = awayL.formation || '';
+              payload.homeXI    = (homeL.startXI    || []).map(p => ({ n: p.player?.name || '', num: p.player?.number || '' }));
+              payload.homeBench = (homeL.substitutes || []).map(p => ({ n: p.player?.name || '', num: p.player?.number || '' }));
+              payload.awayXI    = (awayL.startXI    || []).map(p => ({ n: p.player?.name || '', num: p.player?.number || '' }));
+              payload.awayBench = (awayL.substitutes || []).map(p => ({ n: p.player?.name || '', num: p.player?.number || '' }));
+              console.log(`  📋 ${homeL.formation||'?'} vs ${awayL.formation||'?'} | ${(homeL.startXI||[]).length + (awayL.startXI||[]).length} players`);
+            }
+          } catch (e) { console.warn('  Lineup error:', e.message); }
+
+          // Events (goals, cards, substitutions)
+          try {
+            const evRes = await fetch(
+              `https://api-football-v1.p.rapidapi.com/v3/fixtures/events?fixture=${fixtureId}`,
+              { headers: rapidHeaders }
+            );
+            if (evRes.ok) {
+              const evData = await evRes.json();
+              const events = [];
+              for (const e of (evData.response || [])) {
+                const side = e.team?.id === homeId ? 'h' : 'a';
+                const min  = e.time?.elapsed ?? 0;
+                if (e.type === 'Goal') {
+                  events.push({ min, type: 'goal', side, player: e.player?.name || '' });
+                } else if (e.type === 'Card') {
+                  events.push({ min, type: e.detail === 'Red Card' ? 'red' : 'yellow', side, player: e.player?.name || '' });
+                } else if (e.type === 'subst') {
+                  events.push({ min, type: 'sub', side, out: e.player?.name || '', in: e.assist?.name || '' });
+                }
+              }
+              events.sort((a, b) => (a.min || 0) - (b.min || 0));
+              payload.events = events;
+              console.log(`  📅 ${events.length} event(s)`);
+            }
+          } catch (e) { console.warn('  Events error:', e.message); }
+
+          await db.ref(`liveScores/${matchId}`).set(payload);
+          console.log(`⚽ LIVE ${matchId}: ${homeEn} ${scoreH}-${scoreA} ${awayEn}${minute ? ` (${minute}')` : ''}`);
         }
-
-        const s = match.score || {};
-        const scoreH = s.fullTime?.home ?? s.regularTime?.home ?? s.halfTime?.home ?? 0;
-        const scoreA = s.fullTime?.away ?? s.regularTime?.away ?? s.halfTime?.away ?? 0;
-        const minute = match.minute ?? null;
-
-        liveMatchIds.add(matchId);
-        const payload = { scoreH, scoreA, homeEn, awayEn, updatedAt: Date.now() };
-        if (minute !== null) payload.minute = minute;
-
-        // Fetch match detail: lineups + events
-        try {
-          const detailRes = await fetch(
-            `https://api.football-data.org/v4/matches/${match.id}`,
-            { headers: { 'X-Auth-Token': apiKey } }
-          );
-          if (detailRes.ok) {
-            const d = await detailRes.json();
-            const homeId = match.homeTeam?.id;
-
-            // Lineups
-            const lineups = d.lineups || [];
-            const homeLineup = lineups.find(l => l.team?.id === homeId) || lineups[0] || {};
-            const awayLineup = lineups.find(l => l.team?.id !== homeId) || lineups[1] || {};
-
-            payload.homeFormation = homeLineup.formation || '';
-            payload.awayFormation = awayLineup.formation || '';
-            payload.homeXI = (homeLineup.startXI || []).map(p => ({ n: p.player?.name || '', num: p.player?.shirtNumber || '' }));
-            payload.homeBench = (homeLineup.substitutes || []).map(p => ({ n: p.player?.name || '', num: p.player?.shirtNumber || '' }));
-            payload.awayXI = (awayLineup.startXI || []).map(p => ({ n: p.player?.name || '', num: p.player?.shirtNumber || '' }));
-            payload.awayBench = (awayLineup.substitutes || []).map(p => ({ n: p.player?.name || '', num: p.player?.shirtNumber || '' }));
-
-            // Events: goals, cards, substitutions
-            const events = [];
-            (d.goals || []).forEach(g => {
-              events.push({ min: g.minute, type: 'goal', side: g.team?.id === homeId ? 'h' : 'a', player: g.scorer?.name || '' });
-            });
-            (d.bookings || []).forEach(b => {
-              events.push({ min: b.minute, type: b.card === 'RED_CARD' ? 'red' : 'yellow', side: b.team?.id === homeId ? 'h' : 'a', player: b.player?.name || '' });
-            });
-            (d.substitutions || []).forEach(s => {
-              events.push({ min: s.minute, type: 'sub', side: s.team?.id === homeId ? 'h' : 'a', out: s.playerOut?.name || '', in: s.playerIn?.name || '' });
-            });
-            events.sort((a, b) => (a.min || 0) - (b.min || 0));
-            payload.events = events;
-
-            console.log(`  📋 ${homeLineup.formation || '?'} vs ${awayLineup.formation || '?'} | ${events.length} event(s)`);
-          }
-        } catch (detailErr) {
-          console.warn(`  Detail fetch error: ${detailErr.message}`);
-        }
-
-        await db.ref(`liveScores/${matchId}`).set(payload);
-        console.log(`⚽ LIVE ${matchId}: ${homeEn} ${scoreH}-${scoreA} ${awayEn}${minute ? ` (${minute}')` : ''}`);
+      } else {
+        const txt = await liveRes.text();
+        console.warn(`API-Football ${liveRes.status}: ${txt}`);
       }
-    } else {
-      const txt = await liveRes.text();
-      console.warn(`Live API ${liveRes.status}: ${txt}`);
+    } catch (err) {
+      console.warn('API-Football error:', err.message);
     }
-  } catch (liveErr) {
-    console.warn('Live fetch error:', liveErr.message);
+
+  } else {
+    // ── Fallback: football-data.org (score only, no lineups) ──────────────
+    console.log('Fetching IN_PLAY World Cup 2026 matches (football-data.org)...');
+    try {
+      const liveRes = await fetch(
+        'https://api.football-data.org/v4/competitions/WC/matches?status=IN_PLAY&season=2026',
+        { headers: { 'X-Auth-Token': apiKey } }
+      );
+      if (liveRes.ok) {
+        const liveData = await liveRes.json();
+        const liveMatches = liveData.matches || [];
+        console.log(`API returned ${liveMatches.length} live match(es)`);
+        for (const match of liveMatches) {
+          const homeEn = match.homeTeam?.name || '';
+          const awayEn = match.awayTeam?.name || '';
+          const matchId = findMatchId(homeEn, awayEn);
+          if (!matchId) { console.log(`⚠️  No ID found: ${homeEn} vs ${awayEn}`); continue; }
+          const s = match.score || {};
+          const scoreH = s.fullTime?.home ?? s.halfTime?.home ?? 0;
+          const scoreA = s.fullTime?.away ?? s.halfTime?.away ?? 0;
+          const minute = match.minute ?? null;
+          liveMatchIds.add(matchId);
+          const payload = { scoreH, scoreA, homeEn, awayEn, updatedAt: Date.now() };
+          if (minute !== null) payload.minute = minute;
+          await db.ref(`liveScores/${matchId}`).set(payload);
+          console.log(`⚽ LIVE ${matchId}: ${homeEn} ${scoreH}-${scoreA} ${awayEn}${minute ? ` (${minute}')` : ''}`);
+        }
+      }
+    } catch (e) { console.warn('Live fetch error:', e.message); }
   }
 
   // Clear matches that are no longer IN_PLAY
