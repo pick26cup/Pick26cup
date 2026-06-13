@@ -262,6 +262,48 @@ async function run() {
         const payload = { scoreH, scoreA, homeEn, awayEn, updatedAt: Date.now() };
         if (minute !== null) payload.minute = minute;
 
+        // Fetch match detail: lineups + events
+        try {
+          const detailRes = await fetch(
+            `https://api.football-data.org/v4/matches/${match.id}`,
+            { headers: { 'X-Auth-Token': apiKey } }
+          );
+          if (detailRes.ok) {
+            const d = await detailRes.json();
+            const homeId = match.homeTeam?.id;
+
+            // Lineups
+            const lineups = d.lineups || [];
+            const homeLineup = lineups.find(l => l.team?.id === homeId) || lineups[0] || {};
+            const awayLineup = lineups.find(l => l.team?.id !== homeId) || lineups[1] || {};
+
+            payload.homeFormation = homeLineup.formation || '';
+            payload.awayFormation = awayLineup.formation || '';
+            payload.homeXI = (homeLineup.startXI || []).map(p => ({ n: p.player?.name || '', num: p.player?.shirtNumber || '' }));
+            payload.homeBench = (homeLineup.substitutes || []).map(p => ({ n: p.player?.name || '', num: p.player?.shirtNumber || '' }));
+            payload.awayXI = (awayLineup.startXI || []).map(p => ({ n: p.player?.name || '', num: p.player?.shirtNumber || '' }));
+            payload.awayBench = (awayLineup.substitutes || []).map(p => ({ n: p.player?.name || '', num: p.player?.shirtNumber || '' }));
+
+            // Events: goals, cards, substitutions
+            const events = [];
+            (d.goals || []).forEach(g => {
+              events.push({ min: g.minute, type: 'goal', side: g.team?.id === homeId ? 'h' : 'a', player: g.scorer?.name || '' });
+            });
+            (d.bookings || []).forEach(b => {
+              events.push({ min: b.minute, type: b.card === 'RED_CARD' ? 'red' : 'yellow', side: b.team?.id === homeId ? 'h' : 'a', player: b.player?.name || '' });
+            });
+            (d.substitutions || []).forEach(s => {
+              events.push({ min: s.minute, type: 'sub', side: s.team?.id === homeId ? 'h' : 'a', out: s.playerOut?.name || '', in: s.playerIn?.name || '' });
+            });
+            events.sort((a, b) => (a.min || 0) - (b.min || 0));
+            payload.events = events;
+
+            console.log(`  📋 ${homeLineup.formation || '?'} vs ${awayLineup.formation || '?'} | ${events.length} event(s)`);
+          }
+        } catch (detailErr) {
+          console.warn(`  Detail fetch error: ${detailErr.message}`);
+        }
+
         await db.ref(`liveScores/${matchId}`).set(payload);
         console.log(`⚽ LIVE ${matchId}: ${homeEn} ${scoreH}-${scoreA} ${awayEn}${minute ? ` (${minute}')` : ''}`);
       }

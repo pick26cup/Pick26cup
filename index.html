@@ -936,6 +936,52 @@ nav button:hover,nav button.active{
 .goal-txt{font-family:'Bebas Neue';font-size:58px;color:#000;letter-spacing:5px;line-height:1;text-shadow:0 2px 0 rgba(0,0,0,.2)}
 .goal-team{font-size:20px;font-weight:800;color:#000;margin-top:6px;letter-spacing:1px}
 .goal-flag{font-size:36px;margin-bottom:4px}
+/* ── LIVE DETAIL MODAL ───────────────────────────────── */
+#liveDetailModal{
+  position:fixed;inset:0;z-index:9998;
+  background:rgba(0,0,0,.82);
+  display:none;align-items:center;justify-content:center;
+  padding:16px;
+}
+.ldm-box{
+  background:#141414;border:1px solid var(--gold3);border-radius:16px;
+  max-width:480px;width:100%;max-height:86vh;overflow-y:auto;
+  box-shadow:0 8px 40px rgba(0,0,0,.9);
+}
+.ldm-header{
+  position:sticky;top:0;background:#141414;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:14px 18px;display:flex;align-items:center;justify-content:space-between;z-index:1;
+}
+.ldm-title{font-family:'Bebas Neue';font-size:22px;color:var(--gold);letter-spacing:2px}
+.ldm-score{font-family:'Bebas Neue';font-size:28px;color:#fff;letter-spacing:3px;text-align:center;margin:0 8px}
+.ldm-close{background:transparent;border:none;color:var(--text2);font-size:22px;cursor:pointer;line-height:1;padding:0 4px}
+.ldm-close:hover{color:var(--text)}
+.ldm-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.08);padding:0 18px}
+.ldm-tab{
+  background:transparent;border:none;color:var(--text2);
+  font-family:'DM Sans';font-size:13px;font-weight:600;
+  padding:10px 16px;cursor:pointer;border-bottom:2px solid transparent;
+  transition:.2s;letter-spacing:.5px;
+}
+.ldm-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.ldm-body{padding:16px 18px}
+/* Timeline */
+.evt-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.evt-min{font-weight:800;color:var(--text2);width:32px;text-align:right;flex-shrink:0;font-size:12px}
+.evt-icon{font-size:16px;flex-shrink:0;width:22px;text-align:center}
+.evt-player{flex:1;color:var(--text)}
+.evt-side-h{color:var(--green)}
+.evt-side-a{color:var(--red)}
+/* Lineups */
+.lineup-team{margin-bottom:18px}
+.lineup-head{font-family:'Bebas Neue';font-size:16px;color:var(--gold);letter-spacing:2px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.lineup-formation{font-size:11px;background:rgba(212,175,55,.15);border:1px solid var(--gold3);border-radius:10px;padding:1px 8px;color:var(--gold2);letter-spacing:1px}
+.lineup-xi{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.lineup-player{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);padding:3px 0}
+.lineup-num{width:24px;text-align:center;font-weight:800;color:var(--text2);font-size:12px;flex-shrink:0}
+.lineup-bench-lbl{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:1px;margin:8px 0 4px;text-transform:uppercase}
+.lineup-bench-player{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(240,232,208,.6);padding:2px 0}
 </style>
 </head>
 <body>
@@ -1058,6 +1104,23 @@ nav button:hover,nav button.active{
 
   <!-- GOAL CELEBRATION OVERLAY -->
   <div id="goalCelebration"></div>
+
+  <!-- LIVE MATCH DETAIL MODAL -->
+  <div id="liveDetailModal" onclick="if(event.target===this)closeLiveDetail()">
+    <div class="ldm-box">
+      <div class="ldm-header">
+        <span class="ldm-title" id="ldmHomeTeam"></span>
+        <span class="ldm-score" id="ldmScore"></span>
+        <span class="ldm-title" id="ldmAwayTeam"></span>
+        <button class="ldm-close" onclick="closeLiveDetail()">✕</button>
+      </div>
+      <div class="ldm-tabs">
+        <button class="ldm-tab active" onclick="switchLdmTab('timeline',this)" data-en="Timeline" data-es="Cronología">Timeline</button>
+        <button class="ldm-tab" onclick="switchLdmTab('lineups',this)" data-en="Lineups" data-es="Alineaciones">Lineups</button>
+      </div>
+      <div class="ldm-body" id="ldmBody"></div>
+    </div>
+  </div>
 
   <!-- LIVE BAR — visible only when matches are IN_PLAY -->
   <div id="liveBar" style="display:none">
@@ -2015,7 +2078,8 @@ function initLiveBar(){
       const home = displayTeamName(orig.home || m.homeEn || id);
       const away = displayTeamName(orig.away || m.awayEn || id);
       const min = m.minute ? '<span class="live-pill-min">'+m.minute+"'</span>" : '';
-      return '<div class="live-pill"><span>'+home+'</span>'
+      return '<div class="live-pill" style="cursor:pointer" onclick="openLiveDetail(\''+id+'\')">'
+        +'<span>'+home+'</span>'
         +'<span class="live-pill-score">'+(m.scoreH??0)+' – '+(m.scoreA??0)+'</span>'
         +'<span>'+away+'</span>'+min+'</div>';
     }).join('');
@@ -2043,6 +2107,104 @@ function initLiveBar(){
       _liveBarInitialized = true;
     }
   });
+}
+
+// ── LIVE DETAIL MODAL ─────────────────────────────────────────
+let _ldmActiveTab = 'timeline';
+let _ldmCurrentData = null;
+
+function openLiveDetail(matchId){
+  if(!db) return;
+  db.ref('liveScores/'+matchId).once('value').then(function(snap){
+    const m = snap.val();
+    if(!m) return;
+    _ldmCurrentData = m;
+    _ldmCurrentData._matchId = matchId;
+    const orig = MATCH_ORIG[matchId] || {};
+    document.getElementById('ldmHomeTeam').textContent = displayTeamName(orig.home || m.homeEn || '');
+    document.getElementById('ldmAwayTeam').textContent = displayTeamName(orig.away || m.awayEn || '');
+    document.getElementById('ldmScore').textContent = (m.scoreH??0)+' – '+(m.scoreA??0);
+    _ldmActiveTab = 'timeline';
+    document.querySelectorAll('.ldm-tab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
+    renderLdmTab('timeline', m, orig);
+    document.getElementById('liveDetailModal').style.display = 'flex';
+  });
+}
+
+function closeLiveDetail(){
+  document.getElementById('liveDetailModal').style.display = 'none';
+  _ldmCurrentData = null;
+}
+
+function switchLdmTab(tab, btn){
+  _ldmActiveTab = tab;
+  document.querySelectorAll('.ldm-tab').forEach(function(t){ t.classList.remove('active'); });
+  btn.classList.add('active');
+  if(_ldmCurrentData){
+    const orig = MATCH_ORIG[_ldmCurrentData._matchId] || {};
+    renderLdmTab(tab, _ldmCurrentData, orig);
+  }
+}
+
+function renderLdmTab(tab, m, orig){
+  const body = document.getElementById('ldmBody');
+  if(tab === 'timeline') body.innerHTML = renderLdmTimeline(m, orig);
+  else body.innerHTML = renderLdmLineups(m, orig);
+}
+
+function renderLdmTimeline(m, orig){
+  const events = m.events || [];
+  if(!events.length) return '<p style="color:var(--text2);text-align:center;padding:24px;font-size:13px">'+
+    (currentLang==='es'?'Sin eventos registrados aún.':'No events recorded yet.')+'</p>';
+  const homeName = displayTeamName(orig.home || m.homeEn || '');
+  const awayName = displayTeamName(orig.away || m.awayEn || '');
+  return events.map(function(e){
+    const teamName = e.side==='h' ? homeName : awayName;
+    const sideClass = e.side==='h' ? 'evt-side-h' : 'evt-side-a';
+    let icon='', text='';
+    if(e.type==='goal'){
+      icon='⚽'; text='<span class="'+sideClass+'"><strong>'+escapeHtml(e.player||'')+'</strong> ('+teamName+')</span>';
+    } else if(e.type==='yellow'){
+      icon='🟨'; text='<span class="'+sideClass+'">'+escapeHtml(e.player||'')+' ('+teamName+')</span>';
+    } else if(e.type==='red'){
+      icon='🟥'; text='<span class="'+sideClass+'">'+escapeHtml(e.player||'')+' ('+teamName+')</span>';
+    } else if(e.type==='sub'){
+      icon='🔄'; text='<span style="color:var(--green)">▲ '+escapeHtml(e.in||'')+'</span>'
+        +' <span style="color:var(--text2);font-size:11px">/ </span>'
+        +'<span style="color:var(--red)">▼ '+escapeHtml(e.out||'')+'</span>'
+        +' <span style="color:var(--text2);font-size:11px">('+teamName+')</span>';
+    }
+    return '<div class="evt-row"><span class="evt-min">'+(e.min||'–')+"'</span>"
+      +'<span class="evt-icon">'+icon+'</span>'
+      +'<span class="evt-player">'+text+'</span></div>';
+  }).join('');
+}
+
+function renderLdmLineups(m, orig){
+  const homeName = displayTeamName(orig.home || m.homeEn || '');
+  const awayName = displayTeamName(orig.away || m.awayEn || '');
+  function teamBlock(name, formation, xi, bench){
+    if(!xi || !xi.length) return '<p style="color:var(--text2);font-size:13px;padding:8px 0">'+
+      (currentLang==='es'?'Alineación no disponible.':'Lineup not available.')+'</p>';
+    const xiRows = xi.map(function(p){
+      return '<div class="lineup-player"><span class="lineup-num">'+escapeHtml(String(p.num||''))+'</span>'
+        +'<span>'+escapeHtml(p.n||'')+'</span></div>';
+    }).join('');
+    let benchRows = '';
+    if(bench && bench.length){
+      benchRows = '<div class="lineup-bench-lbl">'+(currentLang==='es'?'Suplentes':'Substitutes')+'</div>'
+        + bench.map(function(p){
+          return '<div class="lineup-bench-player"><span class="lineup-num">'+escapeHtml(String(p.num||''))+'</span>'
+            +'<span>'+escapeHtml(p.n||'')+'</span></div>';
+        }).join('');
+    }
+    return '<div class="lineup-team"><div class="lineup-head">'+escapeHtml(name)
+      +(formation?'<span class="lineup-formation">'+escapeHtml(formation)+'</span>':'')
+      +'</div><div class="lineup-xi">'+xiRows+'</div>'+benchRows+'</div>';
+  }
+  return teamBlock(homeName, m.homeFormation, m.homeXI, m.homeBench)
+    +'<hr style="border:none;border-top:1px solid rgba(255,255,255,.08);margin:12px 0"/>'
+    + teamBlock(awayName, m.awayFormation, m.awayXI, m.awayBench);
 }
 
 function startPlayerWatcher(){
