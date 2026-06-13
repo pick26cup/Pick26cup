@@ -843,6 +843,15 @@ nav button:hover,nav button.active{
 .gt-pts{font-weight:800;color:var(--gold)}
 .gt-adv td{background:rgba(46,204,113,.07)}
 .gt-adv .gt-name{color:#2ECC71}
+.form-circles{display:flex;gap:3px;justify-content:center;align-items:center}
+.fc-win,.fc-loss,.fc-draw,.fc-empty{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:17px;height:17px;border-radius:50%;font-size:9px;font-weight:800;border:1.5px solid;flex-shrink:0;
+}
+.fc-win{background:rgba(46,204,113,.2);border-color:#2ECC71;color:#2ECC71}
+.fc-loss{background:rgba(231,76,60,.2);border-color:#E74C3C;color:#E74C3C}
+.fc-draw{background:rgba(241,196,15,.15);border-color:#F1C40F;color:#F1C40F}
+.fc-empty{background:transparent;border-color:rgba(255,255,255,.15);color:transparent}
 @media(max-width:480px){.groups-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -4822,15 +4831,28 @@ function renderGroups(){
 
     const html = Object.entries(GROUPS).map(([letter, group])=>{
       const st = {};
-      group.teams.forEach(t=>{ st[t]={played:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}; });
+      group.teams.forEach(t=>{ st[t]={played:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,form:[]}; });
+
+      // Build per-team match list ordered by round
+      const teamMatchList = {};
+      group.teams.forEach(t=>{ teamMatchList[t]=[]; });
+      group.matches.forEach(mid=>{
+        let md=null;
+        for(const r of [1,2,3]){ const m=(MATCHES[r]||[]).find(x=>x.id===mid); if(m){md=m;break;} }
+        if(!md) return;
+        const round=parseInt(mid.split('_')[0]);
+        if(teamMatchList[md.home]) teamMatchList[md.home].push({mid,round,isHome:true});
+        if(teamMatchList[md.away]) teamMatchList[md.away].push({mid,round,isHome:false});
+      });
+      Object.values(teamMatchList).forEach(arr=>arr.sort((a,b)=>a.round-b.round));
 
       group.matches.forEach(mid=>{
-        const res = results[mid];
+        const res=results[mid];
         if(!res) return;
-        let md = null;
+        let md=null;
         for(const r of [1,2,3]){ const m=(MATCHES[r]||[]).find(x=>x.id===mid); if(m){md=m;break;} }
-        if(!md || !st[md.home] || !st[md.away]) return;
-        const sh=res.scoreH, sa=res.scoreA;
+        if(!md||!st[md.home]||!st[md.away]) return;
+        const sh=res.scoreH,sa=res.scoreA;
         st[md.home].played++; st[md.away].played++;
         st[md.home].gf+=sh; st[md.home].ga+=sa;
         st[md.away].gf+=sa; st[md.away].ga+=sh;
@@ -4841,7 +4863,7 @@ function renderGroups(){
 
       const sorted = Object.entries(st).sort(([,a],[,b])=>{
         if(b.pts!==a.pts) return b.pts-a.pts;
-        const gdA=a.gf-a.ga, gdB=b.gf-b.ga;
+        const gdA=a.gf-a.ga,gdB=b.gf-b.ga;
         if(gdB!==gdA) return gdB-gdA;
         return b.gf-a.gf;
       });
@@ -4850,11 +4872,24 @@ function renderGroups(){
         const gd=t.gf-t.ga;
         const gdStr=gd>0?'+'+gd:String(gd);
         const advClass=i<2?'gt-adv':'';
+
+        // Form circles: 3 matches in round order
+        const formHtml = (teamMatchList[name]||[]).map(({mid,isHome})=>{
+          const res=results[mid];
+          if(!res) return '<span class="fc-empty"></span>';
+          const ts=isHome?res.scoreH:res.scoreA, os=isHome?res.scoreA:res.scoreH;
+          if(ts>os) return '<span class="fc-win">✓</span>';
+          if(ts<os) return '<span class="fc-loss">✗</span>';
+          return '<span class="fc-draw">−</span>';
+        }).join('');
+
         return `<tr class="${advClass}">
           <td><div class="gt-team"><span class="gt-flag">${getTeamVisual(name)}</span><span class="gt-name">${escapeHtml(displayTeamName(name))}</span></div></td>
           <td>${t.played}</td><td class="gt-pts">${t.pts}</td>
           <td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>
-          <td>${t.gf}</td><td>${t.ga}</td><td style="color:${gd>0?'var(--green)':gd<0?'var(--red)':'var(--text2)'}">${gdStr}</td>
+          <td>${t.gf}</td><td>${t.ga}</td>
+          <td style="color:${gd>0?'var(--green)':gd<0?'var(--red)':'var(--text2)'}">${gdStr}</td>
+          <td><div class="form-circles">${formHtml}</div></td>
         </tr>`;
       }).join('');
 
@@ -4862,7 +4897,7 @@ function renderGroups(){
         <div class="group-header">${es?'GRUPO ':'GROUP '}${letter}</div>
         <table class="group-table">
           <thead><tr>
-            <th style="width:42%">${es?'Equipo':'Team'}</th>
+            <th style="width:38%">${es?'Equipo':'Team'}</th>
             <th title="${es?'Partidos Jugados':'Matches Played'}">${es?'PJ':'MP'}</th>
             <th>PTS</th>
             <th title="${es?'Ganados':'Won'}">${es?'G':'W'}</th>
@@ -4871,6 +4906,7 @@ function renderGroups(){
             <th title="${es?'Goles a Favor':'Goals For'}">GF</th>
             <th title="${es?'Goles en Contra':'Goals Against'}">${es?'GC':'GA'}</th>
             <th title="${es?'Diferencia de Goles':'Goal Difference'}">${es?'DG':'GD'}</th>
+            <th title="${es?'Últimos 3':'Last 3'}">${es?'Últ':'Form'}</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
