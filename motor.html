@@ -130,7 +130,7 @@
     <div class="kicker">FIFA World Cup 2026 · Motor Predictivo</div>
     <h1>Motor <b>Elo → Poisson</b> · Jornadas</h1>
     <div class="sub">Calendario real (72 partidos de grupos) con predicción por jornada · eliminatorias editables conforme avanza el Mundial.</div>
-    <div class="sub" style="margin-top:6px;color:#7d8a9a"><span class="flag" style="margin:0">Estado de datos</span> Elo: actualizado post-J1 (9 partidos al 14-jun). J1 pendientes: CI-EC, NL-JP, SE-TN. FIFA ranking 11-jun: cargado para 18 equipos; los demás en blanco = modelo usa solo Elo.</div>
+    <div class="sub" style="margin-top:6px;color:#7d8a9a"><span class="flag" style="margin:0">Estado de datos</span> Elo: actualizado post-J1 (10 partidos al 14-jun). J1 pendientes: CI-EC, SE-TN. FIFA ranking 11-jun: cargado para 18 equipos; los demás en blanco = modelo usa solo Elo.</div>
   </header>
 
   <div class="tabs">
@@ -160,8 +160,8 @@
           <div class="vs">— VS —</div>
           <label class="chk"><input type="checkbox" id="ha"> El local juega en su sede (ventaja +<span id="haVal">100</span> Elo)</label>
           <label class="chk"><input type="checkbox" id="caut"> Partido de fase de grupos (aplica factor cautela)</label>
-          <div style="margin-top:12px"><button class="btn amber" onclick="loadOpener()">⚽ Inaugural</button>
-            <button class="btn" onclick="randomMatch()">🎲 Aleatorio</button></div>
+          <div style="margin-top:12px"><button class="btn amber" onclick="loadOpener()">&#9917; Inaugural</button>
+            <button class="btn" onclick="randomMatch()">&#127922; Aleatorio</button></div>
         </div>
         <div class="card" style="margin-top:18px">
           <h2>Calibración</h2>
@@ -210,13 +210,13 @@
       <h2>Base de datos · 48 equipos <span class="flag">editable</span></h2>
       <div class="toolbar">
         <input class="search" id="search" placeholder="Buscar equipo…">
-        <button class="btn" onclick="exportData()">↓ Exportar</button>
-        <label class="btn" style="cursor:pointer">↑ Importar<input type="file" id="imp" accept=".json" hidden></label>
+        <button class="btn" onclick="exportData()">&#8595; Exportar</button>
+        <label class="btn" style="cursor:pointer">&#8593; Importar<input type="file" id="imp" accept=".json" hidden></label>
       </div>
       <div class="tablewrap"><table class="rt">
         <thead><tr><th>G</th><th>Equipo</th><th>Elo</th><th>FIFA</th></tr></thead>
         <tbody id="rtbody"></tbody></table></div>
-      <div class="note" style="margin-top:8px">Edita cualquier valor y todo recalcula. <b style="color:var(--blue)">FIFA</b> en azul: rellénalo con el ranking oficial del 11 jun; si está vacío, el modelo usa solo Elo.</div>
+      <div class="note" style="margin-top:8px">Edita cualquier valor y todo recalcula. <b style="color:var(--blue)">FIFA</b> en azul: réllalo con el ranking oficial del 11 jun; si está vacío, el modelo usa solo Elo.</div>
     </div>
   </div>
 
@@ -234,26 +234,44 @@
   <footer>
     <div class="note">
       <b>Fuente:</b> Elo de eloratings.net (snapshot jun-2026). Calendario de grupos: 72 partidos confirmados. Ranking FIFA: actualizar el 11 jun.<br>
-      <b>Método:</b> ΔElo (con ventaja de local para anfitriones) → goles esperados (sup=ΔElo/C; total=base+α·|sup|) → Poisson de ambos equipos → corrección Dixon-Coles en marcadores bajos. En fase de grupos se aplica un factor de cautela (×0.90) que atenúa al favorito, porque los grupos se juegan cerrados.<br>
+      <b>Método:</b> ΔElo (con ventaja de local para anfitriónes) → goles esperados (sup=ΔElo/C; total=base+α·|sup|) → Poisson de ambos equipos → corrección Dixon-Coles en marcadores bajos. En fase de grupos se aplica un factor de cautela (×0.90) que atenúa al favorito, porque los grupos se juegan cerrados.<br>
       <b>Límites:</b> el Elo no ve lesiones, alineaciones ni forma. Empata al mercado en favoritos, pero falla en matices y debutantes. Son rangos, no certezas. No vence a las casas de apuestas.
     </div>
   </footer>
 </div>
 
 <script>
+/* capturar cualquier error JS y mostrarlo en pantalla para diagnóstico */
+window.onerror=function(msg,_,line,col){
+  var el=document.createElement('div');
+  el.style='position:fixed;top:0;left:0;right:0;padding:14px;background:#c00;color:#fff;z-index:9999;font-size:13px;font-family:monospace';
+  el.textContent='ERROR JS (línea '+line+'): '+msg;
+  document.body.prepend(el);
+};
+/* referencias explícitas — evita conflictos con window.home, window.find, etc. */
+const _E=function(id){return document.getElementById(id);};
+const home=_E('home'),away=_E('away'),ha=_E('ha'),caut=_E('caut'),haVal=_E('haVal'),
+  weight=_E('weight'),wElo=_E('wElo'),wFifa=_E('wFifa'),
+  cHA=_E('cHA'),cC=_E('cC'),cBase=_E('cBase'),cAlpha=_E('cAlpha'),cRho=_E('cRho'),cCau=_E('cCau'),
+  jrow=_E('jrow'),jhead=_E('jhead'),jnote=_E('jnote'),jcontent=_E('jcontent'),
+  mt=_E('mt'),bar=_E('bar'),xgh=_E('xgh'),xga=_E('xga'),
+  over=_E('over'),under=_E('under'),btts=_E('btts'),dr=_E('dr'),scores=_E('scores'),heatmap=_E('heatmap'),
+  brierBox=_E('brierBox'),brierNote=_E('brierNote'),resJrow=_E('resJrow'),resContent=_E('resContent'),
+  rtbody=_E('rtbody'),search=_E('search'),imp=_E('imp');
+
 const TEAMS=[
- // Elo actualizados post-J1 (8 partidos jugados al 14-jun-2026) · fórmula K=60, G=f(GD), HA=+100
+ // Elo actualizados post-J1 (10 partidos jugados al 14-jun-2026) · fórmula K=60, G=f(GD), HA=+100
  {g:"A",n:"México",c:"MX",elo:1881,fifa:1681,host:true},{g:"A",n:"Sudáfrica",c:"ZA",elo:1522,fifa:null,host:false},
  {g:"A",n:"Corea del Sur",c:"KR",elo:1786,fifa:null,host:false},{g:"A",n:"Chequia",c:"CZ",elo:1712,fifa:null,host:false},
  {g:"B",n:"Canadá",c:"CA",elo:1767,fifa:null,host:true},{g:"B",n:"Bosnia y H.",c:"BA",elo:1616,fifa:null,host:false},
  {g:"B",n:"Catar",c:"QA",elo:1447,fifa:null,host:false},{g:"B",n:"Suiza",c:"CH",elo:1865,fifa:1649,host:false},
  {g:"C",n:"Brasil",c:"BR",elo:1978,fifa:1761,host:false},{g:"C",n:"Marruecos",c:"MA",elo:1837,fifa:1756,host:false},
- {g:"C",n:"Haití",c:"HT",elo:1536,fifa:null,host:false},{g:"C",n:"Escocia",c:"SQ",elo:1794,fifa:null,host:false},
+ {g:"C",n:"Haítí",c:"HT",elo:1536,fifa:null,host:false},{g:"C",n:"Escocia",c:"SQ",elo:1794,fifa:null,host:false},
  {g:"D",n:"Estados Unidos",c:"US",elo:1780,fifa:1673,host:true},{g:"D",n:"Paraguay",c:"PY",elo:1779,fifa:null,host:false},
  {g:"D",n:"Australia",c:"AU",elo:1839,fifa:null,host:false},{g:"D",n:"Turquía",c:"TR",elo:1849,fifa:null,host:false},
  {g:"E",n:"Alemania",c:"DE",elo:1938,fifa:1730,host:false},{g:"E",n:"Curaçao",c:"CW",elo:1428,fifa:null,host:false},
  {g:"E",n:"Costa de Marfil",c:"CI",elo:1695,fifa:null,host:false},{g:"E",n:"Ecuador",c:"EC",elo:1935,fifa:null,host:false},
- {g:"F",n:"Países Bajos",c:"NL",elo:1944,fifa:1758,host:false},{g:"F",n:"Japón",c:"JP",elo:1906,fifa:1660,host:false},
+ {g:"F",n:"Países Bajos",c:"NL",elo:1971,fifa:1758,host:false},{g:"F",n:"Japón",c:"JP",elo:1879,fifa:1660,host:false},
  {g:"F",n:"Suecia",c:"SE",elo:1712,fifa:null,host:false},{g:"F",n:"Túnez",c:"TN",elo:1628,fifa:null,host:false},
  {g:"G",n:"Bélgica",c:"BE",elo:1893,fifa:1735,host:false},{g:"G",n:"Egipto",c:"EG",elo:1696,fifa:null,host:false},
  {g:"G",n:"Irán",c:"IR",elo:1772,fifa:null,host:false},{g:"G",n:"Nueva Zelanda",c:"NZ",elo:1562,fifa:null,host:false},
@@ -402,7 +420,7 @@ function render(){
   dr.textContent=(R.dr>=0?"+":"")+Math.round(R.dr);
   scores.innerHTML=R.scores.slice(0,6).map(([i,j,p])=>
     `<div class="scoreline"><div class="sc">${i}-${j}</div><div class="track"><div class="fill" style="width:${Math.min(p/R.scores[0][2]*100,100)}%"></div></div><div class="pct">${pct0(p)}</div></div>`).join("");
-  const hc=p=>{const t=Math.min(p/0.18,1);return `rgb(${Math.round(20+t*235)},${Math.round(25+t*151)},${Math.round(35-t*35)})`;`};
+  const hc=p=>{const t=Math.min(p/0.18,1);return `rgb(${Math.round(20+t*235)},${Math.round(25+t*151)},${Math.round(35-t*35)})`;}
   let t=`<table class="hm"><tr><th></th><th colspan="6" style="color:var(--loss)">${a.c} →</th></tr><tr><th></th>`;
   for(let j=0;j<=5;j++)t+=`<th>${j}</th>`;t+='</tr>';
   for(let i=0;i<=5;i++){t+=`<tr><th style="color:var(--win)">${i}</th>`;
@@ -477,10 +495,11 @@ resultsState[1][1]={gh:"2",ga:"1"}; // KR-CZ  · Corea 2-1 Chequia
 resultsState[1][2]={gh:"1",ga:"1"}; // CA-BA  · Canadá 1-1 Bosnia
 resultsState[1][3]={gh:"1",ga:"1"}; // QA-CH  · Catar 1-1 Suiza
 resultsState[1][4]={gh:"1",ga:"1"}; // BR-MA  · Brasil 1-1 Marruecos
-resultsState[1][5]={gh:"0",ga:"1"}; // HT-SQ  · Haití 0-1 Escocia (McGinn 28')
+resultsState[1][5]={gh:"0",ga:"1"}; // HT-SQ  · Haítí 0-1 Escocia (McGinn 28')
 resultsState[1][6]={gh:"4",ga:"1"}; // US-PY  · EE.UU. 4-1 Paraguay
 resultsState[1][7]={gh:"2",ga:"0"}; // AU-TR  · Australia 2-0 Turquía (Irankunda 27', Metcalfe 75')
 resultsState[1][8]={gh:"4",ga:"0"}; // DE-CW  · Alemania 4-0 Curaçao (Woltemade, Undav, Wirtz, Musiala)
+resultsState[1][10]={gh:"1",ga:"0"}; // NL-JP  · Países Bajos 1-0 Japón (Van Dijk 50')
 let curRJ=1;
 const outcome=(gh,ga)=> gh>ga?'H':(gh<ga?'A':'D');
 const brierFor=(pH,pD,pA,oc)=>{const oH=oc==='H'?1:0,oD=oc==='D'?1:0,oA=oc==='A'?1:0;return (pH-oH)**2+(pD-oD)**2+(pA-oA)**2;};
@@ -502,7 +521,7 @@ function renderTrackerSummary(){
   const box=(v,l,c)=>`<div class="xgbox"><div class="v" style="${c?`color:${c}`:'''}">${v}</div><div class="l">${l}</div></div>`;
   const better=s.n&&s.avgB<0.667;
   brierBox.innerHTML=box(s.n,"Partidos")+box(s.n?s.avgB.toFixed(3):"—","Brier modelo",better?'var(--win)':(s.n?'var(--loss)':''))+box("0.667","Brier moneda")+box(s.n?Math.round(s.favHit/s.n*100)+"%":"—","Acierto 1X2");
-  brierNote.innerHTML=s.n?`Marcador exacto: <b>${s.scHit}/${s.n}</b>. ${better?'<span style="color:var(--win)">El modelo va por debajo de la moneda → aporta valor.</span>':'<span style="color:var(--loss)">En esta muestra va por encima de la moneda (recuerda: hacen falta 30+ partidos para concluir).</span>'}`:"Carga los marcadores reales abajo; aquí verás la calibración en vivo.";
+  brierNote.innerHTML=s.n?`Marcador exacto: <b>${s.scHit}/${s.n}</b>. ${better?'<span style="color:var(--win)">El modelo va por debajo de la moneda → aporta valor.</span>':'<span style="color:var(--loss)">En esta muestra va por encima de la moneda (recuerda: hacen falta 30+ partidos para concluir).</span>'}`:'Carga los marcadores reales abajo; aquí verás la calibración en vivo.';
 }
 function renderResJrow(){resJrow.innerHTML=[1,2,3].map(n=>`<div class="jbtn ${n==curRJ?'on':''}" onclick="setResJ(${n})"><b>J${n}</b><span>Grupos</span></div>`).join("");}
 function setResJ(n){curRJ=n;renderTracker();}
@@ -515,7 +534,7 @@ function renderTracker(){
     const R=predict(h,a,hostSide(h,a),true);
     let res="";
     if(rs.gh!==""&&rs.ga!==""){const oc=outcome(+rs.gh,+rs.ga),b=brierFor(R.pH,R.pD,R.pA,oc).toFixed(2),f=favOf(R);
-      res=` · <span style="color:${f===oc?'var(--win)':'var(--loss)''}">${f===oc?'✓':'✗'} 1X2</span> · Brier ${b}`;}
+      res=` · <span style="color:${f===oc?'var(--win)':'var(--loss)'">${f===oc?'✓':'✗'} 1X2</span> · Brier ${b}`;}
     html+=`<div class="koslot"><div class="korow" style="grid-template-columns:1fr auto auto auto 1fr;gap:6px;align-items:center">
       <span style="text-align:right;font-size:12.5px">${h.n}${h.host?' ◆':''}</span>
       <input type="number" min="0" style="width:46px;text-align:center" value="${rs.gh}" onchange="resSet(${j},${i},'gh',this.value)">
