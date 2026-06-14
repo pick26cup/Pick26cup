@@ -183,20 +183,23 @@ async function run() {
 
   console.log('Fetching finished World Cup 2026 matches...');
 
-  const res = await fetch(
-    'https://api.football-data.org/v4/competitions/WC/matches?status=FINISHED&season=2026',
-    { headers: { 'X-Auth-Token': apiKey } }
-  );
-
-  if (!res.ok) {
-    const txt = await res.text();
-    console.error(`API ${res.status}: ${txt}`);
-    process.exit(1);
+  let matches = [];
+  try {
+    const res = await fetch(
+      'https://api.football-data.org/v4/competitions/WC/matches?status=FINISHED&season=2026',
+      { headers: { 'X-Auth-Token': apiKey }, timeout: 15000 }
+    );
+    if (!res.ok) {
+      const txt = await res.text();
+      console.warn(`API ${res.status}: ${txt} — skipping finished matches fetch`);
+    } else {
+      const data = await res.json();
+      matches = data.matches || [];
+      console.log(`API returned ${matches.length} finished match(es)`);
+    }
+  } catch (fetchErr) {
+    console.warn(`Network error fetching finished matches: ${fetchErr.message} — skipping`);
   }
-
-  const data = await res.json();
-  const matches = data.matches || [];
-  console.log(`API returned ${matches.length} finished match(es)`);
 
   let updated = 0;
   const notFound = [];
