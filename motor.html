@@ -51,6 +51,17 @@
   .mteams .tn{font-weight:600;color:#fff}
   .mteams .host{color:var(--amber);font-size:9px;margin-left:3px}
   .mteams .tn.pick{border:1.5px solid var(--amber);border-radius:6px;padding:2px 7px;color:var(--amber);background:rgba(255,176,0,0.09);box-shadow:0 0 9px rgba(255,176,0,0.28)}
+  #jorPanel .jp-card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--amber);border-radius:14px;padding:16px;position:relative}
+  #jorPanel .jp-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1}
+  #jorPanel .jp-close:hover{color:#fff}
+  #jorPanel .jp-title{font-family:"Bricolage Grotesque";font-size:18px;font-weight:800;color:#fff;text-align:center;margin:0 0 12px}
+  #jorPanel .jp-title .h{color:var(--win)} #jorPanel .jp-title .a{color:var(--loss)}
+  #jorPanel .jp-scores{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}
+  #jorPanel .jp-sc{flex:1;min-width:70px;background:#070b11;border:1px solid var(--line);border-radius:8px;padding:8px;text-align:center}
+  #jorPanel .jp-sc .v{font-family:"Bricolage Grotesque";font-size:20px;font-weight:800;color:var(--amber)}
+  #jorPanel .jp-sc .l{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  #jorPanel .jp-more{display:block;text-align:center;margin-top:12px;font-size:11.5px;color:var(--amber);cursor:pointer;background:none;border:1px solid var(--line);border-radius:8px;padding:6px;width:100%}
+  #jorPanel .jp-more:hover{border-color:var(--amber)}
   .minibar{display:flex;height:8px;border-radius:5px;overflow:hidden;border:1px solid var(--line)}
   .minibar i{display:block;height:100%}
   .minibar .h{background:var(--win)}.minibar .d{background:var(--draw)}.minibar .a{background:var(--loss)}
@@ -134,6 +145,7 @@
     <div class="jhead" id="jhead"></div>
     <div class="jnote" id="jnote"></div>
     <div id="jcontent"></div>
+    <div id="jorPanel" style="display:none;margin-top:18px"></div>
   </div>
 
   <div class="view" id="v-ana">
@@ -390,7 +402,7 @@ function render(){
   dr.textContent=(R.dr>=0?"+":"")+Math.round(R.dr);
   scores.innerHTML=R.scores.slice(0,6).map(([i,j,p])=>
     `<div class="scoreline"><div class="sc">${i}-${j}</div><div class="track"><div class="fill" style="width:${Math.min(p/R.scores[0][2]*100,100)}%"></div></div><div class="pct">${pct0(p)}</div></div>`).join("");
-  const hc=p=>{const t=Math.min(p/0.18,1);return `rgb(${Math.round(20+t*235)},${Math.round(25+t*151)},${Math.round(35-t*35)})`;};
+  const hc=p=>{const t=Math.min(p/0.18,1);return `rgb(${Math.round(20+t*235)},${Math.round(25+t*151)},${Math.round(35-t*35)})`;`};
   let t=`<table class="hm"><tr><th></th><th colspan="6" style="color:var(--loss)">${a.c} →</th></tr><tr><th></th>`;
   for(let j=0;j<=5;j++)t+=`<th>${j}</th>`;t+='</tr>';
   for(let i=0;i<=5;i++){t+=`<tr><th style="color:var(--win)">${i}</th>`;
@@ -399,14 +411,44 @@ function render(){
   heatmap.innerHTML=t;
 }
 function openMatch(hc,ac,haS){
-  switchView('ana');
+  const fromJor = haS===undefined;
   let H=hc,A=ac,check=false;
-  if(haS===undefined){ // group match: caution on; if host is away team, swap so checkbox represents it
+  if(fromJor){
     const h=TEAMS[IDX[hc]],a=TEAMS[IDX[ac]];
     if(a.host&&!h.host){H=ac;A=hc;check=true;} else if(h.host){check=true;}
     caut.checked=true;
-  } else { check = (haS==='h'); caut.checked=false; }
+  } else { check=(haS==='h'); caut.checked=false; }
   home.value=IDX[H];away.value=IDX[A];ha.checked=check;render();
+  if(fromJor){
+    const h=TEAMS[IDX[H]],a=TEAMS[IDX[A]];
+    const R=predict(h,a,check?'h':null,true);const top=R.scores[0];
+    const fav=R.pH>=R.pA?'H':'A';
+    const box=(name,side)=>fav===side
+      ?`<span style="border:1.5px solid var(--amber);border-radius:5px;padding:1px 6px;color:var(--amber);background:rgba(255,176,0,.12);font-weight:700">${name}</span>`
+      :`<span style="color:var(--muted)">${name}</span>`;
+    const panel=document.getElementById('jorPanel');
+    panel.style.display='block';
+    panel.innerHTML=`<div class="jp-card">
+      <button class="jp-close" onclick="document.getElementById('jorPanel').style.display='none'">✕</button>
+      <div class="jp-title">${box(h.n,'H')} <span style="color:var(--muted);font-size:13px">vs</span> ${box(a.n,'A')}</div>
+      <div class="bar1x2">
+        <div class="seg h" style="flex-basis:${R.pH*100}%">${pct(R.pH)}<span>${h.c}</span></div>
+        <div class="seg d" style="flex-basis:${R.pD*100}%">${pct(R.pD)}<span>X</span></div>
+        <div class="seg a" style="flex-basis:${R.pA*100}%">${pct(R.pA)}<span>${a.c}</span></div>
+      </div>
+      <div class="jp-scores">
+        <div class="jp-sc"><div class="v">${R.lh.toFixed(2)}</div><div class="l">xG ${h.c}</div></div>
+        <div class="jp-sc"><div class="v">${top[0]}-${top[1]}</div><div class="l">Marcador probable</div></div>
+        <div class="jp-sc"><div class="v">${R.la.toFixed(2)}</div><div class="l">xG ${a.c}</div></div>
+        <div class="jp-sc"><div class="v">${pct(R.over)}</div><div class="l">Over 2.5</div></div>
+        <div class="jp-sc"><div class="v">${pct(R.btts)}</div><div class="l">Ambos anotan</div></div>
+      </div>
+      <button class="jp-more" onclick="switchView('ana');document.getElementById('jorPanel').style.display='none'">Ver análisis completo (matriz, Elo, etc.) →</button>
+    </div>`;
+    panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  } else {
+    switchView('ana');
+  }
 }
 function loadOpener(){home.value=IDX.MX;away.value=IDX.ZA;ha.checked=true;caut.checked=true;render();}
 function randomMatch(){let i=(Math.random()*48)|0,j;do{j=(Math.random()*48)|0}while(j===i);home.value=i;away.value=j;ha.checked=TEAMS[i].host;render();}
@@ -418,7 +460,7 @@ function buildTable(f=""){
     const tr=document.createElement("tr");
     tr.innerHTML=`<td class="g">${t.g}</td><td>${t.n} ${t.host?'<span class="host">◆sede</span>':''}</td>
       <td><input class="e" type="number" value="${t.elo}" data-i="${i}" data-k="elo"></td>
-      <td><input class="e fifa" type="number" value="${t.fifa??\'\'}" placeholder="—" data-i="${i}" data-k="fifa"></td>`;
+      <td><input class="e fifa" type="number" value="${t.fifa??''}" placeholder="—" data-i="${i}" data-k="fifa"></td>`;
     rtbody.appendChild(tr);
   });
   rtbody.querySelectorAll("input.e").forEach(inp=>inp.onchange=e=>{
@@ -473,7 +515,7 @@ function renderTracker(){
     const R=predict(h,a,hostSide(h,a),true);
     let res="";
     if(rs.gh!==""&&rs.ga!==""){const oc=outcome(+rs.gh,+rs.ga),b=brierFor(R.pH,R.pD,R.pA,oc).toFixed(2),f=favOf(R);
-      res=` · <span style="color:${f===oc?'var(--win)':'var(--loss)'}">${f===oc?'✓':'✗'} 1X2</span> · Brier ${b}`;}
+      res=` · <span style="color:${f===oc?'var(--win)':'var(--loss)''}">${f===oc?'✓':'✗'} 1X2</span> · Brier ${b}`;}
     html+=`<div class="koslot"><div class="korow" style="grid-template-columns:1fr auto auto auto 1fr;gap:6px;align-items:center">
       <span style="text-align:right;font-size:12.5px">${h.n}${h.host?' ◆':''}</span>
       <input type="number" min="0" style="width:46px;text-align:center" value="${rs.gh}" onchange="resSet(${j},${i},'gh',this.value)">
