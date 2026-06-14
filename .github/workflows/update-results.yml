@@ -2,16 +2,17 @@ name: Auto-Update Match Results
 
 on:
   schedule:
-    # Every 15 min between 11am–2am UTC (7am–10pm EDT) during World Cup
-    - cron: '*/15 15-23 11-15 6 *'   # Jun 11-15
+    # Every 15 min from 10:00–23:59 UTC + overnight 00:00–06:59 UTC during World Cup
+    # Extended from 10:00 UTC to cover 12:00 and 13:00 kick-off matches
+    - cron: '*/15 10-23 11-15 6 *'   # Jun 11-15 (from 10am UTC)
     - cron: '*/15 0-6  12-16 6 *'    # Jun 12-16 overnight
-    - cron: '*/15 15-23 16-20 6 *'   # Jun 16-20
+    - cron: '*/15 10-23 16-20 6 *'   # Jun 16-20 (from 10am UTC)
     - cron: '*/15 0-6  17-21 6 *'    # Jun 17-21 overnight
-    - cron: '*/15 15-23 21-27 6 *'   # Jun 21-27
+    - cron: '*/15 10-23 21-27 6 *'   # Jun 21-27 (from 10am UTC)
     - cron: '*/15 0-6  22-28 6 *'    # Jun 22-28 overnight
-    - cron: '*/15 15-23 28-30 6 *'   # Jun 28-30
+    - cron: '*/15 10-23 28-30 6 *'   # Jun 28-30 (from 10am UTC)
     - cron: '*/15 0-6  29-30 6 *'    # Jun 29-30 overnight
-    - cron: '*/15 15-23 1-15  7 *'   # Jul 1-15
+    - cron: '*/15 10-23 1-15  7 *'   # Jul 1-15 (from 10am UTC)
     - cron: '*/15 0-6  2-16  7 *'    # Jul 2-16 overnight
   workflow_dispatch:                  # Manual trigger from GitHub UI
 
