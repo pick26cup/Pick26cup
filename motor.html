@@ -130,7 +130,7 @@
     <div class="kicker">FIFA World Cup 2026 · Motor Predictivo</div>
     <h1>Motor <b>Elo → Poisson</b> · Jornadas</h1>
     <div class="sub">Calendario real (72 partidos de grupos) con predicción por jornada · eliminatorias editables conforme avanza el Mundial.</div>
-    <div class="sub" style="margin-top:6px;color:#7d8a9a"><span class="flag" style="margin:0">Estado de datos</span> Elo: actualizado post-J1 (9 partidos al 14-jun). J1 pendientes: CI-EC, NL-JP, SE-TN. FIFA ranking 11-jun: cargado para 18 equipos; los demás en blanco = modelo usa solo Elo.</div>
+    <div class="sub" style="margin-top:6px;color:#7d8a9a"><span class="flag" style="margin:0">Estado de datos</span> Elo: actualizado post-J1 (10 partidos al 14-jun). J1 pendientes: CI-EC, SE-TN. FIFA ranking 11-jun: cargado para 18 equipos; los demás en blanco = modelo usa solo Elo.</div>
   </header>
 
   <div class="tabs">
@@ -260,7 +260,7 @@ const home=_E('home'),away=_E('away'),ha=_E('ha'),caut=_E('caut'),haVal=_E('haVa
   rtbody=_E('rtbody'),search=_E('search'),imp=_E('imp');
 
 const TEAMS=[
- // Elo actualizados post-J1 (8 partidos jugados al 14-jun-2026) · fórmula K=60, G=f(GD), HA=+100
+ // Elo actualizados post-J1 (10 partidos jugados al 14-jun-2026) · fórmula K=60, G=f(GD), HA=+100
  {g:"A",n:"México",c:"MX",elo:1881,fifa:1681,host:true},{g:"A",n:"Sudáfrica",c:"ZA",elo:1522,fifa:null,host:false},
  {g:"A",n:"Corea del Sur",c:"KR",elo:1786,fifa:null,host:false},{g:"A",n:"Chequia",c:"CZ",elo:1712,fifa:null,host:false},
  {g:"B",n:"Canadá",c:"CA",elo:1767,fifa:null,host:true},{g:"B",n:"Bosnia y H.",c:"BA",elo:1616,fifa:null,host:false},
@@ -271,7 +271,7 @@ const TEAMS=[
  {g:"D",n:"Australia",c:"AU",elo:1839,fifa:null,host:false},{g:"D",n:"Turquía",c:"TR",elo:1849,fifa:null,host:false},
  {g:"E",n:"Alemania",c:"DE",elo:1938,fifa:1730,host:false},{g:"E",n:"Curaçao",c:"CW",elo:1428,fifa:null,host:false},
  {g:"E",n:"Costa de Marfil",c:"CI",elo:1695,fifa:null,host:false},{g:"E",n:"Ecuador",c:"EC",elo:1935,fifa:null,host:false},
- {g:"F",n:"Países Bajos",c:"NL",elo:1944,fifa:1758,host:false},{g:"F",n:"Japón",c:"JP",elo:1906,fifa:1660,host:false},
+ {g:"F",n:"Países Bajos",c:"NL",elo:1971,fifa:1758,host:false},{g:"F",n:"Japón",c:"JP",elo:1879,fifa:1660,host:false},
  {g:"F",n:"Suecia",c:"SE",elo:1712,fifa:null,host:false},{g:"F",n:"Túnez",c:"TN",elo:1628,fifa:null,host:false},
  {g:"G",n:"Bélgica",c:"BE",elo:1893,fifa:1735,host:false},{g:"G",n:"Egipto",c:"EG",elo:1696,fifa:null,host:false},
  {g:"G",n:"Irán",c:"IR",elo:1772,fifa:null,host:false},{g:"G",n:"Nueva Zelanda",c:"NZ",elo:1562,fifa:null,host:false},
@@ -499,6 +499,7 @@ resultsState[1][5]={gh:"0",ga:"1"}; // HT-SQ  · Haití 0-1 Escocia (McGinn 28')
 resultsState[1][6]={gh:"4",ga:"1"}; // US-PY  · EE.UU. 4-1 Paraguay
 resultsState[1][7]={gh:"2",ga:"0"}; // AU-TR  · Australia 2-0 Turquía (Irankunda 27', Metcalfe 75')
 resultsState[1][8]={gh:"4",ga:"0"}; // DE-CW  · Alemania 4-0 Curaçao (Woltemade, Undav, Wirtz, Musiala)
+resultsState[1][10]={gh:"1",ga:"0"}; // NL-JP  · Países Bajos 1-0 Japón (Van Dijk 50')
 let curRJ=1;
 const outcome=(gh,ga)=> gh>ga?'H':(gh<ga?'A':'D');
 const brierFor=(pH,pD,pA,oc)=>{const oH=oc==='H'?1:0,oD=oc==='D'?1:0,oA=oc==='A'?1:0;return (pH-oH)**2+(pD-oD)**2+(pA-oA)**2;};
@@ -517,7 +518,7 @@ function trackerStats(){
 }
 function renderTrackerSummary(){
   const s=trackerStats();
-  const box=(v,l,c)=>`<div class="xgbox"><div class="v" style="${c?`color:${c}`:''}">${v}</div><div class="l">${l}</div></div>`;
+  const box=(v,l,c)=>`<div class="xgbox"><div class="v" style="${c?'color:'+c:''}">${v}</div><div class="l">${l}</div></div>`;
   const better=s.n&&s.avgB<0.667;
   brierBox.innerHTML=box(s.n,"Partidos")+box(s.n?s.avgB.toFixed(3):"—","Brier modelo",better?'var(--win)':(s.n?'var(--loss)':''))+box("0.667","Brier moneda")+box(s.n?Math.round(s.favHit/s.n*100)+"%":"—","Acierto 1X2");
   brierNote.innerHTML=s.n?`Marcador exacto: <b>${s.scHit}/${s.n}</b>. ${better?'<span style="color:var(--win)">El modelo va por debajo de la moneda → aporta valor.</span>':'<span style="color:var(--loss)">En esta muestra va por encima de la moneda (recuerda: hacen falta 30+ partidos para concluir).</span>'}`:'Carga los marcadores reales abajo; aquí verás la calibración en vivo.';
