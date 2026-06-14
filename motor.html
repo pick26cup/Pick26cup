@@ -241,6 +241,24 @@
 </div>
 
 <script>
+/* capturar cualquier error JS y mostrarlo en pantalla para diagnóstico */
+window.onerror=function(msg,_,line,col){
+  var el=document.createElement('div');
+  el.style='position:fixed;top:0;left:0;right:0;padding:14px;background:#c00;color:#fff;z-index:9999;font-size:13px;font-family:monospace';
+  el.textContent='ERROR JS (línea '+line+'): '+msg;
+  document.body.prepend(el);
+};
+/* referencias explícitas — evita conflictos con window.home, window.find, etc. */
+const _E=function(id){return document.getElementById(id);};
+const home=_E('home'),away=_E('away'),ha=_E('ha'),caut=_E('caut'),haVal=_E('haVal'),
+  weight=_E('weight'),wElo=_E('wElo'),wFifa=_E('wFifa'),
+  cHA=_E('cHA'),cC=_E('cC'),cBase=_E('cBase'),cAlpha=_E('cAlpha'),cRho=_E('cRho'),cCau=_E('cCau'),
+  jrow=_E('jrow'),jhead=_E('jhead'),jnote=_E('jnote'),jcontent=_E('jcontent'),
+  mt=_E('mt'),bar=_E('bar'),xgh=_E('xgh'),xga=_E('xga'),
+  over=_E('over'),under=_E('under'),btts=_E('btts'),dr=_E('dr'),scores=_E('scores'),heatmap=_E('heatmap'),
+  brierBox=_E('brierBox'),brierNote=_E('brierNote'),resJrow=_E('resJrow'),resContent=_E('resContent'),
+  rtbody=_E('rtbody'),search=_E('search'),imp=_E('imp');
+
 const TEAMS=[
  // Elo actualizados post-J1 (8 partidos jugados al 14-jun-2026) · fórmula K=60, G=f(GD), HA=+100
  {g:"A",n:"México",c:"MX",elo:1881,fifa:1681,host:true},{g:"A",n:"Sudáfrica",c:"ZA",elo:1522,fifa:null,host:false},
