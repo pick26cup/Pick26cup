@@ -894,6 +894,16 @@ nav button:hover,nav button.active{
 
 .pdf-prev-foot{padding:7px 16px;text-align:center;font-size:10px;color:var(--text2);border-top:1px solid rgba(212,175,55,.1);background:rgba(212,175,55,.03)}
 .pdf-prev-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:14px 16px;border-top:1px solid rgba(255,255,255,.05)}
+.pending-pay-msg{text-align:center;padding:40px 20px;color:var(--text2)}
+.pending-pay-msg .ppm-icon{font-size:48px;margin-bottom:12px}
+.pending-pay-msg h3{color:var(--gold);font-family:'Bebas Neue';font-size:24px;letter-spacing:2px;margin:0 0 8px}
+.pending-pay-msg p{font-size:14px;margin:0;line-height:1.5}
+.rp-player-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.05);gap:8px;flex-wrap:wrap}
+.rp-player-row:last-child{border-bottom:none}
+.rp-player-name{font-size:13px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rp-status-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.rp-paid{background:rgba(46,204,113,.2);border:1px solid #2ECC71;color:#2ECC71}
+.rp-pending{background:rgba(212,175,55,.15);border:1px solid #D4AF37;color:#D4AF37}
 @media(max-width:480px){
   .groups-grid{grid-template-columns:1fr}
   .gt-col-gf,.gt-col-ga{display:none}
@@ -1405,6 +1415,28 @@ nav button:hover,nav button.active{
             <div id="pendingPlayerList"><p style="color:var(--text2);font-size:12px">Loading...</p></div>
           </div>
 
+          <!-- Round Payments -->
+          <div class="admin-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <h3 style="margin:0">💳 <span data-en="Round Payments" data-es="Pagos por Jornada">Round Payments</span></h3>
+              <button class="btn-sm btn-save" onclick="renderRoundPayments()" style="font-size:11px;padding:4px 10px">↺</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+              <label style="font-size:12px;color:var(--text2)" data-en="Round:" data-es="Jornada:">Round:</label>
+              <select id="rpRoundSelect" onchange="renderRoundPayments()" style="background:#1a1a1a;border:1px solid #333;color:var(--text);border-radius:6px;padding:4px 8px;font-size:13px">
+                <option value="1">Jornada 1</option>
+                <option value="2" selected>Jornada 2</option>
+                <option value="3">Jornada 3</option>
+                <option value="4">Jornada 4</option>
+                <option value="5">Jornada 5</option>
+                <option value="6">Jornada 6</option>
+                <option value="7">Jornada 7</option>
+              </select>
+              <button onclick="approveAllForRound()" style="background:rgba(46,204,113,.2);border:1.5px solid #2ECC71;color:#2ECC71;font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer">✅ Aprobar Todos</button>
+            </div>
+            <div id="rpPlayerList"><p style="color:var(--text2);font-size:12px">Loading...</p></div>
+          </div>
+
           <!-- Players -->
           <div class="admin-card">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -1883,6 +1915,7 @@ let currentRound = 1;
 let adminRound = 1;
 let currentUser = null;
 let adminLoggedIn = false;
+let playerData = {}; // current player's Firebase node (approvedRounds etc.)
 let editRound = 4;
 let _watchedPlayerKeys = null;
 let _newPlayerCount = 0;
@@ -3169,6 +3202,12 @@ function syncFromFirebase(){
   db.ref('results').on('value', function(){
     setTimeout(function(){ refreshLeaderboardIfVisible(); }, 300);
   });
+  // Live listener: re-render when admin approves/revokes round access for this player
+  db.ref('players/'+playerKey()).on('value', function(snap){
+    playerData = snap.val() || {};
+    renderMatches();
+    updateSubmitArea();
+  });
   // Live listener: detect when admin clears picks for this player so they can re-submit
   db.ref('picks/'+playerKey()+'/submittedRounds').on('value', function(snap){
     const fbSubmitted = snap.val() || {};
@@ -3271,6 +3310,19 @@ function renderMatches(){
 
   container.innerHTML = '';
   if(isSubmitted){ updateSubmitArea(); return; }
+
+  // Block access if player hasn't been approved for this round (payment gate)
+  if(!isApprovedForRound(currentRound)){
+    const es = currentLang==='es';
+    container.innerHTML = `<div class="pending-pay-msg">
+      <div class="ppm-icon">⏳</div>
+      <h3>${es?'JORNADA '+currentRound+' — ACCESO PENDIENTE':'ROUND '+currentRound+' — PENDING ACCESS'}</h3>
+      <p>${es?'Tu pago para la Jornada '+currentRound+' está pendiente de aprobación.<br>Una vez aprobado por el administrador podrás seleccionar y enviar tus picks.':'Your payment for Round '+currentRound+' is pending approval.<br>Once the admin approves you, you\'ll be able to select and submit your picks.'}</p>
+    </div>`;
+    updateSubmitArea();
+    return;
+  }
+
   roundMatches.forEach((m, idx)=>{
     const isFinal = m.final;
     const isCloser = m.closer;
@@ -3375,6 +3427,15 @@ function updateSubmitArea(){
   const btn = document.getElementById('submitBtn');
   const banner = document.getElementById('submittedBanner');
   const note = document.getElementById('submitNote');
+  // Hide submit area entirely if not approved for this round
+  if(!isApprovedForRound(currentRound)){
+    btn.classList.add('hidden');
+    if(note) note.classList.add('hidden');
+    banner.classList.add('hidden');
+    const card = document.getElementById('pdfPreviewCard');
+    if(card) card.style.display='none';
+    return;
+  }
   if(isSubmitted){
     btn.classList.add('hidden');
     if(note) note.classList.add('hidden');
@@ -4236,6 +4297,7 @@ function grantAdminUI(){
   document.getElementById('adminContent').classList.remove('hidden');
   renderAdminMatches();
   renderAdminPlayers();
+  renderRoundPayments();
   renderEditTeams();
   loadCustomTeamNames();
   renderPendingPlayers();
@@ -4660,6 +4722,75 @@ function renderAdminPlayers(){
     cont.innerHTML=`<p style="color:var(--text2);font-size:13px">${t('Conectando...','Connecting...')} <button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ ${t('Reintentar','Retry')}</button></p>`;
     setTimeout(function(){ if(db) renderAdminPlayers(); }, 2000);
   }
+}
+
+function renderRoundPayments(){
+  const cont = document.getElementById('rpPlayerList');
+  if(!cont || !db) return;
+  const round = parseInt(document.getElementById('rpRoundSelect')?.value || 2);
+  cont.innerHTML = '<p style="color:var(--text2);font-size:12px">Loading...</p>';
+  db.ref('players').once('value').then(function(snap){
+    const players = snap.val() || {};
+    const entries = Object.entries(players).filter(([,p])=>p && p.name);
+    if(!entries.length){
+      cont.innerHTML = '<p style="color:var(--text2);font-size:12px">No players yet.</p>';
+      return;
+    }
+    entries.sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''));
+    const rows = entries.map(([key, player])=>{
+      const ar = player.approvedRounds || {};
+      const isPaid = !!(ar[round] || ar[String(round)]) || (round==1 && player.approved);
+      const badge = isPaid
+        ? `<span class="rp-status-badge rp-paid">✅ Pagado</span>`
+        : `<span class="rp-status-badge rp-pending">⏳ Pendiente</span>`;
+      const btn = isPaid
+        ? `<button class="btn-sm btn-revoke" onclick="setRoundApproval('${key}',${round},false)">Revocar</button>`
+        : `<button class="btn-sm btn-approve" onclick="setRoundApproval('${key}',${round},true)">Aprobar</button>`;
+      return `<div class="rp-player-row">
+        <span class="rp-player-name">${escapeHtml(player.name||key)}</span>
+        ${badge}${btn}
+      </div>`;
+    }).join('');
+    cont.innerHTML = rows;
+  }).catch(function(){
+    cont.innerHTML = '<p style="color:var(--red);font-size:12px">⚠️ Error cargando jugadores.</p>';
+  });
+}
+
+function setRoundApproval(key, round, approved){
+  if(!db){ showToast(t('Firebase no disponible','Firebase unavailable'),'error'); return; }
+  const ref = db.ref('players/'+key+'/approvedRounds/'+round);
+  const action = approved ? ref.set(true) : ref.remove();
+  action.then(function(){
+    showToast(
+      approved
+        ? t('✅ Jugador aprobado para Jornada ','✅ Player approved for Round ')+round
+        : t('Acceso revocado para Jornada ','Access revoked for Round ')+round,
+      'success'
+    );
+    renderRoundPayments();
+  }).catch(function(){
+    showToast(t('Error: revisa las reglas de Firebase','Error: check Firebase rules'),'error');
+  });
+}
+
+function approveAllForRound(){
+  if(!db) return;
+  const round = parseInt(document.getElementById('rpRoundSelect')?.value || 2);
+  if(!confirm(t('¿Aprobar TODOS los jugadores para Jornada ','Approve ALL players for Round ')+round+'?')) return;
+  db.ref('players').once('value').then(function(snap){
+    const players = snap.val() || {};
+    const updates = {};
+    Object.keys(players).forEach(function(key){
+      updates['players/'+key+'/approvedRounds/'+round] = true;
+    });
+    return db.ref('/').update(updates);
+  }).then(function(){
+    showToast(t('✅ Todos aprobados para Jornada ','✅ All approved for Round ')+round,'success');
+    renderRoundPayments();
+  }).catch(function(){
+    showToast('Error','error');
+  });
 }
 
 function setPlayerApproval(key, approved){
@@ -5213,6 +5344,14 @@ function hasMatchStarted(match){
   const d = parseMatchDate(match);
   if(!d) return false;
   return Date.now() >= d.getTime() - LOCK_BEFORE_MS;
+}
+
+function isApprovedForRound(round){
+  const ar = playerData.approvedRounds || {};
+  if(ar[round] || ar[String(round)]) return true;
+  // Backwards compat: global approved counts for round 1
+  if(round == 1 && playerData.approved) return true;
+  return false;
 }
 
 // A round is locked for editing once we are within 5 h of its first match.
