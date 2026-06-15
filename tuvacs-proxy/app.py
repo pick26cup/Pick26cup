@@ -390,10 +390,14 @@ def command():
         if not cmd:
             return jsonify({"error": "falta campo 'command'"}), 400
         cmap = {
-            "start":  [{"code": "start_go",   "value": True}],
-            "pause":  [{"code": "pause",       "value": True}],
-            "home":   [{"code": "goto_charge", "value": True}],
-            "reset":  [{"code": "reset_map",   "value": True}],
+            "start":       [{"code": "start_go",         "value": True}],
+            "pause":       [{"code": "pause",             "value": True}],
+            "home":        [{"code": "goto_charge",       "value": True}],
+            "reset":       [{"code": "reset_map",         "value": True}],
+            # Ciclo de auto-lavado de mopas
+            "stop_wash":   [{"code": "water_box_clean",  "value": False}],
+            "start_wash":  [{"code": "water_box_clean",  "value": True}],
+            "mop_off":     [{"code": "mop_mode",         "value": "off"}],
         }
         if cmd not in cmap:
             return jsonify({"error": f"comando desconocido: {cmd}", "valid": list(cmap)}), 400
@@ -403,6 +407,144 @@ def command():
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# ── Diagnóstico de mopas ─────────────────────────────────────────────────────
+
+MOP_STATUS_LABELS = {
+    "off":      "Apagado",
+    "low":      "Bajo",
+    "medium":   "Medio",
+    "high":     "Alto",
+    "auto":     "Automático",
+}
+
+@app.route("/mop/diagnose")
+def mop_diagnose():
+    """
+    Diagnostica el estado del sistema de mopas/trapeadores.
+    Detecta el ciclo de auto-lavado atascado y recomienda solución.
+    """
+    try:
+        raw = tuya_request("GET", f"/v1.0/devices/{DEVICE_ID}/status")
+        if not raw.get("success"):
+            return jsonify({"error": "No se pudo obtener DPS", "raw": raw}), 502
+
+        dps = parse_dps(raw.get("result", []))
+
+        water_box_clean = dps.get("water_box_clean", None)
+        mop_mode        = dps.get("mop_mode",        None)
+        status          = dps.get("status",           "")
+        charging        = status in ("charging", "charged", "goto_charge")
+        battery         = dps.get("battery_percentage")
+
+        # Detección del ciclo atascado:
+        # agua activa + robot en base = bucle de lavado atascado
+        wash_loop_detected = (water_box_clean is True) and charging
+
+        problemas = []
+        pasos_correccion = []
+
+        if wash_loop_detected:
+            problemas.append({
+                "codigo":      "WASH_LOOP",
+                "descripcion": "Ciclo de auto-lavado de mopas atascado",
+                "causa":       "El robot intenta lavar las mopas en la base pero no recibe "
+                               "confirmación del sensor de agua/bomba, reiniciando el ciclo.",
+                "dps_afectado": "water_box_clean = True (debería ser False al terminar)",
+            })
+            pasos_correccion = [
+                {"paso": 1, "accion": "API",     "detalle": "POST /command  {\"command\": \"stop_wash\"}  → apaga water_box_clean"},
+                {"paso": 2, "accion": "API",     "detalle": "POST /command  {\"command\": \"mop_off\"}    → (si el anterior no basta)"},
+                {"paso": 3, "accion": "API",     "detalle": "POST /command  {\"command\": \"pause\"}      → fuerza pausa"},
+                {"paso": 4, "accion": "Físico",  "detalle": "Retira el robot de la base y vuelve a colocarlo"},
+                {"paso": 5, "accion": "Físico",  "detalle": "Si persiste: apaga el robot con el botón de encendido 5 seg, enciende y regresa a la base"},
+                {"paso": 6, "accion": "Revisión","detalle": "Inspecciona el depósito de agua: vacío o tupido puede causar que el sensor no detecte fin de ciclo"},
+            ]
+
+        if mop_mode and mop_mode != "off" and charging:
+            if not wash_loop_detected:
+                problemas.append({
+                    "codigo":      "MOP_ACTIVE_ON_BASE",
+                    "descripcion": "Mopa activa mientras carga — comportamiento inusual",
+                    "dps_afectado": f"mop_mode = {mop_mode}",
+                })
+                pasos_correccion.append(
+                    {"paso": 1, "accion": "API", "detalle": "POST /command  {\"command\": \"mop_off\"}"}
+                )
+
+        dps_relevantes = {
+            "water_box_clean": water_box_clean,
+            "mop_mode":        mop_mode,
+            "mop_mode_label":  MOP_STATUS_LABELS.get(mop_mode, mop_mode),
+            "status":          status,
+            "charging":        charging,
+            "battery":         battery,
+        }
+
+        log_event("mop_diagnostico", {
+            "wash_loop": wash_loop_detected,
+            "problemas": len(problemas),
+        })
+
+        return jsonify({
+            "wash_loop_detectado": wash_loop_detected,
+            "problemas":           problemas,
+            "total_problemas":     len(problemas),
+            "pasos_correccion":    pasos_correccion,
+            "dps":                 dps_relevantes,
+            "resumen": (
+                "Ciclo de lavado de mopas atascado — sigue los pasos de corrección"
+                if wash_loop_detected else
+                "Sistema de mopas sin anomalías detectadas"
+            ),
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/mop/fix", methods=["POST"])
+def mop_fix():
+    """
+    Intenta corregir automáticamente el ciclo de auto-lavado atascado.
+    Envía stop_wash → pausa → espera 3s → confirma estado.
+    """
+    results = []
+    try:
+        # Paso 1: apagar water_box_clean
+        r1 = tuya_request("POST", f"/v1.0/devices/{DEVICE_ID}/commands",
+                          {"commands": [{"code": "water_box_clean", "value": False}]})
+        results.append({"cmd": "water_box_clean=False", "ok": r1.get("success"), "raw": r1})
+
+        time.sleep(2)
+
+        # Paso 2: pause por si sigue en modo activo
+        r2 = tuya_request("POST", f"/v1.0/devices/{DEVICE_ID}/commands",
+                          {"commands": [{"code": "pause", "value": True}]})
+        results.append({"cmd": "pause", "ok": r2.get("success"), "raw": r2})
+
+        time.sleep(3)
+
+        # Paso 3: verificar estado final
+        raw = tuya_request("GET", f"/v1.0/devices/{DEVICE_ID}/status")
+        dps = parse_dps(raw.get("result", [])) if raw.get("success") else {}
+        still_looping = dps.get("water_box_clean", False)
+
+        log_event("mop_fix_aplicado", {
+            "pasos":        len(results),
+            "resuelto":     not still_looping,
+            "wash_final":   still_looping,
+        })
+
+        return jsonify({
+            "ok":              not still_looping,
+            "resuelto":        not still_looping,
+            "pasos_ejecutados": results,
+            "estado_final":    dps.get("status"),
+            "wash_activo":     still_looping,
+            "siguiente_paso":  None if not still_looping else
+                               "El bucle persiste — retira el robot de la base físicamente y reinicia",
+        })
+    except Exception as e:
+        return jsonify({"error": str(e), "pasos": results}), 500
 
 # ── Monitor endpoints ─────────────────────────────────────────────────────────
 
