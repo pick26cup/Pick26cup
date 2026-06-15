@@ -1185,39 +1185,8 @@ nav button:hover,nav button.active{
     </div>
   </header>
 
-  <!-- GOAL CELEBRATION OVERLAY -->
-  <div id="goalCelebration"></div>
-
   <!-- NARRATOR OVERLAY -->
   <div id="narratorOverlay" onclick="if(event.target===this)closeNarratorOverlay()"></div>
-
-  <!-- LIVE MATCH DETAIL MODAL -->
-  <div id="liveDetailModal" onclick="if(event.target===this)closeLiveDetail()">
-    <div class="ldm-box">
-      <div class="ldm-header">
-        <button class="ldm-close" onclick="closeLiveDetail()">✕</button>
-        <div class="ldm-teams-row">
-          <span class="ldm-team-name" id="ldmHomeTeam"></span>
-          <span class="ldm-score" id="ldmScore"></span>
-          <span class="ldm-team-name" id="ldmAwayTeam"></span>
-        </div>
-        <span class="ldm-minute" id="ldmMinute"></span>
-      </div>
-      <div class="ldm-tabs">
-        <button class="ldm-tab active" onclick="switchLdmTab('timeline',this)" data-en="Timeline" data-es="Cronología">Timeline</button>
-        <button class="ldm-tab" onclick="switchLdmTab('lineups',this)" data-en="Lineups" data-es="Alineaciones">Lineups</button>
-      </div>
-      <div class="ldm-body" id="ldmBody"></div>
-    </div>
-  </div>
-
-  <!-- LIVE BAR — visible only when matches are IN_PLAY -->
-  <div id="liveBar" style="display:none">
-    <div class="live-bar-inner">
-      <div class="live-badge"><span class="live-dot"></span>LIVE</div>
-      <div class="live-match-list" id="liveMatchList"></div>
-    </div>
-  </div>
 
   <!-- MAIN -->
   <main>
@@ -2118,7 +2087,6 @@ function setupFirebase(){
     // Attach the live team-names listener now that Firebase is ready, so rounds
     // 4-7 names stay in sync across all devices in real time.
     loadCustomTeamNames();
-    initLiveBar();
     initNarrator();
     // Sync user state from Firebase (overrides localStorage)
     if(currentUser) syncFromFirebase();
@@ -2135,69 +2103,6 @@ function setupFirebase(){
   } catch(e){ console.warn('Firebase setup failed:', e); }
 }
 
-const _prevLiveScores = {};
-let _liveBarInitialized = false;
-
-function showGoalCelebration(teamName){
-  const el = document.getElementById('goalCelebration');
-  if(!el) return;
-  const label = currentLang==='es' ? '¡GOOOOL!' : 'GOOOOOL!';
-  const sub = currentLang==='es' ? 'anotó '+teamName : teamName+' scored!';
-  el.innerHTML = '<div class="goal-banner">'
-    +'<div class="goal-flag">⚽</div>'
-    +'<div class="goal-txt">'+label+'</div>'
-    +'<div class="goal-team">'+sub+'</div>'
-    +'</div>';
-  el.style.display = 'flex';
-  setTimeout(function(){ el.style.display = 'none'; }, 3800);
-}
-
-function initLiveBar(){
-  if(!db) return;
-  db.ref('liveScores').on('value', function(snap){
-    const data = snap.val() || {};
-    const bar = document.getElementById('liveBar');
-    const list = document.getElementById('liveMatchList');
-    if(!bar || !list) return;
-    const entries = Object.entries(data);
-    if(entries.length === 0){ bar.style.display = 'none'; return; }
-    bar.style.display = 'block';
-    list.innerHTML = entries.map(function(entry){
-      const id = entry[0], m = entry[1];
-      const orig = MATCH_ORIG[id] || {};
-      const home = displayTeamName(orig.home || m.homeEn || id);
-      const away = displayTeamName(orig.away || m.awayEn || id);
-      const min = m.minute ? '<span class="live-pill-min">'+m.minute+"'</span>" : '';
-      return '<div class="live-pill" style="cursor:pointer" onclick="openLiveDetail(\''+id+'\')">'
-        +'<span>'+home+'</span>'
-        +'<span class="live-pill-score">'+(m.scoreH??0)+' – '+(m.scoreA??0)+'</span>'
-        +'<span>'+away+'</span>'+min+'</div>';
-    }).join('');
-    // Goal detection — skip first load to avoid false celebrations on page open
-    if(_liveBarInitialized){
-      entries.forEach(function(entry){
-        const id = entry[0], m = entry[1];
-        const prev = _prevLiveScores[id];
-        if(prev){
-          const orig = MATCH_ORIG[id] || {};
-          if((m.scoreH||0) > (prev.scoreH||0)){
-            showGoalCelebration(displayTeamName(orig.home || m.homeEn || id));
-          } else if((m.scoreA||0) > (prev.scoreA||0)){
-            showGoalCelebration(displayTeamName(orig.away || m.awayEn || id));
-          }
-        }
-        _prevLiveScores[id] = {scoreH: m.scoreH||0, scoreA: m.scoreA||0};
-      });
-    } else {
-      // First load — just store current scores, don't celebrate
-      entries.forEach(function(entry){
-        const id = entry[0], m = entry[1];
-        _prevLiveScores[id] = {scoreH: m.scoreH||0, scoreA: m.scoreA||0};
-      });
-      _liveBarInitialized = true;
-    }
-  });
-}
 
 // ── NARRATOR ──────────────────────────────────────────────────
 // Guard: sessionStorage (clears when tab closes). On mobile, visibilitychange
@@ -2418,112 +2323,6 @@ function closeNarratorOverlay(){
   setTimeout(function(){ el.style.display = 'none'; el.innerHTML = ''; }, 400);
 }
 
-// ── LIVE DETAIL MODAL ─────────────────────────────────────────
-let _ldmActiveTab = 'timeline';
-let _ldmCurrentData = null;
-
-function openLiveDetail(matchId){
-  if(!db) return;
-  db.ref('liveScores/'+matchId).once('value').then(function(snap){
-    const m = snap.val();
-    if(!m) return;
-    _ldmCurrentData = m;
-    _ldmCurrentData._matchId = matchId;
-    const orig = MATCH_ORIG[matchId] || {};
-    document.getElementById('ldmHomeTeam').textContent = displayTeamName(orig.home || m.homeEn || '');
-    document.getElementById('ldmAwayTeam').textContent = displayTeamName(orig.away || m.awayEn || '');
-    document.getElementById('ldmScore').textContent = (m.scoreH??0)+' – '+(m.scoreA??0);
-    document.getElementById('ldmMinute').textContent = m.minute ? m.minute+"' "+( currentLang==='es'?'EN VIVO':'LIVE') : (currentLang==='es'?'EN VIVO':'LIVE');
-    _ldmActiveTab = 'timeline';
-    document.querySelectorAll('.ldm-tab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
-    renderLdmTab('timeline', m, orig);
-    document.getElementById('liveDetailModal').style.display = 'flex';
-  });
-}
-
-function closeLiveDetail(){
-  document.getElementById('liveDetailModal').style.display = 'none';
-  _ldmCurrentData = null;
-}
-
-function switchLdmTab(tab, btn){
-  _ldmActiveTab = tab;
-  document.querySelectorAll('.ldm-tab').forEach(function(t){ t.classList.remove('active'); });
-  btn.classList.add('active');
-  if(_ldmCurrentData){
-    const orig = MATCH_ORIG[_ldmCurrentData._matchId] || {};
-    renderLdmTab(tab, _ldmCurrentData, orig);
-  }
-}
-
-function renderLdmTab(tab, m, orig){
-  const body = document.getElementById('ldmBody');
-  if(tab === 'timeline') body.innerHTML = renderLdmTimeline(m, orig);
-  else body.innerHTML = renderLdmLineups(m, orig);
-}
-
-function renderLdmTimeline(m, orig){
-  const events = m.events || [];
-  if(!events.length) return '<p style="color:var(--text2);text-align:center;padding:24px;font-size:13px">'+
-    (currentLang==='es'?'Sin eventos registrados aún.':'No events recorded yet.')+'</p>';
-  const homeName = displayTeamName(orig.home || m.homeEn || '');
-  const awayName = displayTeamName(orig.away || m.awayEn || '');
-  return events.map(function(e){
-    const teamName = e.side==='h' ? homeName : awayName;
-    const sideClass = e.side==='h' ? 'evt-side-h' : 'evt-side-a';
-    let icon='', text='';
-    if(e.type==='goal'){
-      icon='⚽'; text='<span class="'+sideClass+'"><strong>'+escapeHtml(e.player||'')+'</strong> ('+teamName+')</span>';
-    } else if(e.type==='yellow'){
-      icon='🟨'; text='<span class="'+sideClass+'">'+escapeHtml(e.player||'')+' ('+teamName+')</span>';
-    } else if(e.type==='red'){
-      icon='🟥'; text='<span class="'+sideClass+'">'+escapeHtml(e.player||'')+' ('+teamName+')</span>';
-    } else if(e.type==='sub'){
-      icon='🔄'; text='<span style="color:var(--green)">▲ '+escapeHtml(e.in||'')+'</span>'
-        +' <span style="color:var(--text2);font-size:11px">/ </span>'
-        +'<span style="color:var(--red)">▼ '+escapeHtml(e.out||'')+'</span>'
-        +' <span style="color:var(--text2);font-size:11px">('+teamName+')</span>';
-    }
-    return '<div class="evt-row"><span class="evt-min">'+(e.min||'–')+"'</span>"
-      +'<span class="evt-icon">'+icon+'</span>'
-      +'<span class="evt-player">'+text+'</span></div>';
-  }).join('');
-}
-
-function renderLdmLineups(m, orig){
-  const homeName = displayTeamName(orig.home || m.homeEn || '');
-  const awayName = displayTeamName(orig.away || m.awayEn || '');
-  const homeLabel = currentLang==='es' ? 'LOCAL' : 'HOME';
-  const awayLabel = currentLang==='es' ? 'VISITANTE' : 'AWAY';
-  const benchLabel = currentLang==='es' ? 'Suplentes' : 'Substitutes';
-  const noLineup = currentLang==='es' ? 'Alineación no disponible.' : 'Lineup not available.';
-
-  function teamBlock(name, formation, xi, bench, side){
-    const cls = 'lineup-team '+side;
-    if(!xi || !xi.length) return '<div class="'+cls+'"><p style="color:var(--text2);font-size:13px">'+noLineup+'</p></div>';
-    const badge = side==='home' ? homeLabel : awayLabel;
-    const xiRows = xi.map(function(p){
-      return '<div class="lineup-player"><span class="lineup-num">'+escapeHtml(String(p.num||''))+'</span>'
-        +'<span>'+escapeHtml(p.n||'')+'</span></div>';
-    }).join('');
-    let benchRows = '';
-    if(bench && bench.length){
-      benchRows = '<div class="lineup-bench-lbl">'+benchLabel+'</div>'
-        + bench.map(function(p){
-          return '<div class="lineup-bench-player"><span class="lineup-num">'+escapeHtml(String(p.num||''))+'</span>'
-            +'<span>'+escapeHtml(p.n||'')+'</span></div>';
-        }).join('');
-    }
-    return '<div class="'+cls+'"><div class="lineup-head">'
-      +'<span class="lineup-badge">'+badge+'</span>'
-      +escapeHtml(name)
-      +(formation?'<span class="lineup-formation">'+escapeHtml(formation)+'</span>':'')
-      +'</div><div class="lineup-xi">'+xiRows+'</div>'+benchRows+'</div>';
-  }
-  return teamBlock(homeName, m.homeFormation, m.homeXI, m.homeBench, 'home')
-    +'<div style="height:8px"></div>'
-    + teamBlock(awayName, m.awayFormation, m.awayXI, m.awayBench, 'away');
-}
 
 function startPlayerWatcher(){
   if(!db) return;
@@ -5502,18 +5301,13 @@ function renderGroups(){
   }
   container.innerHTML = '<p style="color:var(--text2);text-align:center;padding:20px">Loading...</p>';
 
-  Promise.all([
-    db.ref('results').once('value'),
-    db.ref('liveScores').once('value')
-  ]).then(([resSnap, liveSnap])=>{
-    const results   = resSnap.val()||{};
-    const liveData  = liveSnap.val()||{};
-    const es        = currentLang==='es';
-    const hasLive   = Object.keys(liveData).length > 0;
+  db.ref('results').once('value').then(snap=>{
+    const results = snap.val()||{};
+    const es = currentLang==='es';
 
     const html = Object.entries(GROUPS).map(([letter, group])=>{
       const st = {};
-      group.teams.forEach(t=>{ st[t]={played:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,isLive:false}; });
+      group.teams.forEach(t=>{ st[t]={played:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}; });
 
       const teamMatchList = {};
       group.teams.forEach(t=>{ teamMatchList[t]=[]; });
@@ -5527,23 +5321,16 @@ function renderGroups(){
       });
       Object.values(teamMatchList).forEach(arr=>arr.sort((a,b)=>a.round-b.round));
 
-      // Merge: live score overrides finished result for in-progress matches
-      const liveMatchIds = new Set(group.matches.filter(mid=>liveData[mid]));
-      const merged = Object.assign({}, results);
-      liveMatchIds.forEach(mid=>{ merged[mid] = liveData[mid]; });
-
       group.matches.forEach(mid=>{
-        const res=merged[mid];
+        const res=results[mid];
         if(!res) return;
         let md=null;
         for(const r of [1,2,3]){ const m=(MATCHES[r]||[]).find(x=>x.id===mid); if(m){md=m;break;} }
         if(!md||!st[md.home]||!st[md.away]) return;
         const sh=res.scoreH, sa=res.scoreA;
-        const live=liveMatchIds.has(mid);
         st[md.home].played++; st[md.away].played++;
         st[md.home].gf+=sh;  st[md.home].ga+=sa;
         st[md.away].gf+=sa;  st[md.away].ga+=sh;
-        if(live){ st[md.home].isLive=true; st[md.away].isLive=true; }
         if(sh>sa){      st[md.home].w++; st[md.home].pts+=3; st[md.away].l++; }
         else if(sh===sa){ st[md.home].d++; st[md.home].pts++; st[md.away].d++; st[md.away].pts++; }
         else {           st[md.away].w++; st[md.away].pts+=3; st[md.home].l++; }
@@ -5556,26 +5343,22 @@ function renderGroups(){
         return b.gf-a.gf;
       });
 
-      const groupHasLive = liveMatchIds.size > 0;
-
       const rows = sorted.map(([name,t],i)=>{
         const gd=t.gf-t.ga;
         const gdStr=gd>0?'+'+gd:String(gd);
         const advClass=i<2?'gt-adv':'';
-        const liveDot=t.isLive?'<span class="gt-live-dot"></span>':'';
 
         const formHtml = (teamMatchList[name]||[]).map(({mid,isHome})=>{
-          const res=merged[mid];
+          const res=results[mid];
           if(!res) return '<span class="fc-empty"></span>';
-          if(liveMatchIds.has(mid)) return '<span class="fc-live">●</span>';
           const ts=isHome?res.scoreH:res.scoreA, os=isHome?res.scoreA:res.scoreH;
           if(ts>os) return '<span class="fc-win">✓</span>';
           if(ts<os) return '<span class="fc-loss">✗</span>';
           return '<span class="fc-draw">−</span>';
         }).join('');
 
-        return `<tr class="${advClass}${t.isLive?' gt-live-row':''}">
-          <td><div class="gt-team">${liveDot}<span class="gt-flag">${getTeamVisual(name)}</span><span class="gt-name">${escapeHtml(displayTeamName(name))}</span></div></td>
+        return `<tr class="${advClass}">
+          <td><div class="gt-team"><span class="gt-flag">${getTeamVisual(name)}</span><span class="gt-name">${escapeHtml(displayTeamName(name))}</span></div></td>
           <td>${t.played}</td><td class="gt-pts">${t.pts}</td>
           <td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>
           <td class="gt-col-gf">${t.gf}</td><td class="gt-col-ga">${t.ga}</td>
@@ -5584,9 +5367,8 @@ function renderGroups(){
         </tr>`;
       }).join('');
 
-      const liveTag=groupHasLive?`<span class="group-live-tag">🔴 ${es?'EN VIVO':'LIVE'}</span>`:'';
-      return `<div class="group-box${groupHasLive?' group-box-live':''}">
-        <div class="group-header">${es?'GRUPO ':'GROUP '}${letter}${liveTag}</div>
+      return `<div class="group-box">
+        <div class="group-header">${es?'GRUPO ':'GROUP '}${letter}</div>
         <div class="group-table-wrap"><table class="group-table">
           <thead><tr>
             <th style="width:38%">${es?'Equipo':'Team'}</th>
@@ -5605,11 +5387,9 @@ function renderGroups(){
       </div>`;
     }).join('');
 
-    const liveNote=hasLive?`<p style="font-size:11px;color:#ff6b6b;text-align:center;margin-top:10px">🔴 ${es?'Puntaje provisional basado en marcador en vivo':'Provisional standings — live score included'}</p>`:'';
     container.innerHTML = `
       <div class="groups-grid">${html}</div>
-      ${liveNote}
-      <p style="font-size:11px;color:var(--text2);text-align:center;margin-top:6px">
+      <p style="font-size:11px;color:var(--text2);text-align:center;margin-top:16px">
         🟢 ${es?'Top 2 avanzan a eliminatorias':'Top 2 advance to knockout round'}
       </p>`;
   });
