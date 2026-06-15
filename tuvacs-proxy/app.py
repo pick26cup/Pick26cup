@@ -243,11 +243,11 @@ def _monitor_loop():
 
 @app.route("/")
 def home():
-    return jsonify({"service": "TUVACS Q10 PRO Proxy", "status": "running", "device": DEVICE_ID})
+    return jsonify({"service": "TUVACS Q-Nitro Proxy", "status": "running", "device": DEVICE_ID})
 
 @app.route("/ping")
 def ping():
-    return jsonify({"ok": True, "device": DEVICE_ID})
+    return jsonify({"ok": True, "model": "TUVACS Q-Nitro", "device": DEVICE_ID})
 
 @app.route("/status")
 def status():
