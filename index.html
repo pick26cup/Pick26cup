@@ -5190,7 +5190,7 @@ function showSection(name){
 
 function setRound(r){
   // Map round number to week: round 1=week1, round 2=week2, round 3=week3
-  if(r > activeWeek){
+  if(r > activeWeek && !isApprovedForRound(r)){
     showToast(currentLang==='es'
       ? 'Jornada '+r+' aún no está activa. El admin debe activarla.'
       : 'Round '+r+' is not active yet. Admin must activate it.','error');
