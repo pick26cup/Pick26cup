@@ -48,6 +48,7 @@ const TEAM_MAP = {
   'Tunisia': 'Túnez',
   'Spain': 'España',
   'Cape Verde': 'Cabo Verde',
+  'Cape Verde Islands': 'Cabo Verde',
   'Belgium': 'Bélgica',
   'Egypt': 'Egipto',
   'Saudi Arabia': 'Arabia Saudí',
