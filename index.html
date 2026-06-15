@@ -872,6 +872,26 @@ nav button:hover,nav button.active{
 .group-box-live{border-color:rgba(255,68,68,.35)!important;box-shadow:0 0 12px rgba(255,68,68,.12)}
 .group-box-live .group-header{border-bottom-color:rgba(255,68,68,.25)}
 @keyframes live-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+/* ── PDF PREVIEW CARD ────────────────────────────────── */
+.pdf-preview-wrap{margin-top:18px}
+.pdf-preview-card{background:linear-gradient(160deg,#0c0c08,#1a1400);border:1.5px solid rgba(212,175,55,.35);border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.5)}
+.pdf-prev-hdr{background:linear-gradient(135deg,#7a5500,#D4AF37,#7a5500);padding:14px 16px;text-align:center}
+.pdf-prev-hdr-title{font-family:'Bebas Neue';font-size:22px;color:#000;letter-spacing:3px;line-height:1}
+.pdf-prev-hdr-sub{font-size:11px;color:rgba(0,0,0,.65);margin-top:3px;font-weight:600}
+.pdf-prev-meta{padding:9px 14px;border-bottom:1px solid rgba(212,175,55,.12);display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text2);flex-wrap:wrap;gap:4px}
+.pdf-prev-meta strong{color:var(--gold)}
+.pdf-prev-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.pdf-prev-tbl th{background:rgba(212,175,55,.1);color:rgba(212,175,55,.7);padding:6px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;text-align:left;border-bottom:1px solid rgba(212,175,55,.15)}
+.pdf-prev-tbl td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);vertical-align:middle}
+.pdf-prev-tbl tr:last-child td{border-bottom:none}
+.pdf-prev-tbl tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.ppick-home{color:#2ECC71;font-weight:800;font-size:11px}
+.ppick-draw{color:#3498DB;font-weight:800;font-size:11px}
+.ppick-away{color:#E74C3C;font-weight:800;font-size:11px}
+.ppick-score{color:#D4AF37;font-weight:800;font-size:13px;font-family:'Bebas Neue';letter-spacing:1px}
+.ppick-none{color:rgba(255,255,255,.2);font-size:11px}
+.pdf-prev-foot{padding:7px 16px;text-align:center;font-size:10px;color:var(--text2);border-top:1px solid rgba(212,175,55,.1);background:rgba(212,175,55,.03)}
+.pdf-prev-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:14px 16px;border-top:1px solid rgba(255,255,255,.05)}
 @media(max-width:480px){
   .groups-grid{grid-template-columns:1fr}
   .gt-col-gf,.gt-col-ga{display:none}
@@ -1237,29 +1257,8 @@ nav button:hover,nav button.active{
         <button class="btn-submit" id="submitBtn" onclick="openSubmitModal()">✅ Submit Picks</button>
         <div id="submittedBanner" class="hidden">
           <div class="submitted-badge">✅ <span data-en="Picks Submitted!" data-es="¡Predicciones Enviadas!">Picks Submitted!</span></div>
-          <div style="margin-top:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-            <button id="downloadPdfBtn" onclick="downloadMyPDF()"
-              style="background:linear-gradient(135deg,rgba(52,152,219,.3),rgba(41,128,185,.2));
-              border:2px solid #3498DB;color:#3498DB;font-family:'Bebas Neue';font-size:18px;
-              letter-spacing:1px;padding:10px 28px;border-radius:10px;cursor:pointer;
-              transition:.2s;display:flex;align-items:center;gap:8px">
-              📄 <span data-en="Download PDF" data-es="Descargar PDF">Download PDF</span>
-            </button>
-            <button onclick="printMyPicks()"
-              style="background:linear-gradient(135deg,rgba(46,204,113,.2),rgba(39,174,96,.15));
-              border:2px solid #2ECC71;color:#2ECC71;font-family:'Bebas Neue';font-size:18px;
-              letter-spacing:1px;padding:10px 28px;border-radius:10px;cursor:pointer;
-              transition:.2s;display:flex;align-items:center;gap:8px">
-              🖨️ <span data-en="Print / Save" data-es="Imprimir / Guardar">Print / Save</span>
-            </button>
-          </div>
-          <p style="font-size:11px;color:var(--text2);margin-top:8px;text-align:center"
-            data-en="On iPhone/iPad: tap Print → Save as PDF" 
-            data-es="En iPhone/iPad: toca Imprimir → Guardar como PDF">
-            On iPhone/iPad: tap Print → Save as PDF
-          </p>
-
         </div>
+        <div id="pdfPreviewCard" class="pdf-preview-wrap" style="display:none"></div>
       </div>
     </section>
 
@@ -3378,11 +3377,116 @@ function updateSubmitArea(){
     btn.classList.add('hidden');
     if(note) note.classList.add('hidden');
     banner.classList.remove('hidden');
+    renderPDFPreview(currentRound);
   } else {
     btn.classList.remove('hidden');
     if(note) note.classList.remove('hidden');
     banner.classList.add('hidden');
+    const card = document.getElementById('pdfPreviewCard');
+    if(card) card.style.display='none';
   }
+}
+
+function renderPDFPreview(round){
+  const wrap = document.getElementById('pdfPreviewCard');
+  if(!wrap || !currentUser) return;
+  const es = currentLang==='es';
+  const roundMatches = MATCHES[round] || [];
+  const roundLabel = es ? 'JORNADA '+round : 'ROUND '+round;
+  const dateStr = new Date().toLocaleDateString(es?'es-US':'en-US',{year:'numeric',month:'short',day:'numeric'});
+
+  const rows = roundMatches.map((m,idx)=>{
+    const p = picks[m.id]||{};
+    const homeName = escapeHtml(customTeamNames[m.id+'_home'] || displayTeamName(m.home));
+    const awayName = escapeHtml(customTeamNames[m.id+'_away'] || displayTeamName(m.away));
+    let pickHtml = `<span class="ppick-none">—</span>`;
+    if(m.closer||m.final){
+      const sh=p.scoreH!==undefined?p.scoreH:'?', sa=p.scoreA!==undefined?p.scoreA:'?';
+      pickHtml=`<span class="ppick-score">⭐ ${sh} - ${sa}</span>`;
+    } else if(p.pick==='home'){
+      pickHtml=`<span class="ppick-home">▲ ${es?'LOCAL':'HOME WIN'}</span>`;
+    } else if(p.pick==='draw'){
+      pickHtml=`<span class="ppick-draw">= ${es?'EMPATE':'DRAW'}</span>`;
+    } else if(p.pick==='away'){
+      pickHtml=`<span class="ppick-away">▼ ${es?'VISITANTE':'AWAY WIN'}</span>`;
+    }
+    return `<tr>
+      <td style="color:var(--text2);width:26px;font-size:11px">${idx+1}</td>
+      <td>${homeName} <span style="color:var(--text2)">vs</span> ${awayName}</td>
+      <td>${pickHtml}</td>
+      <td style="color:var(--text2);white-space:nowrap;font-size:11px">${m.date}</td>
+    </tr>`;
+  }).join('');
+
+  wrap.style.display='block';
+  wrap.innerHTML=`<div class="pdf-preview-card">
+    <div class="pdf-prev-hdr">
+      <div class="pdf-prev-hdr-title">⚽ PICK26 · ${roundLabel}</div>
+      <div class="pdf-prev-hdr-sub">World Cup 2026 · ${es?'Recibo de Predicciones':'Picks Receipt'}</div>
+    </div>
+    <div class="pdf-prev-meta">
+      <span>${es?'Jugador':'Player'}: <strong>${escapeHtml(currentUser)}</strong></span>
+      <span>${es?'Fecha':'Date'}: <strong>${dateStr}</strong></span>
+    </div>
+    <div style="overflow-x:auto"><table class="pdf-prev-tbl">
+      <thead><tr>
+        <th>#</th>
+        <th>${es?'Partido':'Match'}</th>
+        <th>${es?'Selección':'Pick'}</th>
+        <th>${es?'Fecha':'Date'}</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div class="pdf-prev-foot">Pick26 · World Cup 2026 · Predict. Choose. Win.</div>
+    <div class="pdf-prev-actions">
+      <button onclick="downloadCurrentRoundPDF()"
+        style="background:linear-gradient(135deg,rgba(52,152,219,.25),rgba(41,128,185,.15));border:1.5px solid #3498DB;color:#3498DB;font-family:'Bebas Neue';font-size:16px;letter-spacing:1px;padding:9px 22px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px">
+        📄 ${es?'Descargar PDF':'Download PDF'}
+      </button>
+      <button onclick="printCurrentRound()"
+        style="background:linear-gradient(135deg,rgba(46,204,113,.18),rgba(39,174,96,.1));border:1.5px solid #2ECC71;color:#2ECC71;font-family:'Bebas Neue';font-size:16px;letter-spacing:1px;padding:9px 22px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px">
+        🖨️ ${es?'Imprimir / Guardar':'Print / Save'}
+      </button>
+    </div>
+    <p style="font-size:10px;color:var(--text2);text-align:center;padding:0 16px 10px;margin:0"
+      data-en="On iPhone/iPad: tap Print → Save as PDF"
+      data-es="En iPhone/iPad: toca Imprimir → Guardar como PDF">
+      ${es?'En iPhone/iPad: toca Imprimir → Guardar como PDF':'On iPhone/iPad: tap Print → Save as PDF'}
+    </p>
+  </div>`;
+}
+
+function downloadCurrentRoundPDF(){
+  if(!currentUser) return;
+  generatePDFAllRounds(currentUser, picks, [currentRound], false);
+}
+
+function printCurrentRound(){
+  const es = currentLang==='es';
+  const roundMatches = MATCHES[currentRound]||[];
+  const roundLabel = es?'Jornada '+currentRound:'Round '+currentRound;
+  let html='<html><head><title>Pick26 — '+currentUser+' — '+roundLabel+'</title>';
+  html+='<style>body{font-family:Arial,sans-serif;margin:20px;color:#111}h1{color:#B8860B;font-size:22px;margin-bottom:4px}h2{color:#555;font-size:13px;font-weight:normal;margin-bottom:16px}h3{color:#B8860B;font-size:15px;margin:16px 0 8px;border-bottom:2px solid #D4AF37;padding-bottom:4px}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#B8860B;color:#fff;padding:6px 8px;text-align:left}td{padding:5px 8px;border-bottom:1px solid #eee}tr:nth-child(even){background:#f9f5e8}.hw{color:#27ae60;font-weight:bold}.dr{color:#2980b9;font-weight:bold}.aw{color:#c0392b;font-weight:bold}.sc{color:#B8860B;font-weight:bold}.ft{margin-top:24px;font-size:10px;color:#999;text-align:center;border-top:1px solid #ddd;padding-top:8px}@media print{body{margin:10px}}</style>';
+  html+='</head><body>';
+  html+='<h1>⚽ PICK26 — World Cup 2026</h1>';
+  html+='<h2>'+(es?'Jugador':'Player')+': '+currentUser+' &nbsp;|&nbsp; '+(es?'Fecha':'Date')+': '+new Date().toLocaleDateString()+'</h2>';
+  html+='<h3>🏆 '+roundLabel+'</h3>';
+  html+='<table><thead><tr><th>#</th><th>'+(es?'Partido':'Match')+'</th><th>'+(es?'Selección':'Pick')+'</th><th>'+(es?'Fecha/Hora':'Date/Time')+'</th></tr></thead><tbody>';
+  roundMatches.forEach((m,idx)=>{
+    const p=picks[m.id]||{};
+    const hn=customTeamNames[m.id+'_home']||m.home;
+    const an=customTeamNames[m.id+'_away']||m.away;
+    let pt='—',pc='';
+    if(m.closer||m.final){ pt=(p.scoreH??'?')+' — '+(p.scoreA??'?'); pc='sc'; }
+    else if(p.pick==='home'){ pt=es?'LOCAL':'HOME WIN'; pc='hw'; }
+    else if(p.pick==='draw'){ pt=es?'EMPATE':'DRAW'; pc='dr'; }
+    else if(p.pick==='away'){ pt=es?'VISITANTE':'AWAY WIN'; pc='aw'; }
+    html+='<tr><td>'+(idx+1)+'</td><td>'+hn+' vs '+an+'</td><td class="'+pc+'">'+pt+'</td><td>'+m.date+' '+m.time+'</td></tr>';
+  });
+  html+='</tbody></table><div class="ft">Pick26 · Developed by John Alvarado · Predict. Choose. Win.</div></body></html>';
+  const w=window.open('','_blank','width=800,height=600');
+  if(w){ w.document.write(html); w.document.close(); setTimeout(()=>w.print(),500); }
+  else showToast(es?'Permite ventanas emergentes para imprimir':'Allow popups to print','error');
 }
 
 function updateWeekBanner(){
