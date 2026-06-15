@@ -3205,6 +3205,7 @@ function syncFromFirebase(){
   // Live listener: re-render when admin approves/revokes round access for this player
   db.ref('players/'+playerKey()).on('value', function(snap){
     playerData = snap.val() || {};
+    renderRoundTabs();
     renderMatches();
     updateSubmitArea();
   });
@@ -3588,7 +3589,7 @@ function renderRoundTabs(){
     const btn = document.getElementById('rtab'+r);
     if(!btn) continue;
     const label = currentLang==='es' ? 'Jornada '+r : 'Round '+r;
-    if(r <= activeWeek){
+    if(r <= activeWeek || isApprovedForRound(r)){
       btn.textContent = label;
       btn.classList.remove('locked');
       btn.title = '';
