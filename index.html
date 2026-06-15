@@ -885,11 +885,15 @@ nav button:hover,nav button.active{
 .pdf-prev-tbl td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);vertical-align:middle}
 .pdf-prev-tbl tr:last-child td{border-bottom:none}
 .pdf-prev-tbl tr:nth-child(even) td{background:rgba(255,255,255,.02)}
-.ppick-home{color:#2ECC71;font-weight:800;font-size:11px}
-.ppick-draw{color:#3498DB;font-weight:800;font-size:11px}
-.ppick-away{color:#E74C3C;font-weight:800;font-size:11px}
-.ppick-score{color:#D4AF37;font-weight:800;font-size:13px;font-family:'Bebas Neue';letter-spacing:1px}
-.ppick-none{color:rgba(255,255,255,.2);font-size:11px}
+.prev-match-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.prev-team{font-size:12px;font-weight:600;color:var(--text)}
+.prev-team-sel{background:rgba(212,175,55,.18);border:1.5px solid #D4AF37;color:#D4AF37;font-weight:800;padding:2px 7px;border-radius:5px}
+.prev-vs{font-size:11px;color:var(--text2);padding:0 2px}
+.prev-draw-box{background:rgba(212,175,55,.18);border:1.5px solid #D4AF37;color:#D4AF37;font-weight:800;padding:2px 8px;border-radius:5px;font-size:11px}
+.prev-score-box{background:rgba(212,175,55,.18);border:1.5px solid #D4AF37;color:#D4AF37;font-weight:800;padding:2px 10px;border-radius:5px;font-family:'Bebas Neue';font-size:14px;letter-spacing:1px}
+.presult-circle{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:800;flex-shrink:0;margin-left:4px}
+.presult-win{background:rgba(46,204,113,.2);border:1.5px solid #2ECC71;color:#2ECC71}
+.presult-loss{background:rgba(231,76,60,.2);border:1.5px solid #E74C3C;color:#E74C3C}
 .pdf-prev-foot{padding:7px 16px;text-align:center;font-size:10px;color:var(--text2);border-top:1px solid rgba(212,175,55,.1);background:rgba(212,175,55,.03)}
 .pdf-prev-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:14px 16px;border-top:1px solid rgba(255,255,255,.05)}
 @media(max-width:480px){
@@ -3395,65 +3399,106 @@ function renderPDFPreview(round){
   const roundLabel = es ? 'JORNADA '+round : 'ROUND '+round;
   const dateStr = new Date().toLocaleDateString(es?'es-US':'en-US',{year:'numeric',month:'short',day:'numeric'});
 
-  const rows = roundMatches.map((m,idx)=>{
-    const p = picks[m.id]||{};
-    const homeName = escapeHtml(customTeamNames[m.id+'_home'] || displayTeamName(m.home));
-    const awayName = escapeHtml(customTeamNames[m.id+'_away'] || displayTeamName(m.away));
-    let pickHtml = `<span class="ppick-none">—</span>`;
-    if(m.closer||m.final){
-      const sh=p.scoreH!==undefined?p.scoreH:'?', sa=p.scoreA!==undefined?p.scoreA:'?';
-      pickHtml=`<span class="ppick-score">⭐ ${sh} - ${sa}</span>`;
-    } else if(p.pick==='home'){
-      pickHtml=`<span class="ppick-home">▲ ${es?'LOCAL':'HOME WIN'}</span>`;
-    } else if(p.pick==='draw'){
-      pickHtml=`<span class="ppick-draw">= ${es?'EMPATE':'DRAW'}</span>`;
-    } else if(p.pick==='away'){
-      pickHtml=`<span class="ppick-away">▼ ${es?'VISITANTE':'AWAY WIN'}</span>`;
-    }
-    return `<tr>
-      <td style="color:var(--text2);width:26px;font-size:11px">${idx+1}</td>
-      <td>${homeName} <span style="color:var(--text2)">vs</span> ${awayName}</td>
-      <td>${pickHtml}</td>
-      <td style="color:var(--text2);white-space:nowrap;font-size:11px">${m.date}</td>
-    </tr>`;
-  }).join('');
+  function buildHTML(resultsSnap){
+    const resultsData = resultsSnap ? resultsSnap.val() : {};
 
-  wrap.style.display='block';
-  wrap.innerHTML=`<div class="pdf-preview-card">
-    <div class="pdf-prev-hdr">
-      <div class="pdf-prev-hdr-title">⚽ PICK26 · ${roundLabel}</div>
-      <div class="pdf-prev-hdr-sub">World Cup 2026 · ${es?'Recibo de Predicciones':'Picks Receipt'}</div>
-    </div>
-    <div class="pdf-prev-meta">
-      <span>${es?'Jugador':'Player'}: <strong>${escapeHtml(currentUser)}</strong></span>
-      <span>${es?'Fecha':'Date'}: <strong>${dateStr}</strong></span>
-    </div>
-    <div style="overflow-x:auto"><table class="pdf-prev-tbl">
-      <thead><tr>
-        <th>#</th>
-        <th>${es?'Partido':'Match'}</th>
-        <th>${es?'Selección':'Pick'}</th>
-        <th>${es?'Fecha':'Date'}</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>
-    <div class="pdf-prev-foot">Pick26 · World Cup 2026 · Predict. Choose. Win.</div>
-    <div class="pdf-prev-actions">
-      <button onclick="downloadCurrentRoundPDF()"
-        style="background:linear-gradient(135deg,rgba(52,152,219,.25),rgba(41,128,185,.15));border:1.5px solid #3498DB;color:#3498DB;font-family:'Bebas Neue';font-size:16px;letter-spacing:1px;padding:9px 22px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px">
-        📄 ${es?'Descargar PDF':'Download PDF'}
-      </button>
-      <button onclick="printCurrentRound()"
-        style="background:linear-gradient(135deg,rgba(46,204,113,.18),rgba(39,174,96,.1));border:1.5px solid #2ECC71;color:#2ECC71;font-family:'Bebas Neue';font-size:16px;letter-spacing:1px;padding:9px 22px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px">
-        🖨️ ${es?'Imprimir / Guardar':'Print / Save'}
-      </button>
-    </div>
-    <p style="font-size:10px;color:var(--text2);text-align:center;padding:0 16px 10px;margin:0"
-      data-en="On iPhone/iPad: tap Print → Save as PDF"
-      data-es="En iPhone/iPad: toca Imprimir → Guardar como PDF">
-      ${es?'En iPhone/iPad: toca Imprimir → Guardar como PDF':'On iPhone/iPad: tap Print → Save as PDF'}
-    </p>
-  </div>`;
+    const rows = roundMatches.map((m,idx)=>{
+      const p = picks[m.id]||{};
+      const homeName = escapeHtml(customTeamNames[m.id+'_home'] || displayTeamName(m.home));
+      const awayName = escapeHtml(customTeamNames[m.id+'_away'] || displayTeamName(m.away));
+
+      // Build match cell
+      let matchHtml;
+      if(m.closer||m.final){
+        const sh = p.scoreH!==undefined ? p.scoreH : '?';
+        const sa = p.scoreA!==undefined ? p.scoreA : '?';
+        matchHtml = `<div class="prev-match-row">
+          <span class="prev-team">${homeName}</span>
+          <span class="prev-score-box">${sh} - ${sa}</span>
+          <span class="prev-team">${awayName}</span>
+        </div>`;
+      } else if(p.pick==='draw'){
+        matchHtml = `<div class="prev-match-row">
+          <span class="prev-team">${homeName}</span>
+          <span class="prev-draw-box">${es?'EMPATE':'DRAW'}</span>
+          <span class="prev-team">${awayName}</span>
+        </div>`;
+      } else {
+        const homeClass = p.pick==='home' ? 'prev-team prev-team-sel' : 'prev-team';
+        const awayClass = p.pick==='away' ? 'prev-team prev-team-sel' : 'prev-team';
+        matchHtml = `<div class="prev-match-row">
+          <span class="${homeClass}">${homeName}</span>
+          <span class="prev-vs">vs</span>
+          <span class="${awayClass}">${awayName}</span>
+        </div>`;
+      }
+
+      // Build result indicator for Date cell
+      let resultCircle = '';
+      const res = resultsData && resultsData[m.id];
+      if(res && res.scoreH !== undefined && res.scoreA !== undefined){
+        let correct = false;
+        if(m.closer||m.final){
+          correct = scoreMatch(m, p, res) > 0;
+        } else {
+          correct = pickMatchesResult(p.pick, res);
+        }
+        if(p.pick || (m.closer||m.final)){
+          resultCircle = correct
+            ? `<span class="presult-circle presult-win">✓</span>`
+            : `<span class="presult-circle presult-loss">✗</span>`;
+        }
+      }
+
+      return `<tr>
+        <td style="color:var(--text2);width:26px;font-size:11px">${idx+1}</td>
+        <td>${matchHtml}</td>
+        <td style="color:var(--text2);white-space:nowrap;font-size:11px">${m.date}${resultCircle}</td>
+      </tr>`;
+    }).join('');
+
+    wrap.style.display='block';
+    wrap.innerHTML=`<div class="pdf-preview-card">
+      <div class="pdf-prev-hdr">
+        <div class="pdf-prev-hdr-title">⚽ PICK26 · ${roundLabel}</div>
+        <div class="pdf-prev-hdr-sub">World Cup 2026 · ${es?'Recibo de Predicciones':'Picks Receipt'}</div>
+      </div>
+      <div class="pdf-prev-meta">
+        <span>${es?'Jugador':'Player'}: <strong>${escapeHtml(currentUser)}</strong></span>
+        <span>${es?'Fecha':'Date'}: <strong>${dateStr}</strong></span>
+      </div>
+      <div style="overflow-x:auto"><table class="pdf-prev-tbl">
+        <thead><tr>
+          <th>#</th>
+          <th>${es?'Partido':'Match'}</th>
+          <th>${es?'Fecha':'Date'}</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+      <div class="pdf-prev-foot">Pick26 · World Cup 2026 · Predict. Choose. Win.</div>
+      <div class="pdf-prev-actions">
+        <button onclick="downloadCurrentRoundPDF()"
+          style="background:linear-gradient(135deg,rgba(52,152,219,.25),rgba(41,128,185,.15));border:1.5px solid #3498DB;color:#3498DB;font-family:'Bebas Neue';font-size:16px;letter-spacing:1px;padding:9px 22px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px">
+          📄 ${es?'Descargar PDF':'Download PDF'}
+        </button>
+        <button onclick="printCurrentRound()"
+          style="background:linear-gradient(135deg,rgba(46,204,113,.18),rgba(39,174,96,.1));border:1.5px solid #2ECC71;color:#2ECC71;font-family:'Bebas Neue';font-size:16px;letter-spacing:1px;padding:9px 22px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px">
+          🖨️ ${es?'Imprimir / Guardar':'Print / Save'}
+        </button>
+      </div>
+      <p style="font-size:10px;color:var(--text2);text-align:center;padding:0 16px 10px;margin:0"
+        data-en="On iPhone/iPad: tap Print → Save as PDF"
+        data-es="En iPhone/iPad: toca Imprimir → Guardar como PDF">
+        ${es?'En iPhone/iPad: toca Imprimir → Guardar como PDF':'On iPhone/iPad: tap Print → Save as PDF'}
+      </p>
+    </div>`;
+  }
+
+  if(typeof db !== 'undefined'){
+    db.ref('results').once('value').then(buildHTML).catch(()=>buildHTML(null));
+  } else {
+    buildHTML(null);
+  }
 }
 
 function downloadCurrentRoundPDF(){
