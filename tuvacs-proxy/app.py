@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import hmac, hashlib, time, json, os, threading
+import hmac, hashlib, time, json, os, threading, uuid
 from collections import deque
 from datetime import datetime, timezone
 import requests
@@ -49,15 +49,43 @@ STATUS_LABELS = {
     "fault":       "FALLA ACTIVA",
 }
 
-# ── Historial de eventos en memoria (últimos 200) ─────────────────────────────
+# ── Estado compartido en memoria ──────────────────────────────────────────────
 event_log = deque(maxlen=200)
-_log_lock  = threading.Lock()
+alerts    = deque(maxlen=100)   # alertas activas (no reconocidas)
+_log_lock = threading.Lock()
+
+# Monitor de fondo
+_monitor = {
+    "running":      False,
+    "interval":     30,          # segundos entre checks
+    "last_check":   None,
+    "last_bitmap":  None,        # bitmap anterior para detectar cambios
+    "last_status":  None,        # estado anterior del robot
+    "thread":       None,
+    "checks_total": 0,
+    "faults_found": 0,
+}
+_monitor_lock = threading.Lock()
 
 def log_event(kind, payload):
     entry = {"ts": datetime.now(timezone.utc).isoformat(), "kind": kind, **payload}
     with _log_lock:
         event_log.appendleft(entry)
     return entry
+
+def add_alert(level, code, description, details=None):
+    alert = {
+        "id":          str(uuid.uuid4())[:8],
+        "ts":          datetime.now(timezone.utc).isoformat(),
+        "level":       level,   # "critico" | "advertencia" | "info"
+        "code":        code,
+        "descripcion": description,
+        "detalles":    details or {},
+        "ack":         False,
+    }
+    with _log_lock:
+        alerts.appendleft(alert)
+    return alert
 
 # ── Auth / firma Tuya ─────────────────────────────────────────────────────────
 token_cache = {"token": None, "expires": 0}
@@ -133,6 +161,83 @@ def assess_ai_perception(dps: dict) -> dict:
             "navegacion": "OK" if not (bitmap & (1 << 11)) else "FALLA",
         },
     }
+
+# ── Monitor de fondo ──────────────────────────────────────────────────────────
+
+FAULT_LEVEL = {
+    "mecanico":      "critico",
+    "sensor":        "critico",
+    "ai_percepcion": "critico",
+    "energia":       "advertencia",
+    "mantenimiento": "advertencia",
+}
+
+def _monitor_loop():
+    while True:
+        with _monitor_lock:
+            if not _monitor["running"]:
+                break
+            interval = _monitor["interval"]
+
+        try:
+            raw = tuya_request("GET", f"/v1.0/devices/{DEVICE_ID}/status")
+            if raw.get("success"):
+                dps     = parse_dps(raw.get("result", []))
+                bitmap  = dps.get("fault", 0)
+                status  = dps.get("status", "")
+                battery = dps.get("battery_percentage")
+
+                with _monitor_lock:
+                    prev_bitmap = _monitor["last_bitmap"]
+                    prev_status = _monitor["last_status"]
+                    _monitor["last_check"]  = datetime.now(timezone.utc).isoformat()
+                    _monitor["last_bitmap"] = bitmap
+                    _monitor["last_status"] = status
+                    _monitor["checks_total"] += 1
+
+                # Fallas nuevas (bits que antes no estaban)
+                if prev_bitmap is not None:
+                    new_bits = bitmap & ~prev_bitmap
+                    gone_bits = prev_bitmap & ~bitmap
+                else:
+                    new_bits  = bitmap
+                    gone_bits = 0
+
+                for bit, (code, desc, cat) in FAULT_CODES.items():
+                    if new_bits & (1 << bit):
+                        level = FAULT_LEVEL.get(cat, "advertencia")
+                        add_alert(level, code, desc, {"categoria": cat, "bit": bit})
+                        log_event("falla_nueva", {"code": code, "categoria": cat, "bitmap": bitmap})
+                        with _monitor_lock:
+                            _monitor["faults_found"] += 1
+
+                    elif gone_bits & (1 << bit):
+                        log_event("falla_resuelta", {"code": code, "bitmap": bitmap})
+
+                # Cambio de estado relevante
+                if prev_status is not None and status != prev_status:
+                    log_event("cambio_estado", {"de": prev_status, "a": status, "bateria": battery})
+                    if status == "fault":
+                        add_alert("critico", "estado_fault",
+                                  "El robot entró en estado de FALLA",
+                                  {"estado_anterior": prev_status})
+
+                # Batería baja
+                if battery is not None and battery <= 15:
+                    # Solo alertar una vez (si no hay alerta pendiente)
+                    with _log_lock:
+                        ya_alerta = any(
+                            a["code"] == "bateria_baja" and not a["ack"]
+                            for a in alerts
+                        )
+                    if not ya_alerta:
+                        add_alert("advertencia", "bateria_baja",
+                                  f"Batería baja: {battery}%", {"bateria": battery})
+
+        except Exception as e:
+            log_event("error_monitor", {"msg": str(e)})
+
+        time.sleep(interval)
 
 # ── Routes base ───────────────────────────────────────────────────────────────
 
@@ -298,6 +403,79 @@ def command():
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# ── Monitor endpoints ─────────────────────────────────────────────────────────
+
+@app.route("/monitor/start", methods=["POST"])
+def monitor_start():
+    """Inicia el monitor de fondo. Body opcional: {"interval": 30}"""
+    with _monitor_lock:
+        if _monitor["running"]:
+            return jsonify({"ok": False, "error": "Monitor ya está corriendo",
+                            "interval": _monitor["interval"]}), 409
+        body = request.get_json(silent=True) or {}
+        interval = int(body.get("interval", _monitor["interval"]))
+        if interval < 5:
+            return jsonify({"error": "Intervalo mínimo: 5 segundos"}), 400
+        _monitor["running"]  = True
+        _monitor["interval"] = interval
+        t = threading.Thread(target=_monitor_loop, daemon=True)
+        _monitor["thread"] = t
+        t.start()
+    log_event("monitor_inicio", {"interval": interval})
+    return jsonify({"ok": True, "interval": interval, "msg": f"Monitor iniciado cada {interval}s"})
+
+@app.route("/monitor/stop", methods=["POST"])
+def monitor_stop():
+    """Detiene el monitor de fondo."""
+    with _monitor_lock:
+        if not _monitor["running"]:
+            return jsonify({"ok": False, "error": "Monitor no estaba corriendo"}), 409
+        _monitor["running"] = False
+    log_event("monitor_parada", {})
+    return jsonify({"ok": True, "msg": "Monitor detenido"})
+
+@app.route("/monitor/status")
+def monitor_status():
+    """Estado actual del monitor y estadísticas."""
+    with _monitor_lock:
+        snap = {k: v for k, v in _monitor.items() if k != "thread"}
+        snap["thread_vivo"] = _monitor["thread"].is_alive() if _monitor["thread"] else False
+    with _log_lock:
+        pending_alerts = sum(1 for a in alerts if not a["ack"])
+    snap["alertas_pendientes"] = pending_alerts
+    return jsonify(snap)
+
+# ── Alertas endpoints ─────────────────────────────────────────────────────────
+
+@app.route("/alerts")
+def get_alerts():
+    """Lista de alertas. ?ack=false para solo las pendientes."""
+    only_pending = request.args.get("ack", "false").lower() == "false"
+    with _log_lock:
+        result = [a for a in alerts if not a["ack"]] if only_pending else list(alerts)
+    return jsonify({"total": len(result), "alertas": result})
+
+@app.route("/alerts/<alert_id>/ack", methods=["POST"])
+def ack_alert(alert_id):
+    """Reconoce (marca como revisada) una alerta por su ID."""
+    with _log_lock:
+        for a in alerts:
+            if a["id"] == alert_id:
+                a["ack"] = True
+                return jsonify({"ok": True, "alerta": a})
+    return jsonify({"error": f"Alerta '{alert_id}' no encontrada"}), 404
+
+@app.route("/alerts/ack-all", methods=["POST"])
+def ack_all_alerts():
+    """Reconoce todas las alertas pendientes."""
+    count = 0
+    with _log_lock:
+        for a in alerts:
+            if not a["ack"]:
+                a["ack"] = True
+                count += 1
+    return jsonify({"ok": True, "reconocidas": count})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8765))
