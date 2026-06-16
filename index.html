@@ -894,6 +894,28 @@ nav button:hover,nav button.active{
 
 .pdf-prev-foot{padding:7px 16px;text-align:center;font-size:10px;color:var(--text2);border-top:1px solid rgba(212,175,55,.1);background:rgba(212,175,55,.03)}
 .pdf-prev-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:14px 16px;border-top:1px solid rgba(255,255,255,.05)}
+/* ── ADMIN PDF FLOAT ─────────────────────────────────── */
+#adminPdfBtn{position:fixed;bottom:24px;right:24px;z-index:300;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;cursor:pointer;box-shadow:0 4px 18px rgba(212,175,55,.45);display:none;align-items:center;justify-content:center;font-size:24px;transition:.2s}
+#adminPdfBtn:hover{transform:scale(1.1);box-shadow:0 6px 24px rgba(212,175,55,.6)}
+.apdf-modal{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px}
+.apdf-modal.open{display:flex}
+.apdf-modal-box{background:linear-gradient(160deg,#0c0c08,#1a1400);border:1.5px solid rgba(212,175,55,.35);border-radius:14px;width:100%;max-width:460px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column}
+.apdf-modal-hdr{background:linear-gradient(135deg,#7a5500,#D4AF37,#7a5500);padding:13px 16px;display:flex;align-items:center;justify-content:space-between}
+.apdf-modal-hdr h3{margin:0;font-family:'Bebas Neue';font-size:20px;color:#000;letter-spacing:2px}
+.apdf-modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:#000;opacity:.7;line-height:1;padding:0 4px}
+.apdf-modal-body{overflow-y:auto;padding:12px;flex:1}
+.apdf-player-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:.15s;border:1px solid transparent}
+.apdf-player-item:hover{background:rgba(212,175,55,.1);border-color:rgba(212,175,55,.25)}
+.apdf-player-avatar{width:34px;height:34px;border-radius:50%;background:rgba(212,175,55,.15);border:1.5px solid rgba(212,175,55,.3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.apdf-player-name{font-size:14px;font-weight:600;color:var(--text);flex:1}
+.apdf-player-rounds{font-size:11px;color:var(--gold);font-weight:600}
+/* viewer modal */
+.apdf-viewer-box{max-width:540px}
+.apdf-viewer-body{padding:0;overflow-y:auto;flex:1}
+.apdf-round-tab-bar{display:flex;gap:6px;padding:10px 12px;flex-wrap:wrap;border-bottom:1px solid rgba(212,175,55,.12)}
+.apdf-rtab{background:rgba(255,255,255,.05);border:1.5px solid #444;color:var(--text2);font-size:12px;font-weight:700;padding:4px 14px;border-radius:20px;cursor:pointer;transition:.15s}
+.apdf-rtab.active,.apdf-rtab:hover{background:rgba(212,175,55,.2);border-color:var(--gold);color:var(--gold)}
+.apdf-viewer-content{padding:4px 0}
 .pending-pay-msg{text-align:center;padding:40px 20px;color:var(--text2)}
 .pending-pay-msg .ppm-icon{font-size:48px;margin-bottom:12px}
 .pending-pay-msg h3{color:var(--gold);font-family:'Bebas Neue';font-size:24px;letter-spacing:2px;margin:0 0 8px}
@@ -1457,6 +1479,39 @@ nav button:hover,nav button.active{
         </div>
       </div>
     </section>
+
+    <!-- ── Admin floating PDF button ── -->
+    <button id="adminPdfBtn" title="Ver Picks de Jugadores" onclick="openAdminPlayerList()">📋</button>
+
+    <!-- ── Modal: player list ── -->
+    <div id="adminPlayerListModal" class="apdf-modal" onclick="if(event.target===this)closeAdminPlayerList()">
+      <div class="apdf-modal-box">
+        <div class="apdf-modal-hdr">
+          <h3>📋 PICKS POR JUGADOR</h3>
+          <button class="apdf-modal-close" onclick="closeAdminPlayerList()">✕</button>
+        </div>
+        <div class="apdf-modal-body" id="adminPlayerListBody">
+          <p style="color:var(--text2);font-size:13px;text-align:center;padding:20px">Cargando...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Modal: PDF viewer ── -->
+    <div id="adminPickViewer" class="apdf-modal" onclick="if(event.target===this)closeAdminPickViewer()">
+      <div class="apdf-modal-box apdf-viewer-box">
+        <div class="apdf-modal-hdr">
+          <h3 id="adminPickViewerTitle">PICKS</h3>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button onclick="adminDownloadPlayerPDF()" style="background:rgba(0,0,0,.2);border:1px solid rgba(0,0,0,.3);color:#000;font-size:12px;font-weight:700;padding:3px 10px;border-radius:6px;cursor:pointer">⬇ PDF</button>
+            <button class="apdf-modal-close" onclick="closeAdminPickViewer()">✕</button>
+          </div>
+        </div>
+        <div class="apdf-round-tab-bar" id="adminPickRoundTabs"></div>
+        <div class="apdf-viewer-body">
+          <div class="apdf-viewer-content" id="adminPickViewerContent"></div>
+        </div>
+      </div>
+    </div>
 
   </main>
   <footer>Pick26 · Developed by John Alvarado · Predict. Choose. Win.</footer>
@@ -4305,11 +4360,17 @@ function grantAdminUI(){
   renderEditMatches();
   _newPlayerCount = 0;
   updateAdminBadge();
+  const fab = document.getElementById('adminPdfBtn');
+  if(fab) fab.style.display = 'flex';
   showToast(t('Acceso de administrador concedido 🔓','Admin access granted 🔓'),'success');
 }
 
 function adminLogout(){
   adminLoggedIn = false;
+  const fab = document.getElementById('adminPdfBtn');
+  if(fab) fab.style.display = 'none';
+  closeAdminPlayerList();
+  closeAdminPickViewer();
   // Detach live player listener
   if(_adminPlayersListener && db){
     db.ref('players').off('value', _adminPlayersListener);
@@ -4723,6 +4784,146 @@ function renderAdminPlayers(){
     cont.innerHTML=`<p style="color:var(--text2);font-size:13px">${t('Conectando...','Connecting...')} <button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ ${t('Reintentar','Retry')}</button></p>`;
     setTimeout(function(){ if(db) renderAdminPlayers(); }, 2000);
   }
+}
+
+// ══════════════════════════════════════════════════════
+//  ADMIN PDF VIEWER
+// ══════════════════════════════════════════════════════
+let _adminViewerPlayer = null; // {key, name, picks, submittedRounds}
+let _adminViewerRound  = 1;
+
+function openAdminPlayerList(){
+  if(!adminLoggedIn) return;
+  document.getElementById('adminPlayerListModal').classList.add('open');
+  const body = document.getElementById('adminPlayerListBody');
+  body.innerHTML = '<p style="color:var(--text2);font-size:13px;text-align:center;padding:20px">Cargando...</p>';
+  if(!db) return;
+  Promise.all([
+    db.ref('players').once('value'),
+    db.ref('picks').once('value')
+  ]).then(function([pSnap, pickSnap]){
+    const players = pSnap.val() || {};
+    const allPicks = pickSnap.val() || {};
+    const entries = Object.entries(players).filter(([,p])=>p&&p.name).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''));
+    if(!entries.length){ body.innerHTML='<p style="color:var(--text2);font-size:13px;text-align:center;padding:20px">No hay jugadores.</p>'; return; }
+    body.innerHTML = entries.map(([key, player])=>{
+      const pd = allPicks[key] || {};
+      const sr = pd.submittedRounds || player.submittedRounds || {};
+      const submitted = Object.keys(sr).filter(r=>sr[r]||sr[String(r)]);
+      const roundBadge = submitted.length
+        ? submitted.map(r=>'J'+r).join(' · ')
+        : '<span style="color:rgba(255,255,255,.3)">Sin envíos</span>';
+      return `<div class="apdf-player-item" onclick="openAdminPickViewer('${escapeHtml(key)}','${escapeHtml(player.name||key)}')">
+        <div class="apdf-player-avatar">⚽</div>
+        <span class="apdf-player-name">${escapeHtml(player.name||key)}</span>
+        <span class="apdf-player-rounds">${roundBadge}</span>
+      </div>`;
+    }).join('');
+  }).catch(function(){
+    body.innerHTML='<p style="color:var(--red);font-size:13px;text-align:center;padding:20px">⚠️ Error cargando jugadores.</p>';
+  });
+}
+
+function closeAdminPlayerList(){
+  document.getElementById('adminPlayerListModal').classList.remove('open');
+}
+
+function openAdminPickViewer(key, name){
+  closeAdminPlayerList();
+  if(!db) return;
+  db.ref('picks/'+key).once('value').then(function(snap){
+    const data = snap.val() || {};
+    _adminViewerPlayer = { key, name, picks: data.picks || {}, submittedRounds: data.submittedRounds || {} };
+    // Determine which rounds have been submitted
+    const sr = _adminViewerPlayer.submittedRounds;
+    const submitted = [1,2,3,4,5,6,7].filter(r=>sr[r]||sr[String(r)]);
+    if(!submitted.length){
+      // Still show round 1 even if not submitted
+      submitted.push(1);
+    }
+    _adminViewerRound = submitted[0];
+    document.getElementById('adminPickViewerTitle').textContent = (name||key).toUpperCase();
+    renderAdminPickRoundTabs(submitted);
+    renderAdminPickViewerContent();
+    document.getElementById('adminPickViewer').classList.add('open');
+  }).catch(function(){
+    showToast('Error cargando picks del jugador','error');
+  });
+}
+
+function closeAdminPickViewer(){
+  document.getElementById('adminPickViewer').classList.remove('open');
+  _adminViewerPlayer = null;
+}
+
+function renderAdminPickRoundTabs(submitted){
+  const bar = document.getElementById('adminPickRoundTabs');
+  bar.innerHTML = submitted.map(r=>`
+    <button class="apdf-rtab${r===_adminViewerRound?' active':''}" onclick="adminPickSetRound(${r})">
+      ${currentLang==='es'?'Jornada ':'Round '}${r}
+    </button>`).join('');
+}
+
+function adminPickSetRound(r){
+  _adminViewerRound = r;
+  const sr = _adminViewerPlayer.submittedRounds;
+  const submitted = [1,2,3,4,5,6,7].filter(r=>sr[r]||sr[String(r)]);
+  if(!submitted.length) submitted.push(1);
+  renderAdminPickRoundTabs(submitted);
+  renderAdminPickViewerContent();
+}
+
+function renderAdminPickViewerContent(){
+  const cont = document.getElementById('adminPickViewerContent');
+  if(!_adminViewerPlayer){ cont.innerHTML=''; return; }
+  const es = currentLang==='es';
+  const round = _adminViewerRound;
+  const roundMatches = MATCHES[round] || [];
+  const p = _adminViewerPlayer;
+  const sr = p.submittedRounds;
+  const isSubmitted = !!(sr[round]||sr[String(round)]);
+
+  const rows = roundMatches.map((m,idx)=>{
+    const pick = p.picks[m.id] || {};
+    const homeName = escapeHtml(customTeamNames[m.id+'_home'] || displayTeamName(m.home));
+    const awayName = escapeHtml(customTeamNames[m.id+'_away'] || displayTeamName(m.away));
+    let matchHtml;
+    if(m.closer||m.final){
+      const sh = pick.scoreH!==undefined?pick.scoreH:'—';
+      const sa = pick.scoreA!==undefined?pick.scoreA:'—';
+      matchHtml=`<div class="prev-match-row"><span class="prev-team">${homeName}</span><span class="prev-score-box">${sh} - ${sa}</span><span class="prev-team">${awayName}</span></div>`;
+    } else if(pick.pick==='draw'){
+      matchHtml=`<div class="prev-match-row"><span class="prev-team">${homeName}</span><span class="prev-draw-box">${es?'EMPATE':'DRAW'}</span><span class="prev-team">${awayName}</span></div>`;
+    } else {
+      const hc=pick.pick==='home'?'prev-team prev-team-sel':'prev-team';
+      const ac=pick.pick==='away'?'prev-team prev-team-sel':'prev-team';
+      matchHtml=`<div class="prev-match-row"><span class="${hc}">${homeName}</span><span class="prev-vs">vs</span><span class="${ac}">${awayName}</span></div>`;
+    }
+    return `<tr><td style="color:var(--text2);width:26px;font-size:11px">${idx+1}</td><td>${matchHtml}</td></tr>`;
+  }).join('');
+
+  const statusBadge = isSubmitted
+    ? `<span style="background:rgba(46,204,113,.2);border:1px solid #2ECC71;color:#2ECC71;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px">✅ ${es?'Enviado':'Submitted'}</span>`
+    : `<span style="background:rgba(255,255,255,.08);border:1px solid #555;color:var(--text2);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px">${es?'No enviado':'Not submitted'}</span>`;
+
+  cont.innerHTML=`<div class="pdf-preview-card" style="border:none;border-radius:0">
+    <div class="pdf-prev-meta" style="border-top:1px solid rgba(212,175,55,.08)">
+      <span>${es?'Jugador':'Player'}: <strong style="color:var(--gold)">${escapeHtml(p.name)}</strong></span>
+      <span>${es?'Jornada':'Round'} ${round} ${statusBadge}</span>
+    </div>
+    <div style="overflow-x:auto"><table class="pdf-prev-tbl">
+      <thead><tr><th>#</th><th>${es?'Partido':'Match'}</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div class="pdf-prev-foot">Pick26 · World Cup 2026</div>
+  </div>`;
+}
+
+function adminDownloadPlayerPDF(){
+  if(!_adminViewerPlayer||!adminLoggedIn) return;
+  const sr = _adminViewerPlayer.submittedRounds;
+  const submitted = [1,2,3,4,5,6,7].filter(r=>sr[r]||sr[String(r)]);
+  generatePDFAllRounds(_adminViewerPlayer.name, _adminViewerPlayer.picks, submitted.length?submitted:[_adminViewerRound], true);
 }
 
 function renderRoundPayments(){
