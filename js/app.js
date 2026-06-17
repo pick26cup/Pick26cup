@@ -31,7 +31,23 @@ const DEFAULT_STATE = {
     autoSpeak: false,
     streakReminders: true
   },
-  avatar: '👤'
+  avatar: '👤',
+  coins: 0,
+  coinTransactions: [],
+  dailyChallengeProgress: null,
+  storiesCompleted: [],
+  storyChoices: {},
+  pronunciationScores: {},
+  specializationProgress: {},
+  gamesHistory: [],
+  tournamentData: {},
+  certificates: [],
+  activityHeatmap: {},
+  shopItems: [],
+  streakFreezeActive: false,
+  xpBoostUntil: 0,
+  hearts: 5,
+  activeTheme: 'default'
 };
 
 let state = loadState();
@@ -124,7 +140,8 @@ function showView(view, subMode) {
     auth: 'view-auth',
     assessment: 'view-assessment',
     app: 'view-app',
-    lesson: 'view-lesson-active'
+    lesson: 'view-lesson-active',
+    story: 'view-story'
   };
 
   const el = document.getElementById(map[view] || `view-${view}`);
@@ -319,6 +336,21 @@ function initApp() {
   if (window.innerWidth < 768) {
     document.getElementById('menuToggle').style.display = 'flex';
   }
+
+  if (window.SmartFinMascot) {
+    SmartFinMascot.init();
+    setTimeout(() => mascotGreet(), 1200);
+  }
+
+  if (!state.firstLoginDone) {
+    state.firstLoginDone = true;
+    if (window.earnCoins) earnCoins(100, 'first_login');
+    saveState();
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
 }
 
 function renderApp() {
@@ -340,7 +372,10 @@ function showAppPage(page) {
   const titles = {
     dashboard: 'Dashboard', lessons: 'Lessons', conversation: 'AI Conversation',
     vocabulary: 'Vocabulary', progress: 'Analytics', achievements: 'Achievements',
-    leaderboard: 'Leaderboard', settings: 'Settings'
+    leaderboard: 'Leaderboard', settings: 'Settings',
+    challenges: 'Daily Challenges', stories: 'Story Mode', pronunciation: 'Pronunciation Trainer',
+    minigames: 'Mini-Games', specializations: 'Specializations', tournaments: 'Tournaments',
+    analytics: 'Analytics', certificates: 'Certificates', shop: 'Coin Shop'
   };
   document.getElementById('topbarTitle').textContent = titles[page] || page;
 
@@ -352,7 +387,16 @@ function showAppPage(page) {
     progress: renderProgress,
     achievements: renderAchievements,
     leaderboard: renderLeaderboard,
-    settings: renderSettings
+    settings: renderSettings,
+    challenges: () => { if (window.renderChallengesPage) renderChallengesPage(); },
+    stories: () => { if (window.renderStoriesPage) renderStoriesPage(); },
+    pronunciation: () => { if (window.renderPronunciationPage) renderPronunciationPage(); },
+    minigames: () => { if (window.renderMinigamesMenu) renderMinigamesMenu(); },
+    specializations: () => { if (window.renderSpecializationPage) renderSpecializationPage(null); },
+    tournaments: () => { if (window.renderTournamentsPage) renderTournamentsPage(); },
+    analytics: () => { if (window.renderAnalyticsPage) renderAnalyticsPage(); },
+    certificates: () => { if (window.renderCertificatesPage) renderCertificatesPage(); },
+    shop: () => { if (window.renderShopPage) renderShopPage(); }
   };
   if (renderers[page]) renderers[page]();
 
@@ -1108,6 +1152,17 @@ function finishLesson() {
   state.dailyLessonsToday++;
   state.weekActivity[(new Date().getDay() + 6) % 7]++;
 
+  if (window.earnCoins) earnCoins(COIN_REWARDS ? COIN_REWARDS.lesson_complete : 10, 'lesson_complete');
+  if (window.updateActivityHeatmap) updateActivityHeatmap();
+  if (window.updateChallengeProgress) {
+    updateChallengeProgress('vocab', lessonSession.lesson.type === 'vocabulary' ? 1 : 0);
+    updateChallengeProgress('perfect', lessonSession.correctCount === lessonSession.exercises.length ? 1 : 0);
+    updateChallengeProgress('listening', lessonSession.lesson.type === 'listening' ? 1 : 0);
+    updateChallengeProgress('speaking', lessonSession.lesson.type === 'speaking' ? 1 : 0);
+  }
+  if (window.mascotReact) mascotReact('lesson_complete');
+  if (window.checkCertificateEligibility) checkCertificateEligibility();
+
   updateStreak();
   checkAchievements();
   saveState();
@@ -1122,8 +1177,10 @@ function finishLesson() {
 // GAMIFICATION
 // ============================================================
 function earnXP(amount, save = false) {
-  state.xp += amount;
-  lessonSession.xpEarned += amount;
+  let actual = amount;
+  if (state.xpBoostUntil && Date.now() < state.xpBoostUntil) actual *= 2;
+  state.xp += actual;
+  lessonSession.xpEarned += actual;
   if (save) saveState();
   updateTopBar();
 }
@@ -1222,6 +1279,8 @@ function showXPPopup(amount) {
 function updateTopBar() {
   document.getElementById('topStreak').textContent = `🔥 ${state.streak} days`;
   document.getElementById('topXP').textContent = `⚡ ${formatNumber(state.xp)} XP`;
+  const coinsEl = document.getElementById('topCoins');
+  if (coinsEl) coinsEl.textContent = `🪙 ${state.coins || 0}`;
 }
 
 function updateSidebar() {

@@ -1,0 +1,504 @@
+{
+  "modules": {
+    "aviation": {
+      "id": "aviation",
+      "title": "Aviation English",
+      "subtitle": "ICAO Level 4-6 Standard",
+      "icon": "✈️",
+      "color": "#06B6D4",
+      "gradient": "linear-gradient(135deg, #06B6D4, #3B82F6)",
+      "description": "Master ICAO-standard English for pilots, air traffic controllers, and aviation professionals. Covers phraseology, emergency procedures, and standard communications.",
+      "units": [
+        {
+          "id": "av-u1",
+          "title": "Standard Phraseology",
+          "lessons": [
+            {
+              "id": "av-u1-l1",
+              "title": "Radio Communication Basics",
+              "type": "vocabulary",
+              "xpReward": 50,
+              "vocabulary": [
+                { "word": "Roger", "translation": "Mensaje recibido y entendido", "example": "Roger, maintaining flight level 350." },
+                { "word": "Wilco", "translation": "Entendido, lo haré", "example": "Wilco, turning to heading 270." },
+                { "word": "Affirm", "translation": "Afirmativo (Sí)", "example": "Affirm, we have the ATIS information." },
+                { "word": "Negative", "translation": "No / Incorrecto", "example": "Negative, unable to climb at this time." },
+                { "word": "Stand by", "translation": "Espere", "example": "Stand by, checking the weather conditions." },
+                { "word": "Say again", "translation": "Repita", "example": "Say again your last transmission." },
+                { "word": "Correction", "translation": "Corrección", "example": "Correction, our fuel state is 5.5 hours." },
+                { "word": "Go ahead", "translation": "Adelante, transmita", "example": "Go ahead, ready to copy clearance." }
+              ]
+            },
+            {
+              "id": "av-u1-l2",
+              "title": "Departure Clearance",
+              "type": "listening",
+              "xpReward": 60,
+              "text": "Avianca 801, cleared to Miami via DOTEL departure, maintain runway heading until 3000 feet, then direct DOTEL. Climb and maintain flight level 310. Squawk 2341. Departure frequency 119.1.",
+              "questions": [
+                { "question": "What is the destination?", "options": ["Bogotá", "Miami", "New York", "Lima"], "answer": 1 },
+                { "question": "What altitude should they climb to initially?", "options": ["3000 feet", "FL310", "FL350", "5000 feet"], "answer": 0 },
+                { "question": "What is the squawk code?", "options": ["2314", "1234", "2341", "3241"], "answer": 2 },
+                { "question": "What is the departure frequency?", "options": ["119.9", "119.1", "118.1", "121.5"], "answer": 1 }
+              ]
+            },
+            {
+              "id": "av-u1-l3",
+              "title": "Emergency Communications",
+              "type": "speaking",
+              "xpReward": 80,
+              "prompts": [
+                "Mayday, Mayday, Mayday. Engine failure. Requesting immediate return to field.",
+                "Pan Pan, Pan Pan, Pan Pan. Medical emergency on board. Request priority landing.",
+                "Request immediate descent due to cabin pressure loss.",
+                "We are declaring an emergency. Low fuel state. Minimum fuel.",
+                "Request vectors to nearest suitable airport. One engine inoperative."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "av-u2",
+          "title": "Weather & Navigation",
+          "lessons": [
+            {
+              "id": "av-u2-l1",
+              "title": "Weather Reports (METAR/TAF)",
+              "type": "vocabulary",
+              "xpReward": 55,
+              "vocabulary": [
+                { "word": "CAVOK", "translation": "Cielo y visibilidad OK", "example": "Weather is CAVOK, no significant clouds." },
+                { "word": "Turbulence", "translation": "Turbulencia", "example": "Moderate turbulence reported at FL200." },
+                { "word": "Visibility", "translation": "Visibilidad", "example": "Visibility 800 meters in fog." },
+                { "word": "Thunderstorm", "translation": "Tormenta eléctrica", "example": "Thunderstorm 20 miles north of the field." },
+                { "word": "Wind shear", "translation": "Cizalladura del viento", "example": "Wind shear reported on final approach." },
+                { "word": "IMC", "translation": "Condiciones meteorológicas por instrumentos", "example": "Entering IMC, switching to instruments." }
+              ]
+            },
+            {
+              "id": "av-u2-l2",
+              "title": "Aircraft Maintenance English",
+              "type": "vocabulary",
+              "xpReward": 55,
+              "vocabulary": [
+                { "word": "Airworthiness", "translation": "Aeronavegabilidad", "example": "The aircraft must maintain its airworthiness certificate." },
+                { "word": "Snag / Defect", "translation": "Defecto / Anomalía", "example": "Technician reported a hydraulic snag." },
+                { "word": "Dispatch", "translation": "Despacho / Autorización operativa", "example": "Aircraft cleared for dispatch after inspection." },
+                { "word": "Ground run", "translation": "Prueba en tierra", "example": "Engine ground run required after maintenance." },
+                { "word": "Sign off", "translation": "Firmar / Certificar", "example": "Certifying engineer must sign off the log." },
+                { "word": "AOG", "translation": "Avión en tierra (Aircraft on Ground)", "example": "AOG situation — need parts urgently." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "medical": {
+      "id": "medical",
+      "title": "Medical English",
+      "subtitle": "Clinical & Healthcare Communication",
+      "icon": "🏥",
+      "color": "#10B981",
+      "gradient": "linear-gradient(135deg, #10B981, #06B6D4)",
+      "description": "Professional medical English for doctors, nurses, and healthcare workers. Patient communication, clinical documentation, and international medical protocols.",
+      "units": [
+        {
+          "id": "med-u1",
+          "title": "Patient Communication",
+          "lessons": [
+            {
+              "id": "med-u1-l1",
+              "title": "Taking Medical History",
+              "type": "vocabulary",
+              "xpReward": 55,
+              "vocabulary": [
+                { "word": "Chief complaint", "translation": "Motivo principal de consulta", "example": "What is your chief complaint today?" },
+                { "word": "Onset", "translation": "Inicio / Comienzo", "example": "When was the onset of your symptoms?" },
+                { "word": "Chronic", "translation": "Crónico", "example": "The patient has a chronic heart condition." },
+                { "word": "Acute", "translation": "Agudo", "example": "Acute pain in the lower abdomen." },
+                { "word": "Prognosis", "translation": "Pronóstico", "example": "The prognosis for this condition is good." },
+                { "word": "Diagnosis", "translation": "Diagnóstico", "example": "The diagnosis is type 2 diabetes." },
+                { "word": "Contraindication", "translation": "Contraindicación", "example": "Aspirin is contraindicated for children." },
+                { "word": "Dosage", "translation": "Dosis", "example": "The dosage is 500mg twice daily." }
+              ]
+            },
+            {
+              "id": "med-u1-l2",
+              "title": "Emergency Room Scenarios",
+              "type": "speaking",
+              "xpReward": 70,
+              "prompts": [
+                "Explain CPR procedure to a colleague.",
+                "Describe the symptoms of a myocardial infarction.",
+                "Inform a patient about their surgery preparation.",
+                "Report a patient's vital signs to a senior doctor.",
+                "Explain medication side effects to a patient."
+              ]
+            },
+            {
+              "id": "med-u1-l3",
+              "title": "Reading: Clinical Case Study",
+              "type": "reading",
+              "xpReward": 60,
+              "text": "A 58-year-old male patient presents to the emergency department with a chief complaint of severe chest pain radiating to the left arm, onset 2 hours ago. The patient reports diaphoresis and shortness of breath. Medical history includes hypertension and type 2 diabetes mellitus. Current medications: metformin 1000mg BD, lisinopril 10mg OD. Physical examination reveals BP 160/95, HR 98 bpm, RR 22/min, SpO2 94% on room air. ECG shows ST-elevation in leads II, III, and aVF, consistent with inferior STEMI. Patient is administered aspirin 300mg, clopidogrel 600mg, and heparin IV. Urgent catheterization laboratory activation was initiated.",
+              "questions": [
+                { "question": "What is the primary diagnosis?", "options": ["Unstable angina", "Inferior STEMI", "Pulmonary embolism", "Aortic dissection"], "answer": 1 },
+                { "question": "What does 'diaphoresis' mean?", "options": ["Difficulty breathing", "Chest tightness", "Excessive sweating", "Nausea"], "answer": 2 },
+                { "question": "What was the patient's oxygen saturation?", "options": ["88%", "96%", "94%", "99%"], "answer": 2 },
+                { "question": "Which leads showed ST-elevation?", "options": ["I, II, V1", "II, III, aVF", "V1-V4", "I, aVL"], "answer": 1 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "business": {
+      "id": "business",
+      "title": "Business English",
+      "subtitle": "Corporate & Professional Communication",
+      "icon": "💼",
+      "color": "#8B5CF6",
+      "gradient": "linear-gradient(135deg, #8B5CF6, #EC4899)",
+      "description": "Master corporate communication, negotiations, presentations, emails, and boardroom English. Essential for executives, managers, and business professionals.",
+      "units": [
+        {
+          "id": "biz-u1",
+          "title": "Professional Communication",
+          "lessons": [
+            {
+              "id": "biz-u1-l1",
+              "title": "Business Email Writing",
+              "type": "grammar",
+              "xpReward": 50,
+              "exercises": [
+                { "type": "mcq", "question": "Which opening is most formal for a cold business email?", "options": ["Hey John!", "Dear Mr. Johnson,", "Hi there,", "What's up John,"], "answer": 1 },
+                { "type": "mcq", "question": "Which closing phrase is most appropriate for a formal email?", "options": ["See ya!", "Catch you later", "Yours sincerely,", "Bye for now,"], "answer": 2 },
+                { "type": "fill", "sentence": "I ___ writing to inquire about your services.", "answer": "am", "options": ["am", "be", "is", "was"] },
+                { "type": "mcq", "question": "What does 'Please revert at your earliest convenience' mean?", "options": ["Please return the product", "Please reply when you can", "Please convert the file", "Please review the contract"], "answer": 1 }
+              ]
+            },
+            {
+              "id": "biz-u1-l2",
+              "title": "Negotiation Vocabulary",
+              "type": "vocabulary",
+              "xpReward": 60,
+              "vocabulary": [
+                { "word": "Bottom line", "translation": "Punto final / Cifra mínima", "example": "The bottom line is we need 15% discount." },
+                { "word": "Ballpark figure", "translation": "Cifra aproximada", "example": "Give me a ballpark figure for the project." },
+                { "word": "Deadlock", "translation": "Punto muerto / Bloqueo", "example": "Negotiations reached a deadlock on pricing." },
+                { "word": "Counter-offer", "translation": "Contraoferta", "example": "They rejected our offer and made a counter-offer." },
+                { "word": "Win-win", "translation": "Beneficio mutuo", "example": "Let's find a win-win solution." },
+                { "word": "Due diligence", "translation": "Debida diligencia", "example": "We need to complete due diligence before signing." },
+                { "word": "Non-disclosure agreement", "translation": "Acuerdo de confidencialidad", "example": "Please sign the NDA before we proceed." },
+                { "word": "Stakeholder", "translation": "Parte interesada / Accionista", "example": "All stakeholders must approve the merger." }
+              ]
+            },
+            {
+              "id": "biz-u1-l3",
+              "title": "Boardroom Presentations",
+              "type": "speaking",
+              "xpReward": 75,
+              "prompts": [
+                "Present your Q3 financial results to the board.",
+                "Pitch a new product idea to investors.",
+                "Handle a difficult question during a presentation.",
+                "Open a business meeting professionally.",
+                "Summarize action items at the end of a meeting."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "biz-u2",
+          "title": "Advanced Business Communication",
+          "lessons": [
+            {
+              "id": "biz-u2-l1",
+              "title": "Reading: Annual Report Analysis",
+              "type": "reading",
+              "xpReward": 65,
+              "text": "For the fiscal year ended December 31, 2025, TechCorp Inc. reported record revenues of $2.8 billion, representing a 34% year-over-year increase. Gross margin improved to 68%, driven by favorable product mix and operational efficiencies. EBITDA reached $840 million, with EBITDA margin expanding by 280 basis points to 30%. The company's cloud segment emerged as the primary growth driver, contributing 52% of total revenue, up from 38% in the prior year. Cash and cash equivalents stood at $1.2 billion, providing ample liquidity for strategic investments and potential M&A opportunities. The board of directors approved a $500 million share buyback program, reflecting confidence in the company's long-term value creation potential.",
+              "questions": [
+                { "question": "What was the revenue growth rate year-over-year?", "options": ["24%", "34%", "44%", "28%"], "answer": 1 },
+                { "question": "What does 'EBITDA' stand for in the context?", "options": ["Earnings Before Income Tax, Depreciation and Amortization", "Earnings Before Interest, Tax, Depreciation and Amortization", "Estimated Business Income, Tax, Dividends and Assets", "Executive Budget for Internal Tax and Depreciation Analysis"], "answer": 1 },
+                { "question": "What is the primary growth driver?", "options": ["Hardware segment", "Consulting services", "Cloud segment", "Licensing revenue"], "answer": 2 },
+                { "question": "What did the board approve?", "options": ["A dividend payment", "A new acquisition", "A share buyback program", "A debt issuance"], "answer": 2 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "technology": {
+      "id": "technology",
+      "title": "Tech & IT English",
+      "subtitle": "Software, DevOps & Engineering",
+      "icon": "💻",
+      "color": "#F59E0B",
+      "gradient": "linear-gradient(135deg, #F59E0B, #EF4444)",
+      "description": "Technical English for software engineers, DevOps, data scientists, and IT professionals. Code reviews, documentation, standups, and technical presentations.",
+      "units": [
+        {
+          "id": "tech-u1",
+          "title": "Software Development",
+          "lessons": [
+            {
+              "id": "tech-u1-l1",
+              "title": "Engineering Vocabulary",
+              "type": "vocabulary",
+              "xpReward": 50,
+              "vocabulary": [
+                { "word": "Refactor", "translation": "Refactorizar / Reestructurar código", "example": "We need to refactor this legacy code." },
+                { "word": "Deploy", "translation": "Desplegar", "example": "We'll deploy the new version to production tonight." },
+                { "word": "Debug", "translation": "Depurar / Encontrar errores", "example": "I'm debugging the authentication module." },
+                { "word": "Bottleneck", "translation": "Cuello de botella", "example": "The database query is the main bottleneck." },
+                { "word": "Tech debt", "translation": "Deuda técnica", "example": "We have significant tech debt in the payments module." },
+                { "word": "Standup", "translation": "Reunión diaria de pie", "example": "Share your blockers in the daily standup." },
+                { "word": "Pull request", "translation": "Solicitud de fusión de código", "example": "Please review my pull request before merging." },
+                { "word": "Agile sprint", "translation": "Sprint ágil (ciclo de desarrollo)", "example": "We'll tackle this feature in the next sprint." }
+              ]
+            },
+            {
+              "id": "tech-u1-l2",
+              "title": "Code Review Communication",
+              "type": "speaking",
+              "xpReward": 60,
+              "prompts": [
+                "Explain why you chose a microservices architecture.",
+                "Describe a recent bug you fixed and how you found it.",
+                "Propose a solution to a performance problem.",
+                "Explain the difference between REST and GraphQL APIs.",
+                "Present your team's sprint retrospective findings."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "engineering": {
+      "id": "engineering",
+      "title": "Engineering English",
+      "subtitle": "Technical & Industrial Communication",
+      "icon": "⚙️",
+      "color": "#EF4444",
+      "gradient": "linear-gradient(135deg, #EF4444, #F59E0B)",
+      "description": "Precision English for mechanical, electrical, civil, and industrial engineers. Technical documentation, project management, and international collaboration.",
+      "units": [
+        {
+          "id": "eng-u1",
+          "title": "Technical Documentation",
+          "lessons": [
+            {
+              "id": "eng-u1-l1",
+              "title": "Engineering Terminology",
+              "type": "vocabulary",
+              "xpReward": 55,
+              "vocabulary": [
+                { "word": "Tolerance", "translation": "Tolerancia", "example": "The tolerance for this component is ±0.01mm." },
+                { "word": "Load-bearing", "translation": "Estructural / Portante", "example": "This is a load-bearing wall — do not remove." },
+                { "word": "Calibration", "translation": "Calibración", "example": "Instruments require regular calibration." },
+                { "word": "Specification", "translation": "Especificación técnica", "example": "Check the technical specification sheet." },
+                { "word": "Prototype", "translation": "Prototipo", "example": "The prototype passed all stress tests." },
+                { "word": "Yield strength", "translation": "Resistencia a la tracción", "example": "Steel has a high yield strength." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "customer_service": {
+      "id": "customer_service",
+      "title": "Customer Service English",
+      "subtitle": "Call Centers & Client Relations",
+      "icon": "🎧",
+      "color": "#EC4899",
+      "gradient": "linear-gradient(135deg, #EC4899, #8B5CF6)",
+      "description": "Professional customer-facing English for call centers, helpdesks, hospitality, and retail. Handling complaints, de-escalation, and building rapport.",
+      "units": [
+        {
+          "id": "cs-u1",
+          "title": "Customer Interaction",
+          "lessons": [
+            {
+              "id": "cs-u1-l1",
+              "title": "Handling Complaints",
+              "type": "vocabulary",
+              "xpReward": 45,
+              "vocabulary": [
+                { "word": "Empathize", "translation": "Empatizar", "example": "I completely understand your frustration." },
+                { "word": "Escalate", "translation": "Escalar el caso", "example": "I'll escalate this to our specialist team." },
+                { "word": "Resolution", "translation": "Resolución", "example": "We'll work toward a satisfactory resolution." },
+                { "word": "Compensate", "translation": "Compensar", "example": "We'd like to compensate you with a full refund." },
+                { "word": "Follow up", "translation": "Dar seguimiento", "example": "I'll follow up with you within 24 hours." },
+                { "word": "Policy", "translation": "Política", "example": "Our return policy allows 30 days." }
+              ]
+            },
+            {
+              "id": "cs-u1-l2",
+              "title": "Role Play: Angry Customer",
+              "type": "speaking",
+              "xpReward": 70,
+              "prompts": [
+                "Apologize to a customer whose order arrived late.",
+                "Explain your company's refund policy clearly.",
+                "De-escalate a very angry customer on the phone.",
+                "Offer alternatives when a product is out of stock.",
+                "Close a support call professionally and positively."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "stories": [
+    {
+      "id": "story-1",
+      "title": "A Day in New York",
+      "level": "A2",
+      "coverEmoji": "🗽",
+      "coverColor": "linear-gradient(135deg, #3B82F6, #06B6D4)",
+      "description": "Follow María's first day in New York City as she navigates the city, meets new people, and discovers American culture.",
+      "xpReward": 80,
+      "scenes": [
+        {
+          "id": "s1-sc1",
+          "text": "María arrives at JFK airport. She looks for the subway.",
+          "character": "María",
+          "image": "🛬",
+          "dialogue": [
+            { "speaker": "María", "text": "Excuse me, how do I get to Manhattan?" },
+            { "speaker": "Stranger", "text": "Take the AirTrain to Jamaica, then the E train to Midtown." },
+            { "speaker": "María", "text": "How long does it take?" },
+            { "speaker": "Stranger", "text": "About 45 minutes. It's easy, don't worry!" }
+          ],
+          "question": { "text": "How does María travel to Manhattan?", "options": ["Taxi", "Bus", "Subway + AirTrain", "Uber"], "answer": 2 }
+        },
+        {
+          "id": "s1-sc2",
+          "text": "María checks into her hotel in Times Square.",
+          "character": "María",
+          "image": "🏨",
+          "dialogue": [
+            { "speaker": "Receptionist", "text": "Welcome to the Grand Hotel! Do you have a reservation?" },
+            { "speaker": "María", "text": "Yes, my name is María García. I booked a single room for three nights." },
+            { "speaker": "Receptionist", "text": "Perfect! Here's your key card. Breakfast is included from 7 to 10 AM." },
+            { "speaker": "María", "text": "Thank you very much! Is there a gym in the hotel?" }
+          ],
+          "question": { "text": "What did María book?", "options": ["Double room", "Suite", "Single room", "Twin room"], "answer": 2 }
+        },
+        {
+          "id": "s1-sc3",
+          "text": "María orders food at a New York deli.",
+          "character": "María",
+          "image": "🥪",
+          "dialogue": [
+            { "speaker": "Server", "text": "What can I get for you today?" },
+            { "speaker": "María", "text": "I'd like a turkey club sandwich, please." },
+            { "speaker": "Server", "text": "What kind of bread? We have rye, sourdough, or whole wheat." },
+            { "speaker": "María", "text": "Sourdough, please. And can I have it toasted?" },
+            { "speaker": "Server", "text": "Absolutely! Anything to drink?" }
+          ],
+          "question": { "text": "What bread does María choose?", "options": ["Rye", "Sourdough", "Whole wheat", "White"], "answer": 1 }
+        }
+      ]
+    },
+    {
+      "id": "story-2",
+      "title": "The Job Interview",
+      "level": "B1",
+      "coverEmoji": "💼",
+      "coverColor": "linear-gradient(135deg, #8B5CF6, #3B82F6)",
+      "description": "Carlos prepares for and aces a job interview at a tech company in London.",
+      "xpReward": 100,
+      "scenes": [
+        {
+          "id": "s2-sc1",
+          "text": "Carlos receives an invitation for a job interview at TechCorp London.",
+          "character": "Carlos",
+          "image": "📧",
+          "dialogue": [
+            { "speaker": "HR Email", "text": "Dear Carlos, we'd like to invite you for a Technical Interview on Tuesday at 10 AM." },
+            { "speaker": "Carlos", "text": "Dear Ms. Johnson, thank you for the opportunity. I confirm my attendance for Tuesday at 10 AM." }
+          ],
+          "question": { "text": "What time is the interview?", "options": ["9 AM", "11 AM", "10 AM", "2 PM"], "answer": 2 }
+        },
+        {
+          "id": "s2-sc2",
+          "text": "Carlos meets the interviewer.",
+          "character": "Carlos",
+          "image": "🤝",
+          "dialogue": [
+            { "speaker": "Interviewer", "text": "Good morning, Carlos. I'm Sarah, Head of Engineering. Pleasure to meet you." },
+            { "speaker": "Carlos", "text": "Good morning, Sarah. The pleasure is mine. Thank you for having me." },
+            { "speaker": "Interviewer", "text": "Tell me a bit about yourself and why you're interested in this role." },
+            { "speaker": "Carlos", "text": "I'm a full-stack developer with 5 years of experience. I'm passionate about scalable systems and I believe this role aligns perfectly with my career goals." }
+          ],
+          "question": { "text": "What is Sarah's role?", "options": ["CEO", "Head of HR", "Head of Engineering", "Product Manager"], "answer": 2 }
+        }
+      ]
+    },
+    {
+      "id": "story-3",
+      "title": "Medical Emergency",
+      "level": "B2",
+      "coverEmoji": "🚑",
+      "coverColor": "linear-gradient(135deg, #10B981, #06B6D4)",
+      "description": "Dr. Rodriguez handles a critical emergency in a US hospital, communicating with an international team.",
+      "xpReward": 120,
+      "scenes": [
+        {
+          "id": "s3-sc1",
+          "text": "A critical patient arrives at the ER.",
+          "character": "Dr. Rodriguez",
+          "image": "🏥",
+          "dialogue": [
+            { "speaker": "Paramedic", "text": "Male, 62, found unresponsive. BP 80/40, heart rate 120 and thready. Possible cardiogenic shock." },
+            { "speaker": "Dr. Rodriguez", "text": "Let's get him on the monitor. Large bore IV access, two lines. Order ECG and troponins stat." },
+            { "speaker": "Nurse", "text": "IV access established. ECG showing ST changes in anterior leads." },
+            { "speaker": "Dr. Rodriguez", "text": "Activate the cath lab. This is a STEMI. Get cardiology on the phone immediately." }
+          ],
+          "question": { "text": "What does 'stat' mean in medical English?", "options": ["Slowly", "Sometimes", "Immediately", "Standard"], "answer": 2 }
+        }
+      ]
+    }
+  ],
+  "miniGames": [
+    {
+      "id": "word-match",
+      "title": "Word Match",
+      "description": "Match English words with their translations",
+      "icon": "🎯",
+      "xpReward": 15
+    },
+    {
+      "id": "sentence-scramble",
+      "title": "Sentence Builder",
+      "description": "Arrange words to form correct sentences",
+      "icon": "🧩",
+      "xpReward": 20
+    },
+    {
+      "id": "listening-blitz",
+      "title": "Listening Blitz",
+      "description": "How many words can you identify in 60 seconds?",
+      "icon": "⚡",
+      "xpReward": 25
+    },
+    {
+      "id": "speed-vocab",
+      "title": "Speed Vocab",
+      "description": "Translate as many words as possible before time runs out",
+      "icon": "🏎️",
+      "xpReward": 20
+    }
+  ],
+  "dailyChallenges": [
+    { "id": "dc-1", "title": "5-Minute Sprint", "description": "Complete 5 exercises in under 5 minutes", "icon": "⏱️", "xpReward": 30, "coinReward": 50 },
+    { "id": "dc-2", "title": "Perfect Score", "description": "Get 100% accuracy in any lesson", "icon": "⭐", "xpReward": 40, "coinReward": 75 },
+    { "id": "dc-3", "title": "Speak Up!", "description": "Complete 3 speaking exercises today", "icon": "🎤", "xpReward": 35, "coinReward": 60 },
+    { "id": "dc-4", "title": "Word Collector", "description": "Learn 10 new vocabulary words today", "icon": "📚", "xpReward": 25, "coinReward": 40 },
+    { "id": "dc-5", "title": "Grammar Master", "description": "Complete all grammar exercises without mistakes", "icon": "✏️", "xpReward": 45, "coinReward": 80 },
+    { "id": "dc-6", "title": "AI Conversation", "description": "Have a 10-message conversation with your AI tutor", "icon": "🤖", "xpReward": 50, "coinReward": 100 }
+  ]
+}

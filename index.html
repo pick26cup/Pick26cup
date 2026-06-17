@@ -5,8 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartFin AI — Learn English with Artificial Intelligence</title>
   <meta name="description" content="The world's most advanced AI-powered English learning platform. From A1 to C2 with real-time voice recognition, personalized AI tutors, and neuroscience-based learning.">
+  <meta name="theme-color" content="#8B5CF6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SmartFin AI">
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/smartfin.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐬</text></svg>">
 </head>
 <body>
 
@@ -425,7 +430,7 @@
       </div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section-title">Learning</div>
+      <div class="nav-section-title">Core</div>
       <div class="nav-item active" onclick="showAppPage('dashboard')" data-page="dashboard">
         <span class="nav-item-icon">🏠</span> Dashboard
       </div>
@@ -438,17 +443,44 @@
       <div class="nav-item" onclick="showAppPage('vocabulary')" data-page="vocabulary">
         <span class="nav-item-icon">📝</span> Vocabulary
       </div>
-      <div class="nav-section-title">Progress</div>
-      <div class="nav-item" onclick="showAppPage('progress')" data-page="progress">
-        <span class="nav-item-icon">📊</span> Analytics
+      <div class="nav-section-title">Explore</div>
+      <div class="nav-item" onclick="showAppPage('challenges')" data-page="challenges">
+        <span class="nav-item-icon">⚡</span> Daily Challenges
       </div>
-      <div class="nav-item" onclick="showAppPage('achievements')" data-page="achievements">
-        <span class="nav-item-icon">🏆</span> Achievements
+      <div class="nav-item" onclick="showAppPage('stories')" data-page="stories">
+        <span class="nav-item-icon">📖</span> Stories
+      </div>
+      <div class="nav-item" onclick="showAppPage('pronunciation')" data-page="pronunciation">
+        <span class="nav-item-icon">🎙️</span> Pronunciation
+      </div>
+      <div class="nav-item" onclick="showAppPage('minigames')" data-page="minigames">
+        <span class="nav-item-icon">🎮</span> Mini-Games
+      </div>
+      <div class="nav-section-title">Pro Tracks</div>
+      <div class="nav-item" onclick="showAppPage('specializations')" data-page="specializations">
+        <span class="nav-item-icon">🎓</span> Specializations
+      </div>
+      <div class="nav-section-title">Community</div>
+      <div class="nav-item" onclick="showAppPage('tournaments')" data-page="tournaments">
+        <span class="nav-item-icon">🏆</span> Tournaments
       </div>
       <div class="nav-item" onclick="showAppPage('leaderboard')" data-page="leaderboard">
         <span class="nav-item-icon">🌍</span> Leaderboard
       </div>
+      <div class="nav-section-title">Progress</div>
+      <div class="nav-item" onclick="showAppPage('analytics')" data-page="analytics">
+        <span class="nav-item-icon">📊</span> Analytics
+      </div>
+      <div class="nav-item" onclick="showAppPage('achievements')" data-page="achievements">
+        <span class="nav-item-icon">🌟</span> Achievements
+      </div>
+      <div class="nav-item" onclick="showAppPage('certificates')" data-page="certificates">
+        <span class="nav-item-icon">🎖️</span> Certificates
+      </div>
       <div class="nav-section-title">Account</div>
+      <div class="nav-item" onclick="showAppPage('shop')" data-page="shop">
+        <span class="nav-item-icon">🏪</span> Shop
+      </div>
       <div class="nav-item" onclick="showAppPage('settings')" data-page="settings">
         <span class="nav-item-icon">⚙️</span> Settings
       </div>
@@ -475,6 +507,7 @@
       <div class="topbar-actions">
         <div class="streak-badge" id="topStreak">🔥 0 days</div>
         <div class="xp-badge" id="topXP">⚡ 0 XP</div>
+        <div class="coins-badge" id="topCoins">🪙 0</div>
         <button class="btn-icon" onclick="logout()">🚪</button>
       </div>
     </div>
@@ -794,6 +827,51 @@
       <div class="leaderboard-list" id="leaderboardList"></div>
     </div>
 
+    <!-- DAILY CHALLENGES PAGE -->
+    <div class="app-content" id="page-challenges">
+      <div class="page-header"><h1 class="page-title">⚡ Daily Challenges</h1></div>
+    </div>
+
+    <!-- STORIES PAGE -->
+    <div class="app-content" id="page-stories">
+      <div class="page-header"><h1 class="page-title">📖 Stories</h1></div>
+    </div>
+
+    <!-- PRONUNCIATION PAGE -->
+    <div class="app-content" id="page-pronunciation">
+      <div class="page-header"><h1 class="page-title">🎙️ Pronunciation</h1></div>
+    </div>
+
+    <!-- MINIGAMES PAGE -->
+    <div class="app-content" id="page-minigames">
+      <div class="page-header"><h1 class="page-title">🎮 Mini-Games</h1></div>
+    </div>
+
+    <!-- SPECIALIZATIONS PAGE -->
+    <div class="app-content" id="page-specializations">
+      <div class="page-header"><h1 class="page-title">🎓 Specializations</h1></div>
+    </div>
+
+    <!-- TOURNAMENTS PAGE -->
+    <div class="app-content" id="page-tournaments">
+      <div class="page-header"><h1 class="page-title">🏆 Tournaments</h1></div>
+    </div>
+
+    <!-- ANALYTICS PAGE -->
+    <div class="app-content" id="page-analytics">
+      <div class="page-header"><h1 class="page-title">📊 Analytics</h1></div>
+    </div>
+
+    <!-- CERTIFICATES PAGE -->
+    <div class="app-content" id="page-certificates">
+      <div class="page-header"><h1 class="page-title">🎖️ Certificates</h1></div>
+    </div>
+
+    <!-- SHOP PAGE -->
+    <div class="app-content" id="page-shop">
+      <div class="page-header"><h1 class="page-title">🏪 Shop</h1></div>
+    </div>
+
     <!-- SETTINGS PAGE -->
     <div class="app-content" id="page-settings">
       <h1 style="margin-bottom:24px">Settings</h1>
@@ -897,6 +975,13 @@
 </div>
 
 <!-- ============================================================
+     STORY VIEW
+============================================================ -->
+<div id="view-story" class="view">
+  <!-- Rendered dynamically by stories.js -->
+</div>
+
+<!-- ============================================================
      LESSON ACTIVE VIEW
 ============================================================ -->
 <div id="view-lesson-active" class="view">
@@ -943,6 +1028,39 @@
   </div>
 </div>
 
+<!-- Daily Challenge Reward Modal -->
+<div class="modal-overlay" id="modal-challenge-reward" onclick="this.style.display='none'">
+  <div class="modal" style="text-align:center" onclick="event.stopPropagation()">
+    <h2 id="challenge-reward-title" style="font-size:28px;margin-bottom:16px">⚡ Challenge Complete!</h2>
+    <div id="challenge-reward-body"></div>
+    <button class="btn btn-primary btn-lg btn-full" style="margin-top:24px" onclick="document.getElementById('modal-challenge-reward').style.display='none'">Claim Rewards 🎉</button>
+  </div>
+</div>
+
+<!-- Certificate Preview Modal -->
+<div class="modal-overlay" id="modal-certificate" onclick="this.style.display='none'">
+  <div class="modal" style="max-width:860px;padding:24px" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="color:#e2e8f0">Certificate Preview</h3>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary btn-sm" onclick="downloadCertificate()">⬇️ Download</button>
+        <button class="btn-icon" onclick="document.getElementById('modal-certificate').style.display='none'">✕</button>
+      </div>
+    </div>
+    <div id="cert-canvas-container" style="overflow:auto"></div>
+  </div>
+</div>
+
 <script src="js/app.js"></script>
+<script src="js/mascot.js"></script>
+<script src="js/economy.js"></script>
+<script src="js/challenges.js"></script>
+<script src="js/stories.js"></script>
+<script src="js/minigames.js"></script>
+<script src="js/pronunciation.js"></script>
+<script src="js/analytics.js"></script>
+<script src="js/certificates.js"></script>
+<script src="js/specializations.js"></script>
+<script src="js/tournaments.js"></script>
 </body>
 </html>
