@@ -171,6 +171,10 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
 .round-tab:hover,
 .round-tab.active{background:rgba(212,175,55,.2);border-color:var(--gold);color:var(--gold)}
 .round-tab.locked{opacity:.35;cursor:not-allowed;pointer-events:none;border-style:dashed}
+.round-tab.round-pending{background:rgba(231,76,60,.18);border-color:#E74C3C;color:#E74C3C;animation:pulse-red 1.6s ease-in-out infinite}
+.round-tab.round-submitted{background:rgba(231,76,60,.15);border-color:#E74C3C;color:#E74C3C}
+.round-tab.active.round-pending,.round-tab.active.round-submitted{background:rgba(212,175,55,.2);border-color:var(--gold);color:var(--gold);animation:none}
+@keyframes pulse-red{0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,0)}50%{box-shadow:0 0 0 5px rgba(231,76,60,.3)}}
 
 /* ── MATCH CARD ─────────────────────────────────────── */
 .matches-grid{display:grid;gap:12px}
@@ -3644,16 +3648,22 @@ function renderRoundTabs(){
     const btn = document.getElementById('rtab'+r);
     if(!btn) continue;
     const label = currentLang==='es' ? 'Jornada '+r : 'Round '+r;
-    if(r <= activeWeek || isApprovedForRound(r)){
+    const isApproved = r <= activeWeek || isApprovedForRound(r);
+    const isSubmitted = !!(submittedRounds[r] || submittedRounds[String(r)]);
+    btn.classList.remove('locked','round-pending','round-submitted');
+    if(isApproved){
       btn.textContent = label;
-      btn.classList.remove('locked');
       btn.title = '';
+      if(isSubmitted){
+        btn.classList.add('round-submitted');
+      } else {
+        btn.classList.add('round-pending');
+      }
     } else {
       btn.textContent = (currentLang==='es'?'Jornada ':'Round ')+r+' 🔒';
       btn.classList.add('locked');
       btn.title = currentLang==='es'?'No disponible aún':'Not available yet';
     }
-    // Keep active state
     if(r === currentRound) btn.classList.add('active');
   }
 }
