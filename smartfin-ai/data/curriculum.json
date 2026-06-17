@@ -1,0 +1,428 @@
+{
+  "levels": {
+    "A1": {
+      "name": "Beginner",
+      "description": "Basic phrases and everyday expressions",
+      "color": "#10B981",
+      "xpRequired": 0,
+      "units": [
+        {
+          "id": "a1-u1",
+          "title": "Greetings & Introductions",
+          "lessons": [
+            {
+              "id": "a1-u1-l1",
+              "title": "Hello & Goodbye",
+              "type": "vocabulary",
+              "xpReward": 20,
+              "vocabulary": [
+                { "word": "Hello", "translation": "Hola", "pronunciation": "hɛˈloʊ", "example": "Hello! My name is Sarah." },
+                { "word": "Goodbye", "translation": "Adiós", "pronunciation": "ɡʊdˈbaɪ", "example": "Goodbye! See you tomorrow." },
+                { "word": "Good morning", "translation": "Buenos días", "pronunciation": "ɡʊd ˈmɔːrnɪŋ", "example": "Good morning! How are you?" },
+                { "word": "Good afternoon", "translation": "Buenas tardes", "pronunciation": "ɡʊd ˌæftərˈnuːn", "example": "Good afternoon, everyone." },
+                { "word": "Good night", "translation": "Buenas noches", "pronunciation": "ɡʊd naɪt", "example": "Good night! Sleep well." },
+                { "word": "Thank you", "translation": "Gracias", "pronunciation": "θæŋk juː", "example": "Thank you for your help." },
+                { "word": "Please", "translation": "Por favor", "pronunciation": "pliːz", "example": "Please pass the salt." },
+                { "word": "Sorry", "translation": "Lo siento", "pronunciation": "ˈsɒri", "example": "Sorry, I don't understand." }
+              ]
+            },
+            {
+              "id": "a1-u1-l2",
+              "title": "My Name Is...",
+              "type": "speaking",
+              "xpReward": 25,
+              "prompts": [
+                "What is your name?",
+                "Where are you from?",
+                "How old are you?",
+                "What do you do?",
+                "Nice to meet you!"
+              ]
+            },
+            {
+              "id": "a1-u1-l3",
+              "title": "Basic Grammar: To Be",
+              "type": "grammar",
+              "xpReward": 20,
+              "exercises": [
+                { "type": "fill", "sentence": "I ___ a student.", "answer": "am", "options": ["am", "is", "are", "be"] },
+                { "type": "fill", "sentence": "She ___ from Mexico.", "answer": "is", "options": ["am", "is", "are", "be"] },
+                { "type": "fill", "sentence": "They ___ teachers.", "answer": "are", "options": ["am", "is", "are", "be"] },
+                { "type": "mcq", "question": "Which is correct?", "options": ["He am happy", "He is happy", "He are happy", "He be happy"], "answer": 1 },
+                { "type": "mcq", "question": "Complete: 'We ___ from Spain'", "options": ["am", "is", "are", "were"], "answer": 2 }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "a1-u2",
+          "title": "Numbers & Colors",
+          "lessons": [
+            {
+              "id": "a1-u2-l1",
+              "title": "Numbers 1-100",
+              "type": "vocabulary",
+              "xpReward": 20,
+              "vocabulary": [
+                { "word": "One", "translation": "Uno", "example": "I have one brother." },
+                { "word": "Two", "translation": "Dos", "example": "She has two cats." },
+                { "word": "Three", "translation": "Tres", "example": "There are three books." },
+                { "word": "Ten", "translation": "Diez", "example": "I need ten minutes." },
+                { "word": "Twenty", "translation": "Veinte", "example": "She is twenty years old." },
+                { "word": "Hundred", "translation": "Cien", "example": "A hundred people came." }
+              ]
+            },
+            {
+              "id": "a1-u2-l2",
+              "title": "Colors of the World",
+              "type": "vocabulary",
+              "xpReward": 20,
+              "vocabulary": [
+                { "word": "Red", "translation": "Rojo", "example": "The apple is red." },
+                { "word": "Blue", "translation": "Azul", "example": "The sky is blue." },
+                { "word": "Green", "translation": "Verde", "example": "The grass is green." },
+                { "word": "Yellow", "translation": "Amarillo", "example": "The sun is yellow." },
+                { "word": "Black", "translation": "Negro", "example": "I have a black cat." },
+                { "word": "White", "translation": "Blanco", "example": "Snow is white." }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "a1-u3",
+          "title": "Family & People",
+          "lessons": [
+            {
+              "id": "a1-u3-l1",
+              "title": "Family Members",
+              "type": "vocabulary",
+              "xpReward": 20,
+              "vocabulary": [
+                { "word": "Mother", "translation": "Madre", "example": "My mother is a doctor." },
+                { "word": "Father", "translation": "Padre", "example": "My father works in a bank." },
+                { "word": "Brother", "translation": "Hermano", "example": "I have two brothers." },
+                { "word": "Sister", "translation": "Hermana", "example": "My sister is older than me." },
+                { "word": "Grandmother", "translation": "Abuela", "example": "My grandmother makes great food." },
+                { "word": "Grandfather", "translation": "Abuelo", "example": "My grandfather is 80 years old." }
+              ]
+            },
+            {
+              "id": "a1-u3-l2",
+              "title": "Listening: Meet the Family",
+              "type": "listening",
+              "xpReward": 25,
+              "text": "My name is Maria. I have a small family. I live with my mother, father, and one sister. My sister's name is Laura. She is fifteen years old. I am eighteen. My father works at a hospital. He is a doctor. My mother teaches at a school. She is a teacher. We are a happy family.",
+              "questions": [
+                { "question": "What is the narrator's name?", "options": ["Laura", "Maria", "Ana", "Sofia"], "answer": 1 },
+                { "question": "How old is Laura?", "options": ["18", "15", "20", "12"], "answer": 1 },
+                { "question": "What does the father do?", "options": ["Teacher", "Engineer", "Doctor", "Chef"], "answer": 2 },
+                { "question": "Where does the mother work?", "options": ["Hospital", "Bank", "School", "Store"], "answer": 2 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "A2": {
+      "name": "Elementary",
+      "description": "Familiar situations and routine matters",
+      "color": "#3B82F6",
+      "xpRequired": 500,
+      "units": [
+        {
+          "id": "a2-u1",
+          "title": "Daily Routines",
+          "lessons": [
+            {
+              "id": "a2-u1-l1",
+              "title": "Morning Routines",
+              "type": "vocabulary",
+              "xpReward": 30,
+              "vocabulary": [
+                { "word": "Wake up", "translation": "Despertar", "pronunciation": "weɪk ʌp", "example": "I wake up at 7 AM." },
+                { "word": "Have breakfast", "translation": "Desayunar", "pronunciation": "hæv ˈbrekfəst", "example": "I have breakfast with my family." },
+                { "word": "Get dressed", "translation": "Vestirse", "pronunciation": "ɡɛt drɛst", "example": "I get dressed quickly." },
+                { "word": "Commute", "translation": "Viajar al trabajo", "pronunciation": "kəˈmjuːt", "example": "My commute takes 30 minutes." },
+                { "word": "Schedule", "translation": "Horario", "pronunciation": "ˈʃɛdjuːl", "example": "I have a busy schedule today." }
+              ]
+            },
+            {
+              "id": "a2-u1-l2",
+              "title": "Present Simple Tense",
+              "type": "grammar",
+              "xpReward": 30,
+              "exercises": [
+                { "type": "fill", "sentence": "She ___ (work) at Google.", "answer": "works", "options": ["work", "works", "working", "worked"] },
+                { "type": "fill", "sentence": "They ___ (not/eat) meat.", "answer": "don't eat", "options": ["don't eat", "doesn't eat", "not eat", "isn't eat"] },
+                { "type": "mcq", "question": "Which sentence is in Present Simple?", "options": ["She is working now", "She works every day", "She worked yesterday", "She will work tomorrow"], "answer": 1 },
+                { "type": "fill", "sentence": "___ he ___ (like) coffee?", "answer": "Does / like", "options": ["Does / like", "Do / likes", "Is / like", "Has / like"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "a2-u2",
+          "title": "Travel & Transport",
+          "lessons": [
+            {
+              "id": "a2-u2-l1",
+              "title": "At the Airport",
+              "type": "vocabulary",
+              "xpReward": 30,
+              "vocabulary": [
+                { "word": "Boarding pass", "translation": "Tarjeta de embarque", "example": "Please show your boarding pass." },
+                { "word": "Departure", "translation": "Salida", "example": "The departure is at gate 12." },
+                { "word": "Arrival", "translation": "Llegada", "example": "The arrival time is 3 PM." },
+                { "word": "Luggage", "translation": "Equipaje", "example": "I have two pieces of luggage." },
+                { "word": "Passport", "translation": "Pasaporte", "example": "Don't forget your passport." },
+                { "word": "Delay", "translation": "Retraso", "example": "There is a two-hour delay." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "B1": {
+      "name": "Intermediate",
+      "description": "Main points on familiar matters",
+      "color": "#8B5CF6",
+      "xpRequired": 1500,
+      "units": [
+        {
+          "id": "b1-u1",
+          "title": "Work & Career",
+          "lessons": [
+            {
+              "id": "b1-u1-l1",
+              "title": "Job Interview English",
+              "type": "vocabulary",
+              "xpReward": 40,
+              "vocabulary": [
+                { "word": "Accomplish", "translation": "Lograr", "pronunciation": "əˈkɒmplɪʃ", "example": "What did you accomplish in your last role?" },
+                { "word": "Collaborate", "translation": "Colaborar", "pronunciation": "kəˈlæbəreɪt", "example": "I collaborate well with teams." },
+                { "word": "Initiative", "translation": "Iniciativa", "pronunciation": "ɪˈnɪʃətɪv", "example": "I take initiative when needed." },
+                { "word": "Deadline", "translation": "Fecha límite", "pronunciation": "ˈdɛdlaɪn", "example": "I always meet my deadlines." },
+                { "word": "Leadership", "translation": "Liderazgo", "pronunciation": "ˈliːdəʃɪp", "example": "My leadership skills are strong." },
+                { "word": "Negotiate", "translation": "Negociar", "pronunciation": "nɪˈɡoʊʃieɪt", "example": "Can we negotiate the salary?" }
+              ]
+            },
+            {
+              "id": "b1-u1-l2",
+              "title": "Job Interview Practice",
+              "type": "speaking",
+              "xpReward": 50,
+              "prompts": [
+                "Tell me about yourself.",
+                "What are your greatest strengths?",
+                "Why do you want to work here?",
+                "Where do you see yourself in 5 years?",
+                "Describe a challenge you overcame."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b1-u2",
+          "title": "Technology & Society",
+          "lessons": [
+            {
+              "id": "b1-u2-l1",
+              "title": "Tech Vocabulary",
+              "type": "vocabulary",
+              "xpReward": 40,
+              "vocabulary": [
+                { "word": "Algorithm", "translation": "Algoritmo", "pronunciation": "ˈælɡərɪðəm", "example": "Social media uses algorithms to show content." },
+                { "word": "Artificial Intelligence", "translation": "Inteligencia Artificial", "pronunciation": "ˌɑːrtɪˈfɪʃl ɪnˈtelɪdʒəns", "example": "AI is changing many industries." },
+                { "word": "Cybersecurity", "translation": "Ciberseguridad", "pronunciation": "ˌsaɪbərsɪˈkjʊərɪti", "example": "Cybersecurity is increasingly important." },
+                { "word": "Innovation", "translation": "Innovación", "pronunciation": "ˌɪnəˈveɪʃn", "example": "Innovation drives economic growth." }
+              ]
+            },
+            {
+              "id": "b1-u2-l2",
+              "title": "Reading: The Digital Age",
+              "type": "reading",
+              "xpReward": 45,
+              "text": "We live in an era of unprecedented technological change. The rise of artificial intelligence, social media, and mobile technology has fundamentally transformed how we communicate, work, and entertain ourselves. While these innovations bring tremendous benefits — connecting people across vast distances, creating new economic opportunities, and making information instantly accessible — they also present significant challenges. Privacy concerns, digital addiction, misinformation, and the potential displacement of workers by automation are issues that societies around the world are grappling with. The key question is not whether technology will change our lives, but how we can ensure that these changes benefit everyone, not just a privileged few.",
+              "questions": [
+                { "question": "What is the main topic of the text?", "options": ["Social media dangers", "Technology and its impact", "Economic inequality", "Privacy laws"], "answer": 1 },
+                { "question": "What is mentioned as a benefit of technology?", "options": ["Job creation only", "Privacy protection", "Connecting people", "Reducing automation"], "answer": 2 },
+                { "question": "What concern is NOT mentioned?", "options": ["Privacy issues", "Digital addiction", "Water pollution", "Misinformation"], "answer": 2 },
+                { "question": "What does the author say is the key question?", "options": ["Will AI replace humans?", "How technology benefits everyone", "Should we use social media?", "How fast technology changes"], "answer": 1 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "B2": {
+      "name": "Upper Intermediate",
+      "description": "Complex texts and technical discussions",
+      "color": "#F59E0B",
+      "xpRequired": 3000,
+      "units": [
+        {
+          "id": "b2-u1",
+          "title": "Business English",
+          "lessons": [
+            {
+              "id": "b2-u1-l1",
+              "title": "Business Communication",
+              "type": "vocabulary",
+              "xpReward": 50,
+              "vocabulary": [
+                { "word": "Leverage", "translation": "Aprovechar", "pronunciation": "ˈlɛvərɪdʒ", "example": "We can leverage our network for growth." },
+                { "word": "Synergy", "translation": "Sinergia", "pronunciation": "ˈsɪnərdʒi", "example": "The merger created strong synergy." },
+                { "word": "Stakeholder", "translation": "Parte interesada", "pronunciation": "ˈsteɪkˌhoʊldər", "example": "We must consider all stakeholders." },
+                { "word": "Benchmark", "translation": "Referencia", "pronunciation": "ˈbɛntʃmɑːrk", "example": "Set a benchmark for performance." },
+                { "word": "Scalable", "translation": "Escalable", "pronunciation": "ˈskeɪləbəl", "example": "We need a scalable solution." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "C1": {
+      "name": "Advanced",
+      "description": "Complex demanding texts and implicit meaning",
+      "color": "#EF4444",
+      "xpRequired": 6000,
+      "units": [
+        {
+          "id": "c1-u1",
+          "title": "Academic English",
+          "lessons": [
+            {
+              "id": "c1-u1-l1",
+              "title": "Academic Writing",
+              "type": "vocabulary",
+              "xpReward": 60,
+              "vocabulary": [
+                { "word": "Empirical", "translation": "Empírico", "pronunciation": "ɪmˈpɪrɪkl", "example": "The empirical evidence supports this theory." },
+                { "word": "Paradigm", "translation": "Paradigma", "pronunciation": "ˈpærədaɪm", "example": "A paradigm shift in scientific thinking." },
+                { "word": "Juxtapose", "translation": "Yuxtaponer", "pronunciation": "ˌdʒʌkstəˈpoʊz", "example": "The author juxtaposes wealth and poverty." },
+                { "word": "Pervasive", "translation": "Generalizado", "pronunciation": "pərˈveɪsɪv", "example": "Social media has a pervasive influence." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "C2": {
+      "name": "Mastery",
+      "description": "Everything heard or read with ease",
+      "color": "#EC4899",
+      "xpRequired": 12000,
+      "units": [
+        {
+          "id": "c2-u1",
+          "title": "Native-Level Fluency",
+          "lessons": [
+            {
+              "id": "c2-u1-l1",
+              "title": "Idioms & Expressions",
+              "type": "vocabulary",
+              "xpReward": 80,
+              "vocabulary": [
+                { "word": "Bite the bullet", "translation": "Aguantar el golpe", "example": "Sometimes you just have to bite the bullet." },
+                { "word": "Under the weather", "translation": "Sentirse mal", "example": "I'm feeling a bit under the weather today." },
+                { "word": "Break a leg", "translation": "Buena suerte", "example": "Break a leg on your presentation!" },
+                { "word": "The ball is in your court", "translation": "Depende de ti", "example": "I've made my offer. The ball is in your court." },
+                { "word": "Cost an arm and a leg", "translation": "Costar un ojo de la cara", "example": "That new phone costs an arm and a leg." }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "assessmentQuestions": [
+    {
+      "level": "A1",
+      "question": "Complete: 'My name ___ Maria.'",
+      "options": ["am", "is", "are", "be"],
+      "answer": 1
+    },
+    {
+      "level": "A1",
+      "question": "What is the translation of 'Thank you'?",
+      "options": ["Por favor", "Gracias", "Perdón", "Hola"],
+      "answer": 1
+    },
+    {
+      "level": "A2",
+      "question": "Choose the correct form: 'She ___ to work every day.'",
+      "options": ["go", "goes", "going", "gone"],
+      "answer": 1
+    },
+    {
+      "level": "A2",
+      "question": "What does 'departure' mean?",
+      "options": ["Llegada", "Retraso", "Salida", "Vuelo"],
+      "answer": 2
+    },
+    {
+      "level": "B1",
+      "question": "Choose the correct past tense: 'She ___ in London for 3 years before moving.'",
+      "options": ["lived", "has lived", "had lived", "was living"],
+      "answer": 2
+    },
+    {
+      "level": "B1",
+      "question": "What does 'to negotiate' mean?",
+      "options": ["To agree immediately", "To discuss to reach an agreement", "To refuse something", "To celebrate"],
+      "answer": 1
+    },
+    {
+      "level": "B2",
+      "question": "Choose the most appropriate phrase for a formal email: 'I ___ to enquire about...'",
+      "options": ["wanna ask", "am writing", "write", "want to ask"],
+      "answer": 1
+    },
+    {
+      "level": "B2",
+      "question": "What does 'leverage' mean in business?",
+      "options": ["To lose resources", "To use something advantageously", "To ignore data", "To reduce costs"],
+      "answer": 1
+    },
+    {
+      "level": "C1",
+      "question": "Identify the rhetorical device: 'The world is a stage, and we are merely players.'",
+      "options": ["Simile", "Metaphor", "Alliteration", "Personification"],
+      "answer": 1
+    },
+    {
+      "level": "C1",
+      "question": "Which sentence demonstrates the subjunctive mood?",
+      "options": ["She goes to school", "If she goes, I'll come", "I suggest she go immediately", "She went yesterday"],
+      "answer": 2
+    },
+    {
+      "level": "C2",
+      "question": "What does 'vicissitudes' mean?",
+      "options": ["Victories and success", "Changes and variations in fortune", "Violent emotions", "Complex problems"],
+      "answer": 1
+    },
+    {
+      "level": "C2",
+      "question": "Identify the error: 'Between you and I, this is confidential.'",
+      "options": ["'Between' should be 'among'", "'you and I' should be 'you and me'", "'confidential' should be 'confident'", "No error"],
+      "answer": 1
+    }
+  ],
+  "achievements": [
+    { "id": "first_lesson", "title": "First Step", "description": "Complete your first lesson", "icon": "🎯", "xp": 50 },
+    { "id": "streak_3", "title": "On Fire", "description": "Maintain a 3-day streak", "icon": "🔥", "xp": 100 },
+    { "id": "streak_7", "title": "Week Warrior", "description": "Maintain a 7-day streak", "icon": "⚡", "xp": 250 },
+    { "id": "streak_30", "title": "Unstoppable", "description": "Maintain a 30-day streak", "icon": "💎", "xp": 1000 },
+    { "id": "vocab_50", "title": "Word Collector", "description": "Learn 50 vocabulary words", "icon": "📚", "xp": 150 },
+    { "id": "vocab_200", "title": "Vocabulary Master", "description": "Learn 200 vocabulary words", "icon": "🧠", "xp": 500 },
+    { "id": "perfect_lesson", "title": "Perfectionist", "description": "Get 100% on a lesson", "icon": "⭐", "xp": 75 },
+    { "id": "level_a2", "title": "Elementary", "description": "Reach A2 level", "icon": "🌱", "xp": 200 },
+    { "id": "level_b1", "title": "Intermediate", "description": "Reach B1 level", "icon": "🚀", "xp": 500 },
+    { "id": "level_b2", "title": "Upper Intermediate", "description": "Reach B2 level", "icon": "🌟", "xp": 1000 },
+    { "id": "level_c1", "title": "Advanced", "description": "Reach C1 level", "icon": "👑", "xp": 2000 },
+    { "id": "level_c2", "title": "Mastery", "description": "Reach C2 level", "icon": "🏆", "xp": 5000 },
+    { "id": "conversations_10", "title": "Conversationalist", "description": "Complete 10 AI conversations", "icon": "💬", "xp": 300 },
+    { "id": "speaking_perfect", "title": "Perfect Accent", "description": "Score 95%+ on speaking exercise", "icon": "🎤", "xp": 200 }
+  ]
+}
