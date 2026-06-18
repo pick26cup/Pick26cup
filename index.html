@@ -1434,9 +1434,21 @@ nav button:hover,nav button.active{
 
           <!-- Pending Picks -->
           <div class="admin-card">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <h3 style="margin:0">⏳ <span data-en="Pending Round" data-es="Pendientes Jornada">Pending Round</span> <span id="pendingRoundLabel">—</span></h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <h3 style="margin:0">⏳ <span data-en="Pending" data-es="Pendientes">Pending</span></h3>
               <button class="btn-sm btn-save" onclick="renderPendingPlayers()" style="font-size:11px;padding:4px 10px">↺</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <label style="font-size:12px;color:var(--text2)">Jornada:</label>
+              <select id="pendingRoundSelect" onchange="renderPendingPlayers()" style="background:#1a1a1a;border:1px solid #333;color:var(--text);border-radius:6px;padding:4px 8px;font-size:13px">
+                <option value="1">Jornada 1</option>
+                <option value="2">Jornada 2</option>
+                <option value="3">Jornada 3</option>
+                <option value="4">Jornada 4</option>
+                <option value="5">Jornada 5</option>
+                <option value="6">Jornada 6</option>
+                <option value="7">Jornada 7</option>
+              </select>
             </div>
             <div id="pendingPlayerList"><p style="color:var(--text2);font-size:12px">Loading...</p></div>
           </div>
@@ -2158,6 +2170,8 @@ function setupFirebase(){
       activeWeek = (w !== null && w !== undefined) ? w : 0;
       updateWeekBanner();
       updateWeekStatusBadge();
+      const psel = document.getElementById('pendingRoundSelect');
+      if(psel && activeWeek > 0) psel.value = activeWeek;
     });
 
     // Listen for admin-announced round winners
@@ -2567,10 +2581,9 @@ function updateAdminBadge(){
 
 function renderPendingPlayers(){
   const cont = document.getElementById('pendingPlayerList');
-  const lbl  = document.getElementById('pendingRoundLabel');
   if(!cont) return;
-  const round = activeWeek;
-  if(lbl) lbl.textContent = round || '—';
+  const sel = document.getElementById('pendingRoundSelect');
+  const round = sel ? parseInt(sel.value) : (activeWeek || 1);
   cont.innerHTML = `<p style="color:var(--text2);font-size:12px">Loading...</p>`;
   if(!db){ cont.innerHTML='<p style="color:var(--text2);font-size:12px">No connection.</p>'; return; }
   Promise.all([
