@@ -1304,7 +1304,7 @@ nav button:hover,nav button.active{
     <section id="sec-leaderboard" class="hidden">
       <div class="section-title">🥇 <span data-en="Leaderboard" data-es="Tabla de Posiciones">Leaderboard</span></div>
       <p class="section-sub" data-en="Points shown for the active round only. Each round has its own winner." data-es="Puntos mostrados solo para la jornada activa. Cada jornada tiene su propio ganador.">
-        Rankings update automatically. ⭐: 3pts exact · 2pts under ±1 · 1.5pts over ±1 · 0.5pts off ±2. Other matches: 1pt correct.
+        Rankings update automatically. ⭐: 3pts exact · 2pts under ±1 · 1.5pts over ±1 · 1pt correct winner. Other matches: 1pt correct.
       </p>
 
       <div id="leaderboardContent" class="leaderboard">
@@ -1589,8 +1589,8 @@ nav button:hover,nav button.active{
         <li><strong style="color:var(--gold)">3 pts</strong> — <span data-en="Exact score on the ⭐ match — replaces the 1pt result." data-es="Marcador exacto en el partido ⭐ — reemplaza el punto de resultado.">Exact score on the ⭐ match — replaces the 1pt result.</span></li>
         <li><strong style="color:var(--blue)">2 pts</strong> — <span data-en="⭐ match: score off by 1 goal, predicted UNDER (fewer total goals than actual)." data-es="Partido ⭐: marcador a 1 gol de diferencia, predicción POR DEBAJO (menos goles que el real).">⭐ match: score off by 1 goal, predicted UNDER (fewer total goals than actual).</span></li>
         <li><strong style="color:#E67E22">1.5 pts</strong> — <span data-en="⭐ match: score off by 1 goal, predicted OVER (more total goals than actual)." data-es="Partido ⭐: marcador a 1 gol de diferencia, predicción POR ENCIMA (más goles que el real).">⭐ match: score off by 1 goal, predicted OVER (more total goals than actual).</span></li>
-        <li><strong style="color:#95A5A6">0.5 pts</strong> — <span data-en="⭐ match: score off by exactly 2 goals total." data-es="Partido ⭐: marcador a exactamente 2 goles de diferencia total.">⭐ match: score off by exactly 2 goals total.</span></li>
-        <li><strong style="color:var(--red)">0 pts</strong> — <span data-en="Wrong prediction or score off by 3+ goals on the ⭐ match." data-es="Predicción incorrecta o marcador a 3+ goles de diferencia en el partido ⭐.">Wrong prediction or score off by 3+ goals on the ⭐ match.</span></li>
+        <li><strong style="color:#95A5A6">1 pt</strong> — <span data-en="⭐ match: score off by 2+ goals but correct winner." data-es="Partido ⭐: diferencia de 2+ goles pero acertó el ganador.">⭐ match: score off by 2+ goals but correct winner.</span></li>
+        <li><strong style="color:var(--red)">0 pts</strong> — <span data-en="Wrong winner on the ⭐ match." data-es="No acertó el ganador en el partido ⭐.">Wrong winner on the ⭐ match.</span></li>
       </ul>
       <p class="rules-note" data-en="Tiebreaker (same total points): the player who predicted UNDER wins. If still tied, the one closest on the losing team's goals wins — ensuring one winner per round." data-es="Desempate (mismos puntos totales): gana quien predijo POR DEBAJO. Si sigue el empate, gana quien estuvo más cerca en los goles del equipo contrario — siempre hay un único ganador por jornada.">Tiebreaker (same total points): the player who predicted UNDER wins. If still tied, the one closest on the losing team's goals wins — ensuring one winner per round.</p>
     </div>
@@ -4186,7 +4186,7 @@ function renderCloserResultCard(players, allPicks, results){
     if(p === 3)   return '#D4AF37';
     if(p === 2)   return '#3498DB';
     if(p === 1.5) return '#3498DB';
-    if(p === 0.5) return 'var(--text2)';
+    if(p === 1)   return 'var(--text2)';
     return '#E74C3C';
   }
 
@@ -4195,8 +4195,8 @@ function renderCloserResultCard(players, allPicks, results){
     if(p === 3) return es ? '✓ Marcador exacto' : '✓ Exact score';
     if(p === 2) return es ? `Predijo menos (${sh}-${sa})` : `Predicted under (${sh}-${sa})`;
     if(p === 1.5) return es ? `Predijo más (${sh}-${sa})` : `Predicted over (${sh}-${sa})`;
-    if(p === 0.5) return es ? `Diferencia de 2 goles (${sh}-${sa})` : `Off by 2 goals (${sh}-${sa})`;
-    if(p === 0) return es ? `Diferencia ≥3 goles (${sh}-${sa})` : `Off by 3+ goals (${sh}-${sa})`;
+    if(p === 1) return es ? `Acertó ganador (${sh}-${sa})` : `Correct winner (${sh}-${sa})`;
+    if(p === 0) return es ? `No acertó (${sh}-${sa})` : `Wrong result (${sh}-${sa})`;
     return '—';
   }
 
@@ -4469,8 +4469,8 @@ function hasSubmittedRound(pickNode, playerNode, round){
 //   Closer/Final   : exact score (diff=0)        -> 3 pts  (replaces result pts)
 //   Closer/Final   : diff=1 AND under (less goals predicted) -> 2 pts
 //   Closer/Final   : diff=1 AND over  (more goals predicted) -> 1.5 pts
-//   Closer/Final   : diff=2                      -> 0.5 pts
-//   Closer/Final   : diff≥3                      -> 0 pts
+//   Closer/Final   : diff≥2 AND correct winner   -> 1 pt
+//   Closer/Final   : diff≥2 AND wrong winner     -> 0 pts
 //   Tiebreaker (same total pts): under beats over → closest on equipo contrario
 function scoreMatch(match, pick, res){
   if(!pick || !res) return 0;
@@ -4484,8 +4484,7 @@ function scoreMatch(match, pick, res){
     const diff = Math.abs(pH - rH) + Math.abs(pA - rA);
     if(diff === 0) return 3;
     if(diff === 1) return (pH + pA) < (rH + rA) ? 2 : 1.5;
-    if(diff === 2) return 0.5;
-    return 0;
+    return pickMatchesResult(pick.pick, res) ? 1 : 0;
   }
   return pickMatchesResult(pick.pick, res) ? 1 : 0;
 }
