@@ -1307,77 +1307,8 @@ nav button:hover,nav button.active{
         Rankings update automatically. ⭐: 3pts exact · 2pts under ±1 · 1.5pts over ±1 · 0.5pts off ±2. Other matches: 1pt correct.
       </p>
 
-      <!-- Scoring explanation card -->
-      <div style="background:linear-gradient(160deg,#0c0c08,#1a1400);border:1.5px solid rgba(212,175,55,.3);border-radius:12px;padding:16px;margin-bottom:20px">
-        <div style="font-family:'Bebas Neue';font-size:17px;color:var(--gold);letter-spacing:2px;margin-bottom:12px">
-          📊 <span data-en="HOW POINTS ARE EARNED" data-es="CÓMO SE OBTIENEN LOS PUNTOS">HOW POINTS ARE EARNED</span>
-        </div>
-
-        <!-- Regular matches -->
-        <div style="margin-bottom:12px">
-          <div style="font-size:12px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px"
-            data-en="⚽ Regular Matches (Matches 1–23 per round)"
-            data-es="⚽ Partidos Regulares (Partidos 1–23 por jornada)">
-            ⚽ Regular Matches (Matches 1–23 per round)
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <div style="background:rgba(46,204,113,.12);border:1px solid #2ECC71;border-radius:8px;padding:6px 12px;font-size:13px;color:#2ECC71;font-weight:700">
-              1 pt — <span data-en="Correct outcome (W/D/L)" data-es="Resultado correcto (G/E/P)">Correct outcome (W/D/L)</span>
-            </div>
-            <div style="background:rgba(231,76,60,.1);border:1px solid #E74C3C;border-radius:8px;padding:6px 12px;font-size:13px;color:#E74C3C;font-weight:700">
-              0 pts — <span data-en="Wrong outcome" data-es="Resultado incorrecto">Wrong outcome</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Divider -->
-        <div style="border-top:1px solid rgba(212,175,55,.15);margin:10px 0"></div>
-
-        <!-- Closer / Final match -->
-        <div>
-          <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">
-            ⭐ <span data-en="EXACT SCORE match (Last match of each round — special pick)"
-                     data-es="MARCADOR EXACTO (Último partido de cada jornada — pick especial)">
-              EXACT SCORE match (Last match of each round — special pick)
-            </span>
-          </div>
-          <p style="font-size:12px;color:var(--text2);margin:0 0 8px;line-height:1.5"
-            data-en="Instead of picking Win/Draw/Loss, you predict the exact final score. Points are awarded based on how close your prediction is:"
-            data-es="En lugar de elegir Victoria/Empate/Derrota, predices el marcador final exacto. Los puntos se otorgan según qué tan cerca estuvo tu predicción:">
-            Instead of picking Win/Draw/Loss, you predict the exact final score. Points are awarded based on how close your prediction is:
-          </p>
-          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">
-            <div style="background:rgba(212,175,55,.18);border:1.5px solid #D4AF37;border-radius:8px;padding:8px 10px;text-align:center">
-              <div style="font-family:'Bebas Neue';font-size:22px;color:#D4AF37;letter-spacing:1px">3 pts</div>
-              <div style="font-size:11px;color:var(--text2)" data-en="Exact score ✓" data-es="Marcador exacto ✓">Exact score ✓</div>
-              <div style="font-size:10px;color:var(--text2);margin-top:2px" data-en="e.g. predicted 2-1, result 2-1" data-es="ej. predijo 2-1, resultado 2-1">e.g. predicted 2-1, result 2-1</div>
-            </div>
-            <div style="background:rgba(52,152,219,.12);border:1.5px solid #3498DB;border-radius:8px;padding:8px 10px;text-align:center">
-              <div style="font-family:'Bebas Neue';font-size:22px;color:#3498DB;letter-spacing:1px">2 pts</div>
-              <div style="font-size:11px;color:var(--text2)" data-en="Off by 1 goal — predicted UNDER" data-es="Diferencia de 1 gol — predijo MENOS">Off by 1 goal — predicted UNDER</div>
-              <div style="font-size:10px;color:var(--text2);margin-top:2px" data-en="e.g. predicted 1-1, result 2-1" data-es="ej. predijo 1-1, resultado 2-1">e.g. predicted 1-1, result 2-1</div>
-            </div>
-            <div style="background:rgba(52,152,219,.08);border:1.5px solid rgba(52,152,219,.5);border-radius:8px;padding:8px 10px;text-align:center">
-              <div style="font-family:'Bebas Neue';font-size:22px;color:#3498DB;letter-spacing:1px">1.5 pts</div>
-              <div style="font-size:11px;color:var(--text2)" data-en="Off by 1 goal — predicted OVER" data-es="Diferencia de 1 gol — predijo MÁS">Off by 1 goal — predicted OVER</div>
-              <div style="font-size:10px;color:var(--text2);margin-top:2px" data-en="e.g. predicted 3-1, result 2-1" data-es="ej. predijo 3-1, resultado 2-1">e.g. predicted 3-1, result 2-1</div>
-            </div>
-            <div style="background:rgba(255,255,255,.04);border:1.5px solid #555;border-radius:8px;padding:8px 10px;text-align:center">
-              <div style="font-family:'Bebas Neue';font-size:22px;color:var(--text2);letter-spacing:1px">0.5 pts</div>
-              <div style="font-size:11px;color:var(--text2)" data-en="Off by 2 goals total" data-es="Diferencia de 2 goles en total">Off by 2 goals total</div>
-              <div style="font-size:10px;color:var(--text2);margin-top:2px" data-en="e.g. predicted 3-2, result 2-1" data-es="ej. predijo 3-2, resultado 2-1">e.g. predicted 3-2, result 2-1</div>
-            </div>
-          </div>
-          <div style="margin-top:8px;background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:7px 10px;font-size:12px;color:var(--text2)">
-            ❌ <span data-en="Off by 3 or more goals → 0 pts" data-es="Diferencia de 3 o más goles → 0 pts">Off by 3 or more goals → 0 pts</span>
-          </div>
-          <div style="margin-top:6px;font-size:11px;color:rgba(212,175,55,.6);font-style:italic"
-            data-en="* Tiebreaker: if two players have equal points, the one who predicted UNDER (fewer total goals) wins."
-            data-es="* Desempate: si dos jugadores tienen los mismos puntos, gana quien predijo MENOS goles en total.">
-            * Tiebreaker: if two players have equal points, the one who predicted UNDER (fewer total goals) wins.
-          </div>
-        </div>
-      </div>
+      <!-- Personalized exact score card — populated by renderLeaderboard() -->
+      <div id="closerResultCard" style="margin-bottom:20px"></div>
 
       <div id="hofContent" style="margin-bottom:4px"></div>
       <div id="leaderboardContent" class="leaderboard">
@@ -4160,6 +4091,101 @@ function refreshLeaderboardIfVisible(){
   }
 }
 
+function renderCloserResultCard(players, allPicks, results){
+  const card = document.getElementById('closerResultCard');
+  if(!card) return;
+  const es = currentLang === 'es';
+  const round = activeWeek && activeWeek > 0 ? activeWeek : null;
+  if(!round){ card.innerHTML=''; return; }
+
+  const roundMatches = MATCHES[round] || [];
+  const closerMatch = roundMatches.find(m => m.closer || m.final);
+  if(!closerMatch){ card.innerHTML=''; return; }
+
+  const res = results && results[closerMatch.id];
+  const homeName = customTeamNames[closerMatch.id+'_home'] || displayTeamName(closerMatch.home);
+  const awayName = customTeamNames[closerMatch.id+'_away'] || displayTeamName(closerMatch.away);
+
+  // Build player rows
+  const rows = [];
+  Object.entries(players).forEach(([key, player]) => {
+    if(!player.approved) return;
+    const pd = allPicks[key] || {};
+    if(!hasSubmittedRound(pd, player, round)) return;
+    const pp = pd.picks || {};
+    const pick = pp[closerMatch.id] || {};
+    const sh = pick.scoreH, sa = pick.scoreA;
+    const hasPick = sh !== undefined && sa !== undefined;
+    const pts = res && hasPick ? scoreMatch(closerMatch, pick, res) : null;
+    rows.push({ name: player.name || key, sh, sa, pts, hasPick });
+  });
+
+  rows.sort((a, b) => (b.pts ?? -1) - (a.pts ?? -1));
+
+  function ptsColor(p){
+    if(p === 3)   return '#D4AF37';
+    if(p === 2)   return '#3498DB';
+    if(p === 1.5) return '#3498DB';
+    if(p === 0.5) return 'var(--text2)';
+    return '#E74C3C';
+  }
+
+  function ptsReason(p, sh, sa, res){
+    if(!res) return es ? 'Sin resultado aún' : 'No result yet';
+    if(p === 3) return es ? '✓ Marcador exacto' : '✓ Exact score';
+    if(p === 2) return es ? `Predijo menos (${sh}-${sa})` : `Predicted under (${sh}-${sa})`;
+    if(p === 1.5) return es ? `Predijo más (${sh}-${sa})` : `Predicted over (${sh}-${sa})`;
+    if(p === 0.5) return es ? `Diferencia de 2 goles (${sh}-${sa})` : `Off by 2 goals (${sh}-${sa})`;
+    if(p === 0) return es ? `Diferencia ≥3 goles (${sh}-${sa})` : `Off by 3+ goals (${sh}-${sa})`;
+    return '—';
+  }
+
+  const resultBadge = res
+    ? `<span style="background:rgba(212,175,55,.2);border:1.5px solid #D4AF37;color:#D4AF37;font-family:'Bebas Neue';font-size:18px;padding:2px 14px;border-radius:6px;letter-spacing:1px">${res.scoreH} - ${res.scoreA}</span>`
+    : `<span style="color:var(--text2);font-size:12px">${es ? 'Sin resultado aún' : 'No result yet'}</span>`;
+
+  const tableRows = rows.length === 0
+    ? `<tr><td colspan="3" style="text-align:center;color:var(--text2);padding:12px;font-size:12px">${es?'Ningún jugador envió picks para esta jornada':'No players submitted picks for this round'}</td></tr>`
+    : rows.map((r, i) => {
+        const medal = i === 0 && r.pts === 3 ? '🥇 ' : i === 0 && r.pts > 0 ? '🏅 ' : '';
+        const predStr = r.hasPick ? `${r.sh} - ${r.sa}` : (es ? 'No seleccionó' : 'No pick');
+        const ptsStr = r.pts !== null ? (Number.isInteger(r.pts) ? r.pts : r.pts.toFixed(1)) + ' pts' : '—';
+        const reason = r.hasPick ? ptsReason(r.pts, r.sh, r.sa, res) : (es ? 'No seleccionó marcador' : 'Did not pick a score');
+        return `<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+          <td style="padding:8px 10px;font-size:13px;font-weight:600;color:var(--text)">${medal}${escapeHtml(r.name)}</td>
+          <td style="padding:8px 6px;font-size:13px;font-family:'Bebas Neue';color:var(--gold);letter-spacing:1px;text-align:center">${predStr}</td>
+          <td style="padding:8px 10px;text-align:right">
+            <span style="font-size:13px;font-weight:800;color:${ptsColor(r.pts)}">${ptsStr}</span>
+            <div style="font-size:10px;color:var(--text2);margin-top:1px">${reason}</div>
+          </td>
+        </tr>`;
+      }).join('');
+
+  card.innerHTML = `
+    <div style="background:linear-gradient(160deg,#0c0c08,#1a1400);border:1.5px solid rgba(212,175,55,.35);border-radius:12px;overflow:hidden">
+      <div style="background:linear-gradient(135deg,#7a5500,#D4AF37,#7a5500);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+        <div>
+          <div style="font-family:'Bebas Neue';font-size:16px;color:#000;letter-spacing:2px">⭐ ${es?'MARCADOR EXACTO':'EXACT SCORE'} — ${es?'JORNADA':'ROUND'} ${round}</div>
+          <div style="font-size:12px;color:rgba(0,0,0,.65);font-weight:700">${escapeHtml(homeName)} vs ${escapeHtml(awayName)}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:rgba(0,0,0,.55);font-weight:700;margin-bottom:2px">${es?'RESULTADO':'RESULT'}</div>
+          ${resultBadge}
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:rgba(212,175,55,.07)">
+            <th style="padding:6px 10px;font-size:10px;color:rgba(212,175,55,.7);text-align:left;font-weight:700;text-transform:uppercase;letter-spacing:.5px">${es?'Jugador':'Player'}</th>
+            <th style="padding:6px 6px;font-size:10px;color:rgba(212,175,55,.7);text-align:center;font-weight:700;text-transform:uppercase;letter-spacing:.5px">${es?'Predicción':'Prediction'}</th>
+            <th style="padding:6px 10px;font-size:10px;color:rgba(212,175,55,.7);text-align:right;font-weight:700;text-transform:uppercase;letter-spacing:.5px">${es?'Puntos':'Points'}</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </div>`;
+}
+
 function renderLeaderboard(){
   const cont = document.getElementById('leaderboardContent');
   cont.innerHTML = '<p style="color:var(--text2);text-align:center;padding:32px">Loading leaderboard...</p>';
@@ -4228,6 +4254,7 @@ function renderLeaderboard(){
     }, 100);
 
     renderHallOfFame(players, allPicks, results||{});
+    renderCloserResultCard(players, allPicks, results||{});
     cont.innerHTML = '';
 
     // ── Leader congratulation — only for the current player when they're #1 ──
