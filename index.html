@@ -1307,6 +1307,78 @@ nav button:hover,nav button.active{
         Rankings update automatically. ⭐: 3pts exact · 2pts under ±1 · 1.5pts over ±1 · 0.5pts off ±2. Other matches: 1pt correct.
       </p>
 
+      <!-- Scoring explanation card -->
+      <div style="background:linear-gradient(160deg,#0c0c08,#1a1400);border:1.5px solid rgba(212,175,55,.3);border-radius:12px;padding:16px;margin-bottom:20px">
+        <div style="font-family:'Bebas Neue';font-size:17px;color:var(--gold);letter-spacing:2px;margin-bottom:12px">
+          📊 <span data-en="HOW POINTS ARE EARNED" data-es="CÓMO SE OBTIENEN LOS PUNTOS">HOW POINTS ARE EARNED</span>
+        </div>
+
+        <!-- Regular matches -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px"
+            data-en="⚽ Regular Matches (Matches 1–23 per round)"
+            data-es="⚽ Partidos Regulares (Partidos 1–23 por jornada)">
+            ⚽ Regular Matches (Matches 1–23 per round)
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div style="background:rgba(46,204,113,.12);border:1px solid #2ECC71;border-radius:8px;padding:6px 12px;font-size:13px;color:#2ECC71;font-weight:700">
+              1 pt — <span data-en="Correct outcome (W/D/L)" data-es="Resultado correcto (G/E/P)">Correct outcome (W/D/L)</span>
+            </div>
+            <div style="background:rgba(231,76,60,.1);border:1px solid #E74C3C;border-radius:8px;padding:6px 12px;font-size:13px;color:#E74C3C;font-weight:700">
+              0 pts — <span data-en="Wrong outcome" data-es="Resultado incorrecto">Wrong outcome</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div style="border-top:1px solid rgba(212,175,55,.15);margin:10px 0"></div>
+
+        <!-- Closer / Final match -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">
+            ⭐ <span data-en="EXACT SCORE match (Last match of each round — special pick)"
+                     data-es="MARCADOR EXACTO (Último partido de cada jornada — pick especial)">
+              EXACT SCORE match (Last match of each round — special pick)
+            </span>
+          </div>
+          <p style="font-size:12px;color:var(--text2);margin:0 0 8px;line-height:1.5"
+            data-en="Instead of picking Win/Draw/Loss, you predict the exact final score. Points are awarded based on how close your prediction is:"
+            data-es="En lugar de elegir Victoria/Empate/Derrota, predices el marcador final exacto. Los puntos se otorgan según qué tan cerca estuvo tu predicción:">
+            Instead of picking Win/Draw/Loss, you predict the exact final score. Points are awarded based on how close your prediction is:
+          </p>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">
+            <div style="background:rgba(212,175,55,.18);border:1.5px solid #D4AF37;border-radius:8px;padding:8px 10px;text-align:center">
+              <div style="font-family:'Bebas Neue';font-size:22px;color:#D4AF37;letter-spacing:1px">3 pts</div>
+              <div style="font-size:11px;color:var(--text2)" data-en="Exact score ✓" data-es="Marcador exacto ✓">Exact score ✓</div>
+              <div style="font-size:10px;color:var(--text2);margin-top:2px" data-en="e.g. predicted 2-1, result 2-1" data-es="ej. predijo 2-1, resultado 2-1">e.g. predicted 2-1, result 2-1</div>
+            </div>
+            <div style="background:rgba(52,152,219,.12);border:1.5px solid #3498DB;border-radius:8px;padding:8px 10px;text-align:center">
+              <div style="font-family:'Bebas Neue';font-size:22px;color:#3498DB;letter-spacing:1px">2 pts</div>
+              <div style="font-size:11px;color:var(--text2)" data-en="Off by 1 goal — predicted UNDER" data-es="Diferencia de 1 gol — predijo MENOS">Off by 1 goal — predicted UNDER</div>
+              <div style="font-size:10px;color:var(--text2);margin-top:2px" data-en="e.g. predicted 1-1, result 2-1" data-es="ej. predijo 1-1, resultado 2-1">e.g. predicted 1-1, result 2-1</div>
+            </div>
+            <div style="background:rgba(52,152,219,.08);border:1.5px solid rgba(52,152,219,.5);border-radius:8px;padding:8px 10px;text-align:center">
+              <div style="font-family:'Bebas Neue';font-size:22px;color:#3498DB;letter-spacing:1px">1.5 pts</div>
+              <div style="font-size:11px;color:var(--text2)" data-en="Off by 1 goal — predicted OVER" data-es="Diferencia de 1 gol — predijo MÁS">Off by 1 goal — predicted OVER</div>
+              <div style="font-size:10px;color:var(--text2);margin-top:2px" data-en="e.g. predicted 3-1, result 2-1" data-es="ej. predijo 3-1, resultado 2-1">e.g. predicted 3-1, result 2-1</div>
+            </div>
+            <div style="background:rgba(255,255,255,.04);border:1.5px solid #555;border-radius:8px;padding:8px 10px;text-align:center">
+              <div style="font-family:'Bebas Neue';font-size:22px;color:var(--text2);letter-spacing:1px">0.5 pts</div>
+              <div style="font-size:11px;color:var(--text2)" data-en="Off by 2 goals total" data-es="Diferencia de 2 goles en total">Off by 2 goals total</div>
+              <div style="font-size:10px;color:var(--text2);margin-top:2px" data-en="e.g. predicted 3-2, result 2-1" data-es="ej. predijo 3-2, resultado 2-1">e.g. predicted 3-2, result 2-1</div>
+            </div>
+          </div>
+          <div style="margin-top:8px;background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:7px 10px;font-size:12px;color:var(--text2)">
+            ❌ <span data-en="Off by 3 or more goals → 0 pts" data-es="Diferencia de 3 o más goles → 0 pts">Off by 3 or more goals → 0 pts</span>
+          </div>
+          <div style="margin-top:6px;font-size:11px;color:rgba(212,175,55,.6);font-style:italic"
+            data-en="* Tiebreaker: if two players have equal points, the one who predicted UNDER (fewer total goals) wins."
+            data-es="* Desempate: si dos jugadores tienen los mismos puntos, gana quien predijo MENOS goles en total.">
+            * Tiebreaker: if two players have equal points, the one who predicted UNDER (fewer total goals) wins.
+          </div>
+        </div>
+      </div>
+
       <div id="hofContent" style="margin-bottom:4px"></div>
       <div id="leaderboardContent" class="leaderboard">
         <p style="color:var(--text2);text-align:center;padding:32px">Loading...</p>
