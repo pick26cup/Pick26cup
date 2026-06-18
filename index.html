@@ -1304,7 +1304,7 @@ nav button:hover,nav button.active{
     <section id="sec-leaderboard" class="hidden">
       <div class="section-title">🥇 <span data-en="Leaderboard" data-es="Tabla de Posiciones">Leaderboard</span></div>
       <p class="section-sub" data-en="Points shown for the active round only. Each round has its own winner." data-es="Puntos mostrados solo para la jornada activa. Cada jornada tiene su propio ganador.">
-        Rankings update automatically. ⭐ J1: 3pts exact·2pts under±1·1.5pts over±1·1pt winner. ⭐ J2–J7: 3pts exact only. Other matches: 1pt correct.
+        Rankings update automatically. ⭐ J1: 3pts exact·2pts under±1·1.5pts over±1·1pt winner. ⭐ J2–J7: 3pts exact·1pt correct winner. Other matches: 1pt correct.
       </p>
 
       <div id="leaderboardContent" class="leaderboard">
@@ -1590,7 +1590,7 @@ nav button:hover,nav button.active{
         <li><strong style="color:var(--blue)">2 pts</strong> — <span data-en="⭐ J1 only: off by 1 goal, predicted UNDER (fewer total goals)." data-es="⭐ Solo J1: diferencia de 1 gol, predijo POR DEBAJO (menos goles).">⭐ J1 only: off by 1 goal, predicted UNDER (fewer total goals).</span></li>
         <li><strong style="color:#E67E22">1.5 pts</strong> — <span data-en="⭐ J1 only: off by 1 goal, predicted OVER (more total goals)." data-es="⭐ Solo J1: diferencia de 1 gol, predijo POR ENCIMA (más goles).">⭐ J1 only: off by 1 goal, predicted OVER (more total goals).</span></li>
         <li><strong style="color:#95A5A6">1 pt</strong> — <span data-en="⭐ J1 only: off by 2+ goals but correct winner." data-es="⭐ Solo J1: diferencia de 2+ goles pero acertó el ganador.">⭐ J1 only: off by 2+ goals but correct winner.</span></li>
-        <li><strong style="color:var(--red)">0 pts</strong> — <span data-en="⭐ J2–J7: any score that is not exact. J1: wrong winner." data-es="⭐ J2–J7: cualquier marcador no exacto. J1: no acertó el ganador.">⭐ J2–J7: any score that is not exact. J1: wrong winner.</span></li>
+        <li><strong style="color:var(--red)">0 pts</strong> — <span data-en="Wrong winner on the ⭐ match (all rounds)." data-es="No acertó el ganador en el partido ⭐ (todas las jornadas).">Wrong winner on the ⭐ match (all rounds).</span></li>
       </ul>
       <p class="rules-note" data-en="Tiebreaker (same total points): the player who predicted UNDER wins. If still tied, the one closest on the losing team's goals wins — ensuring one winner per round." data-es="Desempate (mismos puntos totales): gana quien predijo POR DEBAJO. Si sigue el empate, gana quien estuvo más cerca en los goles del equipo contrario — siempre hay un único ganador por jornada.">Tiebreaker (same total points): the player who predicted UNDER wins. If still tied, the one closest on the losing team's goals wins — ensuring one winner per round.</p>
     </div>
@@ -4472,8 +4472,9 @@ function hasSubmittedRound(pickNode, playerNode, round){
 //                          diff=1 over                    -> 1.5 pts
 //                          diff≥2 correct winner          -> 1 pt
 //                          diff≥2 wrong winner            -> 0 pts
-//   Closer/Final J2–J7   : exact score only               -> 3 pts
-//                          anything else                  -> 0 pts
+//   Closer/Final J2–J7   : exact score                    -> 3 pts
+//                          correct winner (not exact)     -> 1 pt
+//                          wrong winner                   -> 0 pts
 function scoreMatch(match, pick, res){
   if(!pick || !res) return 0;
   const requiresScore = match && (match.closer || match.final);
@@ -4486,7 +4487,11 @@ function scoreMatch(match, pick, res){
     const diff = Math.abs(pH - rH) + Math.abs(pA - rA);
     const round = match.id ? parseInt(match.id.split('_')[0]) : 1;
     if(diff === 0) return 3;
-    if(round >= 2) return 0;
+    if(round >= 2){
+      const predWinner = pH > pA ? 'home' : (pA > pH ? 'away' : 'draw');
+      const realWinner = rH > rA ? 'home' : (rA > rH ? 'away' : 'draw');
+      return predWinner === realWinner ? 1 : 0;
+    }
     // J1 tiered scoring
     if(diff === 1) return (pH + pA) < (rH + rA) ? 2 : 1.5;
     const predWinner = pH > pA ? 'home' : (pA > pH ? 'away' : 'draw');
