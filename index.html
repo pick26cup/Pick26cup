@@ -1307,7 +1307,6 @@ nav button:hover,nav button.active{
         Rankings update automatically. ⭐: 3pts exact · 2pts under ±1 · 1.5pts over ±1 · 0.5pts off ±2. Other matches: 1pt correct.
       </p>
 
-      <div id="hofContent" style="margin-bottom:4px"></div>
       <div id="leaderboardContent" class="leaderboard">
         <p style="color:var(--text2);text-align:center;padding:32px">Loading...</p>
       </div>
@@ -1529,8 +1528,9 @@ nav button:hover,nav button.active{
       </div>
     </div>
 
-    <!-- ── Exact Score floating button (leaderboard only) ── -->
-    <button id="exactScoreBtn" onclick="toggleCloserCard()" title="Exact Score" style="display:none;position:fixed;bottom:24px;left:24px;z-index:300;padding:10px 18px;border-radius:30px;background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;cursor:pointer;box-shadow:0 4px 18px rgba(212,175,55,.45);color:#000;font-family:'Bebas Neue';font-size:14px;letter-spacing:2px;transition:.2s;white-space:nowrap">⭐ EXACT SCORE</button>
+    <!-- ── Leaderboard floating buttons (leaderboard only) ── -->
+    <button id="championsBtn" onclick="toggleChampionsModal()" title="Round Champions" style="display:none;position:fixed;bottom:24px;left:24px;z-index:300;padding:10px 18px;border-radius:30px;background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;cursor:pointer;box-shadow:0 4px 18px rgba(212,175,55,.45);color:#000;font-family:'Bebas Neue';font-size:14px;letter-spacing:2px;transition:.2s;white-space:nowrap">🏆 ROUND CHAMPIONS</button>
+    <button id="exactScoreBtn" onclick="toggleCloserCard()" title="Exact Score" style="display:none;position:fixed;bottom:76px;left:24px;z-index:300;padding:10px 18px;border-radius:30px;background:linear-gradient(135deg,rgba(122,85,0,.7),rgba(212,175,55,.35));border:1.5px solid rgba(212,175,55,.6);cursor:pointer;box-shadow:0 4px 14px rgba(212,175,55,.3);color:#D4AF37;font-family:'Bebas Neue';font-size:14px;letter-spacing:2px;transition:.2s;white-space:nowrap">⭐ EXACT SCORE</button>
 
     <!-- ── Exact Score modal ── -->
     <div id="exactScoreModal" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding:0" onclick="if(event.target===this)toggleCloserCard()">
@@ -1540,6 +1540,17 @@ nav button:hover,nav button.active{
           <button onclick="toggleCloserCard()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1">✕</button>
         </div>
         <div id="closerResultCard" style="padding:12px 0 0"></div>
+      </div>
+    </div>
+
+    <!-- ── Round Champions modal ── -->
+    <div id="championsModal" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding:0" onclick="if(event.target===this)toggleChampionsModal()">
+      <div style="width:100%;max-width:600px;max-height:85vh;overflow-y:auto;border-radius:16px 16px 0 0;background:#12100a;border:1.5px solid rgba(212,175,55,.35);border-bottom:none;padding:0 0 24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid rgba(212,175,55,.15)">
+          <span style="font-family:'Bebas Neue';font-size:16px;color:#D4AF37;letter-spacing:2px">🏆 ROUND CHAMPIONS</span>
+          <button onclick="toggleChampionsModal()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1">✕</button>
+        </div>
+        <div id="hofContent" style="padding:4px 0 0"></div>
       </div>
     </div>
 
@@ -4115,6 +4126,13 @@ function toggleCloserCard(){
   }
 }
 
+function toggleChampionsModal(){
+  const modal = document.getElementById('championsModal');
+  if(!modal) return;
+  const isOpen = modal.style.display === 'flex';
+  modal.style.display = isOpen ? 'none' : 'flex';
+}
+
 function switchCloserRound(r){
   _closerRound = r;
   if(_closerData) renderCloserResultCard(_closerData.players, _closerData.allPicks, _closerData.results);
@@ -5555,7 +5573,9 @@ function showSection(name){
     b.classList.toggle('active', b.dataset.section===name);
   });
   const esBtn = document.getElementById('exactScoreBtn');
+  const chBtn = document.getElementById('championsBtn');
   if(esBtn) esBtn.style.display = name==='leaderboard' ? 'block' : 'none';
+  if(chBtn) chBtn.style.display = name==='leaderboard' ? 'block' : 'none';
   if(name==='leaderboard') renderLeaderboard();
   if(name==='results') renderMyResults();
   if(name==='groups') renderGroups();
