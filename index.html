@@ -4484,7 +4484,10 @@ function scoreMatch(match, pick, res){
     const diff = Math.abs(pH - rH) + Math.abs(pA - rA);
     if(diff === 0) return 3;
     if(diff === 1) return (pH + pA) < (rH + rA) ? 2 : 1.5;
-    return pickMatchesResult(pick.pick, res) ? 1 : 0;
+    // diff≥2: check if predicted winner matches actual winner using scores directly
+    const predWinner = pH > pA ? 'home' : (pA > pH ? 'away' : 'draw');
+    const realWinner = rH > rA ? 'home' : (rA > rH ? 'away' : 'draw');
+    return predWinner === realWinner ? 1 : 0;
   }
   return pickMatchesResult(pick.pick, res) ? 1 : 0;
 }
