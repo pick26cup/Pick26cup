@@ -2200,6 +2200,18 @@ function closeDailyMsg(){
   document.getElementById('root').style.paddingTop = '';
 }
 
+function refreshDailyMsgLang(){
+  const banner = document.getElementById('dailyMsg');
+  if(!banner || banner.style.display === 'none') return;
+  const today = new Date().toISOString().slice(0,10);
+  const msg = DAILY_MESSAGES[today];
+  if(!msg) return;
+  const lang = currentLang === 'es' ? 'es' : 'en';
+  const data = msg[lang];
+  document.getElementById('dailyMsgTitle').textContent = data.title;
+  document.getElementById('dailyMsgBody').innerHTML = data.body;
+}
+
 function initFirebase(){
   if(typeof firebase !== 'undefined') return setupFirebase();
   // Load Firebase scripts sequentially — database-compat and auth-compat depend
@@ -5703,6 +5715,7 @@ function toggleLang(){
   renderRoundTabs();
   renderWelcomeBanner();
   if(!document.getElementById('sec-groups').classList.contains('hidden')) renderGroups();
+  refreshDailyMsgLang();
 }
 
 function updateLang(){
