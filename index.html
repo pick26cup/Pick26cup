@@ -4091,12 +4091,33 @@ function refreshLeaderboardIfVisible(){
   }
 }
 
+let _closerData = null; // cache for tab switching
+let _closerRound = 1;
+
+function switchCloserRound(r){
+  _closerRound = r;
+  if(_closerData) renderCloserResultCard(_closerData.players, _closerData.allPicks, _closerData.results);
+}
+
 function renderCloserResultCard(players, allPicks, results){
   const card = document.getElementById('closerResultCard');
   if(!card) return;
+  // Cache data for tab switching
+  _closerData = { players, allPicks, results };
   const es = currentLang === 'es';
-  const round = activeWeek && activeWeek > 0 ? activeWeek : null;
-  if(!round){ card.innerHTML=''; return; }
+
+  // Determine which rounds have a closer match with results or at least picks
+  const availableRounds = [1,2,3,4,5,6,7].filter(r => {
+    const m = (MATCHES[r]||[]).find(m => m.closer || m.final);
+    return !!m;
+  });
+  if(!availableRounds.length){ card.innerHTML=''; return; }
+
+  // Default to activeWeek on first render, otherwise keep current tab
+  if(!_closerRound || !availableRounds.includes(_closerRound)){
+    _closerRound = activeWeek && activeWeek > 0 ? activeWeek : availableRounds[0];
+  }
+  const round = _closerRound;
 
   const roundMatches = MATCHES[round] || [];
   const closerMatch = roundMatches.find(m => m.closer || m.final);
@@ -4161,17 +4182,30 @@ function renderCloserResultCard(players, allPicks, results){
         </tr>`;
       }).join('');
 
+  const roundTabs = availableRounds.map(r =>
+    `<button onclick="switchCloserRound(${r})" style="
+      background:${r===round?'rgba(212,175,55,.25)':'rgba(255,255,255,.05)'};
+      border:1.5px solid ${r===round?'#D4AF37':'#444'};
+      color:${r===round?'#D4AF37':'var(--text2)'};
+      font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;cursor:pointer;transition:.15s">
+      ${es?'J':'R'}${r}
+    </button>`
+  ).join('');
+
   card.innerHTML = `
     <div style="background:linear-gradient(160deg,#0c0c08,#1a1400);border:1.5px solid rgba(212,175,55,.35);border-radius:12px;overflow:hidden">
-      <div style="background:linear-gradient(135deg,#7a5500,#D4AF37,#7a5500);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-        <div>
-          <div style="font-family:'Bebas Neue';font-size:16px;color:#000;letter-spacing:2px">⭐ ${es?'MARCADOR EXACTO':'EXACT SCORE'} — ${es?'JORNADA':'ROUND'} ${round}</div>
+      <div style="background:linear-gradient(135deg,#7a5500,#D4AF37,#7a5500);padding:10px 16px">
+        <div style="font-family:'Bebas Neue';font-size:16px;color:#000;letter-spacing:2px;margin-bottom:2px">⭐ ${es?'MARCADOR EXACTO':'EXACT SCORE'}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
           <div style="font-size:12px;color:rgba(0,0,0,.65);font-weight:700">${escapeHtml(homeName)} vs ${escapeHtml(awayName)}</div>
+          <div style="text-align:right">
+            <div style="font-size:10px;color:rgba(0,0,0,.55);font-weight:700;margin-bottom:2px">${es?'RESULTADO':'RESULT'}</div>
+            ${resultBadge}
+          </div>
         </div>
-        <div style="text-align:right">
-          <div style="font-size:10px;color:rgba(0,0,0,.55);font-weight:700;margin-bottom:2px">${es?'RESULTADO':'RESULT'}</div>
-          ${resultBadge}
-        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid rgba(212,175,55,.12)">
+        ${roundTabs}
       </div>
       <table style="width:100%;border-collapse:collapse">
         <thead>
