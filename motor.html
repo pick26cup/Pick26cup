@@ -130,7 +130,7 @@
     <div class="kicker">FIFA World Cup 2026 · Motor Predictivo</div>
     <h1>Motor <b>Elo → Poisson</b> · Jornadas</h1>
     <div class="sub">Calendario real (72 partidos de grupos) con predicción por jornada · eliminatorias editables conforme avanza el Mundial.</div>
-    <div class="sub" style="margin-top:6px;color:#7d8a9a"><span class="flag" style="margin:0">Estado de datos</span> Elo: 18/24 partidos J1 procesados al 17-jun. Pendientes: AR-DZ, AT-JO, PT-CD, UZ-CO, EN-HR, GH-PA. J2 inicia ~19-jun.</div>
+    <div class="sub" style="margin-top:6px;color:#7d8a9a"><span class="flag" style="margin:0">Estado de datos</span> Elo: J1 COMPLETA (24/24) al 17-jun-2026. Listo para J2 (~19-jun). FIFA ranking 11-jun cargado para 18 equipos.</div>
   </header>
 
   <div class="tabs">
@@ -260,7 +260,7 @@ const home=_E('home'),away=_E('away'),ha=_E('ha'),caut=_E('caut'),haVal=_E('haVa
   rtbody=_E('rtbody'),search=_E('search'),imp=_E('imp');
 
 const TEAMS=[
- // Elo actualizados post-J1 (18/24 partidos al 17-jun-2026) · fórmula K=60, G=f(GD), HA=+100
+ // Elo actualizados post-J1 COMPLETA (24/24 partidos al 17-jun-2026) · fórmula K=60, G=f(GD), HA=+100
  {g:"A",n:"México",c:"MX",elo:1881,fifa:1681,host:true},{g:"A",n:"Sudáfrica",c:"ZA",elo:1522,fifa:null,host:false},
  {g:"A",n:"Corea del Sur",c:"KR",elo:1786,fifa:null,host:false},{g:"A",n:"Chequia",c:"CZ",elo:1712,fifa:null,host:false},
  {g:"B",n:"Canadá",c:"CA",elo:1767,fifa:null,host:true},{g:"B",n:"Bosnia y H.",c:"BA",elo:1616,fifa:null,host:false},
@@ -279,12 +279,12 @@ const TEAMS=[
  {g:"H",n:"Arabia Saudí",c:"SA",elo:1591,fifa:null,host:false},{g:"H",n:"Uruguay",c:"UY",elo:1870,fifa:1673,host:false},
  {g:"I",n:"Francia",c:"FR",elo:2084,fifa:1877,host:false},{g:"I",n:"Senegal",c:"SN",elo:1845,fifa:1689,host:false},
  {g:"I",n:"Irak",c:"IQ",elo:1602,fifa:null,host:false},{g:"I",n:"Noruega",c:"NO",elo:1933,fifa:null,host:false},
- {g:"J",n:"Argentina",c:"AR",elo:2114,fifa:1875,host:false},{g:"J",n:"Argelia",c:"DZ",elo:1760,fifa:null,host:false},
- {g:"J",n:"Austria",c:"AT",elo:1830,fifa:null,host:false},{g:"J",n:"Jordania",c:"JO",elo:1685,fifa:null,host:false},
- {g:"K",n:"Portugal",c:"PT",elo:1986,fifa:1764,host:false},{g:"K",n:"RD Congo",c:"CD",elo:1661,fifa:null,host:false},
- {g:"K",n:"Uzbekistán",c:"UZ",elo:1718,fifa:null,host:false},{g:"K",n:"Colombia",c:"CO",elo:1977,fifa:1693,host:false},
- {g:"L",n:"Inglaterra",c:"EN",elo:2021,fifa:1826,host:false},{g:"L",n:"Croacia",c:"HR",elo:1908,fifa:1717,host:false},
- {g:"L",n:"Ghana",c:"GH",elo:1510,fifa:null,host:false},{g:"L",n:"Panamá",c:"PA",elo:1730,fifa:null,host:false},
+ {g:"J",n:"Argentina",c:"AR",elo:2126,fifa:1875,host:false},{g:"J",n:"Argelia",c:"DZ",elo:1748,fifa:null,host:false},
+ {g:"J",n:"Austria",c:"AT",elo:1857,fifa:null,host:false},{g:"J",n:"Jordania",c:"JO",elo:1658,fifa:null,host:false},
+ {g:"K",n:"Portugal",c:"PT",elo:1964,fifa:1764,host:false},{g:"K",n:"RD Congo",c:"CD",elo:1683,fifa:null,host:false},
+ {g:"K",n:"Uzbekistán",c:"UZ",elo:1707,fifa:null,host:false},{g:"K",n:"Colombia",c:"CO",elo:1988,fifa:1693,host:false},
+ {g:"L",n:"Inglaterra",c:"EN",elo:2052,fifa:1826,host:false},{g:"L",n:"Croacia",c:"HR",elo:1877,fifa:1717,host:false},
+ {g:"L",n:"Ghana",c:"GH",elo:1557,fifa:null,host:false},{g:"L",n:"Panamá",c:"PA",elo:1683,fifa:null,host:false},
 ];
 const IDX={};TEAMS.forEach((t,i)=>IDX[t.c]=i);
 
@@ -508,6 +508,12 @@ resultsState[1][14]={gh:"0",ga:"0"}; // ES-CV  · España 0-0 Cabo Verde (Vozinh
 resultsState[1][15]={gh:"1",ga:"1"}; // SA-UY  · Arabia Saudí 1-1 Uruguay
 resultsState[1][16]={gh:"3",ga:"1"}; // FR-SN  · Francia 3-1 Senegal
 resultsState[1][17]={gh:"1",ga:"4"}; // IQ-NO  · Irak 1-4 Noruega (Haaland doblete)
+resultsState[1][18]={gh:"3",ga:"0"}; // AR-DZ  · Argentina 3-0 Argelia
+resultsState[1][19]={gh:"3",ga:"1"}; // AT-JO  · Austria 3-1 Jordania
+resultsState[1][20]={gh:"1",ga:"1"}; // PT-CD  · Portugal 1-1 RD Congo
+resultsState[1][21]={gh:"0",ga:"1"}; // UZ-CO  · Uzbekistán 0-1 Colombia (D.Muñoz)
+resultsState[1][22]={gh:"4",ga:"2"}; // EN-HR  · Inglaterra 4-2 Croacia
+resultsState[1][23]={gh:"1",ga:"0"}; // GH-PA  · Ghana 1-0 Panamá (upset)
 let curRJ=1;
 const outcome=(gh,ga)=> gh>ga?'H':(gh<ga?'A':'D');
 const brierFor=(pH,pD,pA,oc)=>{const oH=oc==='H'?1:0,oD=oc==='D'?1:0,oA=oc==='A'?1:0;return (pH-oH)**2+(pD-oD)**2+(pA-oA)**2;};
