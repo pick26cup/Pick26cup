@@ -1304,7 +1304,7 @@ nav button:hover,nav button.active{
     <section id="sec-leaderboard" class="hidden">
       <div class="section-title">🥇 <span data-en="Leaderboard" data-es="Tabla de Posiciones">Leaderboard</span></div>
       <p class="section-sub" data-en="Points shown for the active round only. Each round has its own winner." data-es="Puntos mostrados solo para la jornada activa. Cada jornada tiene su propio ganador.">
-        Rankings update automatically. ⭐ match: 3pts exact score · 1pt correct winner · 0pts wrong. Other matches: 1pt correct result.
+        Rankings update automatically. ⭐ J1: 3pts exact·2pts under±1·1.5pts over±1·1pt winner. ⭐ J2–J7: 3pts exact·1pt winner. Other: 1pt correct.
       </p>
 
       <div id="leaderboardContent" class="leaderboard">
@@ -1586,8 +1586,10 @@ nav button:hover,nav button.active{
       <div class="rules-h" data-en="🎯 Scoring" data-es="🎯 Puntuación">🎯 Scoring</div>
       <ul class="rules-list">
         <li><strong style="color:var(--green)">1 pt</strong> — <span data-en="Correct result: Home Win / Draw / Away Win (regular matches)." data-es="Resultado correcto: Victoria Local / Empate / Visitante (partidos regulares).">Correct result: Home Win / Draw / Away Win (regular matches).</span></li>
-        <li><strong style="color:var(--gold)">3 pts</strong> — <span data-en="⭐ match: exact score on both teams." data-es="Partido ⭐: marcador exacto en ambos equipos.">⭐ match: exact score on both teams.</span></li>
-        <li><strong style="color:#95A5A6">1 pt</strong> — <span data-en="⭐ match: correct winner but score not exact." data-es="Partido ⭐: acertó el ganador pero el marcador no fue exacto.">⭐ match: correct winner but score not exact.</span></li>
+        <li><strong style="color:var(--gold)">3 pts</strong> — <span data-en="⭐ match: exact score on both teams (all rounds)." data-es="Partido ⭐: marcador exacto en ambos equipos (todas las jornadas).">⭐ match: exact score on both teams (all rounds).</span></li>
+        <li><strong style="color:var(--blue)">2 pts</strong> — <span data-en="⭐ J1 only: off by 1 goal, predicted UNDER (fewer total goals)." data-es="⭐ Solo J1: diferencia de 1 gol, predijo POR DEBAJO.">⭐ J1 only: off by 1 goal, predicted UNDER (fewer total goals).</span></li>
+        <li><strong style="color:#E67E22">1.5 pts</strong> — <span data-en="⭐ J1 only: off by 1 goal, predicted OVER (more total goals)." data-es="⭐ Solo J1: diferencia de 1 gol, predijo POR ENCIMA.">⭐ J1 only: off by 1 goal, predicted OVER (more total goals).</span></li>
+        <li><strong style="color:#95A5A6">1 pt</strong> — <span data-en="⭐ match: correct winner but score not exact (all rounds)." data-es="Partido ⭐: acertó el ganador pero el marcador no fue exacto (todas las jornadas).">⭐ match: correct winner but score not exact (all rounds).</span></li>
         <li><strong style="color:var(--red)">0 pts</strong> — <span data-en="⭐ match: wrong winner." data-es="Partido ⭐: no acertó el ganador.">⭐ match: wrong winner.</span></li>
       </ul>
       <p class="rules-note" data-en="Tiebreaker (same total points): the player who predicted UNDER wins. If still tied, the one closest on the losing team's goals wins — ensuring one winner per round." data-es="Desempate (mismos puntos totales): gana quien predijo POR DEBAJO. Si sigue el empate, gana quien estuvo más cerca en los goles del equipo contrario — siempre hay un único ganador por jornada.">Tiebreaker (same total points): the player who predicted UNDER wins. If still tied, the one closest on the losing team's goals wins — ensuring one winner per round.</p>
@@ -4181,14 +4183,18 @@ function renderCloserResultCard(players, allPicks, results){
   rows.sort((a, b) => (b.pts ?? -1) - (a.pts ?? -1));
 
   function ptsColor(p){
-    if(p === 3) return '#D4AF37';
-    if(p === 1) return 'var(--text2)';
+    if(p === 3)   return '#D4AF37';
+    if(p === 2)   return '#3498DB';
+    if(p === 1.5) return '#3498DB';
+    if(p === 1)   return 'var(--text2)';
     return '#E74C3C';
   }
 
-  function ptsReason(p, sh, sa, res){
+  function ptsReason(p, sh, sa, res, rnd){
     if(!res) return es ? 'Sin resultado aún' : 'No result yet';
     if(p === 3) return es ? '✓ Marcador exacto' : '✓ Exact score';
+    if(p === 2) return es ? `Predijo menos (${sh}-${sa})` : `Predicted under (${sh}-${sa})`;
+    if(p === 1.5) return es ? `Predijo más (${sh}-${sa})` : `Predicted over (${sh}-${sa})`;
     if(p === 1) return es ? `Acertó ganador (${sh}-${sa})` : `Correct winner (${sh}-${sa})`;
     return es ? `No acertó (${sh}-${sa})` : `Wrong result (${sh}-${sa})`;
   }
@@ -4203,7 +4209,7 @@ function renderCloserResultCard(players, allPicks, results){
         const medal = i === 0 && r.pts === 3 ? '🥇 ' : i === 0 && r.pts > 0 ? '🏅 ' : '';
         const predStr = r.hasPick ? `${r.sh} - ${r.sa}` : (es ? 'No seleccionó' : 'No pick');
         const ptsStr = r.pts !== null ? (Number.isInteger(r.pts) ? r.pts : r.pts.toFixed(1)) + ' pts' : '—';
-        const reason = r.hasPick ? ptsReason(r.pts, r.sh, r.sa, res) : (es ? 'No seleccionó marcador' : 'Did not pick a score');
+        const reason = r.hasPick ? ptsReason(r.pts, r.sh, r.sa, res, round) : (es ? 'No seleccionó marcador' : 'Did not pick a score');
         return `<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
           <td style="padding:8px 10px;font-size:13px;font-weight:600;color:var(--text)">${medal}${escapeHtml(r.name)}</td>
           <td style="padding:8px 6px;font-size:13px;font-family:'Bebas Neue';color:var(--gold);letter-spacing:1px;text-align:center">${predStr}</td>
@@ -4458,10 +4464,15 @@ function hasSubmittedRound(pickNode, playerNode, round){
 
 // Single source of truth for scoring one match.
 // Rules:
-//   Regular match   : correct H/D/A pick         -> 1 pt
-//   Closer/Final    : exact score (both teams)    -> 3 pts
-//                     correct winner (not exact)  -> 1 pt
-//                     wrong winner                -> 0 pts
+//   Regular match   : correct H/D/A pick              -> 1 pt
+//   Closer/Final J1 : exact score                     -> 3 pts
+//                     diff=1 under (fewer goals pred.) -> 2 pts
+//                     diff=1 over  (more goals pred.)  -> 1.5 pts
+//                     diff≥2 correct winner            -> 1 pt
+//                     wrong winner                     -> 0 pts
+//   Closer/Final J2–J7 : exact score                  -> 3 pts
+//                        correct winner (not exact)    -> 1 pt
+//                        wrong winner                  -> 0 pts
 function scoreMatch(match, pick, res){
   if(!pick || !res) return 0;
   const requiresScore = match && (match.closer || match.final);
@@ -4474,6 +4485,11 @@ function scoreMatch(match, pick, res){
     if(pH === rH && pA === rA) return 3;
     const predWinner = pH > pA ? 'home' : (pA > pH ? 'away' : 'draw');
     const realWinner = rH > rA ? 'home' : (rA > rH ? 'away' : 'draw');
+    const round = match.id ? parseInt(match.id.split('_')[0]) : 1;
+    if(round >= 2) return predWinner === realWinner ? 1 : 0;
+    // J1 tiered
+    const diff = Math.abs(pH - rH) + Math.abs(pA - rA);
+    if(diff === 1) return (pH + pA) < (rH + rA) ? 2 : 1.5;
     return predWinner === realWinner ? 1 : 0;
   }
   return pickMatchesResult(pick.pick, res) ? 1 : 0;
