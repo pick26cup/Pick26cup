@@ -130,7 +130,7 @@
     <div class="kicker">FIFA World Cup 2026 · Motor Predictivo</div>
     <h1>Motor <b>Elo → Poisson</b> · Jornadas</h1>
     <div class="sub">Calendario real (72 partidos de grupos) con predicción por jornada · eliminatorias editables conforme avanza el Mundial.</div>
-    <div class="sub" style="margin-top:6px;color:#7d8a9a"><span class="flag" style="margin:0">Estado de datos</span> Elo: actualizado post-J1 completa (12/12 partidos al 15-jun). Hoy (15-jun) juegan ES-CV, BE-EG, SA-UY; mañana IR-NZ y grupos I-L. FIFA ranking 11-jun: cargado para 18 equipos.</div>
+    <div class="sub" style="margin-top:6px;color:#7d8a9a"><span class="flag" style="margin:0">Estado de datos</span> Elo: 18/24 partidos J1 procesados al 17-jun. Pendientes: AR-DZ, AT-JO, PT-CD, UZ-CO, EN-HR, GH-PA. J2 inicia ~19-jun.</div>
   </header>
 
   <div class="tabs">
@@ -260,7 +260,7 @@ const home=_E('home'),away=_E('away'),ha=_E('ha'),caut=_E('caut'),haVal=_E('haVa
   rtbody=_E('rtbody'),search=_E('search'),imp=_E('imp');
 
 const TEAMS=[
- // Elo actualizados post-J1 (12 partidos jugados al 15-jun-2026) · fórmula K=60, G=f(GD), HA=+100
+ // Elo actualizados post-J1 (18/24 partidos al 17-jun-2026) · fórmula K=60, G=f(GD), HA=+100
  {g:"A",n:"México",c:"MX",elo:1881,fifa:1681,host:true},{g:"A",n:"Sudáfrica",c:"ZA",elo:1522,fifa:null,host:false},
  {g:"A",n:"Corea del Sur",c:"KR",elo:1786,fifa:null,host:false},{g:"A",n:"Chequia",c:"CZ",elo:1712,fifa:null,host:false},
  {g:"B",n:"Canadá",c:"CA",elo:1767,fifa:null,host:true},{g:"B",n:"Bosnia y H.",c:"BA",elo:1616,fifa:null,host:false},
@@ -273,12 +273,12 @@ const TEAMS=[
  {g:"E",n:"Costa de Marfil",c:"CI",elo:1743,fifa:null,host:false},{g:"E",n:"Ecuador",c:"EC",elo:1887,fifa:null,host:false},
  {g:"F",n:"Países Bajos",c:"NL",elo:1971,fifa:1758,host:false},{g:"F",n:"Japón",c:"JP",elo:1879,fifa:1660,host:false},
  {g:"F",n:"Suecia",c:"SE",elo:1755,fifa:null,host:false},{g:"F",n:"Túnez",c:"TN",elo:1585,fifa:null,host:false},
- {g:"G",n:"Bélgica",c:"BE",elo:1893,fifa:1735,host:false},{g:"G",n:"Egipto",c:"EG",elo:1696,fifa:null,host:false},
- {g:"G",n:"Irán",c:"IR",elo:1772,fifa:null,host:false},{g:"G",n:"Nueva Zelanda",c:"NZ",elo:1562,fifa:null,host:false},
- {g:"H",n:"España",c:"ES",elo:2155,fifa:1876,host:false},{g:"H",n:"Cabo Verde",c:"CV",elo:1578,fifa:null,host:false},
- {g:"H",n:"Arabia Saudí",c:"SA",elo:1569,fifa:null,host:false},{g:"H",n:"Uruguay",c:"UY",elo:1892,fifa:1673,host:false},
- {g:"I",n:"Francia",c:"FR",elo:2062,fifa:1877,host:false},{g:"I",n:"Senegal",c:"SN",elo:1867,fifa:1689,host:false},
- {g:"I",n:"Irak",c:"IQ",elo:1618,fifa:null,host:false},{g:"I",n:"Noruega",c:"NO",elo:1917,fifa:null,host:false},
+ {g:"G",n:"Bélgica",c:"BE",elo:1878,fifa:1735,host:false},{g:"G",n:"Egipto",c:"EG",elo:1711,fifa:null,host:false},
+ {g:"G",n:"Irán",c:"IR",elo:1756,fifa:null,host:false},{g:"G",n:"Nueva Zelanda",c:"NZ",elo:1578,fifa:null,host:false},
+ {g:"H",n:"España",c:"ES",elo:2127,fifa:1876,host:false},{g:"H",n:"Cabo Verde",c:"CV",elo:1606,fifa:null,host:false},
+ {g:"H",n:"Arabia Saudí",c:"SA",elo:1591,fifa:null,host:false},{g:"H",n:"Uruguay",c:"UY",elo:1870,fifa:1673,host:false},
+ {g:"I",n:"Francia",c:"FR",elo:2084,fifa:1877,host:false},{g:"I",n:"Senegal",c:"SN",elo:1845,fifa:1689,host:false},
+ {g:"I",n:"Irak",c:"IQ",elo:1602,fifa:null,host:false},{g:"I",n:"Noruega",c:"NO",elo:1933,fifa:null,host:false},
  {g:"J",n:"Argentina",c:"AR",elo:2114,fifa:1875,host:false},{g:"J",n:"Argelia",c:"DZ",elo:1760,fifa:null,host:false},
  {g:"J",n:"Austria",c:"AT",elo:1830,fifa:null,host:false},{g:"J",n:"Jordania",c:"JO",elo:1685,fifa:null,host:false},
  {g:"K",n:"Portugal",c:"PT",elo:1986,fifa:1764,host:false},{g:"K",n:"RD Congo",c:"CD",elo:1661,fifa:null,host:false},
@@ -502,6 +502,12 @@ resultsState[1][8]={gh:"4",ga:"0"}; // DE-CW  · Alemania 4-0 Curaçao (Woltemad
 resultsState[1][9]={gh:"1",ga:"0"};  // CI-EC  · Costa de Marfil 1-0 Ecuador (Amad Diallo 90')
 resultsState[1][10]={gh:"1",ga:"0"}; // NL-JP  · Países Bajos 1-0 Japón (Van Dijk 50')
 resultsState[1][11]={gh:"5",ga:"1"}; // SE-TN  · Suecia 5-1 Túnez
+resultsState[1][12]={gh:"1",ga:"1"}; // BE-EG  · Bélgica 1-1 Egipto
+resultsState[1][13]={gh:"2",ga:"2"}; // IR-NZ  · Irán 2-2 Nueva Zelanda
+resultsState[1][14]={gh:"0",ga:"0"}; // ES-CV  · España 0-0 Cabo Verde (Vozinha heroico)
+resultsState[1][15]={gh:"1",ga:"1"}; // SA-UY  · Arabia Saudí 1-1 Uruguay
+resultsState[1][16]={gh:"3",ga:"1"}; // FR-SN  · Francia 3-1 Senegal
+resultsState[1][17]={gh:"1",ga:"4"}; // IQ-NO  · Irak 1-4 Noruega (Haaland doblete)
 let curRJ=1;
 const outcome=(gh,ga)=> gh>ga?'H':(gh<ga?'A':'D');
 const brierFor=(pH,pD,pA,oc)=>{const oH=oc==='H'?1:0,oD=oc==='D'?1:0,oA=oc==='A'?1:0;return (pH-oH)**2+(pD-oD)**2+(pA-oA)**2;};
