@@ -1307,8 +1307,14 @@ nav button:hover,nav button.active{
         Rankings update automatically. ⭐: 3pts exact · 2pts under ±1 · 1.5pts over ±1 · 0.5pts off ±2. Other matches: 1pt correct.
       </p>
 
-      <!-- Personalized exact score card — populated by renderLeaderboard() -->
-      <div id="closerResultCard" style="margin-bottom:20px"></div>
+      <!-- Personalized exact score card — toggle wrapper -->
+      <div id="closerResultWrap" style="margin-bottom:20px">
+        <button id="closerToggleBtn" onclick="toggleCloserCard()" style="width:100%;padding:11px 16px;background:linear-gradient(135deg,rgba(122,85,0,.55),rgba(212,175,55,.18));border:1.5px solid rgba(212,175,55,.5);border-radius:10px;color:#D4AF37;font-family:'Bebas Neue';font-size:15px;letter-spacing:2px;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;transition:.2s">
+          <span>⭐ <span data-en="EXACT SCORE" data-es="MARCADOR EXACTO">EXACT SCORE</span></span>
+          <span id="closerToggleArrow" style="font-size:12px;opacity:.7">▼</span>
+        </button>
+        <div id="closerResultCard" style="display:none;margin-top:8px"></div>
+      </div>
 
       <div id="hofContent" style="margin-bottom:4px"></div>
       <div id="leaderboardContent" class="leaderboard">
@@ -4094,6 +4100,14 @@ function refreshLeaderboardIfVisible(){
 let _closerData = null; // cache for tab switching
 let _closerRound = 1;
 
+function toggleCloserCard(){
+  const card = document.getElementById('closerResultCard');
+  const arrow = document.getElementById('closerToggleArrow');
+  const isOpen = card.style.display !== 'none';
+  card.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.textContent = isOpen ? '▼' : '▲';
+}
+
 function switchCloserRound(r){
   _closerRound = r;
   if(_closerData) renderCloserResultCard(_closerData.players, _closerData.allPicks, _closerData.results);
@@ -4102,6 +4116,7 @@ function switchCloserRound(r){
 function renderCloserResultCard(players, allPicks, results){
   const card = document.getElementById('closerResultCard');
   if(!card) return;
+  const wasOpen = card.style.display !== 'none';
   // Cache data for tab switching
   _closerData = { players, allPicks, results };
   const es = currentLang === 'es';
@@ -4111,7 +4126,7 @@ function renderCloserResultCard(players, allPicks, results){
     const m = (MATCHES[r]||[]).find(m => m.closer || m.final);
     return !!m;
   });
-  if(!availableRounds.length){ card.innerHTML=''; return; }
+  if(!availableRounds.length){ card.innerHTML=''; card.style.display='none'; return; }
 
   // Default to activeWeek on first render, otherwise keep current tab
   if(!_closerRound || !availableRounds.includes(_closerRound)){
@@ -4121,7 +4136,7 @@ function renderCloserResultCard(players, allPicks, results){
 
   const roundMatches = MATCHES[round] || [];
   const closerMatch = roundMatches.find(m => m.closer || m.final);
-  if(!closerMatch){ card.innerHTML=''; return; }
+  if(!closerMatch){ card.innerHTML=''; card.style.display='none'; return; }
 
   const res = results && results[closerMatch.id];
   const homeName = customTeamNames[closerMatch.id+'_home'] || displayTeamName(closerMatch.home);
@@ -4192,6 +4207,7 @@ function renderCloserResultCard(players, allPicks, results){
     </button>`
   ).join('');
 
+  card.style.display = wasOpen ? 'block' : 'none';
   card.innerHTML = `
     <div style="background:linear-gradient(160deg,#0c0c08,#1a1400);border:1.5px solid rgba(212,175,55,.35);border-radius:12px;overflow:hidden">
       <div style="background:linear-gradient(135deg,#7a5500,#D4AF37,#7a5500);padding:10px 16px">
