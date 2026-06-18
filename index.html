@@ -1474,6 +1474,37 @@ nav button:hover,nav button.active{
             <div id="rpPlayerList"><p style="color:var(--text2);font-size:12px">Loading...</p></div>
           </div>
 
+          <!-- Late Pick Exception -->
+          <div class="admin-card">
+            <h3>⏰ <span data-en="Late Pick Exception" data-es="Pick Tardío">Late Pick Exception</span></h3>
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px" data-en="Allow a player to submit picks after the deadline, with an optional point penalty." data-es="Permite a un jugador enviar picks después del cierre, con penalización opcional.">Allow a player to submit picks after the deadline, with an optional point penalty.</p>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <label style="font-size:12px;color:var(--text2);width:70px" data-en="Player:" data-es="Jugador:">Player:</label>
+                <select id="lpPlayerSelect" style="flex:1;min-width:120px;background:#1a1a1a;border:1px solid #333;color:var(--text);border-radius:6px;padding:4px 8px;font-size:13px"><option value="">— select —</option></select>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <label style="font-size:12px;color:var(--text2);width:70px" data-en="Round:" data-es="Jornada:">Round:</label>
+                <select id="lpRoundSelect" style="background:#1a1a1a;border:1px solid #333;color:var(--text);border-radius:6px;padding:4px 8px;font-size:13px">
+                  <option value="2" selected>Jornada 2</option>
+                  <option value="3">Jornada 3</option><option value="4">Jornada 4</option>
+                  <option value="5">Jornada 5</option><option value="6">Jornada 6</option><option value="7">Jornada 7</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <label style="font-size:12px;color:var(--text2);width:70px" data-en="Deadline:" data-es="Límite:">Deadline:</label>
+                <input type="datetime-local" id="lpDeadline" style="flex:1;background:#1a1a1a;border:1px solid #333;color:var(--text);border-radius:6px;padding:4px 8px;font-size:13px" value="2026-06-18T14:30">
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <label style="font-size:12px;color:var(--text2);width:70px" data-en="Penalty:" data-es="Penalización:">Penalty:</label>
+                <input type="number" id="lpPenalty" value="-1" style="width:80px;background:#1a1a1a;border:1px solid #333;color:var(--text);border-radius:6px;padding:4px 8px;font-size:13px">
+                <span style="font-size:11px;color:var(--text2)" data-en="pts added to round total (use negative)" data-es="pts al total de la jornada (usar negativo)">pts added to round total (use negative)</span>
+              </div>
+              <button onclick="saveLatePickException()" style="background:rgba(231,76,60,.2);border:1.5px solid #E74C3C;color:#E74C3C;font-size:12px;font-weight:700;padding:6px 16px;border-radius:8px;cursor:pointer;align-self:flex-start">⏰ Grant Late Pick</button>
+              <div id="lpStatus" style="font-size:12px;color:var(--text2)"></div>
+            </div>
+          </div>
+
           <!-- Players -->
           <div class="admin-card">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -4118,6 +4149,8 @@ function renderHallOfFame(players, allPicks, results){
         if(!res || !p) return;
         pts += scoreMatch(m, p, res);
       });
+      const pen = (player.penalties || {})[round] || (player.penalties || {})[String(round)] || 0;
+      pts = Math.round((pts + pen) * 10) / 10;
       const tb = closerTBData(pp, results, round);
       scores.push({name: player.name||key, pts, tb});
     });
@@ -4360,6 +4393,8 @@ function renderLeaderboard(){
           else if(mp===0.5) near++;
           else if(mp===1) result++;
         });
+        const pen = (player.penalties||{})[scoringRound] || (player.penalties||{})[String(scoringRound)] || 0;
+        if(pen) pts = Math.round((pts + pen) * 10) / 10;
       }
 
       const tb = (results && scoringRound && hasSubmittedActive)
@@ -4367,7 +4402,8 @@ function renderLeaderboard(){
         : {diff:9999, under:null, counterDiff:9999};
 
       const noSubmit = !hasSubmittedActive;
-      ranked.push({name:player.name||key, pts, exact, close, closeOver, near, result, key, noSubmit, avatar:player.avatar||null, tb});
+      const pen = scoringRound ? ((player.penalties||{})[scoringRound] || (player.penalties||{})[String(scoringRound)] || 0) : 0;
+      ranked.push({name:player.name||key, pts, exact, close, closeOver, near, result, key, noSubmit, avatar:player.avatar||null, tb, penalty:pen});
     });
     ranked.sort((a,b)=>{
       if(b.pts !== a.pts) return b.pts - a.pts;
@@ -4459,11 +4495,14 @@ function renderLeaderboard(){
       const adminDelBtn = adminLoggedIn
         ? `<button onclick="deletePlayer('${p.key}')" title="Delete player" style="margin-left:6px;background:rgba(231,76,60,.2);border:1px solid #E74C3C;color:#E74C3C;border-radius:6px;padding:2px 7px;font-size:11px;cursor:pointer;line-height:1.4">🗑</button>`
         : '';
+      const penaltyTag = p.penalty
+        ? `<span style="font-size:10px;background:rgba(231,76,60,.15);border:1px solid #E74C3C;color:#E74C3C;border-radius:6px;padding:1px 5px;margin-left:4px;vertical-align:middle">${p.penalty > 0 ? '+' : ''}${p.penalty} pts</span>`
+        : '';
       row.innerHTML = `
         <div class="lb-rank ${rankClass}">${medal||'#'+(i+1)}</div>
         <div class="lb-avatar" style="width:36px;height:36px;border:none;padding:0;overflow:hidden;border-radius:50%">${avatarSvg}</div>
         <div style="flex:1">
-          <div class="lb-name">${escapeHtml(p.name)}${tbTag}${adminDelBtn}</div>
+          <div class="lb-name">${escapeHtml(p.name)}${tbTag}${penaltyTag}${adminDelBtn}</div>
           <div class="pts-breakdown">${pendingNote}</div>
         </div>
         <div class="lb-pts">${ptsDisp} <span>pts</span></div>
@@ -4927,6 +4966,7 @@ function renderAdminPlayers(){
   cont.innerHTML='<p style="color:var(--text2);font-size:13px">Loading...</p>';
 
   function display(players, allPicks){
+    populateLpPlayerSelect(players);
     // Merge: also show entries that have picks but no players node (orphan registrations)
     const merged = Object.assign({}, players || {});
     Object.keys(allPicks || {}).forEach(k => {
@@ -5051,6 +5091,49 @@ function renderAdminPlayers(){
     cont.innerHTML=`<p style="color:var(--text2);font-size:13px">${t('Conectando...','Connecting...')} <button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="margin-top:8px">↺ ${t('Reintentar','Retry')}</button></p>`;
     setTimeout(function(){ if(db) renderAdminPlayers(); }, 2000);
   }
+}
+
+// ══════════════════════════════════════════════════════
+//  LATE PICK EXCEPTION
+// ══════════════════════════════════════════════════════
+function populateLpPlayerSelect(players){
+  const sel = document.getElementById('lpPlayerSelect');
+  if(!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— select —</option>';
+  Object.entries(players||{}).forEach(([key, p])=>{
+    if(!p.approved) return;
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = p.name || key;
+    sel.appendChild(opt);
+  });
+  if(prev) sel.value = prev;
+}
+
+function saveLatePickException(){
+  const key = document.getElementById('lpPlayerSelect').value;
+  const round = parseInt(document.getElementById('lpRoundSelect').value);
+  const deadlineStr = document.getElementById('lpDeadline').value;
+  const penalty = parseFloat(document.getElementById('lpPenalty').value) || 0;
+  const status = document.getElementById('lpStatus');
+  if(!key){ status.textContent = '⚠️ Select a player'; return; }
+  if(!deadlineStr){ status.textContent = '⚠️ Set a deadline'; return; }
+  const deadlineMs = new Date(deadlineStr).getTime();
+  if(isNaN(deadlineMs)){ status.textContent = '⚠️ Invalid deadline'; return; }
+  if(!db){ status.textContent = '⚠️ No Firebase'; return; }
+  const updates = {};
+  updates['players/'+key+'/latePickDeadline/'+round] = deadlineMs;
+  if(penalty !== 0){
+    updates['players/'+key+'/penalties/'+round] = penalty;
+  }
+  db.ref().update(updates).then(function(){
+    const name = document.getElementById('lpPlayerSelect').selectedOptions[0].text;
+    status.innerHTML = `<span style="color:#2ECC71">✅ ${name} — J${round} late pick until ${deadlineStr}, penalty: ${penalty} pts</span>`;
+    showToast('Late pick exception saved ✅','success');
+  }).catch(function(e){
+    status.textContent = '⚠️ Error: '+e.message;
+  });
 }
 
 // ══════════════════════════════════════════════════════
@@ -5829,10 +5912,15 @@ function isApprovedForRound(round){
 }
 
 // A round is locked for editing once we are within 5 h of its first match.
+// Exception: if admin granted a late pick deadline that hasn't passed yet.
 function isRoundLocked(round){
   const matches = MATCHES[round] || [];
   if(matches.length === 0) return false;
-  return hasMatchStarted(matches[0]);
+  if(!hasMatchStarted(matches[0])) return false;
+  const lpd = playerData.latePickDeadline || {};
+  const deadline = lpd[round] || lpd[String(round)];
+  if(deadline && Date.now() < deadline) return false;
+  return true;
 }
 
 function getNextMatchDate(){
