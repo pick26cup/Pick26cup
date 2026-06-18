@@ -1632,6 +1632,24 @@ nav button:hover,nav button.active{
 <!-- TOAST -->
 <div id="toast"></div>
 
+<!-- DAILY FLOATING MESSAGE -->
+<div id="dailyMsg" style="display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:500;width:calc(100% - 32px);max-width:480px;background:linear-gradient(135deg,#1a1200,#2a1e00);border:1.5px solid rgba(212,175,55,.6);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.6);padding:16px 18px 14px;animation:slideUpMsg .4s ease">
+  <div style="display:flex;align-items:flex-start;gap:10px">
+    <span style="font-size:22px;line-height:1;flex-shrink:0">📢</span>
+    <div style="flex:1">
+      <div id="dailyMsgTitle" style="font-family:'Bebas Neue';font-size:15px;color:#D4AF37;letter-spacing:2px;margin-bottom:5px"></div>
+      <div id="dailyMsgBody" style="font-size:12px;color:var(--text2);line-height:1.55"></div>
+    </div>
+    <button onclick="closeDailyMsg()" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;line-height:1;flex-shrink:0;padding:0 0 0 4px">✕</button>
+  </div>
+  <div style="margin-top:10px;text-align:right">
+    <button onclick="closeDailyMsg()" style="background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.4);color:#D4AF37;font-size:11px;font-weight:700;padding:5px 16px;border-radius:20px;cursor:pointer;letter-spacing:1px" id="dailyMsgOkBtn"></button>
+  </div>
+</div>
+<style>
+@keyframes slideUpMsg{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
+
 <script>
 // ══════════════════════════════════════════════════════
 //  DATA — MATCHES
@@ -2138,6 +2156,7 @@ window.onload = function(){
   updateLang();
   renderRoundTabs();
   startCountdown();
+  showDailyMsgIfNeeded();
   // Show avatar button in settings once logged in
   const avBtn = document.getElementById('settingsAvatarBtn');
   if(avBtn && currentUser) avBtn.style.display = 'flex';
@@ -2147,6 +2166,40 @@ window.onload = function(){
     if(wrap && !wrap.contains(e.target)) closeSettingsMenu();
   });
 };
+
+// ── Daily floating message ───────────────────────────────────
+const DAILY_MESSAGES = {
+  '2026-06-18': {
+    en: {
+      title: 'RULE UPDATE — ROUNDS 2–7',
+      body: 'At the request of the players, the ⭐ Exact Score match has been simplified starting from Round 2:<br><br>🥇 <strong style="color:#D4AF37">3 pts</strong> — Exact score on both teams<br>🏅 <strong style="color:#aaa">1 pt</strong> — Correct winner (score not exact)<br>❌ <strong style="color:#E74C3C">0 pts</strong> — Wrong winner<br><br>The 2pt / 1.5pt tiers remain for Round 1 only.'
+    },
+    es: {
+      title: 'ACTUALIZACIÓN DE REGLAS — JORNADAS 2–7',
+      body: 'A solicitud de los jugadores, el partido ⭐ Marcador Exacto fue simplificado a partir de la Jornada 2:<br><br>🥇 <strong style="color:#D4AF37">3 pts</strong> — Marcador exacto en ambos equipos<br>🏅 <strong style="color:#aaa">1 pt</strong> — Acertó el ganador (marcador no exacto)<br>❌ <strong style="color:#E74C3C">0 pts</strong> — No acertó el ganador<br><br>Los niveles de 2 pts y 1.5 pts solo aplican en la Jornada 1.'
+    }
+  }
+};
+
+function showDailyMsgIfNeeded(){
+  const today = new Date().toISOString().slice(0,10);
+  const msg = DAILY_MESSAGES[today];
+  if(!msg) return;
+  const key = 'wc2026_msg_dismissed_' + today;
+  if(localStorage.getItem(key)) return;
+  const lang = currentLang === 'es' ? 'es' : 'en';
+  const data = msg[lang];
+  document.getElementById('dailyMsgTitle').textContent = data.title;
+  document.getElementById('dailyMsgBody').innerHTML = data.body;
+  document.getElementById('dailyMsgOkBtn').textContent = lang === 'es' ? 'ENTENDIDO' : 'GOT IT';
+  document.getElementById('dailyMsg').style.display = 'block';
+}
+
+function closeDailyMsg(){
+  const today = new Date().toISOString().slice(0,10);
+  localStorage.setItem('wc2026_msg_dismissed_' + today, '1');
+  document.getElementById('dailyMsg').style.display = 'none';
+}
 
 function initFirebase(){
   if(typeof firebase !== 'undefined') return setupFirebase();
