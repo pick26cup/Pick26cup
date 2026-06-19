@@ -487,6 +487,13 @@
       <div class="nav-item" onclick="showAppPage('settings')" data-page="settings">
         <span class="nav-item-icon">⚙️</span> Settings
       </div>
+      <div class="nav-item" onclick="showAppPage('classroom')" data-page="classroom">
+        <span class="nav-item-icon">🖥️</span> Virtual Classroom
+      </div>
+      <div class="nav-section-title">Admin</div>
+      <div class="nav-item" onclick="showAppPage('admin')" data-page="admin">
+        <span class="nav-item-icon">🛡️</span> Admin Panel
+      </div>
     </nav>
     <div class="sidebar-footer">
       <div class="user-mini" onclick="showAppPage('settings')">
@@ -979,6 +986,16 @@
         </div>
       </div>
     </div>
+
+    <!-- CLASSROOM PAGE -->
+    <div class="app-content" id="page-classroom">
+      <div class="page-header"><h1 class="page-title">🖥️ Virtual Classroom</h1></div>
+    </div>
+
+    <!-- ADMIN PAGE -->
+    <div class="app-content" id="page-admin">
+      <div class="page-header"><h1 class="page-title">🛡️ Admin Panel</h1></div>
+    </div>
   </main>
 </div>
 
@@ -1071,5 +1088,7 @@
 <script src="js/specializations.js"></script>
 <script src="js/tournaments.js"></script>
 <script src="js/natural.js"></script>
+<script src="js/classroom.js"></script>
+<script src="js/admin.js"></script>
 </body>
 </html>

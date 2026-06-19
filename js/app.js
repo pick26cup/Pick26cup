@@ -379,7 +379,8 @@ function showAppPage(page) {
     natural: 'Natural Learning', challenges: 'Daily Challenges', stories: 'Story Mode',
     pronunciation: 'Pronunciation Trainer', minigames: 'Mini-Games',
     specializations: 'Specializations', tournaments: 'Tournaments',
-    analytics: 'Analytics', certificates: 'Certificates', shop: 'Coin Shop'
+    analytics: 'Analytics', certificates: 'Certificates', shop: 'Coin Shop',
+    classroom: 'Virtual Classroom', admin: 'Admin Panel'
   };
   document.getElementById('topbarTitle').textContent = titles[page] || page;
 
@@ -401,7 +402,9 @@ function showAppPage(page) {
     tournaments: () => { if (window.renderTournamentsPage) renderTournamentsPage(); },
     analytics: () => { if (window.renderAnalyticsPage) renderAnalyticsPage(); },
     certificates: () => { if (window.renderCertificatesPage) renderCertificatesPage(); },
-    shop: () => { if (window.renderShopPage) renderShopPage(); }
+    shop: () => { if (window.renderShopPage) renderShopPage(); },
+    classroom: () => { if (window.renderClassroomPage) renderClassroomPage(); },
+    admin: () => { if (window.renderAdminPage) renderAdminPage(); }
   };
   if (renderers[page]) renderers[page]();
 
