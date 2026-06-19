@@ -5732,7 +5732,10 @@ function showSection(name){
   if(esBtn) esBtn.style.display = name==='leaderboard' ? 'block' : 'none';
   if(chBtn) chBtn.style.display = name==='leaderboard' ? 'block' : 'none';
   if(name==='leaderboard') renderLeaderboard();
-  if(name==='results') renderMyResults();
+  if(name==='results'){
+    resultsRound = null; // will resolve to activeWeek inside renderMyResults
+    renderMyResults();
+  }
   if(name==='groups') renderGroups();
   if(name==='admin' && adminLoggedIn){
     document.getElementById('adminLogin').classList.add('hidden');
@@ -6221,7 +6224,7 @@ function renderGroups(){
 // ══════════════════════════════════════════════════════════════
 //  FEATURE: MY RESULTS
 // ══════════════════════════════════════════════════════════════
-let resultsRound = 1;
+let resultsRound = null; // null = not yet set; will default to activeWeek on first render
 
 function renderMyResults(){
   if(!currentUser) return;
@@ -6257,14 +6260,22 @@ function renderMyResults(){
       return;
     }
 
+    // Default to activeWeek if not explicitly set by tab click
+    if(resultsRound === null){
+      resultsRound = (activeWeek && activeWeek > 0) ? activeWeek : submittedRoundNums[submittedRoundNums.length-1];
+    }
+    // If selected round has no submission, pick the closest submitted one to activeWeek
+    if(!submittedRoundNums.includes(resultsRound)){
+      const aw = activeWeek && activeWeek > 0 ? activeWeek : submittedRoundNums[submittedRoundNums.length-1];
+      resultsRound = submittedRoundNums.reduce((best, r) => Math.abs(r - aw) < Math.abs(best - aw) ? r : best, submittedRoundNums[0]);
+    }
+
     // Build tabs
     tabsEl.innerHTML = submittedRoundNums.map(r=>`
       <button class="history-round-btn ${r===resultsRound?'active':''}"
         onclick="resultsRound=${r};renderMyResults()">
         ${currentLang==='es'?'Jornada ':'Round '}${r}
       </button>`).join('');
-
-    if(!submittedRoundNums.includes(resultsRound)) resultsRound = submittedRoundNums[0];
 
     // Calculate stats for selected round
     const roundMatches = MATCHES[resultsRound]||[];
