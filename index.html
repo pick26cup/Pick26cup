@@ -2511,8 +2511,17 @@ function _doNarrate(){
     else { utt.lang = targetLang; }
     var music = document.getElementById('bgMusic');
     var origVol = null;
-    if(music && !music.paused && music.volume > 0){ origVol = music.volume; music.volume = 0.04; }
-    function restoreMusic(){ if(origVol !== null && music){ music.volume = origVol; origVol = null; } }
+    if(music && !music.paused && music.volume > 0){ origVol = music.volume || 0.62; music.volume = 0.04; }
+    function restoreMusic(){
+      if(origVol !== null && music){
+        var target = origVol;
+        var step = (target - music.volume) / 20;
+        var t = setInterval(function(){
+          if(Math.abs(music.volume - target) <= Math.abs(step)){ music.volume = target; clearInterval(t); origVol = null; }
+          else { music.volume = Math.min(target, music.volume + step); }
+        }, 50);
+      }
+    }
     utt.onend = restoreMusic; utt.onerror = restoreMusic;
     window.speechSynthesis.speak(utt);
   }
@@ -6476,11 +6485,22 @@ function renderGroupStats(players, allPicks, results){
 (function(){
   var m=document.getElementById('bgMusic');
   if(!m) return;
-  m.volume=0.3;
-  var played=false;
-  function play(){ if(played)return; m.play().then(function(){played=true;}).catch(function(){}); }
+  var TARGET_VOL = 0.62;
+  m.volume = 0;
+  var played = false;
+  function fadeIn(){
+    var step = TARGET_VOL / 40; // reach target in ~2s (40 steps × 50ms)
+    var t = setInterval(function(){
+      if(m.volume + step >= TARGET_VOL){ m.volume = TARGET_VOL; clearInterval(t); }
+      else { m.volume = Math.min(TARGET_VOL, m.volume + step); }
+    }, 50);
+  }
+  function play(){
+    if(played) return;
+    m.play().then(function(){ played=true; fadeIn(); }).catch(function(){});
+  }
   ['click','touchstart','touchend','pointerdown'].forEach(function(e){
-    document.addEventListener(e,play,{passive:true});
+    document.addEventListener(e, play, {passive:true});
   });
 })();
 </script>
