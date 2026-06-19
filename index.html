@@ -5766,9 +5766,7 @@ function setRound(r){
     return;
   }
   currentRound = r;
-  document.querySelectorAll('.round-tab').forEach((b,i)=>{
-    b.classList.toggle('active', i===r-1);
-  });
+  renderRoundTabs();
   renderMatches();
 }
 
