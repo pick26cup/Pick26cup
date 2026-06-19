@@ -444,6 +444,9 @@
         <span class="nav-item-icon">📝</span> Vocabulary
       </div>
       <div class="nav-section-title">Explore</div>
+      <div class="nav-item" onclick="showAppPage('natural')" data-page="natural">
+        <span class="nav-item-icon">🧬</span> Natural Learning
+      </div>
       <div class="nav-item" onclick="showAppPage('challenges')" data-page="challenges">
         <span class="nav-item-icon">⚡</span> Daily Challenges
       </div>
@@ -827,6 +830,11 @@
       <div class="leaderboard-list" id="leaderboardList"></div>
     </div>
 
+    <!-- NATURAL LEARNING PAGE -->
+    <div class="app-content" id="page-natural">
+      <div class="page-header"><h1 class="page-title">🧬 Natural Learning</h1></div>
+    </div>
+
     <!-- DAILY CHALLENGES PAGE -->
     <div class="app-content" id="page-challenges">
       <div class="page-header"><h1 class="page-title">⚡ Daily Challenges</h1></div>
@@ -1062,5 +1070,6 @@
 <script src="js/certificates.js"></script>
 <script src="js/specializations.js"></script>
 <script src="js/tournaments.js"></script>
+<script src="js/natural.js"></script>
 </body>
 </html>

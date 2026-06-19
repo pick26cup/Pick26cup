@@ -47,7 +47,10 @@ const DEFAULT_STATE = {
   streakFreezeActive: false,
   xpBoostUntil: 0,
   hearts: 5,
-  activeTheme: 'default'
+  activeTheme: 'default',
+  journalEntries: [],
+  shadowingScores: {},
+  firstLoginDone: false
 };
 
 let state = loadState();
@@ -373,8 +376,9 @@ function showAppPage(page) {
     dashboard: 'Dashboard', lessons: 'Lessons', conversation: 'AI Conversation',
     vocabulary: 'Vocabulary', progress: 'Analytics', achievements: 'Achievements',
     leaderboard: 'Leaderboard', settings: 'Settings',
-    challenges: 'Daily Challenges', stories: 'Story Mode', pronunciation: 'Pronunciation Trainer',
-    minigames: 'Mini-Games', specializations: 'Specializations', tournaments: 'Tournaments',
+    natural: 'Natural Learning', challenges: 'Daily Challenges', stories: 'Story Mode',
+    pronunciation: 'Pronunciation Trainer', minigames: 'Mini-Games',
+    specializations: 'Specializations', tournaments: 'Tournaments',
     analytics: 'Analytics', certificates: 'Certificates', shop: 'Coin Shop'
   };
   document.getElementById('topbarTitle').textContent = titles[page] || page;
@@ -388,6 +392,7 @@ function showAppPage(page) {
     achievements: renderAchievements,
     leaderboard: renderLeaderboard,
     settings: renderSettings,
+    natural: () => { if (window.renderNaturalPage) renderNaturalPage(); },
     challenges: () => { if (window.renderChallengesPage) renderChallengesPage(); },
     stories: () => { if (window.renderStoriesPage) renderStoriesPage(); },
     pronunciation: () => { if (window.renderPronunciationPage) renderPronunciationPage(); },
