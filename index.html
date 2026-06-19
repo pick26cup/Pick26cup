@@ -1829,6 +1829,24 @@ function getTeamVisual(name){
   return '<span class="team-tba" title="To be determined">?</span>';
 }
 
+const TEAM_EN = {
+  'Alemania':'Germany','Arabia Saudí':'Saudi Arabia','Argelia':'Algeria',
+  'Argentina':'Argentina','Australia':'Australia','Austria':'Austria',
+  'Bosnia Herzegovina':'Bosnia & Herzegovina','Brasil':'Brazil','Bélgica':'Belgium',
+  'Cabo Verde':'Cape Verde','Canadá':'Canada','Colombia':'Colombia','Congo':'Congo',
+  'Corea del Sur':'South Korea','Costa de Marfil':'Ivory Coast','Croacia':'Croatia',
+  'Curaçao':'Curaçao','Ecuador':'Ecuador','Egipto':'Egypt','Escocia':'Scotland',
+  'España':'Spain','Estados Unidos':'United States','Francia':'France','Ghana':'Ghana',
+  'Haití':'Haiti','Inglaterra':'England','Iraq':'Iraq','Irán':'Iran','Japón':'Japan',
+  'Jordania':'Jordan','Marruecos':'Morocco','México':'Mexico','Noruega':'Norway',
+  'Nueva Zelanda':'New Zealand','Panamá':'Panama','Paraguay':'Paraguay',
+  'Países Bajos':'Netherlands','Portugal':'Portugal','Qatar':'Qatar',
+  'República Checa':'Czech Republic','Senegal':'Senegal','Sudáfrica':'South Africa',
+  'Suecia':'Sweden','Suiza':'Switzerland','Turquía':'Turkey','Túnez':'Tunisia',
+  'Uruguay':'Uruguay','Uzbekistán':'Uzbekistan'
+};
+function tn(name){ return currentLang==='es' ? name : (TEAM_EN[name] || name); }
+
 const MATCHES = {
   1:[
     {id:"1_1",home:"México",away:"Sudáfrica",date:"11/06",time:"15:00"},
@@ -5991,7 +6009,7 @@ function updateCountdown(){
   if(!upcoming){ banner.style.display='none'; return; }
 
   const { match: nextM, date: kickoff } = upcoming;
-  const matchLabel = `${nextM.home} ⚽ ${nextM.away}`;
+  const matchLabel = `${tn(nextM.home)} ⚽ ${tn(nextM.away)}`;
   const now = new Date();
   const diffToKick = kickoff - now;         // ms to actual kickoff
   const diffToLock = diffToKick - LOCK_BEFORE_MS; // ms to picks lock
@@ -6559,7 +6577,7 @@ function announceNextMatchVoice(){
   _voiceAnnounced = true;
   var h = Math.floor(diffMs / (1000*60*60));
   var mn = Math.floor((diffMs % (1000*60*60)) / (1000*60));
-  var home = upcoming.match.home, away = upcoming.match.away;
+  var home = tn(upcoming.match.home), away = tn(upcoming.match.away);
   var text = currentLang === 'es'
     ? (h > 0
         ? 'Faltan ' + h + ' hora' + (h !== 1 ? 's' : '') + ' y ' + mn + ' minutos para ' + home + ' contra ' + away
