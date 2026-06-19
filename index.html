@@ -5763,6 +5763,11 @@ function showSection(name){
   if(esBtn) esBtn.style.display = name==='leaderboard' ? 'block' : 'none';
   if(chBtn) chBtn.style.display = name==='leaderboard' ? 'block' : 'none';
   if(name==='leaderboard') renderLeaderboard();
+  if(name==='picks'){
+    currentRound = activeWeek > 0 ? activeWeek : 1;
+    renderRoundTabs();
+    renderMatches();
+  }
   if(name==='results'){
     resultsRound = null; // will resolve to activeWeek inside renderMyResults
     renderMyResults();
