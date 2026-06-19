@@ -168,12 +168,11 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
   color:var(--text2);font-family:'DM Sans';font-size:14px;font-weight:600;
   padding:8px 20px;border-radius:24px;cursor:pointer;transition:.2s;
 }
-.round-tab:hover,
-.round-tab.active{background:rgba(212,175,55,.38);border-color:var(--gold);color:var(--gold)}
+.round-tab:hover{background:rgba(212,175,55,.25);border-color:var(--gold);color:var(--gold)}
+.round-tab.active{background:rgba(212,175,55,.38)!important;border-color:var(--gold)!important;color:var(--gold)!important;font-weight:600!important;animation:none!important}
 .round-tab.locked{opacity:.35;cursor:not-allowed;pointer-events:none;border-style:dashed}
 .round-tab.round-pending{border-color:#E74C3C;animation:blink-red .85s step-start infinite}
 .round-tab.round-submitted{background:#2ECC71;border-color:#27ae60;color:#fff;font-weight:800}
-.round-tab.active.round-pending,.round-tab.active.round-submitted{background:rgba(212,175,55,.38)!important;border-color:var(--gold)!important;color:var(--gold)!important;animation:none}
 @keyframes blink-red{0%,49%{background:rgba(231,76,60,.85);color:#fff}50%,100%{background:rgba(255,255,255,.04);color:#E74C3C}}
 
 /* ── MATCH CARD ─────────────────────────────────────── */
@@ -3795,8 +3794,12 @@ function renderRoundTabs(){
     const label = currentLang==='es' ? 'Jornada '+r : 'Round '+r;
     const isApproved = r <= activeWeek || isApprovedForRound(r);
     const isSubmitted = !!(submittedRounds[r] || submittedRounds[String(r)]);
-    btn.classList.remove('locked','round-pending','round-submitted');
-    if(isApproved){
+    btn.classList.remove('locked','round-pending','round-submitted','active');
+    if(r === currentRound){
+      btn.textContent = label;
+      btn.title = '';
+      btn.classList.add('active');
+    } else if(isApproved){
       btn.textContent = label;
       btn.title = '';
       if(isSubmitted){
@@ -3809,7 +3812,6 @@ function renderRoundTabs(){
       btn.classList.add('locked');
       btn.title = currentLang==='es'?'No disponible aún':'Not available yet';
     }
-    if(r === currentRound) btn.classList.add('active');
   }
 }
 
