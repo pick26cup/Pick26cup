@@ -3798,15 +3798,14 @@ function renderRoundTabs(){
     if(r === currentRound){
       btn.textContent = label;
       btn.title = '';
-      btn.classList.add('active');
+      // Selected tab: green if submitted, gold if not yet submitted
+      if(isSubmitted) btn.classList.add('round-submitted');
+      else btn.classList.add('active');
     } else if(isApproved){
       btn.textContent = label;
       btn.title = '';
-      if(isSubmitted){
-        btn.classList.add('round-submitted');
-      } else {
-        btn.classList.add('round-pending');
-      }
+      // Non-selected: red blinking only if new/pending, otherwise gold (no class)
+      if(!isSubmitted) btn.classList.add('round-pending');
     } else {
       btn.textContent = (currentLang==='es'?'Jornada ':'Round ')+r+' 🔒';
       btn.classList.add('locked');
