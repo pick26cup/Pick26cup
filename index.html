@@ -3798,13 +3798,11 @@ function renderRoundTabs(){
     if(r === currentRound){
       btn.textContent = label;
       btn.title = '';
-      // Selected tab: green if submitted, gold if not yet submitted
-      if(isSubmitted) btn.classList.add('round-submitted');
-      else btn.classList.add('active');
+      btn.classList.add('round-submitted'); // selected tab always green
     } else if(isApproved){
       btn.textContent = label;
       btn.title = '';
-      // Non-selected: red blinking only if new/pending, otherwise gold (no class)
+      // non-selected: red blinking if pending, gold if already submitted
       if(!isSubmitted) btn.classList.add('round-pending');
     } else {
       btn.textContent = (currentLang==='es'?'Jornada ':'Round ')+r+' 🔒';
