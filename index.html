@@ -1477,7 +1477,7 @@ nav button:hover,nav button.active{
                 <option value="6">Jornada 6</option>
                 <option value="7">Jornada 7</option>
               </select>
-              <button onclick="approveAllForRound()" style="background:rgba(46,204,113,.2);border:1.5px solid #2ECC71;color:#2ECC71;font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer">✅ Aprobar Todos</button>
+              <button onclick="approveAllForRound()" style="background:rgba(46,204,113,.2);border:1.5px solid #2ECC71;color:#2ECC71;font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer" data-en="✅ Approve All" data-es="✅ Aprobar Todos">✅ Aprobar Todos</button>
             </div>
             <div id="rpPlayerList"><p style="color:var(--text2);font-size:12px">Loading...</p></div>
           </div>
@@ -1489,7 +1489,7 @@ nav button:hover,nav button.active{
             <div style="display:flex;flex-direction:column;gap:10px">
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
                 <label style="font-size:12px;color:var(--text2);width:70px" data-en="Player:" data-es="Jugador:">Player:</label>
-                <select id="lpPlayerSelect" style="flex:1;min-width:120px;background:#1a1a1a;border:1px solid #333;color:var(--text);border-radius:6px;padding:4px 8px;font-size:13px"><option value="">— select —</option></select>
+                <select id="lpPlayerSelect" style="flex:1;min-width:120px;background:#1a1a1a;border:1px solid #333;color:var(--text);border-radius:6px;padding:4px 8px;font-size:13px"><option value="" data-en="— select —" data-es="— selecciona —">— select —</option></select>
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
                 <label style="font-size:12px;color:var(--text2);width:70px" data-en="Round:" data-es="Jornada:">Round:</label>
@@ -1541,7 +1541,7 @@ nav button:hover,nav button.active{
     <div id="adminPlayerListModal" class="apdf-modal" onclick="if(event.target===this)closeAdminPlayerList()">
       <div class="apdf-modal-box">
         <div class="apdf-modal-hdr">
-          <h3>📋 PICKS POR JUGADOR</h3>
+          <h3 data-en="📋 PICKS BY PLAYER" data-es="📋 PICKS POR JUGADOR">📋 PICKS POR JUGADOR</h3>
           <button class="apdf-modal-close" onclick="closeAdminPlayerList()">✕</button>
         </div>
         <div class="apdf-modal-body" id="adminPlayerListBody">
@@ -1676,10 +1676,10 @@ nav button:hover,nav button.active{
   <div style="display:flex;align-items:center;gap:12px;max-width:500px;margin:0 auto">
     <img src="logo_1.jpg" style="width:44px;height:44px;border-radius:10px;border:1.5px solid rgba(212,175,55,.5);flex-shrink:0"/>
     <div style="flex:1;min-width:0">
-      <div style="color:var(--gold);font-family:'Bebas Neue';font-size:15px;letter-spacing:1.5px">AGREGAR A PANTALLA</div>
-      <div style="color:var(--text2);font-size:12px;margin-top:1px">Instala la app para acceso rápido</div>
+      <div style="color:var(--gold);font-family:'Bebas Neue';font-size:15px;letter-spacing:1.5px" data-en="ADD TO HOME SCREEN" data-es="AGREGAR A PANTALLA">AGREGAR A PANTALLA</div>
+      <div style="color:var(--text2);font-size:12px;margin-top:1px" data-en="Install app for quick access" data-es="Instala la app para acceso rápido">Instala la app para acceso rápido</div>
     </div>
-    <button onclick="doInstall()" style="background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;color:#000;font-family:'Bebas Neue';font-size:13px;letter-spacing:1.5px;padding:8px 16px;border-radius:20px;cursor:pointer;flex-shrink:0">INSTALAR</button>
+    <button onclick="doInstall()" style="background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;color:#000;font-family:'Bebas Neue';font-size:13px;letter-spacing:1.5px;padding:8px 16px;border-radius:20px;cursor:pointer;flex-shrink:0" data-en="INSTALL" data-es="INSTALAR">INSTALAR</button>
     <button onclick="dismissInstall()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0 4px;flex-shrink:0">✕</button>
   </div>
 </div>
@@ -2700,7 +2700,7 @@ async function saveMatchEdit(id){
   const date = document.getElementById('mei_date_'+id)?.value.trim();
   const time = document.getElementById('mei_time_'+id)?.value.trim();
   if(!home||!away||!date||!time){ showToast(t('Completa todos los campos','Fill all fields'),'error'); return; }
-  if(!db){ showToast('No connection','error'); return; }
+  if(!db){ showToast(currentLang==='es'?'Sin conexión':'No connection','error'); return; }
   try{
     await db.ref('matchOverrides/'+id).set({home,away,date,time});
     showToast(t('Partido actualizado ✅','Match updated ✅'),'success');
@@ -2708,7 +2708,7 @@ async function saveMatchEdit(id){
 }
 async function clearAllMatchOverrides(){
   if(!confirm(t('¿Eliminar TODOS los cambios de horario/partido y restaurar los horarios originales de Florida (EDT)?','Delete ALL match overrides and restore original Florida (EDT) times?'))) return;
-  if(!db){ showToast('No connection','error'); return; }
+  if(!db){ showToast(currentLang==='es'?'Sin conexión':'No connection','error'); return; }
   try{
     await db.ref('matchOverrides').remove();
     showToast(t('✅ Horarios restaurados a EDT (Florida)','✅ All times restored to EDT (Florida)'),'success');
@@ -2738,8 +2738,8 @@ function renderPendingPlayers(){
   if(!cont) return;
   const sel = document.getElementById('pendingRoundSelect');
   const round = sel ? parseInt(sel.value) : (activeWeek || 1);
-  cont.innerHTML = `<p style="color:var(--text2);font-size:12px">Loading...</p>`;
-  if(!db){ cont.innerHTML='<p style="color:var(--text2);font-size:12px">No connection.</p>'; return; }
+  cont.innerHTML = `<p style="color:var(--text2);font-size:12px">${currentLang==='es'?'Cargando...':'Loading...'}</p>`;
+  if(!db){ cont.innerHTML=`<p style="color:var(--text2);font-size:12px">${currentLang==='es'?'Sin conexión.':'No connection.'}</p>`; return; }
   Promise.all([
     db.ref('players').once('value'),
     db.ref('picks').once('value')
@@ -2756,7 +2756,7 @@ function renderPendingPlayers(){
     });
     const total = pending.length + submitted.length;
     if(total===0){
-      cont.innerHTML='<p style="color:var(--text2);font-size:12px">No players registered.</p>';
+      cont.innerHTML=`<p style="color:var(--text2);font-size:12px">${currentLang==='es'?'Sin jugadores registrados.':'No players registered.'}</p>`;
       return;
     }
     let html = `<p style="font-size:11px;color:var(--text2);margin-bottom:8px">`
@@ -4391,11 +4391,11 @@ function renderCloserResultCard(players, allPicks, results){
 
 function renderLeaderboard(){
   const cont = document.getElementById('leaderboardContent');
-  cont.innerHTML = '<p style="color:var(--text2);text-align:center;padding:32px">Loading leaderboard...</p>';
+  cont.innerHTML = `<p style="color:var(--text2);text-align:center;padding:32px">${currentLang==='es'?'Cargando tabla...':'Loading leaderboard...'}</p>`;
 
   function renderFromData(players, allPicks, results){
     if(!players || Object.keys(players).length===0){
-      cont.innerHTML = '<p style="color:var(--text2);text-align:center;padding:40px">No approved players yet.</p>';
+      cont.innerHTML = `<p style="color:var(--text2);text-align:center;padding:40px">${currentLang==='es'?'Sin jugadores aprobados aún.':'No approved players yet.'}</p>`;
       return;
     }
     // Points for the ACTIVE ROUND only (each round is independent)
@@ -4442,7 +4442,7 @@ function renderLeaderboard(){
     });
 
     if(ranked.length===0){
-      cont.innerHTML = '<p style="color:var(--text2);text-align:center;padding:40px">No approved players yet.</p>';
+      cont.innerHTML = `<p style="color:var(--text2);text-align:center;padding:40px">${currentLang==='es'?'Sin jugadores aprobados aún.':'No approved players yet.'}</p>`;
       return;
     }
     // Inject group stats after leaderboard renders
@@ -4994,7 +4994,7 @@ function filterAdminPlayers(query){
 
 function renderAdminPlayers(){
   const cont = document.getElementById('adminPlayerList');
-  cont.innerHTML='<p style="color:var(--text2);font-size:13px">Loading...</p>';
+  cont.innerHTML=`<p style="color:var(--text2);font-size:13px">${currentLang==='es'?'Cargando...':'Loading...'}</p>`;
 
   function display(players, allPicks){
     populateLpPlayerSelect(players);
@@ -5006,7 +5006,7 @@ function renderAdminPlayers(){
       }
     });
     if(Object.keys(merged).length === 0){
-      cont.innerHTML='<p style="color:var(--text2);font-size:13px">No players registered.</p>';
+      cont.innerHTML=`<p style="color:var(--text2);font-size:13px">${currentLang==='es'?'Sin jugadores registrados.':'No players registered.'}</p>`;
       return;
     }
     cont.innerHTML='';
@@ -5131,7 +5131,7 @@ function populateLpPlayerSelect(players){
   const sel = document.getElementById('lpPlayerSelect');
   if(!sel) return;
   const prev = sel.value;
-  sel.innerHTML = '<option value="">— select —</option>';
+  sel.innerHTML = `<option value="">${currentLang==='es'?'— selecciona —':'— select —'}</option>`;
   Object.entries(players||{}).forEach(([key, p])=>{
     if(!p.approved) return;
     const opt = document.createElement('option');
@@ -5148,11 +5148,11 @@ function saveLatePickException(){
   const deadlineStr = document.getElementById('lpDeadline').value;
   const penalty = parseFloat(document.getElementById('lpPenalty').value) || 0;
   const status = document.getElementById('lpStatus');
-  if(!key){ status.textContent = '⚠️ Select a player'; return; }
-  if(!deadlineStr){ status.textContent = '⚠️ Set a deadline'; return; }
+  if(!key){ status.textContent = currentLang==='es'?'⚠️ Selecciona un jugador':'⚠️ Select a player'; return; }
+  if(!deadlineStr){ status.textContent = currentLang==='es'?'⚠️ Establece una fecha límite':'⚠️ Set a deadline'; return; }
   const deadlineMs = new Date(deadlineStr).getTime();
-  if(isNaN(deadlineMs)){ status.textContent = '⚠️ Invalid deadline'; return; }
-  if(!db){ status.textContent = '⚠️ No Firebase'; return; }
+  if(isNaN(deadlineMs)){ status.textContent = currentLang==='es'?'⚠️ Fecha inválida':'⚠️ Invalid deadline'; return; }
+  if(!db){ status.textContent = currentLang==='es'?'⚠️ Sin conexión Firebase':'⚠️ No Firebase connection'; return; }
   const updates = {};
   updates['players/'+key+'/latePickDeadline/'+round] = deadlineMs;
   if(penalty !== 0){
@@ -5160,8 +5160,10 @@ function saveLatePickException(){
   }
   db.ref().update(updates).then(function(){
     const name = document.getElementById('lpPlayerSelect').selectedOptions[0].text;
-    status.innerHTML = `<span style="color:#2ECC71">✅ ${name} — J${round} late pick until ${deadlineStr}, penalty: ${penalty} pts</span>`;
-    showToast('Late pick exception saved ✅','success');
+    status.innerHTML = currentLang==='es'
+      ? `<span style="color:#2ECC71">✅ ${name} — J${round} pick tardío hasta ${deadlineStr}, penalización: ${penalty} pts</span>`
+      : `<span style="color:#2ECC71">✅ ${name} — R${round} late pick until ${deadlineStr}, penalty: ${penalty} pts</span>`;
+    showToast(currentLang==='es'?'¡Excepción de pick tardío guardada! ✅':'Late pick exception saved ✅','success');
   }).catch(function(e){
     status.textContent = '⚠️ Error: '+e.message;
   });
@@ -5177,7 +5179,7 @@ function openAdminPlayerList(){
   if(!adminLoggedIn) return;
   document.getElementById('adminPlayerListModal').classList.add('open');
   const body = document.getElementById('adminPlayerListBody');
-  body.innerHTML = '<p style="color:var(--text2);font-size:13px;text-align:center;padding:20px">Cargando...</p>';
+  body.innerHTML = `<p style="color:var(--text2);font-size:13px;text-align:center;padding:20px">${currentLang==='es'?'Cargando...':'Loading...'}</p>`;
   if(!db) return;
   Promise.all([
     db.ref('players').once('value'),
@@ -5311,12 +5313,12 @@ function renderRoundPayments(){
   const cont = document.getElementById('rpPlayerList');
   if(!cont || !db) return;
   const round = parseInt(document.getElementById('rpRoundSelect')?.value || 2);
-  cont.innerHTML = '<p style="color:var(--text2);font-size:12px">Loading...</p>';
+  cont.innerHTML = `<p style="color:var(--text2);font-size:12px">${currentLang==='es'?'Cargando...':'Loading...'}</p>`;
   db.ref('players').once('value').then(function(snap){
     const players = snap.val() || {};
     const entries = Object.entries(players).filter(([,p])=>p && p.name);
     if(!entries.length){
-      cont.innerHTML = '<p style="color:var(--text2);font-size:12px">No players yet.</p>';
+      cont.innerHTML = `<p style="color:var(--text2);font-size:12px">${currentLang==='es'?'Sin jugadores aún.':'No players yet.'}</p>`;
       return;
     }
     entries.sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''));
@@ -6170,11 +6172,11 @@ function renderGroups(){
   const container = document.getElementById('groupsContainer');
   if(!container) return;
   if(!db){
-    container.innerHTML = '<p style="color:var(--text2);text-align:center;padding:20px">Connecting...</p>';
+    container.innerHTML = `<p style="color:var(--text2);text-align:center;padding:20px">${currentLang==='es'?'Conectando...':'Connecting...'}</p>`;
     setTimeout(renderGroups, 2000);
     return;
   }
-  container.innerHTML = '<p style="color:var(--text2);text-align:center;padding:20px">Loading...</p>';
+  container.innerHTML = `<p style="color:var(--text2);text-align:center;padding:20px">${currentLang==='es'?'Cargando...':'Loading...'}</p>`;
 
   db.ref('results').once('value').then(snap=>{
     const results = snap.val()||{};
@@ -6284,7 +6286,7 @@ function renderMyResults(){
 
   if(!db){
     // Firebase not ready yet — retry
-    contentEl.innerHTML='<p style="color:var(--text2);padding:20px">Connecting to Firebase...</p>';
+    contentEl.innerHTML=`<p style="color:var(--text2);padding:20px">${currentLang==='es'?'Conectando a Firebase...':'Connecting to Firebase...'}</p>`;
     setTimeout(function(){ renderMyResults(); }, 2000);
     return;
   }
