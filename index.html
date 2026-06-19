@@ -3794,8 +3794,12 @@ function renderRoundTabs(){
     const label = currentLang==='es' ? 'Jornada '+r : 'Round '+r;
     const isApproved = r <= activeWeek || isApprovedForRound(r);
     const isSubmitted = !!(submittedRounds[r] || submittedRounds[String(r)]);
-    btn.classList.remove('locked','round-pending','round-submitted');
-    if(isApproved){
+    btn.classList.remove('locked','round-pending','round-submitted','active');
+    if(r === currentRound){
+      btn.textContent = label;
+      btn.title = '';
+      btn.classList.add('active');
+    } else if(isApproved){
       btn.textContent = label;
       btn.title = '';
       if(isSubmitted){
@@ -3808,7 +3812,6 @@ function renderRoundTabs(){
       btn.classList.add('locked');
       btn.title = currentLang==='es'?'No disponible aún':'Not available yet';
     }
-    if(r === currentRound) btn.classList.add('active');
   }
 }
 
