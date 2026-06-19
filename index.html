@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="version" content="2026.06.13.1"/>
 <title>Pick26 — Predict. Choose. Win.</title>
+<link rel="manifest" href="/manifest.json"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Pick26"/>
+<link rel="apple-touch-icon" href="/logo_1.jpg"/>
+<meta name="theme-color" content="#D4AF37"/>
 
 <!-- Referrer Policy -->
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
@@ -1662,6 +1669,19 @@ nav button:hover,nav button.active{
 <!-- TOAST -->
 <div id="toast"></div>
 
+<!-- PWA INSTALL BANNER -->
+<div id="installBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:700;background:linear-gradient(135deg,#1a1100,#2e1e00);border-top:2px solid rgba(212,175,55,.6);padding:14px 18px;box-shadow:0 -4px 20px rgba(0,0,0,.6);animation:slideUpBanner .35s ease">
+  <div style="display:flex;align-items:center;gap:12px;max-width:500px;margin:0 auto">
+    <img src="logo_1.jpg" style="width:44px;height:44px;border-radius:10px;border:1.5px solid rgba(212,175,55,.5);flex-shrink:0"/>
+    <div style="flex:1;min-width:0">
+      <div style="color:var(--gold);font-family:'Bebas Neue';font-size:15px;letter-spacing:1.5px">AGREGAR A PANTALLA</div>
+      <div style="color:var(--text2);font-size:12px;margin-top:1px">Instala la app para acceso rápido</div>
+    </div>
+    <button onclick="doInstall()" style="background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;color:#000;font-family:'Bebas Neue';font-size:13px;letter-spacing:1.5px;padding:8px 16px;border-radius:20px;cursor:pointer;flex-shrink:0">INSTALAR</button>
+    <button onclick="dismissInstall()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0 4px;flex-shrink:0">✕</button>
+  </div>
+</div>
+
 <!-- DAILY ANNOUNCEMENT BANNER -->
 <div id="dailyMsg" style="display:none;position:fixed;top:0;left:0;right:0;z-index:600;background:linear-gradient(135deg,#1a1100,#2e1e00);border-bottom:2px solid rgba(212,175,55,.7);box-shadow:0 4px 20px rgba(0,0,0,.6);animation:slideDwnMsg .35s ease">
   <div style="max-width:640px;margin:0 auto;padding:10px 14px;display:flex;align-items:flex-start;gap:10px">
@@ -1675,6 +1695,7 @@ nav button:hover,nav button.active{
 </div>
 <style>
 @keyframes slideDwnMsg{from{opacity:0;transform:translateY(-100%)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUpBanner{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
 #dailyMsg ~ div#app,body.has-banner main{padding-top:20px}
 </style>
 
@@ -6500,6 +6521,36 @@ function renderGroupStats(players, allPicks, results){
     document.addEventListener(e, play, {passive:true});
   });
 })();
+</script>
+
+<script>
+// ── PWA: Service Worker + Install Prompt ──────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').catch(function(){});
+}
+var _installPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  _installPrompt = e;
+  var dismissed = sessionStorage.getItem('pwa-dismissed');
+  if(!dismissed) document.getElementById('installBanner').style.display = 'block';
+});
+window.addEventListener('appinstalled', function(){
+  document.getElementById('installBanner').style.display = 'none';
+  _installPrompt = null;
+});
+function doInstall(){
+  if(!_installPrompt) return;
+  _installPrompt.prompt();
+  _installPrompt.userChoice.then(function(){
+    document.getElementById('installBanner').style.display = 'none';
+    _installPrompt = null;
+  });
+}
+function dismissInstall(){
+  document.getElementById('installBanner').style.display = 'none';
+  sessionStorage.setItem('pwa-dismissed', '1');
+}
 </script>
 </body>
 </html>
