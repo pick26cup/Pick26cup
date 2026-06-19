@@ -5967,6 +5967,17 @@ function getNextMatchDate(){
   return parseMatchDate(roundMatches[0]);
 }
 
+function getNextUpcomingMatch(){
+  // Find the next match that hasn't started yet across active week
+  const roundMatches = MATCHES[activeWeek] || [];
+  const now = new Date();
+  for(const m of roundMatches){
+    const d = parseMatchDate(m);
+    if(d && d > now) return m;
+  }
+  return roundMatches[0] || null;
+}
+
 function updateCountdown(){
   const banner = document.getElementById('countdownBanner');
   const units = document.getElementById('countdownUnits');
@@ -5989,7 +6000,11 @@ function updateCountdown(){
   banner.style.display = 'flex';
 
   if(diff <= 0){
-    if(title) title.textContent = currentLang==='es'?'🔒 PREDICCIONES CERRADAS':'🔒 PICKS LOCKED';
+    const nextM2 = getNextUpcomingMatch();
+    const ml2 = nextM2 ? `${nextM2.home} 🆚 ${nextM2.away}` : '';
+    if(title) title.innerHTML = currentLang==='es'
+      ? `🔒 PICKS CERRADOS<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:1px">${ml2}</span>`
+      : `🔒 PICKS LOCKED<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:1px">${ml2}</span>`;
     units.innerHTML = `<span class="countdown-expired">${currentLang==='es'?'Las predicciones ya no se pueden modificar':'Picks can no longer be changed'}</span>`;
     return;
   }
@@ -5999,9 +6014,11 @@ function updateCountdown(){
   const mins = Math.floor((diff % (1000*60*60)) / (1000*60));
   const secs = Math.floor((diff % (1000*60)) / 1000);
 
-  if(title) title.textContent = currentLang==='es'
-    ? `JORNADA ${activeWeek} — CIERRA EN`
-    : `ROUND ${activeWeek} — CLOSES IN`;
+  const nextM = getNextUpcomingMatch();
+  const matchLabel = nextM ? `${nextM.home} 🆚 ${nextM.away}` : '';
+  if(title) title.innerHTML = currentLang==='es'
+    ? `⏰ FALTAN PARA<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:1px">${matchLabel}</span>`
+    : `⏰ TIME LEFT FOR<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:1px">${matchLabel}</span>`;
 
   units.innerHTML = `
     ${days > 0 ? `<div class="countdown-unit"><span class="countdown-num">${days}</span><span class="countdown-label">${currentLang==='es'?'DÍAS':'DAYS'}</span></div><span class="countdown-sep">:</span>` : ''}
