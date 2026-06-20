@@ -6594,21 +6594,24 @@ function renderGroupStats(players, allPicks, results){
 (function(){
   var m=document.getElementById('bgMusic');
   if(!m) return;
-  var TARGET_VOL = 0.62;
-  m.volume = 0;
+  var START_VOL = 0.05;
+  var TARGET_VOL = 0.50;
+  var FADE_STEPS = 80;   // 80 steps × 100ms = 8 seconds gradual rise
+  m.volume = START_VOL;
   var played = false;
   function fadeIn(){
-    var step = TARGET_VOL / 40; // reach target in ~2s (40 steps × 50ms)
+    var step = (TARGET_VOL - START_VOL) / FADE_STEPS;
     var t = setInterval(function(){
       if(m.volume + step >= TARGET_VOL){ m.volume = TARGET_VOL; clearInterval(t); }
       else { m.volume = Math.min(TARGET_VOL, m.volume + step); }
-    }, 50);
+    }, 100);
   }
   function play(){
     if(played) return;
-    played = true;
-    m.play().then(function(){ fadeIn(); }).catch(function(){});
-    // Voice announcement of next match (needs user gesture)
+    m.play().then(function(){
+      played = true;
+      fadeIn();
+    }).catch(function(){});
     setTimeout(function(){ announceNextMatchVoice(); }, 1800);
   }
   ['click','touchstart','touchend','pointerdown'].forEach(function(e){
