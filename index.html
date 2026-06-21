@@ -295,6 +295,32 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
 .lb-status.approved{background:rgba(46,204,113,.2);color:var(--green);border:1px solid var(--green)}
 .lb-status.pending{background:rgba(212,175,55,.15);color:var(--gold);border:1px solid var(--gold3)}
 
+/* ── ADMIN MENU ──────────────────────────────────────── */
+.admin-menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+.admin-menu-btn{
+  background:rgba(212,175,55,.07);border:1.5px solid rgba(212,175,55,.22);
+  border-radius:14px;padding:20px 12px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  transition:.2s;color:var(--text);width:100%;text-align:center;
+}
+.admin-menu-btn:hover{background:rgba(212,175,55,.18);border-color:var(--gold)}
+.amb-icon{font-size:30px;line-height:1}
+.amb-label{font-family:'Bebas Neue';font-size:17px;letter-spacing:2px;color:var(--gold)}
+.amb-sub{font-size:10px;color:var(--text2);font-weight:500}
+.admin-back-btn{
+  background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);
+  color:var(--gold);font-family:'DM Sans';font-size:13px;font-weight:700;
+  padding:7px 16px;border-radius:8px;cursor:pointer;margin-bottom:16px;
+  display:inline-flex;align-items:center;gap:6px;transition:.2s;
+}
+.admin-back-btn:hover{background:rgba(212,175,55,.22)}
+.admin-sub-tab{
+  background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.2);
+  color:var(--text2);font-family:'DM Sans';font-size:12px;font-weight:700;
+  padding:6px 16px;border-radius:20px;cursor:pointer;transition:.2s;letter-spacing:.5px;
+}
+.admin-sub-tab.active{background:rgba(212,175,55,.28);border-color:var(--gold);color:var(--gold)}
+
 /* ── ADMIN PANEL ─────────────────────────────────────── */
 .admin-grid{display:grid;grid-template-columns:1fr;gap:20px}
 @media(min-width:768px){.admin-grid{grid-template-columns:1fr 1fr}}
@@ -1355,122 +1381,175 @@ nav button:hover,nav button.active{
 
       <!-- Admin Content -->
       <div id="adminContent" class="hidden">
-        <div class="section-title">⚙️ <span data-en="Admin Panel" data-es="Panel Admin">Admin Panel</span></div>
-        <p class="section-sub" style="margin-bottom:8px"></p>
-
-        <!-- Week Selector (Admin only) -->
-        <div class="week-selector" style="flex-wrap:wrap;gap:10px">
-          <label data-en="Round / Week:" data-es="Jornada / Semana:">Round / Week:</label>
-          <select id="activeWeekSelect">
-            <option value="1">Round 1</option>
-            <option value="2">Round 2</option>
-            <option value="3">Round 3</option>
-            <option value="4">Round 4</option>
-            <option value="5">Round 5</option>
-            <option value="6">Round 6</option>
-            <option value="7">Round 7</option>
-          </select>
-          <button id="weekActivateBtn" onclick="activateSelectedWeek()" style="
-            background:rgba(46,204,113,.2);border:1.5px solid var(--green);color:var(--green);
-            font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 16px;
-            border-radius:8px;cursor:pointer;transition:.2s;letter-spacing:.5px">
-            ✅ Activate
-          </button>
-          <button id="weekDeactivateBtn" onclick="deactivateWeek()" style="
-            background:rgba(231,76,60,.12);border:1.5px solid var(--red);color:var(--red);
-            font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 16px;
-            border-radius:8px;cursor:pointer;transition:.2s;letter-spacing:.5px">
-            🔒 Deactivate All
-          </button>
-          <button onclick="announceRoundWinner()" style="
-            background:rgba(212,175,55,.15);border:1.5px solid var(--gold);color:var(--gold);
-            font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 16px;
-            border-radius:8px;cursor:pointer;transition:.2s;letter-spacing:.5px">
-            🏆 Anunciar Ganador
-          </button>
+        <!-- Always-visible header row -->
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+          <div class="section-title" style="margin:0">⚙️ <span data-en="Admin Panel" data-es="Panel Admin">Admin Panel</span></div>
           <span id="weekStatusBadge" style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;
             background:rgba(212,175,55,.15);border:1px solid var(--gold3);color:var(--gold)">
             Active: —
           </span>
         </div>
 
-        <div class="admin-grid">
-          <!-- Enter Results -->
-          <div class="admin-card" id="adminResultsCard">
-            <h3 data-en="Enter Results" data-es="Ingresar Resultados">Enter Results</h3>
-            <div class="round-tabs" style="margin-bottom:16px;flex-wrap:wrap">
-              <button class="round-tab active" onclick="setAdminRound(1)" id="artab1">Round 1</button>
-              <button class="round-tab" onclick="setAdminRound(2)" id="artab2">Round 2</button>
-              <button class="round-tab" onclick="setAdminRound(3)" id="artab3">Round 3</button>
-              <button class="round-tab" onclick="setAdminRound(4)" id="artab4">Round 4</button>
-              <button class="round-tab" onclick="setAdminRound(5)" id="artab5">Round 5</button>
-              <button class="round-tab" onclick="setAdminRound(6)" id="artab6">Round 6</button>
-              <button class="round-tab" onclick="setAdminRound(7)" id="artab7">Round 7</button>
-            </div>
-            <div id="adminMatchResults"></div>
+        <!-- Always-visible Picks Pendientes bar -->
+        <div class="admin-card" style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <h3 style="margin:0">⏳ <span data-en="Pending Picks" data-es="Picks Pendientes">Picks Pendientes</span></h3>
+            <button class="btn-sm btn-save" onclick="renderPendingPlayers()" style="font-size:11px;padding:4px 10px">↺</button>
           </div>
-
-          <!-- Edit Teams for rounds 4-7 -->
-          <div class="admin-card" id="editTeamsCard">
-            <h3 data-en="Edit Team Names" data-es="Editar Nombres de Equipos">Edit Team Names</h3>
-            <p style="font-size:12px;color:var(--text2);margin-bottom:12px" data-en="Update placeholder names for rounds 4-7 when teams are confirmed." data-es="Actualiza los nombres para jornadas 4-7 cuando se confirmen los equipos.">Update placeholder names for rounds 4-7 when teams are confirmed.</p>
-            <div class="round-tabs" style="margin-bottom:12px;flex-wrap:wrap">
-              <button class="round-tab active" onclick="setEditRound(4)" id="ertab4">Round 4</button>
-              <button class="round-tab" onclick="setEditRound(5)" id="ertab5">Round 5</button>
-              <button class="round-tab" onclick="setEditRound(6)" id="ertab6">Round 6</button>
-              <button class="round-tab" onclick="setEditRound(7)" id="ertab7">Round 7</button>
-            </div>
-            <div id="editTeamsContent"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <label style="font-size:12px;color:var(--text2)">Jornada:</label>
+            <select id="pendingRoundSelect" onchange="renderPendingPlayers()" style="background:#1a1a1a;border:1px solid #333;color:var(--text);border-radius:6px;padding:4px 8px;font-size:13px">
+              <option value="1">Jornada 1</option>
+              <option value="2">Jornada 2</option>
+              <option value="3">Jornada 3</option>
+              <option value="4">Jornada 4</option>
+              <option value="5">Jornada 5</option>
+              <option value="6">Jornada 6</option>
+              <option value="7">Jornada 7</option>
+            </select>
           </div>
+          <div id="pendingPlayerList"><p style="color:var(--text2);font-size:12px">Loading...</p></div>
+        </div>
 
-          <!-- Edit Matches -->
-          <div class="admin-card" id="editMatchesCard">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-              <h3 style="margin:0" data-en="📅 Edit Matches" data-es="📅 Editar Partidos">📅 Edit Matches</h3>
-              <button onclick="clearAllMatchOverrides()" style="background:rgba(231,76,60,.15);border:1px solid var(--red);color:var(--red);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">🧹 Reset All Times</button>
-            </div>
-            <p style="font-size:12px;color:var(--text2);margin-bottom:10px" data-en="Update date, time or teams if FIFA makes changes." data-es="Actualiza fecha, hora o equipos si FIFA hace cambios.">Update date, time or teams if FIFA makes changes.</p>
-            <div class="round-tabs" style="margin-bottom:10px;flex-wrap:wrap">
-              <button class="round-tab active" onclick="setMatchEditRound(1)" id="metab1">R1</button>
-              <button class="round-tab" onclick="setMatchEditRound(2)" id="metab2">R2</button>
-              <button class="round-tab" onclick="setMatchEditRound(3)" id="metab3">R3</button>
-              <button class="round-tab" onclick="setMatchEditRound(4)" id="metab4">R4</button>
-              <button class="round-tab" onclick="setMatchEditRound(5)" id="metab5">R5</button>
-              <button class="round-tab" onclick="setMatchEditRound(6)" id="metab6">R6</button>
-              <button class="round-tab" onclick="setMatchEditRound(7)" id="metab7">R7</button>
-            </div>
-            <div id="editMatchesContent"></div>
+        <!-- Dashboard Menu -->
+        <div id="adminDashMenu">
+          <div class="admin-menu-grid">
+            <button class="admin-menu-btn" onclick="showAdminSection('partidos')">
+              <span class="amb-icon">⚽</span>
+              <span class="amb-label">Partidos</span>
+              <span class="amb-sub">Resultados · Equipos · Horarios</span>
+            </button>
+            <button class="admin-menu-btn" onclick="showAdminSection('jornada')">
+              <span class="amb-icon">✅</span>
+              <span class="amb-label">Jornada</span>
+              <span class="amb-sub">Activar · Desactivar · Ganador</span>
+            </button>
+            <button class="admin-menu-btn" onclick="showAdminSection('pagos')">
+              <span class="amb-icon">💳</span>
+              <span class="amb-label">Pagos</span>
+              <span class="amb-sub">Aprobar por jornada</span>
+            </button>
+            <button class="admin-menu-btn" onclick="showAdminSection('jugadores')">
+              <span class="amb-icon">👥</span>
+              <span class="amb-label">Jugadores</span>
+              <span class="amb-sub">Lista y gestión</span>
+            </button>
+            <button class="admin-menu-btn" onclick="showAdminSection('tardio')">
+              <span class="amb-icon">⏰</span>
+              <span class="amb-label">Pick Tardío</span>
+              <span class="amb-sub">Excepción con penalización</span>
+            </button>
           </div>
+        </div>
 
-          <!-- Pending Picks -->
+        <!-- Section: Partidos -->
+        <div id="adminSec-partidos" style="display:none">
+          <button class="admin-back-btn" onclick="backToAdminDash()">← Volver</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+            <button class="admin-sub-tab active" onclick="showAdminSubTab('resultados',this)">Resultados</button>
+            <button class="admin-sub-tab" onclick="showAdminSubTab('equipos',this)">Equipos</button>
+            <button class="admin-sub-tab" onclick="showAdminSubTab('horarios',this)">Horarios</button>
+          </div>
+          <!-- Sub-tab: Resultados -->
+          <div id="adminSubTab-resultados">
+            <div class="admin-card">
+              <h3 data-en="Enter Results" data-es="Ingresar Resultados">Enter Results</h3>
+              <div class="round-tabs" style="margin-bottom:16px;flex-wrap:wrap">
+                <button class="round-tab active" onclick="setAdminRound(1)" id="artab1">Round 1</button>
+                <button class="round-tab" onclick="setAdminRound(2)" id="artab2">Round 2</button>
+                <button class="round-tab" onclick="setAdminRound(3)" id="artab3">Round 3</button>
+                <button class="round-tab" onclick="setAdminRound(4)" id="artab4">Round 4</button>
+                <button class="round-tab" onclick="setAdminRound(5)" id="artab5">Round 5</button>
+                <button class="round-tab" onclick="setAdminRound(6)" id="artab6">Round 6</button>
+                <button class="round-tab" onclick="setAdminRound(7)" id="artab7">Round 7</button>
+              </div>
+              <div id="adminMatchResults"></div>
+            </div>
+          </div>
+          <!-- Sub-tab: Equipos -->
+          <div id="adminSubTab-equipos" style="display:none">
+            <div class="admin-card">
+              <h3 data-en="Edit Team Names" data-es="Editar Nombres de Equipos">Edit Team Names</h3>
+              <p style="font-size:12px;color:var(--text2);margin-bottom:12px" data-en="Update placeholder names for rounds 4-7 when teams are confirmed." data-es="Actualiza los nombres para jornadas 4-7 cuando se confirmen los equipos.">Update placeholder names for rounds 4-7 when teams are confirmed.</p>
+              <div class="round-tabs" style="margin-bottom:12px;flex-wrap:wrap">
+                <button class="round-tab active" onclick="setEditRound(4)" id="ertab4">Round 4</button>
+                <button class="round-tab" onclick="setEditRound(5)" id="ertab5">Round 5</button>
+                <button class="round-tab" onclick="setEditRound(6)" id="ertab6">Round 6</button>
+                <button class="round-tab" onclick="setEditRound(7)" id="ertab7">Round 7</button>
+              </div>
+              <div id="editTeamsContent"></div>
+            </div>
+          </div>
+          <!-- Sub-tab: Horarios -->
+          <div id="adminSubTab-horarios" style="display:none">
+            <div class="admin-card">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                <h3 style="margin:0" data-en="📅 Edit Matches" data-es="📅 Editar Partidos">📅 Edit Matches</h3>
+                <button onclick="clearAllMatchOverrides()" style="background:rgba(231,76,60,.15);border:1px solid var(--red);color:var(--red);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">🧹 Reset All Times</button>
+              </div>
+              <p style="font-size:12px;color:var(--text2);margin-bottom:10px" data-en="Update date, time or teams if FIFA makes changes." data-es="Actualiza fecha, hora o equipos si FIFA hace cambios.">Update date, time or teams if FIFA makes changes.</p>
+              <div class="round-tabs" style="margin-bottom:10px;flex-wrap:wrap">
+                <button class="round-tab active" onclick="setMatchEditRound(1)" id="metab1">R1</button>
+                <button class="round-tab" onclick="setMatchEditRound(2)" id="metab2">R2</button>
+                <button class="round-tab" onclick="setMatchEditRound(3)" id="metab3">R3</button>
+                <button class="round-tab" onclick="setMatchEditRound(4)" id="metab4">R4</button>
+                <button class="round-tab" onclick="setMatchEditRound(5)" id="metab5">R5</button>
+                <button class="round-tab" onclick="setMatchEditRound(6)" id="metab6">R6</button>
+                <button class="round-tab" onclick="setMatchEditRound(7)" id="metab7">R7</button>
+              </div>
+              <div id="editMatchesContent"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Jornada -->
+        <div id="adminSec-jornada" style="display:none">
+          <button class="admin-back-btn" onclick="backToAdminDash()">← Volver</button>
           <div class="admin-card">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-              <h3 style="margin:0">⏳ <span data-en="Pending" data-es="Pendientes">Pending</span></h3>
-              <button class="btn-sm btn-save" onclick="renderPendingPlayers()" style="font-size:11px;padding:4px 10px">↺</button>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-              <label style="font-size:12px;color:var(--text2)">Jornada:</label>
-              <select id="pendingRoundSelect" onchange="renderPendingPlayers()" style="background:#1a1a1a;border:1px solid #333;color:var(--text);border-radius:6px;padding:4px 8px;font-size:13px">
-                <option value="1">Jornada 1</option>
-                <option value="2">Jornada 2</option>
-                <option value="3">Jornada 3</option>
-                <option value="4">Jornada 4</option>
-                <option value="5">Jornada 5</option>
-                <option value="6">Jornada 6</option>
-                <option value="7">Jornada 7</option>
+            <h3 data-en="Round / Week" data-es="Jornada / Semana">Jornada / Semana</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+              <label style="font-size:12px;color:var(--text2)" data-en="Round / Week:" data-es="Jornada / Semana:">Jornada / Semana:</label>
+              <select id="activeWeekSelect" style="background:#1a1a1a;border:1px solid #333;color:var(--text);border-radius:6px;padding:4px 8px;font-size:13px">
+                <option value="1">Round 1</option>
+                <option value="2">Round 2</option>
+                <option value="3">Round 3</option>
+                <option value="4">Round 4</option>
+                <option value="5">Round 5</option>
+                <option value="6">Round 6</option>
+                <option value="7">Round 7</option>
               </select>
+              <button id="weekActivateBtn" onclick="activateSelectedWeek()" style="
+                background:rgba(46,204,113,.2);border:1.5px solid var(--green);color:var(--green);
+                font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 16px;
+                border-radius:8px;cursor:pointer;transition:.2s;letter-spacing:.5px">
+                ✅ Activate
+              </button>
+              <button id="weekDeactivateBtn" onclick="deactivateWeek()" style="
+                background:rgba(231,76,60,.12);border:1.5px solid var(--red);color:var(--red);
+                font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 16px;
+                border-radius:8px;cursor:pointer;transition:.2s;letter-spacing:.5px">
+                🔒 Deactivate All
+              </button>
+              <button onclick="announceRoundWinner()" style="
+                background:rgba(212,175,55,.15);border:1.5px solid var(--gold);color:var(--gold);
+                font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 16px;
+                border-radius:8px;cursor:pointer;transition:.2s;letter-spacing:.5px">
+                🏆 Anunciar Ganador
+              </button>
             </div>
-            <div id="pendingPlayerList"><p style="color:var(--text2);font-size:12px">Loading...</p></div>
           </div>
+        </div>
 
-          <!-- Round Payments -->
+        <!-- Section: Pagos -->
+        <div id="adminSec-pagos" style="display:none">
+          <button class="admin-back-btn" onclick="backToAdminDash()">← Volver</button>
           <div class="admin-card">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <h3 style="margin:0">💳 <span data-en="Round Payments" data-es="Pagos por Jornada">Round Payments</span></h3>
+              <h3 style="margin:0">💳 <span data-en="Round Payments" data-es="Pagos por Jornada">Pagos por Jornada</span></h3>
               <button class="btn-sm btn-save" onclick="renderRoundPayments()" style="font-size:11px;padding:4px 10px">↺</button>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-              <label style="font-size:12px;color:var(--text2)" data-en="Round:" data-es="Jornada:">Round:</label>
+              <label style="font-size:12px;color:var(--text2)" data-en="Round:" data-es="Jornada:">Jornada:</label>
               <select id="rpRoundSelect" onchange="renderRoundPayments()" style="background:#1a1a1a;border:1px solid #333;color:var(--text);border-radius:6px;padding:4px 8px;font-size:13px">
                 <option value="1">Jornada 1</option>
                 <option value="2" selected>Jornada 2</option>
@@ -1484,8 +1563,28 @@ nav button:hover,nav button.active{
             </div>
             <div id="rpPlayerList"><p style="color:var(--text2);font-size:12px">Loading...</p></div>
           </div>
+        </div>
 
-          <!-- Late Pick Exception -->
+        <!-- Section: Jugadores -->
+        <div id="adminSec-jugadores" style="display:none">
+          <button class="admin-back-btn" onclick="backToAdminDash()">← Volver</button>
+          <div class="admin-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <h3 style="margin:0" data-en="Players" data-es="Jugadores">Jugadores</h3>
+              <button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="font-size:11px;padding:4px 10px">↺</button>
+            </div>
+            <input id="adminPlayerSearch" type="text" placeholder="🔍 Buscar jugador…"
+              oninput="filterAdminPlayers(this.value)"
+              style="width:100%;box-sizing:border-box;padding:7px 10px;border-radius:8px;border:1px solid #333;background:#1a1a1a;color:var(--text);font-size:13px;margin-bottom:10px"/>
+            <div id="adminPlayerList">
+              <p style="color:var(--text2);font-size:13px">Loading...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Pick Tardío -->
+        <div id="adminSec-tardio" style="display:none">
+          <button class="admin-back-btn" onclick="backToAdminDash()">← Volver</button>
           <div class="admin-card">
             <h3>⏰ <span data-en="Late Pick Exception" data-es="Pick Tardío">Late Pick Exception</span></h3>
             <p style="font-size:12px;color:var(--text2);margin-bottom:12px" data-en="Allow a player to submit picks after the deadline, with an optional point penalty." data-es="Permite a un jugador enviar picks después del cierre, con penalización opcional.">Allow a player to submit picks after the deadline, with an optional point penalty.</p>
@@ -1513,20 +1612,6 @@ nav button:hover,nav button.active{
               </div>
               <button onclick="saveLatePickException()" style="background:rgba(231,76,60,.2);border:1.5px solid #E74C3C;color:#E74C3C;font-size:12px;font-weight:700;padding:6px 16px;border-radius:8px;cursor:pointer;align-self:flex-start">⏰ Grant Late Pick</button>
               <div id="lpStatus" style="font-size:12px;color:var(--text2)"></div>
-            </div>
-          </div>
-
-          <!-- Players -->
-          <div class="admin-card">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <h3 style="margin:0" data-en="Players" data-es="Jugadores">Players</h3>
-              <button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="font-size:11px;padding:4px 10px">↺</button>
-            </div>
-            <input id="adminPlayerSearch" type="text" placeholder="🔍 Buscar jugador…"
-              oninput="filterAdminPlayers(this.value)"
-              style="width:100%;box-sizing:border-box;padding:7px 10px;border-radius:8px;border:1px solid #333;background:#1a1a1a;color:var(--text);font-size:13px;margin-bottom:10px"/>
-            <div id="adminPlayerList">
-              <p style="color:var(--text2);font-size:13px">Loading...</p>
             </div>
           </div>
         </div>
@@ -6777,6 +6862,32 @@ function announceNextMatchVoice(){
   utt.volume = 0.85;
   utt.rate = 0.88;
   window.speechSynthesis.speak(utt);
+}
+
+// ── ADMIN DASHBOARD NAVIGATION ────────────────────────
+function showAdminSection(name){
+  document.getElementById('adminDashMenu').style.display='none';
+  ['partidos','jornada','pagos','jugadores','tardio'].forEach(function(s){
+    document.getElementById('adminSec-'+s).style.display = s===name?'block':'none';
+  });
+  if(name==='partidos') renderAdminMatches();
+  if(name==='jugadores') renderAdminPlayers();
+  if(name==='pagos') renderRoundPayments();
+}
+function backToAdminDash(){
+  ['partidos','jornada','pagos','jugadores','tardio'].forEach(function(s){
+    document.getElementById('adminSec-'+s).style.display='none';
+  });
+  document.getElementById('adminDashMenu').style.display='block';
+}
+function showAdminSubTab(name,btn){
+  ['resultados','equipos','horarios'].forEach(function(t){
+    document.getElementById('adminSubTab-'+t).style.display = t===name?'block':'none';
+  });
+  document.querySelectorAll('.admin-sub-tab').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  if(name==='equipos') renderEditTeams();
+  if(name==='horarios'){ renderAdminMatches(); }
 }
 </script>
 
