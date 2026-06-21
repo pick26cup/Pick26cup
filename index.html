@@ -1326,6 +1326,7 @@ nav button:hover,nav button.active{
     <section id="sec-results" class="hidden">
       <div class="section-title">📊 <span data-en="My Results" data-es="Mis Resultados">My Results</span></div>
       <p class="section-sub" data-en="See how your predictions matched the real results." data-es="Ve cómo tus predicciones se compararon con los resultados reales.">See how your predictions matched the real results.</p>
+      <div id="myTotalStats" style="display:none;background:linear-gradient(135deg,rgba(212,175,55,.08),rgba(0,0,0,.3));border:1px solid rgba(212,175,55,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px"></div>
       <div id="myResultsStats" class="stats-grid"></div>
       <div class="history-tab" id="resultsRoundTabs"></div>
       <div id="myResultsContent"></div>
@@ -2352,6 +2353,7 @@ function setupFirebase(){
       updateWeekStatusBadge();
       const psel = document.getElementById('pendingRoundSelect');
       if(psel && activeWeek > 0) psel.value = activeWeek;
+      if(currentUser) setupPickNotification();
     });
 
     // Listen for admin-announced round winners
@@ -3285,6 +3287,7 @@ function saveAvatar(){
     showToast(t('Avatar guardado ✅','Avatar saved ✅'),'success');
   } else {
     showToast(t('¡Bienvenido '+currentUser+'! 🎉','Welcome '+currentUser+'! 🎉'),'success');
+    setTimeout(setupPickNotification, 800);
   }
   renderWelcomeBanner();
   startCountdown();
@@ -6397,7 +6400,55 @@ function renderMyResults(){
         ${currentLang==='es'?'Jornada ':'Round '}${r}
       </button>`).join('');
 
-    // Calculate stats for selected round
+    // ── ALL-ROUND TOTALS ──────────────────────────────
+    const totalEl = document.getElementById('myTotalStats');
+    let allPts=0, allExact=0, allCorrect=0, allWrong=0, allPlayed=0, bestRound={r:0,pts:0};
+    submittedRoundNums.forEach(r=>{
+      let rPts=0, rExact=0;
+      (MATCHES[r]||[]).forEach(m=>{
+        const res=results[m.id], p=myPicks[m.id];
+        if(!p||!res) return;
+        allPlayed++;
+        const s=scoreMatch(m,p,res);
+        rPts+=s; allPts+=s;
+        if(s===3){allExact++;rExact++;}
+        else if(s>=1) allCorrect++;
+        else allWrong++;
+      });
+      if(rPts>bestRound.pts||(rPts===bestRound.pts&&r>bestRound.r)) bestRound={r,pts:rPts};
+    });
+    if(totalEl && submittedRoundNums.length>1){
+      const es=currentLang==='es';
+      totalEl.style.display='block';
+      totalEl.innerHTML=`
+        <div style="font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:var(--gold);margin-bottom:10px">
+          📊 ${es?'MI HISTORIAL COMPLETO':'MY FULL HISTORY'}
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
+            <div style="font-family:'Bebas Neue';font-size:22px;color:var(--gold)">${Number.isInteger(allPts)?allPts:allPts.toFixed(1)}</div>
+            <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'TOTAL PTS':'TOTAL PTS'}</div>
+          </div>
+          <div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
+            <div style="font-family:'Bebas Neue';font-size:22px;color:#2ECC71">${allExact}</div>
+            <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'EXACTOS':'EXACT'}</div>
+          </div>
+          <div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
+            <div style="font-family:'Bebas Neue';font-size:22px;color:#3498DB">${allCorrect}</div>
+            <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'CORRECTOS':'CORRECT'}</div>
+          </div>
+          <div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
+            <div style="font-family:'Bebas Neue';font-size:22px;color:#E74C3C">${allWrong}</div>
+            <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'FALLIDOS':'WRONG'}</div>
+          </div>
+          ${bestRound.r>0?`<div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
+            <div style="font-family:'Bebas Neue';font-size:22px;color:var(--gold)">J${bestRound.r}</div>
+            <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'MEJOR JORNADA':'BEST ROUND'}</div>
+          </div>`:''}
+        </div>`;
+    } else if(totalEl){ totalEl.style.display='none'; }
+
+    // ── SELECTED ROUND STATS ─────────────────────────
     const roundMatches = MATCHES[resultsRound]||[];
     let totalExact=0, totalClose=0, totalOver=0, totalNear=0, totalCorrect=0, totalWrong=0, totalPts=0, totalPending=0;
     const matchResults = [];
@@ -6419,6 +6470,15 @@ function renderMyResults(){
       totalPts += pts;
       matchResults.push({m,p,res,status,pts});
     });
+
+    // Celebration sound — fires once per round per session when exact scores exist
+    if(totalExact > 0){
+      const celebKey = 'celeb_r'+resultsRound;
+      if(!sessionStorage.getItem(celebKey)){
+        sessionStorage.setItem(celebKey, '1');
+        setTimeout(playCelebrationSound, 450);
+      }
+    }
 
     // Stats grid
     const ptsDisplay = Number.isInteger(totalPts) ? totalPts : totalPts.toFixed(1);
@@ -6620,6 +6680,79 @@ function renderGroupStats(players, allPicks, results){
     document.addEventListener(e, play, {passive:true});
   });
 })();
+
+// ── CELEBRATION SOUND ─────────────────────────────────────────
+function playCelebrationSound(){
+  try{
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var notes = [
+      {freq:392,start:0.00,dur:0.18},
+      {freq:523,start:0.20,dur:0.18},
+      {freq:659,start:0.40,dur:0.18},
+      {freq:784,start:0.60,dur:0.30},
+      {freq:523,start:0.92,dur:0.12},
+      {freq:784,start:1.06,dur:0.48}
+    ];
+    notes.forEach(function(n){
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = n.freq;
+      gain.gain.setValueAtTime(0, ctx.currentTime + n.start);
+      gain.gain.linearRampToValueAtTime(0.28, ctx.currentTime + n.start + 0.03);
+      gain.gain.linearRampToValueAtTime(0.22, ctx.currentTime + n.start + n.dur - 0.04);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + n.start + n.dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + n.start);
+      osc.stop(ctx.currentTime + n.start + n.dur + 0.01);
+    });
+    setTimeout(function(){ try{ ctx.close(); }catch(e){} }, 2200);
+  } catch(e){}
+}
+
+// ── PICK DEADLINE NOTIFICATION ────────────────────────────────
+var _notifPermRequested = false;
+var _notifTimer = null;
+
+function setupPickNotification(){
+  if(!('Notification' in window) || !currentUser) return;
+  function scheduleAlert(){
+    if(_notifTimer){ clearTimeout(_notifTimer); _notifTimer = null; }
+    if(Notification.permission !== 'granted') return;
+    var aw = (activeWeek && activeWeek > 0) ? activeWeek : 1;
+    var roundMatches = MATCHES[aw]||[];
+    if(!roundMatches.length) return;
+    var firstKickoff = parseMatchDate(roundMatches[0]);
+    if(!firstKickoff) return;
+    var lockTime = firstKickoff.getTime() - LOCK_BEFORE_MS;
+    var alertTime = lockTime - 30 * 60 * 1000;
+    var msUntilAlert = alertTime - Date.now();
+    if(msUntilAlert <= 0 || msUntilAlert > 7 * 24 * 60 * 60 * 1000) return;
+    _notifTimer = setTimeout(function(){
+      try{
+        var es = currentLang === 'es';
+        var home = tn(roundMatches[0].home), away = tn(roundMatches[0].away);
+        new Notification(es ? '⚽ ¡Cierre en 30 minutos!' : '⚽ Picks close in 30 minutes!', {
+          body: es
+            ? 'Envía tus picks para ' + home + ' vs ' + away + ' antes que sea tarde.'
+            : 'Submit your picks for ' + home + ' vs ' + away + ' before it\'s too late.',
+          icon: '/icon-192.png',
+          badge: '/icon-192.png',
+          tag: 'pick26-deadline'
+        });
+      } catch(e){}
+    }, msUntilAlert);
+  }
+  if(Notification.permission === 'granted'){
+    scheduleAlert();
+  } else if(Notification.permission === 'default' && !_notifPermRequested){
+    _notifPermRequested = true;
+    Notification.requestPermission().then(function(perm){
+      if(perm === 'granted') scheduleAlert();
+    }).catch(function(){});
+  }
+}
 
 var _voiceAnnounced = false;
 function announceNextMatchVoice(){
