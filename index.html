@@ -6504,32 +6504,38 @@ function renderMyResults(){
     });
     if(totalEl && submittedRoundNums.length>1){
       const es=currentLang==='es';
+      const wasOpen = totalEl.dataset.open==='1';
       totalEl.style.display='block';
       totalEl.innerHTML=`
-        <div style="font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:var(--gold);margin-bottom:10px">
-          📊 ${es?'MI HISTORIAL COMPLETO':'MY FULL HISTORY'}
+        <div onclick="toggleTotalStats()" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding-bottom:${wasOpen?'12px':'0'}">
+          <div style="font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:var(--gold)">
+            📊 ${es?'MI HISTORIAL COMPLETO':'MY FULL HISTORY'}
+          </div>
+          <span id="totalStatsArrow" style="color:var(--gold);font-size:13px">${wasOpen?'▲':'▼ '+( es?'Ver':'Show')}</span>
         </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
-            <div style="font-family:'Bebas Neue';font-size:22px;color:var(--gold)">${Number.isInteger(allPts)?allPts:allPts.toFixed(1)}</div>
-            <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'TOTAL PTS':'TOTAL PTS'}</div>
+        <div id="totalStatsBody" style="display:${wasOpen?'block':'none'}">
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
+              <div style="font-family:'Bebas Neue';font-size:22px;color:var(--gold)">${Number.isInteger(allPts)?allPts:allPts.toFixed(1)}</div>
+              <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'TOTAL PTS':'TOTAL PTS'}</div>
+            </div>
+            <div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
+              <div style="font-family:'Bebas Neue';font-size:22px;color:#2ECC71">${allExact}</div>
+              <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'EXACTOS':'EXACT'}</div>
+            </div>
+            <div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
+              <div style="font-family:'Bebas Neue';font-size:22px;color:#3498DB">${allCorrect}</div>
+              <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'CORRECTOS':'CORRECT'}</div>
+            </div>
+            <div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
+              <div style="font-family:'Bebas Neue';font-size:22px;color:#E74C3C">${allWrong}</div>
+              <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'FALLIDOS':'WRONG'}</div>
+            </div>
+            ${bestRound.r>0?`<div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
+              <div style="font-family:'Bebas Neue';font-size:22px;color:var(--gold)">J${bestRound.r}</div>
+              <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'MEJOR JORNADA':'BEST ROUND'}</div>
+            </div>`:''}
           </div>
-          <div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
-            <div style="font-family:'Bebas Neue';font-size:22px;color:#2ECC71">${allExact}</div>
-            <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'EXACTOS':'EXACT'}</div>
-          </div>
-          <div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
-            <div style="font-family:'Bebas Neue';font-size:22px;color:#3498DB">${allCorrect}</div>
-            <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'CORRECTOS':'CORRECT'}</div>
-          </div>
-          <div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
-            <div style="font-family:'Bebas Neue';font-size:22px;color:#E74C3C">${allWrong}</div>
-            <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'FALLIDOS':'WRONG'}</div>
-          </div>
-          ${bestRound.r>0?`<div style="flex:1;min-width:70px;text-align:center;background:rgba(212,175,55,.1);border-radius:8px;padding:8px 4px">
-            <div style="font-family:'Bebas Neue';font-size:22px;color:var(--gold)">J${bestRound.r}</div>
-            <div style="font-size:10px;color:var(--text2);font-weight:700">${es?'MEJOR JORNADA':'BEST ROUND'}</div>
-          </div>`:''}
         </div>`;
     } else if(totalEl){ totalEl.style.display='none'; }
 
@@ -6765,6 +6771,21 @@ function renderGroupStats(players, allPicks, results){
     document.addEventListener(e, play, {passive:true});
   });
 })();
+
+function toggleTotalStats(){
+  const el = document.getElementById('myTotalStats');
+  const body = document.getElementById('totalStatsBody');
+  const arrow = document.getElementById('totalStatsArrow');
+  if(!el||!body) return;
+  const opening = body.style.display==='none';
+  body.style.display = opening ? 'block' : 'none';
+  el.dataset.open = opening ? '1' : '0';
+  const es = currentLang==='es';
+  if(arrow) arrow.textContent = opening ? '▲' : ('▼ '+(es?'Ver':'Show'));
+  // add/remove bottom padding on header
+  const hdr = el.querySelector('div[onclick]');
+  if(hdr) hdr.style.paddingBottom = opening ? '12px' : '0';
+}
 
 // ── CELEBRATION SOUND ─────────────────────────────────────────
 function playCelebrationSound(){
