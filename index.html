@@ -2230,6 +2230,7 @@ let customTeamNames = {}; // {matchId_home: name, matchId_away: name}
 let db = null;
 let picks = {}; // {matchId: {pick:'home'|'draw'|'away', scoreH:n, scoreA:n}}
 let submittedRounds = {}; // {1:true, 2:true, 3:true}
+let _globalResults = {}; // live cache updated by Firebase listener
 let activeWeek = 1;
 let avatarConfig = {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro', jerseyNum:10, hat:0, hatColor:0, glasses:0, earrings:0};
 
@@ -3562,7 +3563,8 @@ function syncFromFirebase(){
   db.ref('players').on('value', function(){
     setTimeout(function(){ refreshLeaderboardIfVisible(); }, 300);
   });
-  db.ref('results').on('value', function(){
+  db.ref('results').on('value', function(snap){
+    _globalResults = snap.val() || {};
     setTimeout(function(){ refreshLeaderboardIfVisible(); }, 300);
   });
   // Live listener: re-render when admin approves/revokes round access for this player
@@ -6209,10 +6211,11 @@ function updateCountdown(){
 
   const now = new Date();
 
-  // 1. Check for an ongoing match (kickoff passed, within ~110 min)
+  // 1. Check for an ongoing match (kickoff passed, within ~110 min, no result yet)
   let ongoingMatch = null, ongoingKickoff = null;
   outer: for(let r=1;r<=7;r++){
     for(const m of (MATCHES[r]||[])){
+      if(_globalResults[m.id]) continue; // result entered = match is done
       const d = parseMatchDate(m);
       if(!d) continue;
       const elapsed = now - d;
