@@ -6963,13 +6963,14 @@ function announceNextMatchVoice(){
   var h = Math.floor(diffMs / (1000*60*60));
   var mn = Math.floor((diffMs % (1000*60*60)) / (1000*60));
   var home = tn(upcoming.match.home), away = tn(upcoming.match.away);
+  var timeStr = h > 0
+    ? (currentLang === 'es'
+        ? h + ' hora' + (h !== 1 ? 's' : '') + ' y ' + mn + ' minutos'
+        : h + ' hour' + (h !== 1 ? 's' : '') + ' and ' + mn + ' minutes')
+    : (currentLang === 'es' ? mn + ' minutos' : mn + ' minutes');
   var text = currentLang === 'es'
-    ? (h > 0
-        ? 'Faltan ' + h + ' hora' + (h !== 1 ? 's' : '') + ' y ' + mn + ' minutos para ' + home + ' contra ' + away
-        : 'Faltan ' + mn + ' minutos para ' + home + ' contra ' + away)
-    : (h > 0
-        ? h + ' hour' + (h !== 1 ? 's' : '') + ' and ' + mn + ' minutes left for ' + home + ' versus ' + away
-        : mn + ' minutes left for ' + home + ' versus ' + away);
+    ? 'Faltan ' + timeStr + ' para que finalice el partido ' + home + ' contra ' + away
+    : timeStr + ' left for the match ' + home + ' versus ' + away + ' to end';
   var utt = new SpeechSynthesisUtterance(text);
   utt.lang = currentLang === 'es' ? 'es-MX' : 'en-US';
   utt.volume = 0.85;
