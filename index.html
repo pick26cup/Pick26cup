@@ -6211,19 +6211,19 @@ function updateCountdown(){
 
   const now = new Date();
 
-  // 1. Check for an ongoing match (kickoff passed, within ~110 min)
-  //    Use elapsed time only — don't block on _globalResults so timing is always reliable.
-  //    Hide chronometer only when result exists AND match is past the 90-min mark.
+  // 1. Find the most recently started ongoing match (latest kickoff within 0–110 min).
+  //    When two matches overlap (e.g. 20:00 and 22:00 UTC-6), this shows the newest one.
+  //    A match is considered done if the admin entered a result for it.
   let ongoingMatch = null, ongoingKickoff = null;
-  outer: for(let r=1;r<=7;r++){
+  for(let r=1;r<=7;r++){
     for(const m of (MATCHES[r]||[])){
       const d = parseMatchDate(m);
       if(!d) continue;
       const elapsed = now - d;
-      if(elapsed < 0 || elapsed > MATCH_DURATION_MS) continue;
-      // If admin already entered result AND match is past 90 min, consider it done
-      if(_globalResults[m.id] && elapsed > 90 * 60 * 1000) continue;
-      ongoingMatch = m; ongoingKickoff = d; break outer;
+      if(elapsed < 0 || elapsed > MATCH_DURATION_MS) continue; // not started or too old
+      if(_globalResults[m.id]) continue; // result entered = match is done
+      // Keep the match with the LATEST kickoff (most recently started)
+      if(!ongoingKickoff || d > ongoingKickoff){ ongoingMatch = m; ongoingKickoff = d; }
     }
   }
 
