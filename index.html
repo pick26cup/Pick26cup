@@ -4646,6 +4646,11 @@ function renderLeaderboard(){
       }
     }, 100);
 
+    // Max matches per day based on resolved matches (scales fire level)
+    const _dayCount = {};
+    for(let r=1;r<=7;r++) (MATCHES[r]||[]).forEach(m=>{ if(results&&results[m.id]) _dayCount[m.date]=(_dayCount[m.date]||0)+1; });
+    const maxPerDay = Math.max(...Object.values(_dayCount), 2);
+
     renderHallOfFame(players, allPicks, results||{});
     renderCloserResultCard(players, allPicks, results||{});
     cont.innerHTML = '';
@@ -4716,8 +4721,12 @@ function renderLeaderboard(){
       const penaltyTag = p.penalty
         ? `<span onclick="showPenaltyCard('${escapeHtml(p.name)}',${p.penalty})" class="penalty-badge" style="font-size:10px;border:1.5px solid #E74C3C;color:#E74C3C;border-radius:6px;padding:2px 6px;margin-left:5px;vertical-align:middle;cursor:pointer;display:inline-block;font-weight:700" title="${currentLang==='es'?'Ver motivo':'See reason'}">${p.penalty > 0 ? '+' : ''}${p.penalty} pts 🟥</span>`
         : '';
-      const streakChip = (p.streak >= 2)
-        ? `<span style="font-size:10px;background:rgba(230,126,34,.15);border:1px solid #E67E22;color:#E67E22;border-radius:6px;padding:1px 7px;font-weight:700;display:inline-block;margin-top:3px">🔥 ${p.streak} ${currentLang==='es'?'en racha':'streak'}</span>`
+      // Streak chip — fire level scales with matches per day
+      // 🔥🔥🔥 = 2+ full days  |  🔥🔥 = 1 full day  |  🔥 = partial
+      const _minStreak = Math.max(2, Math.ceil(maxPerDay / 3));
+      const _fire = p.streak >= 2 * maxPerDay ? '🔥🔥🔥' : p.streak >= maxPerDay ? '🔥🔥' : '🔥';
+      const streakChip = (p.streak >= _minStreak)
+        ? `<span style="font-size:10px;background:rgba(230,126,34,.15);border:1px solid #E67E22;color:#E67E22;border-radius:6px;padding:1px 7px;font-weight:700;display:inline-block;margin-top:3px">${_fire} ${p.streak} ${currentLang==='es'?'en racha':'streak'}</span>`
         : '';
       row.innerHTML = `
         <div class="lb-rank ${rankClass}">${medal||'#'+(i+1)}</div>
