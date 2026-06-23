@@ -6224,21 +6224,46 @@ function updateCountdown(){
   }
 
   if(ongoingMatch && ongoingKickoff){
-    // Match in progress — count down to estimated end
-    const diffToEnd = (ongoingKickoff.getTime() + MATCH_DURATION_MS) - now;
-    const hrs = Math.floor(diffToEnd / (1000*60*60));
-    const mins = Math.floor((diffToEnd % (1000*60*60)) / (1000*60));
-    const secs = Math.floor((diffToEnd % (1000*60)) / 1000);
+    // Match in progress — show live chronometer counting up from kickoff
+    const elapsedMs = now - ongoingKickoff.getTime();
+    const elapsedMin = Math.floor(elapsedMs / (1000*60));
+    const elapsedSec = Math.floor((elapsedMs % (1000*60)) / 1000);
+    // Football clock: show stoppage time after 45' (HT) and 90'
+    let minDisplay, secDisplay, stoppageLabel = '';
+    if(elapsedMin < 45){
+      minDisplay = elapsedMin + 1; // show 1' from start
+      secDisplay = String(elapsedSec).padStart(2,'0');
+    } else if(elapsedMin < 50){
+      // ~Halftime window (45-50 min)
+      minDisplay = 45;
+      const extra = elapsedMin - 45 + 1;
+      stoppageLabel = '+' + extra;
+      secDisplay = String(elapsedSec).padStart(2,'0');
+    } else if(elapsedMin < 95){
+      // Second half (50-95 min)
+      minDisplay = elapsedMin - 5 + 1; // ~45' half-time offset
+      secDisplay = String(elapsedSec).padStart(2,'0');
+    } else {
+      // Stoppage time 90'+
+      minDisplay = 90;
+      stoppageLabel = '+' + (elapsedMin - 94);
+      secDisplay = String(elapsedSec).padStart(2,'0');
+    }
     const matchLabel = `${tn(ongoingMatch.home)} ⚽ ${tn(ongoingMatch.away)}`;
     banner.style.display = 'flex';
     if(title) title.innerHTML = currentLang==='es'
-      ? `🔒 PICKS CERRADOS · FALTAN<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`
-      : `🔒 PICKS LOCKED · TIME LEFT<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`;
+      ? `🟢 EN VIVO · PICKS CERRADOS<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`
+      : `🟢 LIVE · PICKS LOCKED<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`;
     units.innerHTML = `
-      ${hrs > 0 ? `<div class="countdown-unit"><span class="countdown-num">${hrs}</span><span class="countdown-label">${currentLang==='es'?'HRS':'HRS'}</span></div><span class="countdown-sep">:</span>` : ''}
-      <div class="countdown-unit"><span class="countdown-num">${String(mins).padStart(2,'0')}</span><span class="countdown-label">${currentLang==='es'?'MIN':'MIN'}</span></div>
-      <span class="countdown-sep">:</span>
-      <div class="countdown-unit"><span class="countdown-num">${String(secs).padStart(2,'0')}</span><span class="countdown-label">${currentLang==='es'?'SEG':'SEC'}</span></div>
+      <div class="countdown-unit">
+        <span class="countdown-num" style="color:#2ecc71">${minDisplay}${stoppageLabel}</span>
+        <span class="countdown-label">MIN</span>
+      </div>
+      <span class="countdown-sep" style="color:#2ecc71">:</span>
+      <div class="countdown-unit">
+        <span class="countdown-num" style="color:#2ecc71">${secDisplay}</span>
+        <span class="countdown-label">SEG</span>
+      </div>
     `;
     return;
   }
