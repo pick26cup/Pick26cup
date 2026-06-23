@@ -6211,15 +6211,19 @@ function updateCountdown(){
 
   const now = new Date();
 
-  // 1. Check for an ongoing match (kickoff passed, within ~110 min, no result yet)
+  // 1. Check for an ongoing match (kickoff passed, within ~110 min)
+  //    Use elapsed time only — don't block on _globalResults so timing is always reliable.
+  //    Hide chronometer only when result exists AND match is past the 90-min mark.
   let ongoingMatch = null, ongoingKickoff = null;
   outer: for(let r=1;r<=7;r++){
     for(const m of (MATCHES[r]||[])){
-      if(_globalResults[m.id]) continue; // result entered = match is done
       const d = parseMatchDate(m);
       if(!d) continue;
       const elapsed = now - d;
-      if(elapsed >= 0 && elapsed <= MATCH_DURATION_MS){ ongoingMatch=m; ongoingKickoff=d; break outer; }
+      if(elapsed < 0 || elapsed > MATCH_DURATION_MS) continue;
+      // If admin already entered result AND match is past 90 min, consider it done
+      if(_globalResults[m.id] && elapsed > 90 * 60 * 1000) continue;
+      ongoingMatch = m; ongoingKickoff = d; break outer;
     }
   }
 
