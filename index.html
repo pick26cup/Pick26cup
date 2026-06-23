@@ -1685,6 +1685,19 @@ nav button:hover,nav button.active{
   <footer>Pick26 · Developed by John Alvarado · Predict. Choose. Win.</footer>
 </div>
 
+<!-- SUBMIT STAMP MODAL -->
+<div id="stampModal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px" onclick="closeStampModal()">
+  <div style="background:linear-gradient(160deg,#0d1100,#111800);border:2px solid rgba(212,175,55,.35);border-radius:18px;max-width:300px;width:100%;padding:28px 20px;text-align:center;box-shadow:0 0 60px rgba(212,175,55,.2);position:relative">
+    <div style="font-family:'Bebas Neue';font-size:13px;letter-spacing:3px;color:var(--text2);margin-bottom:4px" data-en="ROUND" data-es="JORNADA" id="stampRoundLabel">JORNADA</div>
+    <div id="stampRoundNum" style="font-family:'Bebas Neue';font-size:48px;color:var(--gold);line-height:1;margin-bottom:16px">3</div>
+    <div id="stampPickCount" style="font-size:12px;color:var(--text2);margin-bottom:20px"></div>
+    <div id="stampSeal" style="display:inline-block;border:4px solid #E74C3C;border-radius:12px;padding:14px 24px;transform-origin:center;opacity:0">
+      <div id="stampSealText" style="font-family:'Bebas Neue';font-size:28px;color:#E74C3C;letter-spacing:3px;line-height:1.15">⚽ PICKS<br>ENVIADOS<br><span style="color:#2ECC71;font-size:22px">✅ OFICIAL</span></div>
+    </div>
+    <div style="font-size:11px;color:#444;margin-top:16px" data-en="Tap to close" data-es="Toca para cerrar">Toca para cerrar</div>
+  </div>
+</div>
+
 <!-- REFEREE PENALTY CARD MODAL -->
 <div id="penaltyCardModal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closePenaltyCard()">
   <div style="background:linear-gradient(160deg,#1a0000,#2d0a0a);border:3px solid #E74C3C;border-radius:18px;max-width:340px;width:100%;padding:28px 24px;text-align:center;box-shadow:0 0 60px rgba(231,76,60,.5);position:relative;animation:refCard .35s cubic-bezier(.17,.67,.35,1.3)">
@@ -1698,6 +1711,7 @@ nav button:hover,nav button.active{
 </div>
 <style>
 @keyframes refCard{from{opacity:0;transform:scale(.7) rotate(-8deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes stampIn{0%{opacity:0;transform:rotate(-22deg) scale(2.8)}55%{opacity:1;transform:rotate(2.5deg) scale(0.93)}75%{transform:rotate(-1.5deg) scale(1.03)}100%{opacity:1;transform:rotate(-3deg) scale(1)}}
 </style>
 
 <!-- SUBMIT MODAL -->
@@ -4164,6 +4178,7 @@ function doSubmitPicks(){
   updateSubmitArea();
   showToast('✅ '+(currentLang==='es'?'Predicciones enviadas!':'Picks submitted!'),'success');
   launchConfetti();
+  showSubmitStamp();
   // Generate PDF for submitted round
   setTimeout(()=> generatePDFAllRounds(currentUser, picks, [currentRound]), 500);
 }
@@ -6771,6 +6786,53 @@ function renderGroupStats(players, allPicks, results){
     document.addEventListener(e, play, {passive:true});
   });
 })();
+
+// ── SUBMIT STAMP ──────────────────────────────────────────────
+function showSubmitStamp(){
+  const es = currentLang==='es';
+  const modal = document.getElementById('stampModal');
+  const seal = document.getElementById('stampSeal');
+  const numEl = document.getElementById('stampRoundNum');
+  const labelEl = document.getElementById('stampRoundLabel');
+  const countEl = document.getElementById('stampPickCount');
+  if(!modal||!seal) return;
+  const roundMatches = MATCHES[currentRound]||[];
+  const pickCount = roundMatches.filter(m=>picks[m.id]).length;
+  if(numEl) numEl.textContent = currentRound;
+  if(labelEl) labelEl.textContent = es?'JORNADA':'ROUND';
+  if(countEl) countEl.textContent = pickCount+' '+(es?'predicciones enviadas':'picks submitted');
+  const sealText = document.getElementById('stampSealText');
+  if(sealText) sealText.innerHTML = es
+    ? '⚽ PICKS<br>ENVIADOS<br><span style="color:#2ECC71;font-size:22px">✅ OFICIAL</span>'
+    : '⚽ PICKS<br>SUBMITTED<br><span style="color:#2ECC71;font-size:22px">✅ OFFICIAL</span>';
+  seal.style.animation='none';
+  seal.style.opacity='0';
+  modal.style.display='flex';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    seal.style.animation='stampIn .55s cubic-bezier(.2,.8,.3,1.2) forwards';
+    playStampSound();
+    if(navigator.vibrate) navigator.vibrate([20,8,50]);
+  }));
+  setTimeout(closeStampModal, 2400);
+}
+function closeStampModal(){
+  const m=document.getElementById('stampModal');
+  if(m) m.style.display='none';
+}
+function playStampSound(){
+  try{
+    var ctx=new (window.AudioContext||window.webkitAudioContext)();
+    var osc=ctx.createOscillator(), gain=ctx.createGain();
+    osc.type='sine';
+    osc.frequency.setValueAtTime(130,ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(38,ctx.currentTime+0.18);
+    gain.gain.setValueAtTime(0.75,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.22);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime+0.25);
+    setTimeout(function(){try{ctx.close();}catch(e){}},400);
+  }catch(e){}
+}
 
 function toggleTotalStats(){
   const el = document.getElementById('myTotalStats');
