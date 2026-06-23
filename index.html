@@ -6199,44 +6199,78 @@ function getNextUpcomingMatch(){
   return null;
 }
 
+const MATCH_DURATION_MS = 110 * 60 * 1000; // ~90 min + stoppage estimate
+
 function updateCountdown(){
   const banner = document.getElementById('countdownBanner');
   const units = document.getElementById('countdownUnits');
   const title = document.getElementById('countdownTitle');
   if(!banner || !units) return;
 
+  const now = new Date();
+
+  // 1. Check for an ongoing match (kickoff passed, within ~110 min)
+  let ongoingMatch = null, ongoingKickoff = null;
+  outer: for(let r=1;r<=7;r++){
+    for(const m of (MATCHES[r]||[])){
+      const d = parseMatchDate(m);
+      if(!d) continue;
+      const elapsed = now - d;
+      if(elapsed >= 0 && elapsed <= MATCH_DURATION_MS){ ongoingMatch=m; ongoingKickoff=d; break outer; }
+    }
+  }
+
+  if(ongoingMatch && ongoingKickoff){
+    // Match in progress — count down to estimated end
+    const diffToEnd = (ongoingKickoff.getTime() + MATCH_DURATION_MS) - now;
+    const hrs = Math.floor(diffToEnd / (1000*60*60));
+    const mins = Math.floor((diffToEnd % (1000*60*60)) / (1000*60));
+    const secs = Math.floor((diffToEnd % (1000*60)) / 1000);
+    const matchLabel = `${tn(ongoingMatch.home)} ⚽ ${tn(ongoingMatch.away)}`;
+    banner.style.display = 'flex';
+    if(title) title.innerHTML = currentLang==='es'
+      ? `🔒 PICKS CERRADOS · FALTAN<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`
+      : `🔒 PICKS LOCKED · TIME LEFT<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`;
+    units.innerHTML = `
+      ${hrs > 0 ? `<div class="countdown-unit"><span class="countdown-num">${hrs}</span><span class="countdown-label">${currentLang==='es'?'HRS':'HRS'}</span></div><span class="countdown-sep">:</span>` : ''}
+      <div class="countdown-unit"><span class="countdown-num">${String(mins).padStart(2,'0')}</span><span class="countdown-label">${currentLang==='es'?'MIN':'MIN'}</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-unit"><span class="countdown-num">${String(secs).padStart(2,'0')}</span><span class="countdown-label">${currentLang==='es'?'SEG':'SEC'}</span></div>
+    `;
+    return;
+  }
+
+  // 2. No ongoing match — look for next upcoming
   const upcoming = getNextUpcomingMatch();
   if(!upcoming){ banner.style.display='none'; return; }
 
   const { match: nextM, date: kickoff } = upcoming;
   const matchLabel = `${tn(nextM.home)} ⚽ ${tn(nextM.away)}`;
-  const now = new Date();
-  const diffToKick = kickoff - now;         // ms to actual kickoff
-  const diffToLock = diffToKick - LOCK_BEFORE_MS; // ms to picks lock
+  const diffToKick = kickoff - now;
+  const diffToLock = diffToKick - LOCK_BEFORE_MS;
+
+  if(diffToKick <= 0){ banner.style.display='none'; return; }
 
   banner.style.display = 'flex';
 
-  if(diffToKick <= 0){
-    // Match already started or past — hide
-    banner.style.display = 'none';
+  if(diffToLock <= 0){
+    // Picks locked but match hasn't started — static message, no countdown
+    if(title) title.innerHTML = currentLang==='es'
+      ? `🔒 PICKS CERRADOS<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`
+      : `🔒 PICKS LOCKED<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`;
+    units.innerHTML = `<div style="font-size:13px;color:rgba(255,255,255,.75);font-family:'DM Sans';padding:6px 0;letter-spacing:.3px">${currentLang==='es'?'⚽ ¡El partido comienza pronto!':'⚽ Match starting soon!'}</div>`;
     return;
   }
 
-  const days = Math.floor(diffToKick / (1000*60*60*24));
+  // 3. Picks still open — countdown to kickoff
+  const days  = Math.floor(diffToKick / (1000*60*60*24));
   const hours = Math.floor((diffToKick % (1000*60*60*24)) / (1000*60*60));
   const mins  = Math.floor((diffToKick % (1000*60*60)) / (1000*60));
   const secs  = Math.floor((diffToKick % (1000*60)) / 1000);
 
-  if(diffToLock <= 0){
-    // Picks locked — count to kickoff
-    if(title) title.innerHTML = currentLang==='es'
-      ? `🔒 PICKS CERRADOS · FALTAN<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`
-      : `🔒 PICKS LOCKED · TIME LEFT<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`;
-  } else {
-    if(title) title.innerHTML = currentLang==='es'
-      ? `⏰ FALTAN PARA<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`
-      : `⏰ TIME LEFT FOR<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`;
-  }
+  if(title) title.innerHTML = currentLang==='es'
+    ? `⏰ FALTAN PARA<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`
+    : `⏰ TIME LEFT FOR<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`;
 
   units.innerHTML = `
     ${days > 0 ? `<div class="countdown-unit"><span class="countdown-num">${days}</span><span class="countdown-label">${currentLang==='es'?'DÍAS':'DAYS'}</span></div><span class="countdown-sep">:</span>` : ''}
