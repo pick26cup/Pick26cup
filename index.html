@@ -4606,7 +4606,22 @@ function renderLeaderboard(){
 
       const noSubmit = !hasSubmittedActive;
       const pen = scoringRound ? ((player.penalties||{})[scoringRound] || (player.penalties||{})[String(scoringRound)] || 0) : 0;
-      ranked.push({name:player.name||key, pts, exact, close, closeOver, near, result, key, noSubmit, avatar:player.avatar||null, tb, penalty:pen});
+      // ── Streak calculation ──────────────────────────────────
+      const playerSub = allPicks[key] ? (allPicks[key].submittedRounds || {}) : {};
+      let streak = 0;
+      outer: for(let r = 7; r >= 1; r--){
+        if(!(playerSub[r] || playerSub[String(r)])) continue;
+        const rMatches = (MATCHES[r]||[]).slice().reverse();
+        for(const m of rMatches){
+          const res = results && results[m.id];
+          if(!res) continue;
+          const pp = playerPickData[m.id];
+          if(!pp){ break outer; }
+          if(scoreMatch(m, pp, res) >= 1) streak++;
+          else break outer;
+        }
+      }
+      ranked.push({name:player.name||key, pts, exact, close, closeOver, near, result, key, noSubmit, avatar:player.avatar||null, tb, penalty:pen, streak});
     });
     ranked.sort((a,b)=>{
       if(b.pts !== a.pts) return b.pts - a.pts;
@@ -4701,12 +4716,16 @@ function renderLeaderboard(){
       const penaltyTag = p.penalty
         ? `<span onclick="showPenaltyCard('${escapeHtml(p.name)}',${p.penalty})" class="penalty-badge" style="font-size:10px;border:1.5px solid #E74C3C;color:#E74C3C;border-radius:6px;padding:2px 6px;margin-left:5px;vertical-align:middle;cursor:pointer;display:inline-block;font-weight:700" title="${currentLang==='es'?'Ver motivo':'See reason'}">${p.penalty > 0 ? '+' : ''}${p.penalty} pts 🟥</span>`
         : '';
+      const streakChip = (p.streak >= 2)
+        ? `<span style="font-size:10px;background:rgba(230,126,34,.15);border:1px solid #E67E22;color:#E67E22;border-radius:6px;padding:1px 7px;font-weight:700;display:inline-block;margin-top:3px">🔥 ${p.streak} ${currentLang==='es'?'en racha':'streak'}</span>`
+        : '';
       row.innerHTML = `
         <div class="lb-rank ${rankClass}">${medal||'#'+(i+1)}</div>
         <div class="lb-avatar" style="width:36px;height:36px;border:none;padding:0;overflow:hidden;border-radius:50%">${avatarSvg}</div>
         <div style="flex:1">
           <div class="lb-name">${escapeHtml(p.name)}${tbTag}${penaltyTag}${adminDelBtn}</div>
           <div class="pts-breakdown">${pendingNote}</div>
+          ${streakChip}
         </div>
         <div class="lb-pts">${ptsDisp} <span>pts</span></div>
       `;
