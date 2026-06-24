@@ -7096,6 +7096,10 @@ function playColoSong(){
     setTimeout(function(){ try{ctx.close();}catch(e){} }, 11000);
   } catch(e){}
 }
+function showFifaSplashForce(){
+  sessionStorage.removeItem('colo_splash_2_24');
+  showFifaSplash();
+}
 function showFifaSplash(){
   var sesKey='colo_splash_2_24';
   if(sessionStorage.getItem(sesKey)) return;
@@ -7138,7 +7142,7 @@ function checkFifaSplashTrigger(){
   if(!kickoff) return;
   var msLeft=kickoff-new Date();
   // Show when 4h or less away and not yet started
-  if(msLeft>0 && msLeft<=4*60*60*1000) showFifaSplash();
+  if(msLeft>0 && msLeft<=6*60*60*1000) showFifaSplash();
 }
 function playStampSound(){
   try{
