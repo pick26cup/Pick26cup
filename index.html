@@ -7761,22 +7761,8 @@ function closeFifaSplash(){
 }
 // Trigger FIFA splash for Colombia vs Congo — once per session, any time on match day
 function checkFifaSplashTrigger(){
-  var MATCH_ID='2_24';
-  if(sessionStorage.getItem('colo_splash_'+MATCH_ID)) return;
-  var coloMatch=null;
-  for(var r=1;r<=7;r++){
-    var rm=MATCHES[r]||[];
-    for(var i=0;i<rm.length;i++){
-      if(rm[i].id===MATCH_ID){coloMatch=rm[i];break;}
-    }
-    if(coloMatch) break;
-  }
-  if(!coloMatch) return;
-  var kickoff=parseMatchDate(coloMatch);
-  if(!kickoff) return;
-  var elapsed=new Date()-kickoff;
-  // Show from 2h before kickoff up to 24h after (covers match day fully)
-  if(elapsed>=-2*60*60*1000 && elapsed<=24*60*60*1000) showFifaSplash();
+  // Colombia vs Congo (2_24) terminó — splash desactivado
+  return;
 }
 function playStampSound(){
   try{
