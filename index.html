@@ -7096,6 +7096,10 @@ function playColoSong(){
     setTimeout(function(){ try{ctx.close();}catch(e){} }, 11000);
   } catch(e){}
 }
+function showFifaSplashForce(){
+  sessionStorage.removeItem('colo_splash_2_24');
+  showFifaSplash();
+}
 function showFifaSplash(){
   var sesKey='colo_splash_2_24';
   if(sessionStorage.getItem(sesKey)) return;
@@ -7138,7 +7142,7 @@ function checkFifaSplashTrigger(){
   if(!kickoff) return;
   var msLeft=kickoff-new Date();
   // Show when 4h or less away and not yet started
-  if(msLeft>0 && msLeft<=4*60*60*1000) showFifaSplash();
+  if(msLeft>0 && msLeft<=6*60*60*1000) showFifaSplash();
 }
 function playStampSound(){
   try{
@@ -7251,8 +7255,10 @@ function announceNextMatchVoice(){
   var diffMs = upcoming.date - new Date();
   if(diffMs <= 0) return;
   _voiceAnnounced = true;
-  var h = Math.floor(diffMs / (1000*60*60));
-  var mn = Math.floor((diffMs % (1000*60*60)) / (1000*60));
+  // Time until match ENDS = time to kickoff + full match window
+  var timeToEndMs = diffMs + MATCH_DURATION_MS;
+  var h = Math.floor(timeToEndMs / (1000*60*60));
+  var mn = Math.floor((timeToEndMs % (1000*60*60)) / (1000*60));
   var home = tn(upcoming.match.home), away = tn(upcoming.match.away);
   var timeStr = h > 0
     ? (currentLang === 'es'
