@@ -5588,16 +5588,15 @@ function closeAdminPlayerList(){
 function openAdminPickViewer(key, name){
   closeAdminPlayerList();
   if(!db) return;
-  db.ref('picks/'+key).once('value').then(function(snap){
+  Promise.all([
+    db.ref('picks/'+key).once('value'),
+    db.ref('results').once('value')
+  ]).then(function([snap, resSnap]){
     const data = snap.val() || {};
-    _adminViewerPlayer = { key, name, picks: data.picks || {}, submittedRounds: data.submittedRounds || {} };
-    // Determine which rounds have been submitted
+    _adminViewerPlayer = { key, name, picks: data.picks || {}, submittedRounds: data.submittedRounds || {}, results: resSnap.val() || {} };
     const sr = _adminViewerPlayer.submittedRounds;
     const submitted = [1,2,3,4,5,6,7].filter(r=>sr[r]||sr[String(r)]);
-    if(!submitted.length){
-      // Still show round 1 even if not submitted
-      submitted.push(1);
-    }
+    if(!submitted.length) submitted.push(1);
     _adminViewerRound = submitted[0];
     document.getElementById('adminPickViewerTitle').textContent = (name||key).toUpperCase();
     renderAdminPickRoundTabs(submitted);
@@ -5640,23 +5639,53 @@ function renderAdminPickViewerContent(){
   const sr = p.submittedRounds;
   const isSubmitted = !!(sr[round]||sr[String(round)]);
 
+  const results = p.results || {};
+  let runningPts = 0;
   const rows = roundMatches.map((m,idx)=>{
     const pick = p.picks[m.id] || {};
+    const res  = results[m.id];
     const homeName = escapeHtml(customTeamNames[m.id+'_home'] || displayTeamName(m.home));
     const awayName = escapeHtml(customTeamNames[m.id+'_away'] || displayTeamName(m.away));
-    let matchHtml;
+
+    // Pick display
+    let pickHtml;
     if(m.closer||m.final){
       const sh = pick.scoreH!==undefined?pick.scoreH:'—';
       const sa = pick.scoreA!==undefined?pick.scoreA:'—';
-      matchHtml=`<div class="prev-match-row"><span class="prev-team">${homeName}</span><span class="prev-score-box">${sh} - ${sa}</span><span class="prev-team">${awayName}</span></div>`;
+      pickHtml=`<span class="prev-score-box" style="font-size:11px">${sh}-${sa}</span>`;
     } else if(pick.pick==='draw'){
-      matchHtml=`<div class="prev-match-row"><span class="prev-team">${homeName}</span><span class="prev-draw-box">${es?'EMPATE':'DRAW'}</span><span class="prev-team">${awayName}</span></div>`;
+      pickHtml=`<span class="prev-draw-box" style="font-size:10px">${es?'EMP':'DRW'}</span>`;
+    } else if(pick.pick==='home'){
+      pickHtml=`<span style="color:#3498db;font-weight:700;font-size:11px">🏠 ${homeName}</span>`;
+    } else if(pick.pick==='away'){
+      pickHtml=`<span style="color:#e67e22;font-weight:700;font-size:11px">✈️ ${awayName}</span>`;
     } else {
-      const hc=pick.pick==='home'?'prev-team prev-team-sel':'prev-team';
-      const ac=pick.pick==='away'?'prev-team prev-team-sel':'prev-team';
-      matchHtml=`<div class="prev-match-row"><span class="${hc}">${homeName}</span><span class="prev-vs">vs</span><span class="${ac}">${awayName}</span></div>`;
+      pickHtml=`<span style="color:var(--text2);font-size:11px">—</span>`;
     }
-    return `<tr><td style="color:var(--text2);width:26px;font-size:11px">${idx+1}</td><td>${matchHtml}</td></tr>`;
+
+    // Result + points
+    let resHtml='', ptsHtml='', ptsBg='rgba(255,255,255,.04)';
+    if(res){
+      resHtml=`<span style="font-size:11px;color:var(--text2)">${res.scoreH}-${res.scoreA}</span>`;
+      const pts = scoreMatch(m, pick, res);
+      runningPts += pts;
+      if(pts===3)       { ptsHtml=`<strong style="color:#2ecc71">+3</strong>`; ptsBg='rgba(46,204,113,.12)'; }
+      else if(pts===2)  { ptsHtml=`<strong style="color:#3498db">+2</strong>`; ptsBg='rgba(52,152,219,.12)'; }
+      else if(pts===1.5){ ptsHtml=`<strong style="color:#9b59b6">+1.5</strong>`; ptsBg='rgba(155,89,182,.12)'; }
+      else if(pts===1)  { ptsHtml=`<strong style="color:#f39c12">+1</strong>`; ptsBg='rgba(243,156,18,.12)'; }
+      else if(pts===0.5){ ptsHtml=`<strong style="color:#95a5a6">+0.5</strong>`; ptsBg='rgba(149,165,166,.1)'; }
+      else              { ptsHtml=`<span style="color:#e74c3c">0</span>`; }
+    } else {
+      ptsHtml=`<span style="color:rgba(255,255,255,.2);font-size:10px">${es?'s/r':'n/r'}</span>`;
+    }
+
+    return `<tr style="background:${ptsBg}">
+      <td style="color:var(--text2);font-size:10px;padding:5px 4px;width:20px">${idx+1}</td>
+      <td style="font-size:11px;padding:5px 4px">${homeName} vs ${awayName}</td>
+      <td style="padding:5px 4px;text-align:center">${pickHtml}</td>
+      <td style="padding:5px 4px;text-align:center">${resHtml}</td>
+      <td style="padding:5px 6px;text-align:center;min-width:32px">${ptsHtml}</td>
+    </tr>`;
   }).join('');
 
   const statusBadge = isSubmitted
@@ -5668,9 +5697,19 @@ function renderAdminPickViewerContent(){
       <span>${es?'Jugador':'Player'}: <strong style="color:var(--gold)">${escapeHtml(p.name)}</strong></span>
       <span>${es?'Jornada':'Round'} ${round} ${statusBadge}</span>
     </div>
-    <div style="overflow-x:auto"><table class="pdf-prev-tbl">
-      <thead><tr><th>#</th><th>${es?'Partido':'Match'}</th></tr></thead>
+    <div style="overflow-x:auto"><table class="pdf-prev-tbl" style="font-size:11px">
+      <thead><tr>
+        <th>#</th>
+        <th>${es?'Partido':'Match'}</th>
+        <th>${es?'Pick':'Pick'}</th>
+        <th>${es?'Result.':'Result'}</th>
+        <th>Pts</th>
+      </tr></thead>
       <tbody>${rows}</tbody>
+      <tfoot><tr style="border-top:1px solid rgba(212,175,55,.3)">
+        <td colspan="4" style="padding:8px 4px;color:var(--gold);font-weight:700;font-size:12px">${es?'TOTAL':'TOTAL'}</td>
+        <td style="padding:8px 6px;text-align:center;color:var(--gold);font-weight:700;font-size:14px">${runningPts}</td>
+      </tr></tfoot>
     </table></div>
     <div class="pdf-prev-foot">Pick26 · World Cup 2026</div>
   </div>`;
