@@ -6485,8 +6485,6 @@ function startCountdown(){
   if(countdownInterval) clearInterval(countdownInterval);
   updateCountdown();
   countdownInterval = setInterval(updateCountdown, 1000);
-  // Check FIFA splash once per session (delayed so Firebase data loads first)
-  setTimeout(checkFifaSplashTrigger, 3000);
 }
 
 // ══════════════════════════════════════════════════════════════
