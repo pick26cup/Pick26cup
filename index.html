@@ -6631,7 +6631,7 @@ let countdownInterval = null;
 // viewer's clock). All match times in MATCHES are expressed in this zone,
 // so every player sees the exact same deadline regardless of their location.
 const TOURNAMENT_YEAR = 2026;
-const MATCH_TZ_OFFSET = -6; // UTC-6 (host city reference). Adjust if needed.
+const MATCH_TZ_OFFSET = -5; // UTC-5 (COT / CDT — match times are in Colombian time).
 
 // Parse a match's "DD/MM" + "HH:MM" (in MATCH_TZ_OFFSET) into a real Date (UTC-anchored).
 function parseMatchDate(match){
