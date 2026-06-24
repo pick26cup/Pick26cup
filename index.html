@@ -1769,17 +1769,27 @@ nav button:hover,nav button.active{
 
 /* ── FIFA WINNER INTRO ────────────────────────────────── */
 @keyframes fwBgIn{from{opacity:0}to{opacity:1}}
-@keyframes fwSpotlight{0%,100%{opacity:.18}50%{opacity:.32}}
+@keyframes fwScanline{from{background-position:0 0}to{background-position:0 8px}}
+@keyframes fwSpot1{0%{opacity:0;transform:translateX(-80px) rotate(-15deg)}40%{opacity:.35}100%{opacity:.1;transform:translateX(60px) rotate(8deg)}}
+@keyframes fwSpot2{0%{opacity:0;transform:translateX(80px) rotate(15deg)}40%{opacity:.28}100%{opacity:.08;transform:translateX(-50px) rotate(-10deg)}}
+@keyframes fwBroadcast{from{opacity:0;transform:translateX(-100%)}to{opacity:1;transform:translateX(0)}}
+@keyframes fwLive{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fwHeartbeat{0%{transform:scale(1)}14%{transform:scale(1.4)}28%{transform:scale(1)}42%{transform:scale(1.25)}56%{transform:scale(1)}100%{transform:scale(1)}}
+@keyframes fwFlash{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
+@keyframes fwTrophy{0%{opacity:0;transform:translateY(-180px) scale(.2) rotate(-20deg)}55%{opacity:1;transform:translateY(12px) scale(1.15) rotate(3deg)}75%{transform:translateY(-5px) scale(.97) rotate(-1deg)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
+@keyframes fwTrophyGlow{0%,100%{filter:drop-shadow(0 0 20px rgba(212,175,55,.8)) drop-shadow(0 8px 24px rgba(0,0,0,.9))}50%{filter:drop-shadow(0 0 50px rgba(255,220,80,1)) drop-shadow(0 0 80px rgba(212,175,55,.6))}}
+@keyframes fwLabel{from{opacity:0;letter-spacing:10px}to{opacity:1;letter-spacing:4px}}
+@keyframes fwLetterPop{0%{opacity:0;transform:scale(3) translateY(-10px);color:#fff}60%{transform:scale(.9) translateY(2px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes fwNameGlow{0%,100%{text-shadow:0 0 30px rgba(212,175,55,.8),0 2px 0 rgba(0,0,0,1),-2px 0 6px rgba(255,80,80,.3),2px 0 6px rgba(80,80,255,.3)}50%{text-shadow:0 0 60px rgba(255,220,80,1),0 2px 0 rgba(0,0,0,1),-3px 0 10px rgba(255,80,80,.5),3px 0 10px rgba(80,130,255,.5)}}
+@keyframes fwPts{from{opacity:0;transform:scale(1.6)}to{opacity:1;transform:scale(1)}}
+@keyframes fwAvatar{0%{opacity:0;transform:scale(0) rotate(-180deg)}70%{transform:scale(1.12) rotate(5deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes fwPulseRing{0%{transform:scale(.9);opacity:.9}100%{transform:scale(2.4);opacity:0}}
+@keyframes fwParticle{0%{opacity:1;transform:translateY(0) rotate(0) scale(1)}100%{opacity:0;transform:translateY(-140vh) rotate(900deg) scale(.3)}}
+@keyframes fwFlare{0%,100%{opacity:0;transform:scale(.6)}50%{opacity:.7;transform:scale(1)}}
+@keyframes fwLowerThird{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
 @keyframes fwRoundLbl{from{opacity:0;letter-spacing:16px}to{opacity:1;letter-spacing:6px}}
-@keyframes fwTrophy{0%{opacity:0;transform:translateY(-120px) scale(.4)}60%{transform:translateY(8px) scale(1.12)}80%{transform:translateY(-4px) scale(.97)}100%{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes fwTrophyGlow{0%,100%{filter:drop-shadow(0 0 18px rgba(212,175,55,.7))}50%{filter:drop-shadow(0 0 40px rgba(212,175,55,1))}}
-@keyframes fwLabel{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fwName{0%{opacity:0;transform:scale(2.4) translateY(20px)}60%{transform:scale(.93) translateY(-3px)}100%{opacity:1;transform:scale(1) translateY(0)}}
-@keyframes fwPts{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fwAvatar{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
-@keyframes fwParticle{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(-130vh) rotate(720deg)}}
-@keyframes fwNameGlow{0%,100%{text-shadow:0 0 20px rgba(212,175,55,.6),0 4px 20px rgba(0,0,0,.9)}50%{text-shadow:0 0 50px rgba(212,175,55,1),0 0 80px rgba(255,220,100,.5)}}
-@keyframes fwPulseRing{0%{transform:scale(.8);opacity:.8}100%{transform:scale(2.2);opacity:0}}
+@keyframes fwTrophyGlow2{0%,100%{filter:drop-shadow(0 0 18px rgba(212,175,55,.7))}50%{filter:drop-shadow(0 0 40px rgba(212,175,55,1))}}
+@keyframes fwPulseRing2{0%{transform:scale(.8);opacity:.8}100%{transform:scale(2.2);opacity:0}}
 
 /* ── FIFA MATCH INTRO ───────────────────────────────────── */
 @keyframes fifaFlagLeft{
@@ -6577,118 +6587,336 @@ function showWinnerCelebration(winner, round){
   _showFifaWinnerIntro(winner, round);
 }
 
+var _fwAudioCtx = null;
 function _showFifaWinnerIntro(winner, round){
   if(document.getElementById('fifaWinnerSplash')) return;
   const es = currentLang === 'es';
   const ptsDisp = Number.isInteger(winner.pts) ? winner.pts : winner.pts.toFixed(1);
-  const avatarSvg = renderAvatarSVG(winner.avatar || {skin:0,hair:0,hairColor:0,beard:0,jersey:'neutro'}, 80);
+  const avatarSvg = renderAvatarSVG(winner.avatar || {skin:0,hair:0,hairColor:0,beard:0,jersey:'neutro'}, 84);
   const isMe = winner.key === currentUser;
+  const name = winner.name.toUpperCase();
 
+  // ── Build shell ──────────────────────────────────────────
   const splash = document.createElement('div');
   splash.id = 'fifaWinnerSplash';
-  splash.style.cssText = 'position:fixed;inset:0;z-index:10001;background:radial-gradient(ellipse at 50% 30%,#1a2a0a 0%,#0a120a 40%,#000 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;animation:fwBgIn .5s ease forwards';
+  splash.style.cssText = [
+    'position:fixed;inset:0;z-index:10001;overflow:hidden;cursor:pointer',
+    'background:radial-gradient(ellipse at 50% 20%,#0d1f0d 0%,#060e06 45%,#000 100%)',
+    'animation:fwBgIn .4s ease forwards'
+  ].join(';');
 
-  // Spotlight rays
-  const spotlight = document.createElement('div');
-  spotlight.style.cssText = 'position:absolute;inset:0;background:radial-gradient(ellipse at 50% -10%,rgba(255,220,80,.22) 0%,transparent 65%);animation:fwSpotlight 3s ease-in-out 1s infinite;pointer-events:none';
-  splash.appendChild(spotlight);
+  // Scanlines
+  const scan = document.createElement('div');
+  scan.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:1;background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,.18) 3px,rgba(0,0,0,.18) 4px);animation:fwScanline .12s linear infinite';
+  splash.appendChild(scan);
+
+  // Spotlight left
+  const sp1 = document.createElement('div');
+  sp1.style.cssText = 'position:absolute;top:-10%;left:15%;width:35%;height:110%;background:linear-gradient(160deg,rgba(255,220,80,.18) 0%,transparent 60%);transform-origin:top center;pointer-events:none;z-index:1;opacity:0;animation:fwSpot1 4s ease-in-out 0.5s infinite alternate';
+  splash.appendChild(sp1);
+
+  // Spotlight right
+  const sp2 = document.createElement('div');
+  sp2.style.cssText = 'position:absolute;top:-10%;right:15%;width:35%;height:110%;background:linear-gradient(200deg,rgba(255,220,80,.15) 0%,transparent 60%);transform-origin:top center;pointer-events:none;z-index:1;opacity:0;animation:fwSpot2 4.5s ease-in-out 1s infinite alternate';
+  splash.appendChild(sp2);
+
+  // Lens flares
+  ['15% 20%','75% 15%','85% 65%','10% 70%'].forEach(function(pos,i){
+    const f = document.createElement('div');
+    const sz = [8,12,6,10][i];
+    f.style.cssText = `position:absolute;top:${pos.split(' ')[1]};left:${pos.split(' ')[0]};width:${sz}px;height:${sz}px;border-radius:50%;background:radial-gradient(circle,rgba(255,220,80,.9),transparent);pointer-events:none;z-index:1;animation:fwFlare ${1.5+i*.4}s ease-in-out ${i*.3}s infinite`;
+    splash.appendChild(f);
+  });
 
   // Particles container
-  const particles = document.createElement('div');
-  particles.id = 'fwParticles';
-  particles.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:hidden';
-  splash.appendChild(particles);
+  const parts = document.createElement('div');
+  parts.id = 'fwParticles';
+  parts.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1';
+  splash.appendChild(parts);
 
-  // Content
-  splash.innerHTML += `
-    <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:0;text-align:center;padding:0 20px;width:100%">
-      <!-- Round label -->
-      <div style="font-family:'Bebas Neue';font-size:13px;letter-spacing:6px;color:rgba(212,175,55,.6);margin-bottom:10px;opacity:0;animation:fwRoundLbl .8s ease .4s forwards">
-        ⚽ MUNDIAL 2026 · ${es?'JORNADA':'ROUND'} ${round} ⚽
-      </div>
-      <!-- Trophy -->
-      <div style="font-size:72px;line-height:1;margin-bottom:6px;opacity:0;animation:fwTrophy .7s cubic-bezier(.2,.8,.3,1.2) .9s forwards,fwTrophyGlow 2s ease-in-out 1.8s infinite">🏆</div>
-      <!-- Champion label -->
-      <div style="font-family:'Bebas Neue';font-size:15px;letter-spacing:5px;color:rgba(212,175,55,.75);margin-bottom:14px;opacity:0;animation:fwLabel .5s ease 1.5s forwards">
-        ${es?'EL CAMPEÓN ES':'THE CHAMPION IS'}
-      </div>
-      <!-- Avatar ring -->
-      <div style="position:relative;width:90px;height:90px;margin-bottom:14px;opacity:0;animation:fwAvatar .5s cubic-bezier(.2,.8,.3,1.3) 1.7s forwards">
-        <div style="position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(212,175,55,.5);animation:fwPulseRing 1.5s ease-out 2.2s infinite"></div>
-        <div style="position:absolute;inset:-3px;border-radius:50%;border:2px solid rgba(212,175,55,.8)"></div>
-        <div style="width:90px;height:90px;border-radius:50%;overflow:hidden;border:2px solid #D4AF37">${avatarSvg}</div>
-      </div>
-      <!-- Winner name -->
-      <div style="font-family:'Bebas Neue';font-size:clamp(32px,8vw,52px);color:#fff;letter-spacing:3px;line-height:1.1;margin-bottom:8px;opacity:0;animation:fwName .6s cubic-bezier(.2,.8,.3,1.1) 1.9s forwards,fwNameGlow 2s ease-in-out 2.6s infinite">
-        ${escapeHtml(winner.name.toUpperCase())}
-      </div>
-      <!-- Points -->
-      <div style="font-family:'Bebas Neue';font-size:22px;color:#D4AF37;letter-spacing:4px;margin-bottom:20px;opacity:0;animation:fwPts .5s ease 2.4s forwards">
-        ${ptsDisp} ${es?'PUNTOS':'POINTS'}
-      </div>
-      ${isMe ? `<div style="font-family:'DM Sans';font-size:14px;color:rgba(255,255,255,.7);margin-bottom:20px;opacity:0;animation:fwPts .5s ease 2.7s forwards">🎉 ${es?'¡Eres tú!':'That\'s you!'}</div>` : ''}
-      <!-- Close -->
-      <button onclick="closeWinnerModal()" style="opacity:0;animation:fwPts .4s ease 3s forwards;font-family:'DM Sans';font-size:13px;font-weight:700;padding:10px 32px;border-radius:30px;background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;color:#000;cursor:pointer;letter-spacing:1px">
-        ${es?'¡INCREÍBLE! 🎊':'AWESOME! 🎊'}
-      </button>
-    </div>`;
+  // Flash overlay
+  const flash = document.createElement('div');
+  flash.id = 'fwFlash';
+  flash.style.cssText = 'position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:9';
+  splash.appendChild(flash);
 
-  splash.querySelector('#fwParticles') || splash.appendChild(particles);
-  splash.addEventListener('click', function(e){ if(e.target===splash) closeWinnerModal(); });
+  // LIVE badge
+  const live = document.createElement('div');
+  live.style.cssText = 'position:absolute;top:16px;right:16px;z-index:5;background:#E74C3C;color:#fff;font-family:"DM Sans";font-size:10px;font-weight:900;letter-spacing:2px;padding:3px 8px;border-radius:4px;animation:fwLive 1s steps(1) infinite';
+  live.textContent = '● EN VIVO';
+  splash.appendChild(live);
+
+  // ── Main content ─────────────────────────────────────────
+  const content = document.createElement('div');
+  content.id = 'fwContent';
+  content.style.cssText = 'position:relative;z-index:4;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 24px;width:100%;gap:0';
+  content.innerHTML = `
+    <!-- Broadcast header -->
+    <div id="fwHeader" style="opacity:0;font-family:'Bebas Neue';font-size:11px;letter-spacing:5px;color:rgba(212,175,55,.5);margin-bottom:8px">
+      ⚽ PICK26 · MUNDIAL 2026 · ${es?'JORNADA':'ROUND'} ${round}
+    </div>
+    <!-- Trophy -->
+    <div id="fwTrophy" style="opacity:0;font-size:80px;line-height:1;margin-bottom:4px">🏆</div>
+    <!-- Label -->
+    <div id="fwChampLabel" style="opacity:0;font-family:'Bebas Neue';font-size:14px;letter-spacing:5px;color:rgba(212,175,55,.8);margin-bottom:16px">
+      ${es?'🏅 EL CAMPEÓN DE LA JORNADA ES 🏅':'🏅 THE ROUND CHAMPION IS 🏅'}
+    </div>
+    <!-- Avatar -->
+    <div id="fwAvatarWrap" style="opacity:0;position:relative;width:92px;height:92px;margin-bottom:14px">
+      <div style="position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(212,175,55,.4);animation:fwPulseRing 1.4s ease-out infinite"></div>
+      <div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(212,175,55,.7)"></div>
+      <div style="width:92px;height:92px;border-radius:50%;overflow:hidden;border:2.5px solid #D4AF37;box-shadow:0 0 30px rgba(212,175,55,.6)">${avatarSvg}</div>
+    </div>
+    <!-- Name — filled letter by letter by JS -->
+    <div id="fwNameRow" style="font-family:'Bebas Neue';font-size:clamp(28px,9vw,54px);letter-spacing:4px;line-height:1;margin-bottom:10px;min-height:1.2em;animation:fwNameGlow 2s ease-in-out 0s infinite"></div>
+    <!-- Points -->
+    <div id="fwPtsRow" style="opacity:0;font-family:'Bebas Neue';font-size:24px;letter-spacing:5px;color:#D4AF37;margin-bottom:${isMe?'6px':'20px'}">
+      ${ptsDisp} ${es?'PUNTOS':'POINTS'}
+    </div>
+    ${isMe?`<div id="fwMeTag" style="opacity:0;font-family:'DM Sans';font-size:14px;color:rgba(255,255,255,.75);font-weight:700;margin-bottom:20px">🎉 ${es?'¡ESO ERES TÚ!':'THAT\'S YOU!'}</div>`:''}
+    <!-- Close -->
+    <button id="fwCloseBtn" onclick="closeWinnerModal()" style="opacity:0;font-family:'Bebas Neue';font-size:16px;letter-spacing:2px;padding:12px 40px;border-radius:30px;background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;color:#000;cursor:pointer;box-shadow:0 4px 20px rgba(212,175,55,.45)">
+      ${es?'¡INCREÍBLE! 🎊':'AWESOME! 🎊'}
+    </button>`;
+  splash.appendChild(content);
+
+  // Lower-third broadcast bar
+  const bar = document.createElement('div');
+  bar.id = 'fwLowerBar';
+  bar.style.cssText = 'position:absolute;bottom:0;left:0;right:0;z-index:5;padding:10px 20px;background:linear-gradient(90deg,rgba(212,175,55,.9),rgba(180,130,0,.8));transform-origin:left;transform:scaleX(0);opacity:0;display:flex;align-items:center;justify-content:space-between';
+  bar.innerHTML = `<span style="font-family:'Bebas Neue';font-size:14px;letter-spacing:3px;color:#000">${es?'CAMPEÓN · JORNADA':'CHAMPION · ROUND'} ${round}</span><span style="font-family:'Bebas Neue';font-size:14px;letter-spacing:2px;color:#000">${escapeHtml(winner.name.toUpperCase())} · ${ptsDisp} PTS</span>`;
+  splash.appendChild(bar);
+
+  splash.addEventListener('click', function(e){ if(e.target===splash||e.target===scan) closeWinnerModal(); });
   document.body.appendChild(splash);
 
-  setTimeout(_spawnFifaWinnerParticles, 1900);
-  setTimeout(_playWinnerFanfare, 900);
-  setTimeout(closeWinnerModal, 12000);
+  // ── Orchestrated sequence ────────────────────────────────
+  _fwAudioCtx = null;
+  try{ _fwAudioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+
+  // 0.0s — crowd murmur starts
+  _fwCrowd(0, 14);
+
+  // 0.4s — header
+  setTimeout(function(){
+    const h = document.getElementById('fwHeader');
+    if(h){ h.style.transition='opacity .6s'; h.style.opacity='1'; }
+  }, 400);
+
+  // 1.0s — heartbeat × 3 (builds tension)
+  [1000, 1500, 1900].forEach(function(t){ setTimeout(_fwHeartbeat, t); });
+
+  // 2.2s — trophy slams down + thud
+  setTimeout(function(){
+    const tr = document.getElementById('fwTrophy');
+    if(tr){ tr.style.animation='fwTrophy .65s cubic-bezier(.2,.8,.3,1.3) forwards,fwTrophyGlow 2s ease-in-out .8s infinite'; tr.style.opacity='1'; }
+    _fwThud();
+  }, 2200);
+
+  // 3.0s — "EL CAMPEÓN ES" label
+  setTimeout(function(){
+    const lbl = document.getElementById('fwChampLabel');
+    if(lbl){ lbl.style.transition='opacity .5s,letter-spacing .5s'; lbl.style.opacity='1'; }
+  }, 3000);
+
+  // 3.6s — avatar spins in
+  setTimeout(function(){
+    const av = document.getElementById('fwAvatarWrap');
+    if(av){ av.style.animation='fwAvatar .6s cubic-bezier(.2,.8,.3,1.3) forwards'; }
+  }, 3600);
+
+  // 4.2s — FLASH! + crowd ROAR + name reveal
+  setTimeout(function(){
+    // Camera flash
+    const fl = document.getElementById('fwFlash');
+    if(fl){ fl.style.animation='fwFlash .45s ease forwards'; }
+    _fwCrowdRoar();
+    // Fanfare
+    setTimeout(_fwFanfare, 200);
+    // Name letter by letter
+    setTimeout(function(){ _fwRevealName(name); }, 300);
+  }, 4200);
+
+  // 4.2+name_dur — points + close btn
+  const nameDur = 300 + name.length * 90 + 400;
+  setTimeout(function(){
+    ['fwPtsRow','fwMeTag','fwCloseBtn'].forEach(function(id,i){
+      const el = document.getElementById(id);
+      if(el){ setTimeout(function(){ el.style.transition='opacity .4s,transform .4s'; el.style.opacity='1'; el.style.transform='scale(1)'; el.style.transformOrigin='center'; }, i*180); }
+    });
+  }, 4200 + nameDur);
+
+  // 4.4s — confetti explosion
+  setTimeout(_spawnFifaWinnerParticles, 4400);
+
+  // 4.8s — lower-third bar slides in
+  setTimeout(function(){
+    const b = document.getElementById('fwLowerBar');
+    if(b){ b.style.transition='transform .5s ease,opacity .3s'; b.style.transform='scaleX(1)'; b.style.opacity='1'; }
+  }, 4800);
+
+  setTimeout(closeWinnerModal, 15000);
+}
+
+function _fwRevealName(name){
+  const row = document.getElementById('fwNameRow');
+  if(!row) return;
+  row.innerHTML = '';
+  const letters = name.split('');
+  letters.forEach(function(ch, i){
+    setTimeout(function(){
+      const span = document.createElement('span');
+      span.textContent = ch === ' ' ? ' ' : ch;
+      span.style.cssText = 'display:inline-block;opacity:0;animation:fwLetterPop .25s cubic-bezier(.2,.8,.3,1.2) forwards;color:#fff';
+      row.appendChild(span);
+      _fwLetterTick();
+    }, i * 90);
+  });
+}
+
+function _fwHeartbeat(){
+  try{
+    if(!_fwAudioCtx) return;
+    var ctx = _fwAudioCtx;
+    var g = ctx.createGain(); g.gain.value=.3; g.connect(ctx.destination);
+    var o = ctx.createOscillator(); o.type='sine';
+    o.frequency.setValueAtTime(80, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(40, ctx.currentTime+.08);
+    g.gain.setValueAtTime(.3, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+.18);
+    o.connect(g); o.start(); o.stop(ctx.currentTime+.2);
+  }catch(e){}
+}
+
+function _fwThud(){
+  try{
+    if(!_fwAudioCtx) return;
+    var ctx = _fwAudioCtx;
+    var g = ctx.createGain(); g.gain.value=.7; g.connect(ctx.destination);
+    var o = ctx.createOscillator(); o.type='sine';
+    o.frequency.setValueAtTime(180, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(30, ctx.currentTime+.22);
+    g.gain.setValueAtTime(.7, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+.28);
+    o.connect(g); o.start(); o.stop(ctx.currentTime+.3);
+  }catch(e){}
+}
+
+function _fwLetterTick(){
+  try{
+    if(!_fwAudioCtx) return;
+    var ctx = _fwAudioCtx;
+    var g = ctx.createGain(); g.gain.value=.12; g.connect(ctx.destination);
+    var o = ctx.createOscillator(); o.type='square'; o.frequency.value=880;
+    g.gain.setValueAtTime(.12, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+.04);
+    o.connect(g); o.start(); o.stop(ctx.currentTime+.05);
+  }catch(e){}
+}
+
+function _fwCrowd(delay, duration){
+  try{
+    if(!_fwAudioCtx) return;
+    var ctx = _fwAudioCtx;
+    var sr = ctx.sampleRate;
+    var buf = ctx.createBuffer(1, sr*duration, sr);
+    var d = buf.getChannelData(0);
+    for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1);
+    var src = ctx.createBufferSource(); src.buffer=buf; src.loop=false;
+    var bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=600; bp.Q.value=0.4;
+    var hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=200;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0, ctx.currentTime+delay);
+    g.gain.linearRampToValueAtTime(.06, ctx.currentTime+delay+1.5);
+    g.gain.setValueAtTime(.06, ctx.currentTime+delay+duration-1);
+    g.gain.linearRampToValueAtTime(0, ctx.currentTime+delay+duration);
+    src.connect(hp); hp.connect(bp); bp.connect(g); g.connect(ctx.destination);
+    src.start(ctx.currentTime+delay);
+  }catch(e){}
+}
+
+function _fwCrowdRoar(){
+  try{
+    if(!_fwAudioCtx) return;
+    var ctx = _fwAudioCtx;
+    var sr = ctx.sampleRate;
+    var buf = ctx.createBuffer(1, sr*4, sr);
+    var d = buf.getChannelData(0);
+    for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1);
+    var src = ctx.createBufferSource(); src.buffer=buf;
+    var bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=900; bp.Q.value=0.3;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0, ctx.currentTime);
+    g.gain.linearRampToValueAtTime(.22, ctx.currentTime+.3);
+    g.gain.setValueAtTime(.22, ctx.currentTime+2);
+    g.gain.linearRampToValueAtTime(.08, ctx.currentTime+4);
+    src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+    src.start();
+  }catch(e){}
+}
+
+function _fwFanfare(){
+  try{
+    if(!_fwAudioCtx) return;
+    var ctx = _fwAudioCtx;
+    var master = ctx.createGain(); master.gain.value=.4; master.connect(ctx.destination);
+    // Orchestral ascending fanfare — C major triumphant
+    var notes = [
+      {f:523,s:0,d:.15,t:'square'},{f:659,s:.16,d:.15,t:'square'},{f:784,s:.32,d:.15,t:'square'},
+      {f:1047,s:.48,d:.6,t:'triangle'},
+      {f:523,s:.5,d:.55,t:'triangle'},{f:659,s:.5,d:.55,t:'triangle'},{f:784,s:.5,d:.55,t:'triangle'},
+      {f:1047,s:1.15,d:1.2,t:'triangle'},{f:784,s:1.15,d:1.2,t:'triangle'},
+      {f:659,s:1.15,d:1.2,t:'triangle'},{f:523,s:1.15,d:1.2,t:'triangle'},
+      {f:1319,s:1.3,d:.9,t:'triangle'} // high E accent
+    ];
+    notes.forEach(function(n){
+      var o=ctx.createOscillator(), g=ctx.createGain();
+      o.type=n.t; o.frequency.value=n.f;
+      g.gain.setValueAtTime(0,ctx.currentTime+n.s);
+      g.gain.linearRampToValueAtTime(.45,ctx.currentTime+n.s+.025);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+n.s+n.d);
+      o.connect(g); g.connect(master);
+      o.start(ctx.currentTime+n.s); o.stop(ctx.currentTime+n.s+n.d+.05);
+    });
+    // Bass drum pattern
+    [0,.5,1.15,1.5].forEach(function(t){
+      var b=ctx.createOscillator(), bg=ctx.createGain();
+      b.type='sine'; b.frequency.setValueAtTime(150,ctx.currentTime+t);
+      b.frequency.exponentialRampToValueAtTime(35,ctx.currentTime+t+.14);
+      bg.gain.setValueAtTime(.9,ctx.currentTime+t);
+      bg.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+t+.18);
+      b.connect(bg); bg.connect(master);
+      b.start(ctx.currentTime+t); b.stop(ctx.currentTime+t+.22);
+    });
+    // Snare hits
+    [.25,.75,1.4].forEach(function(t){
+      try{
+        var sr=ctx.sampleRate, buf=ctx.createBuffer(1,sr*.08,sr), dta=buf.getChannelData(0);
+        for(var i=0;i<dta.length;i++) dta[i]=(Math.random()*2-1)*Math.exp(-i/(sr*.025));
+        var sn=ctx.createBufferSource(), sg=ctx.createGain();
+        sn.buffer=buf; sg.gain.value=.3; sg.connect(master); sn.connect(sg);
+        sn.start(ctx.currentTime+t);
+      }catch(e){}
+    });
+    setTimeout(function(){ try{ctx.close(); _fwAudioCtx=null;}catch(e){} }, 5000);
+  }catch(e){}
 }
 
 function _spawnFifaWinnerParticles(){
   const cont = document.getElementById('fwParticles');
   if(!cont) return;
-  const colors = ['#D4AF37','#FFD700','#FFF','#2ECC71','#3498DB','#E74C3C','#F39C12'];
-  for(let i=0;i<80;i++){
+  const colors = ['#D4AF37','#FFD700','#FFF','#2ECC71','#3498DB','#E74C3C','#F1C40F','#9B59B6','#E67E22'];
+  for(let i=0;i<100;i++){
     const p = document.createElement('div');
-    const c = colors[Math.floor(Math.random()*colors.length)];
-    const size = 4 + Math.random()*7;
+    const c = colors[i % colors.length];
+    const size = 4 + Math.random()*8;
     const left = Math.random()*100;
-    const delay = Math.random()*2;
-    const dur = 3 + Math.random()*3;
-    p.style.cssText = `position:absolute;bottom:-10px;left:${left}%;width:${size}px;height:${size*1.6}px;background:${c};border-radius:${Math.random()>0.5?'50%':'2px'};opacity:0;animation:fwParticle ${dur}s ease-out ${delay}s forwards`;
+    const delay = Math.random()*1.5;
+    const dur = 3.5 + Math.random()*3;
+    const isRect = Math.random() > 0.4;
+    p.style.cssText = `position:absolute;bottom:-10px;left:${left}%;width:${size}px;height:${isRect?size*2:size}px;background:${c};border-radius:${isRect?'2px':'50%'};opacity:0;animation:fwParticle ${dur}s ease-out ${delay}s forwards`;
     cont.appendChild(p);
   }
-}
-
-function _playWinnerFanfare(){
-  try{
-    var ctx = new (window.AudioContext||window.webkitAudioContext)();
-    var master = ctx.createGain(); master.gain.value = 0.35; master.connect(ctx.destination);
-    // Triumphant chord fanfare: C-E-G-C ascent then held chord
-    var fanfare = [
-      {f:523,s:0,d:.18},{f:659,s:.2,d:.18},{f:784,s:.4,d:.18},{f:1047,s:.6,d:.5},
-      {f:523,s:.65,d:.5},{f:659,s:.65,d:.5},{f:784,s:.65,d:.5},
-      {f:1047,s:1.2,d:.8},{f:784,s:1.2,d:.8},{f:659,s:1.2,d:.8},{f:523,s:1.2,d:.8}
-    ];
-    fanfare.forEach(function(n){
-      var o=ctx.createOscillator(), g=ctx.createGain();
-      o.type='triangle'; o.frequency.value=n.f;
-      g.gain.setValueAtTime(0,ctx.currentTime+n.s);
-      g.gain.linearRampToValueAtTime(.5,ctx.currentTime+n.s+.03);
-      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+n.s+n.d);
-      o.connect(g); g.connect(master);
-      o.start(ctx.currentTime+n.s); o.stop(ctx.currentTime+n.s+n.d+.05);
-    });
-    // Bass drum hits
-    [0,.6,1.2].forEach(function(t){
-      var b=ctx.createOscillator(), bg=ctx.createGain();
-      b.type='sine'; b.frequency.setValueAtTime(120,ctx.currentTime+t);
-      b.frequency.exponentialRampToValueAtTime(40,ctx.currentTime+t+.12);
-      bg.gain.setValueAtTime(.8,ctx.currentTime+t);
-      bg.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+t+.15);
-      b.connect(bg); bg.connect(master);
-      b.start(ctx.currentTime+t); b.stop(ctx.currentTime+t+.2);
-    });
-    setTimeout(function(){ try{ctx.close();}catch(e){} }, 4000);
-  }catch(e){}
 }
 
 function closeWinnerModal(){
