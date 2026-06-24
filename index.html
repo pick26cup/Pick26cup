@@ -5261,6 +5261,7 @@ function renderAdminMatches(){
 }
 
 function saveResult(matchId){
+  if(!adminLoggedIn){ showToast(t('Sin permisos de admin','Not authorized'),'error'); return; }
   const h = parseInt(document.getElementById('rs_h_'+matchId).value);
   const a = parseInt(document.getElementById('rs_a_'+matchId).value);
   if(isNaN(h)||isNaN(a)){ showToast(currentLang==='es'?'Ingresa un marcador válido':'Enter valid score','error'); return; }
@@ -5293,6 +5294,7 @@ function markSaveBtnSaved(matchId){
 }
 
 function clearResult(matchId){
+  if(!adminLoggedIn){ showToast(t('Sin permisos de admin','Not authorized'),'error'); return; }
   if(!confirm(currentLang==='es'?'¿Borrar este resultado?':'Delete this result?')) return;
   localStorage.removeItem('wc2026_result_'+matchId);
   if(db) db.ref('results/'+matchId).remove().catch(function(){
