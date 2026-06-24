@@ -260,7 +260,7 @@ const home=_E('home'),away=_E('away'),ha=_E('ha'),caut=_E('caut'),haVal=_E('haVa
   rtbody=_E('rtbody'),search=_E('search'),imp=_E('imp');
 
 const TEAMS=[
- // Elo post-J2 (23/24 al 24-jun-2026, CO-CD pendiente) · FIFA jun-11-2026 (48/48) · K=60, G=f(GD), HA=+100
+ // Elo post-J2 COMPLETA (24/24 al 24-jun-2026) · FIFA jun-11-2026 (48/48) · K=60, G=f(GD), HA=+100
  {g:"A",n:"México",c:"MX",elo:1896,fifa:1681,host:true},{g:"A",n:"Sudáfrica",c:"ZA",elo:1537,fifa:1428,host:false},
  {g:"A",n:"Corea del Sur",c:"KR",elo:1771,fifa:1592,host:false},{g:"A",n:"Chequia",c:"CZ",elo:1697,fifa:1506,host:false},
  {g:"B",n:"Canadá",c:"CA",elo:1778,fifa:1559,host:true},{g:"B",n:"Bosnia y H.",c:"BA",elo:1596,fifa:1387,host:false},
@@ -281,8 +281,8 @@ const TEAMS=[
  {g:"I",n:"Irak",c:"IQ",elo:1596,fifa:1446,host:false},{g:"I",n:"Noruega",c:"NO",elo:1956,fifa:1577,host:false},
  {g:"J",n:"Argentina",c:"AR",elo:2142,fifa:1875,host:false},{g:"J",n:"Argelia",c:"DZ",elo:1770,fifa:1571,host:false},
  {g:"J",n:"Austria",c:"AT",elo:1841,fifa:1597,host:false},{g:"J",n:"Jordania",c:"JO",elo:1636,fifa:1391,host:false},
- {g:"K",n:"Portugal",c:"PT",elo:1986,fifa:1764,host:false},{g:"K",n:"RD Congo",c:"CD",elo:1683,fifa:1474,host:false},
- {g:"K",n:"Uzbekistán",c:"UZ",elo:1680,fifa:1459,host:false},{g:"K",n:"Colombia",c:"CO",elo:1993,fifa:1693,host:false},
+ {g:"K",n:"Portugal",c:"PT",elo:1986,fifa:1764,host:false},{g:"K",n:"RD Congo",c:"CD",elo:1674,fifa:1474,host:false},
+ {g:"K",n:"Uzbekistán",c:"UZ",elo:1680,fifa:1459,host:false},{g:"K",n:"Colombia",c:"CO",elo:2002,fifa:1693,host:false},
  {g:"L",n:"Inglaterra",c:"EN",elo:2025,fifa:1826,host:false},{g:"L",n:"Croacia",c:"HR",elo:1892,fifa:1717,host:false},
  {g:"L",n:"Ghana",c:"GH",elo:1584,fifa:1347,host:false},{g:"L",n:"Panamá",c:"PA",elo:1668,fifa:1505,host:false},
 ];
@@ -536,7 +536,7 @@ resultsState[2][17]={gh:"3",ga:"2"}; // NO-SN  · Noruega 3-2 Senegal
 resultsState[2][18]={gh:"2",ga:"0"}; // AR-AT  · Argentina 2-0 Austria (Messi)
 resultsState[2][19]={gh:"1",ga:"2"}; // JO-DZ  · Jordania 1-2 Argelia
 resultsState[2][20]={gh:"5",ga:"0"}; // PT-UZ  · Portugal 5-0 Uzbekistán (Ronaldo doblete)
-// resultsState[2][21] CO-CD · PENDIENTE (partido aún no iniciado)
+resultsState[2][21]={gh:"1",ga:"0"}; // CO-CD  · Colombia 1-0 RD Congo
 resultsState[2][22]={gh:"0",ga:"0"}; // EN-GH  · Inglaterra 0-0 Ghana (upset)
 resultsState[2][23]={gh:"0",ga:"1"}; // PA-HR  · Panamá 0-1 Croacia
 let curRJ=1;
