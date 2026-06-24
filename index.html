@@ -7195,7 +7195,7 @@ function closeFifaSplash(){
   m.style.opacity='0';
   setTimeout(function(){ m.style.display='none'; m.style.opacity='1'; m.style.transition=''; }, 700);
 }
-// Trigger FIFA splash during the Colombia vs Congo match window (kickoff → +110 min)
+// Trigger FIFA splash: from 2h before kickoff through end of match
 function checkFifaSplashTrigger(){
   var MATCH_ID='2_24';
   if(sessionStorage.getItem('colo_splash_'+MATCH_ID)) return;
@@ -7212,8 +7212,8 @@ function checkFifaSplashTrigger(){
   var kickoff=parseMatchDate(coloMatch);
   if(!kickoff) return;
   var elapsed=new Date()-kickoff;
-  // Show only while the match is live (0 → 110 min after kickoff)
-  if(elapsed>=0 && elapsed<=MATCH_DURATION_MS) showFifaSplash();
+  // 2h before kickoff (elapsed = -7200000) through end of match (+110 min)
+  if(elapsed>=-2*60*60*1000 && elapsed<=MATCH_DURATION_MS) showFifaSplash();
 }
 function playStampSound(){
   try{
