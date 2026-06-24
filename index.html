@@ -3513,6 +3513,15 @@ function showAvatarStep(){
   if(s2) s2.style.display = 'block';
   updateLang(); // apply current language to all static labels before building pickers
   try{ initAvatarPicker(); } catch(e){ console.error('Avatar picker error:', e); }
+  // Pre-populate country picker from localStorage, then verify against Firebase
+  const cp = document.getElementById('countryPicker');
+  if(cp && currentUser){
+    const saved = localStorage.getItem('wc2026_country_'+currentUser) || '';
+    if(saved) cp.value = saved;
+    if(db) db.ref('players/'+playerKey()+'/country').once('value').then(s=>{
+      const v = s.val(); if(v){ cp.value = v; localStorage.setItem('wc2026_country_'+currentUser, v); }
+    }).catch(()=>{});
+  }
 }
 
 function saveAvatar(){
@@ -4785,7 +4794,7 @@ function renderLeaderboard(){
         }
         break;
       }
-      ranked.push({name:player.name||key, pts, exact, close, closeOver, near, result, key, noSubmit, avatar:player.avatar||null, tb, penalty:pen, streak, streakDayTotal});
+      ranked.push({name:player.name||key, pts, exact, close, closeOver, near, result, key, noSubmit, avatar:player.avatar||null, tb, penalty:pen, streak, streakDayTotal, country:player.country||null});
     });
     ranked.sort((a,b)=>{
       if(b.pts !== a.pts) return b.pts - a.pts;
@@ -4896,7 +4905,7 @@ function renderLeaderboard(){
           ${streakChip}
         </div>
         <div style="flex:1">
-          <div class="lb-name">${escapeHtml(p.name)}${tbTag}${penaltyTag}${adminDelBtn}</div>
+          <div class="lb-name">${p.country ? `<img src="https://flagcdn.com/${p.country}.svg" alt="${p.country}" style="height:14px;width:21px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px;box-shadow:0 1px 3px rgba(0,0,0,.4)">` : ''}${escapeHtml(p.name)}${tbTag}${penaltyTag}${adminDelBtn}</div>
           <div class="pts-breakdown">${pendingNote}</div>
         </div>
         <div class="lb-pts">${ptsDisp} <span>pts</span></div>
