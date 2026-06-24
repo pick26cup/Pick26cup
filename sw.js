@@ -1,4 +1,4 @@
-const CACHE = 'pick26-v1';
+const CACHE = 'pick26-v2';
 const ASSETS = ['/', '/index.html', '/fondo.png', '/logo_1.jpg', '/logo_2.jpg', '/fifa_theme.mp3'];
 
 self.addEventListener('install', e => {
