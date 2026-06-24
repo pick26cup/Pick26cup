@@ -5677,6 +5677,7 @@ function closePickDistModal(){
 }
 
 function renderPickDist(round){
+  try {
   _pickDistRound = round;
   document.querySelectorAll('.pdist-tab').forEach(function(btn){
     btn.classList.toggle('active', parseInt(btn.dataset.round) === round);
@@ -5768,7 +5769,7 @@ function renderPickDist(round){
     if(totalVoted > 0){
       // ── Win/Draw/Loss consensus ───────────────────────────
       var wdlMax = Math.max(homeWins, draws, awayWins, 1);
-      function wdlBar(n, color, isResult){
+      var wdlBar = function(n, color, isResult){
         var w = Math.round(n/wdlMax*100);
         var pct = Math.round(n/totalVoted*100);
         return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">'
@@ -5779,7 +5780,7 @@ function renderPickDist(round){
           +'<span style="font-size:10px;color:var(--text2);min-width:28px;text-align:right">'+pct+'%</span>'
           +(isResult?'<span style="font-size:10px">✅</span>':'<span style="font-size:10px;opacity:0"> </span>')
           +'</div>';
-      }
+      };
       html += '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 12px;margin-bottom:10px">'
         +'<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase">Pronóstico del grupo</div>'
         +'<div style="display:grid;grid-template-columns:auto 1fr;gap:2px 8px;align-items:center">'
@@ -5792,7 +5793,7 @@ function renderPickDist(round){
         +'</div></div>';
 
       // ── Goals distribution ────────────────────────────────
-      function goalsRow(label, goalsObj, resGoals){
+      var goalsRow = function(label, goalsObj, resGoals){
         var maxG = Math.max.apply(null, Object.values(goalsObj).concat([1]));
         var allG = Object.keys(goalsObj).map(Number).sort(function(a,b){return a-b;});
         var cells = allG.map(function(g){
@@ -5811,7 +5812,7 @@ function renderPickDist(round){
           +'<span style="font-size:10px;color:var(--text2)">'+label+'</span>'
           +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">'+cells+'</div>'
           +'</div>';
-      }
+      };
       var resH = res ? res.home : null;
       var resA = res ? res.away : null;
       if(Object.keys(homeGoals).length > 0 || Object.keys(awayGoals).length > 0){
@@ -5877,6 +5878,9 @@ function renderPickDist(round){
   });
 
   body.innerHTML = html;
+  } catch(e) {
+    document.getElementById('pickDistBody').innerHTML = '<p style="color:var(--red);text-align:center;padding:20px">Error al renderizar: '+escapeHtml(String(e))+'</p>';
+  }
 }
 // ─────────────────────────────────────────────────────
 
