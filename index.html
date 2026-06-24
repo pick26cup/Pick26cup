@@ -6136,7 +6136,7 @@ function showSection(name){
   const chBtn = document.getElementById('championsBtn');
   if(esBtn) esBtn.style.display = name==='leaderboard' ? 'block' : 'none';
   if(chBtn) chBtn.style.display = name==='leaderboard' ? 'block' : 'none';
-  if(name==='leaderboard') renderLeaderboard();
+  if(name==='leaderboard'){ renderLeaderboard(); setTimeout(checkFifaSplashTrigger, 500); }
   if(name==='picks'){
     currentRound = activeWeek > 0 ? activeWeek : 1;
     renderRoundTabs();
