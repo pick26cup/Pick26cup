@@ -1712,7 +1712,102 @@ nav button:hover,nav button.active{
 <style>
 @keyframes refCard{from{opacity:0;transform:scale(.7) rotate(-8deg)}to{opacity:1;transform:scale(1) rotate(0)}}
 @keyframes stampIn{0%{opacity:0;transform:rotate(-22deg) scale(2.8)}55%{opacity:1;transform:rotate(2.5deg) scale(0.93)}75%{transform:rotate(-1.5deg) scale(1.03)}100%{opacity:1;transform:rotate(-3deg) scale(1)}}
+
+/* ── FIFA MATCH INTRO ───────────────────────────────────── */
+@keyframes fifaFlagLeft{
+  0%  {transform:scale(.08) translate(0,120px);opacity:0}
+  40% {transform:scale(1.35) translate(-30px,-10px);opacity:1}
+  65% {transform:scale(1.1) translate(-20px,0)}
+  100%{transform:scale(1.18) translate(-18px,0);opacity:1}
+}
+@keyframes fifaFlagRight{
+  0%  {transform:scale(.08) translate(0,120px);opacity:0}
+  40% {transform:scale(1.35) translate(30px,-10px);opacity:1}
+  65% {transform:scale(1.1) translate(20px,0)}
+  100%{transform:scale(1.18) translate(18px,0);opacity:1}
+}
+@keyframes fifaVS{
+  0%  {opacity:0;transform:translate(-50%,-50%) scale(3)}
+  60% {opacity:1;transform:translate(-50%,-50%) scale(.9)}
+  80% {transform:translate(-50%,-50%) scale(1.08)}
+  100%{transform:translate(-50%,-50%) scale(1)}
+}
+@keyframes fifaTitle{
+  0%  {opacity:0;letter-spacing:18px;transform:translateY(20px)}
+  100%{opacity:1;letter-spacing:3px;transform:translateY(0)}
+}
+@keyframes fifaInfo{
+  0%  {opacity:0;transform:translateY(30px)}
+  100%{opacity:1;transform:translateY(0)}
+}
+@keyframes fifaParticle{
+  0%  {transform:translateY(0) rotate(0deg);opacity:1}
+  100%{transform:translateY(-110vh) rotate(720deg);opacity:0}
+}
+@keyframes fifaPulse{
+  0%,100%{box-shadow:0 0 20px 4px rgba(252,209,22,.4)}
+  50%{box-shadow:0 0 40px 12px rgba(252,209,22,.8)}
+}
+@keyframes fifaGlow{
+  0%,100%{text-shadow:0 0 20px rgba(252,209,22,.6)}
+  50%{text-shadow:0 0 50px rgba(252,209,22,1),0 0 80px rgba(252,209,22,.5)}
+}
+.fifa-flag-box{
+  width:200px;height:130px;border-radius:10px;overflow:hidden;
+  box-shadow:0 8px 40px rgba(0,0,0,.8),0 0 0 3px rgba(255,255,255,.25);
+  flex-shrink:0;
+}
+.fifa-name{
+  font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;
+  color:#fff;text-align:center;margin-top:12px;
+  text-shadow:0 2px 12px rgba(0,0,0,.9);
+}
 </style>
+
+<!-- FIFA MATCH INTRO SPLASH -->
+<div id="fifaSplash" style="display:none;position:fixed;inset:0;z-index:10000;overflow:hidden;cursor:pointer" onclick="closeFifaSplash()">
+  <!-- Stadium background -->
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%, #0a2a0a 0%, #040d1a 55%, #000 100%)"></div>
+  <!-- Field glow at bottom -->
+  <div style="position:absolute;bottom:0;left:0;right:0;height:35%;background:linear-gradient(to top,rgba(10,60,10,.55),transparent);pointer-events:none"></div>
+  <!-- Particles container -->
+  <div id="fifaParticles" style="position:absolute;inset:0;pointer-events:none"></div>
+
+  <!-- Left team: Colombia -->
+  <div id="fifaLeft" style="position:absolute;left:12%;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;opacity:0;animation:fifaFlagLeft .9s cubic-bezier(.2,.8,.3,1.1) .3s forwards">
+    <!-- Colombia flag: yellow/blue/red -->
+    <div class="fifa-flag-box" style="animation:fifaPulse 2s ease-in-out 1.5s infinite">
+      <div style="height:50%;background:#FCD116"></div>
+      <div style="height:25%;background:#003893"></div>
+      <div style="height:25%;background:#CE1126"></div>
+    </div>
+    <div class="fifa-name" style="animation:fifaGlow 2s ease-in-out 1.5s infinite">COLOMBIA</div>
+  </div>
+
+  <!-- Right team: DR Congo -->
+  <div id="fifaRight" style="position:absolute;right:12%;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;opacity:0;animation:fifaFlagRight .9s cubic-bezier(.2,.8,.3,1.1) .55s forwards">
+    <!-- DR Congo flag: sky blue + red diagonal stripe + yellow star -->
+    <div class="fifa-flag-box" style="animation:fifaPulse 2s ease-in-out 1.7s infinite">
+      <div style="position:relative;width:100%;height:100%;background:#007FFF;overflow:hidden">
+        <!-- Red diagonal stripe with yellow border -->
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg, transparent 38%, #FFCD00 38%, #FFCD00 43%, #CE1126 43%, #CE1126 57%, #FFCD00 57%, #FFCD00 62%, transparent 62%)"></div>
+        <!-- Yellow star top-left -->
+        <div style="position:absolute;top:8%;left:6%;font-size:24px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))">⭐</div>
+      </div>
+    </div>
+    <div class="fifa-name">DR CONGO</div>
+  </div>
+
+  <!-- VS badge center -->
+  <div id="fifaVS" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(3);opacity:0;font-family:'Bebas Neue',sans-serif;font-size:52px;color:#FCD116;letter-spacing:4px;text-shadow:0 0 30px rgba(252,209,22,.9),0 3px 12px rgba(0,0,0,.9);animation:fifaVS .6s cubic-bezier(.2,.8,.3,1.2) 1.1s forwards">VS</div>
+
+  <!-- Match info bottom -->
+  <div id="fifaInfo" style="position:absolute;bottom:10%;left:50%;transform:translateX(-50%);text-align:center;opacity:0;animation:fifaInfo .7s ease-out 1.8s forwards;white-space:nowrap">
+    <div style="font-family:'Bebas Neue';font-size:22px;color:rgba(255,255,255,.6);letter-spacing:4px;margin-bottom:6px">JORNADA 2 · GRUPO H · MUNDIAL 2026</div>
+    <div id="fifaMatchTime" style="font-family:'DM Sans';font-size:14px;color:rgba(255,255,255,.45);letter-spacing:2px"></div>
+    <div style="margin-top:14px;font-family:'DM Sans';font-size:12px;color:rgba(255,255,255,.25)">Toca para cerrar</div>
+  </div>
+</div>
 
 <!-- SUBMIT MODAL -->
 <div class="modal-overlay hidden" id="submitModal">
@@ -6318,6 +6413,8 @@ function startCountdown(){
   if(countdownInterval) clearInterval(countdownInterval);
   updateCountdown();
   countdownInterval = setInterval(updateCountdown, 1000);
+  // Check FIFA splash once per session (delayed so Firebase data loads first)
+  setTimeout(checkFifaSplashTrigger, 3000);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -6930,6 +7027,118 @@ function showSubmitStamp(){
 function closeStampModal(){
   const m=document.getElementById('stampModal');
   if(m) m.style.display='none';
+}
+
+// ── FIFA MATCH INTRO: Colombia vs DR Congo ─────────────────
+function spawnFifaParticles(){
+  const c = document.getElementById('fifaParticles');
+  if(!c) return;
+  const colors = ['#FCD116','#CE1126','#003893','#007FFF','#fff','#FFCD00'];
+  for(let i=0;i<60;i++){
+    const p = document.createElement('div');
+    const size = 6 + Math.random()*10;
+    const left = Math.random()*100;
+    const delay = Math.random()*3;
+    const dur = 3 + Math.random()*4;
+    const color = colors[Math.floor(Math.random()*colors.length)];
+    p.style.cssText = `position:absolute;bottom:-20px;left:${left}%;width:${size}px;height:${size}px;background:${color};border-radius:${Math.random()>.5?'50%':'3px'};opacity:0;animation:fifaParticle ${dur}s ease-out ${delay}s infinite`;
+    c.appendChild(p);
+  }
+}
+function playColoSong(){
+  try{
+    var ctx = new (window.AudioContext||window.webkitAudioContext)();
+    var t0 = ctx.currentTime + 0.2;
+    // "Si Si Colombia" melody (G-G-A-B-A-G pattern in E major)
+    var notes = [
+      // "Si-si-Co-lom-bi-a" (x2)
+      {f:392,s:0.00,d:.22},{f:392,s:.26,d:.22},{f:440,s:.52,d:.22},{f:494,s:.78,d:.30},{f:440,s:1.12,d:.22},{f:392,s:1.38,d:.45},
+      {f:392,s:2.00,d:.22},{f:392,s:2.26,d:.22},{f:440,s:2.52,d:.22},{f:494,s:2.78,d:.30},{f:440,s:3.12,d:.22},{f:392,s:3.38,d:.55},
+      // "Va-mos va-mos"
+      {f:294,s:4.10,d:.22},{f:330,s:4.36,d:.22},{f:370,s:4.62,d:.22},{f:294,s:4.88,d:.22},
+      {f:330,s:5.14,d:.22},{f:370,s:5.40,d:.22},{f:392,s:5.66,d:.22},{f:330,s:5.92,d:.22},
+      // "Da-le da-le da-le Co-lom-bia!"
+      {f:392,s:6.40,d:.18},{f:392,s:6.60,d:.18},{f:392,s:6.80,d:.18},
+      {f:440,s:7.10,d:.22},{f:494,s:7.38,d:.22},{f:523,s:7.66,d:.22},
+      {f:587,s:8.00,d:.60}
+    ];
+    // Melody (triangle wave)
+    notes.forEach(function(n){
+      var osc=ctx.createOscillator(), g=ctx.createGain();
+      osc.type='triangle'; osc.frequency.value=n.f;
+      g.gain.setValueAtTime(0,t0+n.s);
+      g.gain.linearRampToValueAtTime(.32,t0+n.s+.03);
+      g.gain.setValueAtTime(.28,t0+n.s+n.d-.04);
+      g.gain.linearRampToValueAtTime(0,t0+n.s+n.d);
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(t0+n.s); osc.stop(t0+n.s+n.d+.01);
+    });
+    // Harmony (sine, one octave up, quieter)
+    notes.slice(0,12).forEach(function(n){
+      var osc=ctx.createOscillator(), g=ctx.createGain();
+      osc.type='sine'; osc.frequency.value=n.f*2;
+      g.gain.setValueAtTime(0,t0+n.s);
+      g.gain.linearRampToValueAtTime(.10,t0+n.s+.04);
+      g.gain.linearRampToValueAtTime(0,t0+n.s+n.d);
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(t0+n.s); osc.stop(t0+n.s+n.d+.01);
+    });
+    // Bass drum on beats
+    [0,.52,1.04,1.56,2.0,2.52,3.04,3.56,4.1,4.62,5.14,5.66,6.4,6.8,7.1,7.66,8.0].forEach(function(bt){
+      var osc=ctx.createOscillator(), g=ctx.createGain();
+      osc.frequency.setValueAtTime(100,t0+bt);
+      osc.frequency.exponentialRampToValueAtTime(30,t0+bt+.25);
+      g.gain.setValueAtTime(.5,t0+bt);
+      g.gain.exponentialRampToValueAtTime(.001,t0+bt+.28);
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(t0+bt); osc.stop(t0+bt+.30);
+    });
+    setTimeout(function(){ try{ctx.close();}catch(e){} }, 11000);
+  } catch(e){}
+}
+function showFifaSplash(){
+  var sesKey='colo_splash_2_24';
+  if(sessionStorage.getItem(sesKey)) return;
+  sessionStorage.setItem(sesKey,'1');
+  var modal = document.getElementById('fifaSplash');
+  if(!modal) return;
+  // Set match time
+  var timeEl = document.getElementById('fifaMatchTime');
+  if(timeEl){
+    var es = currentLang==='es';
+    timeEl.textContent = es ? '23 JUN · 10:00 PM (UTC-6)' : 'JUN 23 · 10:00 PM (UTC-6)';
+  }
+  modal.style.display='block';
+  spawnFifaParticles();
+  playColoSong();
+  // Auto close after 10s
+  setTimeout(closeFifaSplash, 10000);
+}
+function closeFifaSplash(){
+  var m = document.getElementById('fifaSplash');
+  if(!m||m.style.display==='none') return;
+  m.style.transition='opacity .7s';
+  m.style.opacity='0';
+  setTimeout(function(){ m.style.display='none'; m.style.opacity='1'; m.style.transition=''; }, 700);
+}
+// Trigger FIFA splash when Colombia vs Congo is next within 4h
+function checkFifaSplashTrigger(){
+  var MATCH_ID='2_24';
+  if(sessionStorage.getItem('colo_splash_'+MATCH_ID)) return;
+  var coloMatch=null;
+  for(var r=1;r<=7;r++){
+    var rm=MATCHES[r]||[];
+    for(var i=0;i<rm.length;i++){
+      if(rm[i].id===MATCH_ID){coloMatch=rm[i];break;}
+    }
+    if(coloMatch) break;
+  }
+  if(!coloMatch) return;
+  var kickoff=parseMatchDate(coloMatch);
+  if(!kickoff) return;
+  var msLeft=kickoff-new Date();
+  // Show when 4h or less away and not yet started
+  if(msLeft>0 && msLeft<=4*60*60*1000) showFifaSplash();
 }
 function playStampSound(){
   try{
