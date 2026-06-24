@@ -1767,6 +1767,20 @@ nav button:hover,nav button.active{
 @keyframes refCard{from{opacity:0;transform:scale(.7) rotate(-8deg)}to{opacity:1;transform:scale(1) rotate(0)}}
 @keyframes stampIn{0%{opacity:0;transform:rotate(-22deg) scale(2.8)}55%{opacity:1;transform:rotate(2.5deg) scale(0.93)}75%{transform:rotate(-1.5deg) scale(1.03)}100%{opacity:1;transform:rotate(-3deg) scale(1)}}
 
+/* ── FIFA WINNER INTRO ────────────────────────────────── */
+@keyframes fwBgIn{from{opacity:0}to{opacity:1}}
+@keyframes fwSpotlight{0%,100%{opacity:.18}50%{opacity:.32}}
+@keyframes fwRoundLbl{from{opacity:0;letter-spacing:16px}to{opacity:1;letter-spacing:6px}}
+@keyframes fwTrophy{0%{opacity:0;transform:translateY(-120px) scale(.4)}60%{transform:translateY(8px) scale(1.12)}80%{transform:translateY(-4px) scale(.97)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes fwTrophyGlow{0%,100%{filter:drop-shadow(0 0 18px rgba(212,175,55,.7))}50%{filter:drop-shadow(0 0 40px rgba(212,175,55,1))}}
+@keyframes fwLabel{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fwName{0%{opacity:0;transform:scale(2.4) translateY(20px)}60%{transform:scale(.93) translateY(-3px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes fwPts{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fwAvatar{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+@keyframes fwParticle{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(-130vh) rotate(720deg)}}
+@keyframes fwNameGlow{0%,100%{text-shadow:0 0 20px rgba(212,175,55,.6),0 4px 20px rgba(0,0,0,.9)}50%{text-shadow:0 0 50px rgba(212,175,55,1),0 0 80px rgba(255,220,100,.5)}}
+@keyframes fwPulseRing{0%{transform:scale(.8);opacity:.8}100%{transform:scale(2.2);opacity:0}}
+
 /* ── FIFA MATCH INTRO ───────────────────────────────────── */
 @keyframes fifaFlagLeft{
   0%  {transform:scale(.08) translate(0,120px);opacity:0}
@@ -5170,6 +5184,8 @@ function announceRoundWinner(){
       announcedAt: Date.now()
     }).then(function(){
       showToast('¡Ganador anunciado! 🎉', 'success');
+      // Admin sees the FIFA intro immediately (force, bypass localStorage)
+      _showFifaWinnerIntro(best, round);
     }).catch(function(){
       showToast('Error guardando en Firebase', 'error');
     });
@@ -6552,60 +6568,135 @@ function launchConfetti(){
 }
 
 // ══════════════════════════════════════════════════════════════
-//  FEATURE: WINNER CELEBRATION MODAL
+//  FEATURE: FIFA WINNER CELEBRATION INTRO
 // ══════════════════════════════════════════════════════════════
 function showWinnerCelebration(winner, round){
-  // Show only once per user per round
   const seenKey = 'wc2026_winner_seen2_' + currentUser + '_R' + round;
   if(localStorage.getItem(seenKey)) return;
   localStorage.setItem(seenKey, '1');
+  _showFifaWinnerIntro(winner, round);
+}
 
-  const isCurrentUser = winner.key === currentUser;
+function _showFifaWinnerIntro(winner, round){
+  if(document.getElementById('fifaWinnerSplash')) return;
+  const es = currentLang === 'es';
   const ptsDisp = Number.isInteger(winner.pts) ? winner.pts : winner.pts.toFixed(1);
-  const avatarSvg = renderAvatarSVG(winner.avatar || {skin:0,hair:0,hairColor:0,beard:0,jersey:'neutro'}, 72);
+  const avatarSvg = renderAvatarSVG(winner.avatar || {skin:0,hair:0,hairColor:0,beard:0,jersey:'neutro'}, 80);
+  const isMe = winner.key === currentUser;
 
-  const heading = currentLang==='es'
-    ? `CAMPEÓN JORNADA ${round}`
-    : `ROUND ${round} CHAMPION`;
+  const splash = document.createElement('div');
+  splash.id = 'fifaWinnerSplash';
+  splash.style.cssText = 'position:fixed;inset:0;z-index:10001;background:radial-gradient(ellipse at 50% 30%,#1a2a0a 0%,#0a120a 40%,#000 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;animation:fwBgIn .5s ease forwards';
 
-  const msg = isCurrentUser
-    ? (currentLang==='es'
-        ? '🎉 ¡Eres el campeón de esta jornada! ¡Excelentes predicciones!'
-        : '🎉 You are this round\'s champion! Amazing predictions!')
-    : (currentLang==='es'
-        ? `¡El mejor de esta jornada fue <strong>${escapeHtml(winner.name)}</strong>!`
-        : `The best this round was <strong>${escapeHtml(winner.name)}</strong>!`);
+  // Spotlight rays
+  const spotlight = document.createElement('div');
+  spotlight.style.cssText = 'position:absolute;inset:0;background:radial-gradient(ellipse at 50% -10%,rgba(255,220,80,.22) 0%,transparent 65%);animation:fwSpotlight 3s ease-in-out 1s infinite;pointer-events:none';
+  splash.appendChild(spotlight);
 
-  const closeLabel = currentLang==='es' ? '¡Genial! 🎊' : 'Awesome! 🎊';
+  // Particles container
+  const particles = document.createElement('div');
+  particles.id = 'fwParticles';
+  particles.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:hidden';
+  splash.appendChild(particles);
 
-  const overlay = document.createElement('div');
-  overlay.id = 'winnerOverlay';
-  overlay.innerHTML = `
-    <div id="winnerCard">
-      <span class="winner-trophy">🏆</span>
-      <div class="winner-round-label">${currentLang==='es'?'JORNADA':'ROUND'} ${round}</div>
-      <div class="winner-heading">${heading}</div>
-      <div class="winner-avatar-wrap">${avatarSvg}</div>
-      <div class="winner-name">${escapeHtml(winner.name)}</div>
-      <div class="winner-pts">${ptsDisp} ${currentLang==='es'?'puntos':'points'}</div>
-      <div class="winner-msg">${msg}</div>
-      <button class="winner-close-btn" onclick="closeWinnerModal()">${closeLabel}</button>
-    </div>
-  `;
+  // Content
+  splash.innerHTML += `
+    <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:0;text-align:center;padding:0 20px;width:100%">
+      <!-- Round label -->
+      <div style="font-family:'Bebas Neue';font-size:13px;letter-spacing:6px;color:rgba(212,175,55,.6);margin-bottom:10px;opacity:0;animation:fwRoundLbl .8s ease .4s forwards">
+        ⚽ MUNDIAL 2026 · ${es?'JORNADA':'ROUND'} ${round} ⚽
+      </div>
+      <!-- Trophy -->
+      <div style="font-size:72px;line-height:1;margin-bottom:6px;opacity:0;animation:fwTrophy .7s cubic-bezier(.2,.8,.3,1.2) .9s forwards,fwTrophyGlow 2s ease-in-out 1.8s infinite">🏆</div>
+      <!-- Champion label -->
+      <div style="font-family:'Bebas Neue';font-size:15px;letter-spacing:5px;color:rgba(212,175,55,.75);margin-bottom:14px;opacity:0;animation:fwLabel .5s ease 1.5s forwards">
+        ${es?'EL CAMPEÓN ES':'THE CHAMPION IS'}
+      </div>
+      <!-- Avatar ring -->
+      <div style="position:relative;width:90px;height:90px;margin-bottom:14px;opacity:0;animation:fwAvatar .5s cubic-bezier(.2,.8,.3,1.3) 1.7s forwards">
+        <div style="position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(212,175,55,.5);animation:fwPulseRing 1.5s ease-out 2.2s infinite"></div>
+        <div style="position:absolute;inset:-3px;border-radius:50%;border:2px solid rgba(212,175,55,.8)"></div>
+        <div style="width:90px;height:90px;border-radius:50%;overflow:hidden;border:2px solid #D4AF37">${avatarSvg}</div>
+      </div>
+      <!-- Winner name -->
+      <div style="font-family:'Bebas Neue';font-size:clamp(32px,8vw,52px);color:#fff;letter-spacing:3px;line-height:1.1;margin-bottom:8px;opacity:0;animation:fwName .6s cubic-bezier(.2,.8,.3,1.1) 1.9s forwards,fwNameGlow 2s ease-in-out 2.6s infinite">
+        ${escapeHtml(winner.name.toUpperCase())}
+      </div>
+      <!-- Points -->
+      <div style="font-family:'Bebas Neue';font-size:22px;color:#D4AF37;letter-spacing:4px;margin-bottom:20px;opacity:0;animation:fwPts .5s ease 2.4s forwards">
+        ${ptsDisp} ${es?'PUNTOS':'POINTS'}
+      </div>
+      ${isMe ? `<div style="font-family:'DM Sans';font-size:14px;color:rgba(255,255,255,.7);margin-bottom:20px;opacity:0;animation:fwPts .5s ease 2.7s forwards">🎉 ${es?'¡Eres tú!':'That\'s you!'}</div>` : ''}
+      <!-- Close -->
+      <button onclick="closeWinnerModal()" style="opacity:0;animation:fwPts .4s ease 3s forwards;font-family:'DM Sans';font-size:13px;font-weight:700;padding:10px 32px;border-radius:30px;background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;color:#000;cursor:pointer;letter-spacing:1px">
+        ${es?'¡INCREÍBLE! 🎊':'AWESOME! 🎊'}
+      </button>
+    </div>`;
 
-  overlay.addEventListener('click', function(e){
-    if(e.target === overlay) closeWinnerModal();
-  });
+  splash.querySelector('#fwParticles') || splash.appendChild(particles);
+  splash.addEventListener('click', function(e){ if(e.target===splash) closeWinnerModal(); });
+  document.body.appendChild(splash);
 
-  document.body.appendChild(overlay);
-  launchConfetti();
+  setTimeout(_spawnFifaWinnerParticles, 1900);
+  setTimeout(_playWinnerFanfare, 900);
+  setTimeout(closeWinnerModal, 12000);
+}
+
+function _spawnFifaWinnerParticles(){
+  const cont = document.getElementById('fwParticles');
+  if(!cont) return;
+  const colors = ['#D4AF37','#FFD700','#FFF','#2ECC71','#3498DB','#E74C3C','#F39C12'];
+  for(let i=0;i<80;i++){
+    const p = document.createElement('div');
+    const c = colors[Math.floor(Math.random()*colors.length)];
+    const size = 4 + Math.random()*7;
+    const left = Math.random()*100;
+    const delay = Math.random()*2;
+    const dur = 3 + Math.random()*3;
+    p.style.cssText = `position:absolute;bottom:-10px;left:${left}%;width:${size}px;height:${size*1.6}px;background:${c};border-radius:${Math.random()>0.5?'50%':'2px'};opacity:0;animation:fwParticle ${dur}s ease-out ${delay}s forwards`;
+    cont.appendChild(p);
+  }
+}
+
+function _playWinnerFanfare(){
+  try{
+    var ctx = new (window.AudioContext||window.webkitAudioContext)();
+    var master = ctx.createGain(); master.gain.value = 0.35; master.connect(ctx.destination);
+    // Triumphant chord fanfare: C-E-G-C ascent then held chord
+    var fanfare = [
+      {f:523,s:0,d:.18},{f:659,s:.2,d:.18},{f:784,s:.4,d:.18},{f:1047,s:.6,d:.5},
+      {f:523,s:.65,d:.5},{f:659,s:.65,d:.5},{f:784,s:.65,d:.5},
+      {f:1047,s:1.2,d:.8},{f:784,s:1.2,d:.8},{f:659,s:1.2,d:.8},{f:523,s:1.2,d:.8}
+    ];
+    fanfare.forEach(function(n){
+      var o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='triangle'; o.frequency.value=n.f;
+      g.gain.setValueAtTime(0,ctx.currentTime+n.s);
+      g.gain.linearRampToValueAtTime(.5,ctx.currentTime+n.s+.03);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+n.s+n.d);
+      o.connect(g); g.connect(master);
+      o.start(ctx.currentTime+n.s); o.stop(ctx.currentTime+n.s+n.d+.05);
+    });
+    // Bass drum hits
+    [0,.6,1.2].forEach(function(t){
+      var b=ctx.createOscillator(), bg=ctx.createGain();
+      b.type='sine'; b.frequency.setValueAtTime(120,ctx.currentTime+t);
+      b.frequency.exponentialRampToValueAtTime(40,ctx.currentTime+t+.12);
+      bg.gain.setValueAtTime(.8,ctx.currentTime+t);
+      bg.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+t+.15);
+      b.connect(bg); bg.connect(master);
+      b.start(ctx.currentTime+t); b.stop(ctx.currentTime+t+.2);
+    });
+    setTimeout(function(){ try{ctx.close();}catch(e){} }, 4000);
+  }catch(e){}
 }
 
 function closeWinnerModal(){
-  const overlay = document.getElementById('winnerOverlay');
-  if(!overlay) return;
-  overlay.style.animation = 'overlayFadeOut .3s ease forwards';
-  setTimeout(() => overlay.remove(), 300);
+  const s = document.getElementById('fifaWinnerSplash') || document.getElementById('winnerOverlay');
+  if(!s) return;
+  s.style.transition='opacity .5s';
+  s.style.opacity='0';
+  setTimeout(()=>s.remove(), 500);
 }
 
 // ══════════════════════════════════════════════════════════════
