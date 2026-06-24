@@ -1236,6 +1236,60 @@ nav button:hover,nav button.active{
           <span class="av-label" data-en="💍 Earrings" data-es="💍 Aretes">💍 Earrings</span>
           <div class="av-row" id="earringsPicker"></div>
         </div>
+        <div class="av-section">
+          <span class="av-label" data-en="🌍 Your country" data-es="🌍 Tu país">🌍 Tu país</span>
+          <select id="countryPicker" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.07);border:1.5px solid var(--gray);border-radius:8px;color:var(--text);font-size:14px;font-family:'DM Sans';cursor:pointer">
+            <option value="">— Selecciona tu país —</option>
+            <option value="ar">🇦🇷 Argentina</option>
+            <option value="dz">🇩🇿 Argelia</option>
+            <option value="sa">🇸🇦 Arabia Saudí</option>
+            <option value="au">🇦🇺 Australia</option>
+            <option value="at">🇦🇹 Austria</option>
+            <option value="be">🇧🇪 Bélgica</option>
+            <option value="ba">🇧🇦 Bosnia Herzegovina</option>
+            <option value="br">🇧🇷 Brasil</option>
+            <option value="cv">🇨🇻 Cabo Verde</option>
+            <option value="ca">🇨🇦 Canadá</option>
+            <option value="co">🇨🇴 Colombia</option>
+            <option value="cd">🇨🇩 Congo</option>
+            <option value="kr">🇰🇷 Corea del Sur</option>
+            <option value="ci">🇨🇮 Costa de Marfil</option>
+            <option value="hr">🇭🇷 Croacia</option>
+            <option value="cw">🇨🇼 Curaçao</option>
+            <option value="ec">🇪🇨 Ecuador</option>
+            <option value="eg">🇪🇬 Egipto</option>
+            <option value="gb-sct">🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escocia</option>
+            <option value="es">🇪🇸 España</option>
+            <option value="us">🇺🇸 Estados Unidos</option>
+            <option value="fr">🇫🇷 Francia</option>
+            <option value="de">🇩🇪 Alemania</option>
+            <option value="gh">🇬🇭 Ghana</option>
+            <option value="ht">🇭🇹 Haití</option>
+            <option value="gb-eng">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra</option>
+            <option value="ir">🇮🇷 Irán</option>
+            <option value="iq">🇮🇶 Iraq</option>
+            <option value="jp">🇯🇵 Japón</option>
+            <option value="jo">🇯🇴 Jordania</option>
+            <option value="ma">🇲🇦 Marruecos</option>
+            <option value="mx">🇲🇽 México</option>
+            <option value="no">🇳🇴 Noruega</option>
+            <option value="nz">🇳🇿 Nueva Zelanda</option>
+            <option value="nl">🇳🇱 Países Bajos</option>
+            <option value="pa">🇵🇦 Panamá</option>
+            <option value="py">🇵🇾 Paraguay</option>
+            <option value="pt">🇵🇹 Portugal</option>
+            <option value="qa">🇶🇦 Qatar</option>
+            <option value="cz">🇨🇿 República Checa</option>
+            <option value="sn">🇸🇳 Senegal</option>
+            <option value="za">🇿🇦 Sudáfrica</option>
+            <option value="se">🇸🇪 Suecia</option>
+            <option value="ch">🇨🇭 Suiza</option>
+            <option value="tn">🇹🇳 Túnez</option>
+            <option value="tr">🇹🇷 Turquía</option>
+            <option value="uy">🇺🇾 Uruguay</option>
+            <option value="uz">🇺🇿 Uzbekistán</option>
+          </select>
+        </div>
         <button class="btn-gold" onclick="saveAvatar()" style="width:100%;margin-top:14px" data-en="✅ Done!" data-es="✅ ¡Listo!">✅ Done!</button>
       </div>
     </div>
@@ -3463,8 +3517,11 @@ function showAvatarStep(){
 
 function saveAvatar(){
   localStorage.setItem('wc2026_avatar_'+currentUser, JSON.stringify(avatarConfig));
+  const countryCode = (document.getElementById('countryPicker')||{}).value || '';
+  if(countryCode) localStorage.setItem('wc2026_country_'+currentUser, countryCode);
   if(db){
     db.ref('players/'+playerKey()+'/avatar').set(avatarConfig).catch(()=>{});
+    if(countryCode) db.ref('players/'+playerKey()+'/country').set(countryCode).catch(()=>{});
   }
   hideRegister();
   renderMatches();
@@ -6288,6 +6345,21 @@ function getNextUpcomingMatch(){
 }
 
 const MATCH_DURATION_MS = 110 * 60 * 1000; // ~90 min + stoppage estimate
+
+// Map Spanish team name → ISO 3166-1 alpha-2 code for flagcdn.com
+const TEAM_FLAG_CODES = {
+  'Argentina':'ar','Argelia':'dz','Arabia Saudí':'sa','Australia':'au','Austria':'at',
+  'Bélgica':'be','Bosnia Herzegovina':'ba','Brasil':'br','Cabo Verde':'cv','Canadá':'ca',
+  'Colombia':'co','Congo':'cd','Corea del Sur':'kr','Costa de Marfil':'ci','Croacia':'hr',
+  'Curaçao':'cw','Ecuador':'ec','Egipto':'eg','Escocia':'gb-sct','España':'es',
+  'Estados Unidos':'us','Francia':'fr','Alemania':'de','Ghana':'gh','Haití':'ht',
+  'Inglaterra':'gb-eng','Irán':'ir','Iraq':'iq','Japón':'jp','Jordania':'jo',
+  'Marruecos':'ma','México':'mx','Noruega':'no','Nueva Zelanda':'nz','Países Bajos':'nl',
+  'Panamá':'pa','Paraguay':'py','Portugal':'pt','Qatar':'qa','República Checa':'cz',
+  'Senegal':'sn','Sudáfrica':'za','Suecia':'se','Suiza':'ch','Túnez':'tn',
+  'Turquía':'tr','Uruguay':'uy','Uzbekistán':'uz'
+};
+function teamFlagUrl(code){ return 'https://flagcdn.com/'+code+'.svg'; }
 
 function updateCountdown(){
   const banner = document.getElementById('countdownBanner');
