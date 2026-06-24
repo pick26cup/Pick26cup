@@ -5751,7 +5751,7 @@ function renderPickDist(round){
       + '<span style="font-size:11px;color:#555">'+m.date+' '+m.time+'</span>';
     if(resStr){
       html += '<span style="font-size:11px;font-weight:700;color:#2ECC71;background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.25);padding:2px 8px;border-radius:6px">✅ '+escapeHtml(resStr)+'</span>';
-      if(pctCorrect !== null) html += '<span style="font-size:11px;color:var(--text2)">'+correctCount+'/'+submittedCount+' acertaron <b style="color:'+(pctCorrect>=40?'#2ECC71':pctCorrect>=20?'#D4AF37':'#E74C3C')">'+'('+pctCorrect+'%)</b></span>';
+      if(pctCorrect !== null) html += '<span style="font-size:11px;color:var(--text2)">'+correctCount+'/'+submittedCount+' acertaron <b style="color:'+(pctCorrect>=40?'#2ECC71':pctCorrect>=20?'#D4AF37':'#E74C3C')+'">'+'('+pctCorrect+'%)</b></span>';
     } else {
       html += '<span style="font-size:11px;color:#555">⏳ Sin resultado</span>';
     }
