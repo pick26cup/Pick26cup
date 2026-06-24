@@ -321,6 +321,15 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
 }
 .admin-sub-tab.active{background:rgba(212,175,55,.28);border-color:var(--gold);color:var(--gold)}
 
+/* ── PICK DISTRIBUTION MODAL ─────────────────────────── */
+#pickDistModal .modal{max-width:560px;max-height:88vh;display:flex;flex-direction:column;padding:0;overflow:hidden}
+#pickDistModal .pdist-header{padding:18px 20px 0;flex-shrink:0}
+#pickDistModal .pdist-tabs{display:flex;gap:6px;padding:12px 20px;overflow-x:auto;flex-shrink:0;border-bottom:1px solid rgba(212,175,55,.12)}
+#pickDistModal .pdist-tab{background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.2);color:var(--text2);font-family:'DM Sans';font-size:12px;font-weight:700;padding:5px 13px;border-radius:20px;cursor:pointer;transition:.2s;white-space:nowrap;flex-shrink:0}
+#pickDistModal .pdist-tab.active{background:rgba(212,175,55,.25);border-color:var(--gold);color:var(--gold)}
+#pickDistModal .pdist-body{padding:16px 20px;overflow-y:auto;flex:1}
+#pickDistModal .pdist-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;line-height:1;padding:0}
+
 /* ── ADMIN PANEL ─────────────────────────────────────── */
 .admin-grid{display:grid;grid-template-columns:1fr;gap:20px}
 @media(min-width:768px){.admin-grid{grid-template-columns:1fr 1fr}}
@@ -1493,6 +1502,11 @@ nav button:hover,nav button.active{
               <span class="amb-label">Pick Tardío</span>
               <span class="amb-sub">Excepción con penalización</span>
             </button>
+            <button class="admin-menu-btn" onclick="openPickDistModal()" style="grid-column:1/-1">
+              <span class="amb-icon">📊</span>
+              <span class="amb-label">Distribución de Picks</span>
+              <span class="amb-sub">¿Quién eligió qué marcador?</span>
+            </button>
           </div>
         </div>
 
@@ -1888,6 +1902,28 @@ nav button:hover,nav button.active{
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeSubmitModal()" data-en="Cancel" data-es="Cancelar">Cancel</button>
       <button class="btn-confirm" onclick="doSubmitPicks()"><span data-en="CONFIRM & SUBMIT" data-es="CONFIRMAR Y ENVIAR">CONFIRM & SUBMIT</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- PICK DISTRIBUTION MODAL -->
+<div class="modal-overlay hidden" id="pickDistModal" onclick="if(event.target===this)closePickDistModal()">
+  <div class="modal" style="position:relative">
+    <button class="pdist-close" onclick="closePickDistModal()">✕</button>
+    <div class="pdist-header">
+      <h3 style="margin:0;font-size:16px">📊 Distribución de Picks</h3>
+    </div>
+    <div class="pdist-tabs" id="pickDistTabs">
+      <button class="pdist-tab active" data-round="1" onclick="renderPickDist(1)">J1</button>
+      <button class="pdist-tab" data-round="2" onclick="renderPickDist(2)">J2</button>
+      <button class="pdist-tab" data-round="3" onclick="renderPickDist(3)">J3</button>
+      <button class="pdist-tab" data-round="4" onclick="renderPickDist(4)">J4</button>
+      <button class="pdist-tab" data-round="5" onclick="renderPickDist(5)">J5</button>
+      <button class="pdist-tab" data-round="6" onclick="renderPickDist(6)">J6</button>
+      <button class="pdist-tab" data-round="7" onclick="renderPickDist(7)">J7</button>
+    </div>
+    <div class="pdist-body" id="pickDistBody">
+      <p style="color:var(--text2);text-align:center;padding:20px">Cargando...</p>
     </div>
   </div>
 </div>
@@ -5610,6 +5646,174 @@ function openAdminPlayerList(){
 function closeAdminPlayerList(){
   document.getElementById('adminPlayerListModal').classList.remove('open');
 }
+
+// ── PICK DISTRIBUTION ─────────────────────────────────
+let _pickDistRound = 1;
+let _pickDistData = null;
+
+function openPickDistModal(){
+  if(!adminLoggedIn) return;
+  if(!db){ showToast('Sin conexión Firebase','error'); return; }
+  document.getElementById('pickDistModal').classList.remove('hidden');
+  document.getElementById('pickDistBody').innerHTML = '<p style="color:var(--text2);text-align:center;padding:30px">Cargando...</p>';
+  Promise.all([
+    db.ref('picks').once('value'),
+    db.ref('results').once('value'),
+    db.ref('players').once('value')
+  ]).then(function([picksSnap, resultsSnap, playersSnap]){
+    _pickDistData = {
+      picks: picksSnap.val() || {},
+      results: resultsSnap.val() || {},
+      players: playersSnap.val() || {}
+    };
+    renderPickDist(_pickDistRound);
+  }).catch(function(e){
+    document.getElementById('pickDistBody').innerHTML = '<p style="color:var(--red);text-align:center;padding:20px">Error: '+escapeHtml(e.message)+'</p>';
+  });
+}
+
+function closePickDistModal(){
+  document.getElementById('pickDistModal').classList.add('hidden');
+}
+
+function renderPickDist(round){
+  _pickDistRound = round;
+  document.querySelectorAll('.pdist-tab').forEach(function(btn){
+    btn.classList.toggle('active', parseInt(btn.dataset.round) === round);
+  });
+  if(!_pickDistData) return;
+
+  const { picks, results, players } = _pickDistData;
+  const matches = MATCHES[round] || [];
+  const body = document.getElementById('pickDistBody');
+  const allKeys = Object.keys(picks);
+
+  // How many players submitted this round
+  const submitted = allKeys.filter(function(k){ return picks[k] && picks[k].submittedRounds && picks[k].submittedRounds[round]; });
+  const submittedCount = submitted.length;
+
+  // Overall accuracy (exact score only)
+  let totalCorrect = 0, totalPossible = 0;
+  matches.forEach(function(m){
+    const res = results[m.id];
+    if(!res) return;
+    submitted.forEach(function(k){
+      totalPossible++;
+      const p = ((picks[k].picks)||{})[m.id];
+      if(p && p.scoreH === res.home && p.scoreA === res.away) totalCorrect++;
+    });
+  });
+  const accPct = totalPossible > 0 ? Math.round(totalCorrect/totalPossible*100) : null;
+
+  let html = '<div style="background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.18);border-radius:10px;padding:11px 14px;margin-bottom:14px;display:flex;gap:14px;flex-wrap:wrap">'
+    + '<span style="font-size:12px;color:var(--text2)">👥 <b style="color:var(--text)">'+submittedCount+'</b> jugadores enviaron J'+round+'</span>'
+    + '<span style="font-size:12px;color:var(--text2)">⚽ <b style="color:var(--text)">'+matches.length+'</b> partidos</span>'
+    + (accPct !== null ? '<span style="font-size:12px;color:var(--text2)">🎯 Exacto: <b style="color:'+(accPct>=40?'#2ECC71':accPct>=20?'#D4AF37':'#E74C3C')+'">'+accPct+'%</b></span>' : '')
+    + '</div>';
+
+  matches.forEach(function(m){
+    const res = results[m.id];
+    const resStr = res ? res.home+'-'+res.away : null;
+
+    // Build pick groups
+    const dist = {};
+    const noPick = [];
+
+    allKeys.forEach(function(k){
+      const pd = picks[k] || {};
+      const pName = pd.name || (players[k] && players[k].name) || k;
+      const didSubmit = !!(pd.submittedRounds && pd.submittedRounds[round]);
+      if(!didSubmit){ noPick.push({name:pName, submitted:false}); return; }
+      const pick = (pd.picks||{})[m.id];
+      if(!pick || (pick.scoreH===undefined && pick.scoreA===undefined)){
+        noPick.push({name:pName, submitted:true});
+        return;
+      }
+      const sh = pick.scoreH !== undefined ? pick.scoreH : '?';
+      const sa = pick.scoreA !== undefined ? pick.scoreA : '?';
+      const scoreKey = sh+'-'+sa;
+      if(!dist[scoreKey]) dist[scoreKey] = [];
+      dist[scoreKey].push(pName);
+    });
+
+    const sorted = Object.entries(dist).sort(function(a,b){ return b[1].length - a[1].length; });
+    const maxCount = sorted.length > 0 ? sorted[0][1].length : 1;
+    const totalVoted = sorted.reduce(function(s,e){ return s+e[1].length; },0);
+    const correctCount = resStr && dist[resStr] ? dist[resStr].length : 0;
+    const pctCorrect = submittedCount > 0 && resStr ? Math.round(correctCount/submittedCount*100) : null;
+
+    html += '<div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;margin-bottom:14px">';
+
+    // Match header
+    html += '<div style="margin-bottom:10px">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">'+escapeHtml(m.home)+' <span style="color:var(--text2);font-weight:400">vs</span> '+escapeHtml(m.away)+'</div>'
+      + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+      + '<span style="font-size:11px;color:#555">'+m.date+' '+m.time+'</span>';
+    if(resStr){
+      html += '<span style="font-size:11px;font-weight:700;color:#2ECC71;background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.25);padding:2px 8px;border-radius:6px">✅ '+escapeHtml(resStr)+'</span>';
+      if(pctCorrect !== null) html += '<span style="font-size:11px;color:var(--text2)">'+correctCount+'/'+submittedCount+' acertaron <b style="color:'+(pctCorrect>=40?'#2ECC71':pctCorrect>=20?'#D4AF37':'#E74C3C')">'+'('+pctCorrect+'%)</b></span>';
+    } else {
+      html += '<span style="font-size:11px;color:#555">⏳ Sin resultado</span>';
+    }
+    html += '</div></div>';
+
+    // Pick rows
+    if(sorted.length === 0){
+      html += '<p style="font-size:12px;color:#555;font-style:italic;margin:0">Nadie eligió marcador para este partido.</p>';
+    } else {
+      sorted.forEach(function(entry){
+        const score = entry[0], names = entry[1];
+        const isWin = resStr && score === resStr;
+        const barW = Math.round(names.length/maxCount*100);
+        const pct = submittedCount > 0 ? Math.round(names.length/submittedCount*100) : 0;
+        html += '<div style="margin-bottom:8px;padding:8px 10px;border-radius:8px;'
+          +'background:'+(isWin?'rgba(46,204,113,.07)':'rgba(255,255,255,.03)')+';'
+          +'border:1px solid '+(isWin?'rgba(46,204,113,.22)':'rgba(255,255,255,.05)')+'\">'
+          +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">'
+          +'<span style="font-family:\'Bebas Neue\';font-size:18px;letter-spacing:1px;color:'+(isWin?'#2ECC71':'#D4AF37')+';min-width:34px">'+escapeHtml(score)+'</span>'
+          +'<div style="flex:1;height:7px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden">'
+          +'<div style="width:'+barW+'%;height:100%;background:'+(isWin?'#2ECC71':'#D4AF37')+';border-radius:4px"></div>'
+          +'</div>'
+          +'<span style="font-size:12px;font-weight:700;color:var(--text);min-width:16px;text-align:right">'+names.length+'</span>'
+          +'<span style="font-size:10px;color:var(--text2);min-width:28px;text-align:right">'+pct+'%</span>'
+          +(isWin?'<span style="font-size:11px">✅</span>':'')
+          +'</div>'
+          +'<div style="font-size:11px;color:var(--text2);padding-left:42px;line-height:1.7">'+names.map(function(n){ return escapeHtml(n); }).join(' · ')+'</div>'
+          +'</div>';
+      });
+    }
+
+    // No pick / no submit section
+    const noPickSubmitted = noPick.filter(function(x){ return x.submitted; });
+    const noSubmitList = noPick.filter(function(x){ return !x.submitted; });
+
+    if(noPickSubmitted.length > 0){
+      html += '<div style="margin-top:4px;padding:7px 10px;border-radius:8px;background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.04)">'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+        +'<span style="font-size:11px;color:#555;min-width:34px;font-weight:700">Sin pick</span>'
+        +'<div style="flex:1;height:4px;background:rgba(255,255,255,.04);border-radius:4px"></div>'
+        +'<span style="font-size:11px;color:#555">'+noPickSubmitted.length+'</span>'
+        +'</div>'
+        +'<div style="font-size:11px;color:#555;padding-left:42px;line-height:1.7">'+noPickSubmitted.map(function(x){ return escapeHtml(x.name); }).join(' · ')+'</div>'
+        +'</div>';
+    }
+    if(noSubmitList.length > 0){
+      html += '<div style="margin-top:4px;padding:7px 10px;border-radius:8px;background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.04)">'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+        +'<span style="font-size:11px;color:#444;min-width:34px;font-weight:700">No envió</span>'
+        +'<div style="flex:1;height:4px;background:rgba(255,255,255,.03);border-radius:4px"></div>'
+        +'<span style="font-size:11px;color:#444">'+noSubmitList.length+'</span>'
+        +'</div>'
+        +'<div style="font-size:11px;color:#444;padding-left:42px;line-height:1.7">'+noSubmitList.map(function(x){ return escapeHtml(x.name); }).join(' · ')+'</div>'
+        +'</div>';
+    }
+
+    html += '</div>';
+  });
+
+  body.innerHTML = html;
+}
+// ─────────────────────────────────────────────────────
 
 function openAdminPickViewer(key, name){
   closeAdminPlayerList();
