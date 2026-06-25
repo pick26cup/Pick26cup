@@ -7944,19 +7944,45 @@ function announceNextMatchVoice(){
   var diffMs = upcoming.date - new Date();
   if(diffMs <= 0) return;
   _voiceAnnounced = true;
-  // Time until match ENDS = time to kickoff + full match window
-  var timeToEndMs = diffMs + MATCH_DURATION_MS;
-  var h = Math.floor(timeToEndMs / (1000*60*60));
-  var mn = Math.floor((timeToEndMs % (1000*60*60)) / (1000*60));
+  var h  = Math.floor(diffMs / (1000*60*60));
+  var mn = Math.floor((diffMs % (1000*60*60)) / (1000*60));
   var home = tn(upcoming.match.home), away = tn(upcoming.match.away);
-  var timeStr = h > 0
-    ? (currentLang === 'es'
-        ? h + ' hora' + (h !== 1 ? 's' : '') + ' y ' + mn + ' minutos'
-        : h + ' hour' + (h !== 1 ? 's' : '') + ' and ' + mn + ' minutes')
-    : (currentLang === 'es' ? mn + ' minutos' : mn + ' minutes');
-  var text = currentLang === 'es'
-    ? 'Faltan ' + timeStr + ' para que finalice el partido ' + home + ' contra ' + away
-    : timeStr + ' left for the match ' + home + ' versus ' + away + ' to end';
+  var texts, text;
+  if(currentLang === 'es'){
+    var hStr = h === 1 ? '1 hora' : h + ' horas';
+    var mStr = mn === 1 ? '1 minuto' : mn + ' minutos';
+    var hm   = h > 0 ? hStr + (mn > 0 ? ' y ' + mStr : '') : mStr;
+    if(h < 1){
+      texts = [
+        '¡El partido está por comenzar! ' + home + ' contra ' + away + '. ¡Que gane el mejor!',
+        '¡Ya mero! ' + home + ' contra ' + away + ' arranca en minutos. ¡A disfrutarlo!',
+        '¡Faltan solo ' + mn + ' minutos para el partido de ' + home + ' contra ' + away + '!'
+      ];
+    } else {
+      texts = [
+        'Bienvenidos al Pick veinte y seis. Próximo partido en ' + hm + ': ' + home + ' contra ' + away + '. ¡No te lo pierdas!',
+        'En ' + hm + ' arranca ' + home + ' frente a ' + away + '. ¡Prepárate para el espectáculo!',
+        '¡Tic tac! Faltan ' + hm + ' para ' + home + ' contra ' + away + '. ¡El fútbol llama!'
+      ];
+    }
+    text = texts[Math.floor(Math.random() * texts.length)];
+  } else {
+    var hStrEn = h === 1 ? '1 hour' : h + ' hours';
+    var mStrEn = mn === 1 ? '1 minute' : mn + ' minutes';
+    var hmEn   = h > 0 ? hStrEn + (mn > 0 ? ' and ' + mStrEn : '') : mStrEn;
+    if(h < 1){
+      texts = [
+        'The match is about to start! ' + home + ' versus ' + away + '. Let the best team win!',
+        home + ' versus ' + away + ' kicks off in minutes. Enjoy the game!'
+      ];
+    } else {
+      texts = [
+        'Welcome to Pick twenty six. Next match in ' + hmEn + ': ' + home + ' versus ' + away + '. Don\'t miss it!',
+        home + ' versus ' + away + ' in ' + hmEn + '. Get ready for the show!'
+      ];
+    }
+    text = texts[Math.floor(Math.random() * texts.length)];
+  }
   var utt = new SpeechSynthesisUtterance(text);
   utt.lang = currentLang === 'es' ? 'es-MX' : 'en-US';
   utt.volume = 0.85;
