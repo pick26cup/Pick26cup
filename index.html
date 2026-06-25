@@ -2830,8 +2830,46 @@ function initNarrator(){
       }
     }
 
-    _narratorPayload = {text:text, timeLabel:timeLabel, home:home, away:away};
-    if(_narratorSpeechReady) _doNarrate();
+    // Personalise with player first name if available
+    var pFirst = playerData && playerData.name ? playerData.name.trim().split(/\s+/)[0] : '';
+    if(pFirst){
+      text = (currentLang==='es'
+        ? '¡Hola, ' + pFirst + '! '
+        : 'Hey, ' + pFirst + '! ') + text;
+    }
+
+    // Check for exact scores in last completed round and add celebration
+    (function(){
+      var lastRound = 0;
+      for(var r=1; r<=7; r++){
+        var rms = MATCHES[r]||[];
+        if(rms.length && rms.every(function(m){ return _globalResults[m.id]; })) lastRound=r; else break;
+      }
+      if(lastRound > 0 && db){
+        db.ref('picks/'+playerKey()).once('value').then(function(ps){
+          var myPicks = ((ps.val()||{}).picks)||{};
+          var exact = 0;
+          (MATCHES[lastRound]||[]).forEach(function(m){
+            var res=_globalResults[m.id], pk=myPicks[m.id];
+            if(res && pk && Number(pk.scoreH)===res.home && Number(pk.scoreA)===res.away) exact++;
+          });
+          if(exact > 0){
+            var cel = currentLang==='es'
+              ? ' ¡Por cierto, acertaste '+(exact===1?'1 marcador exacto':exact+' marcadores exactos')+' en la jornada '+lastRound+'!'
+              : ' By the way, you got '+(exact===1?'1 exact score':exact+' exact scores')+' in round '+lastRound+'!';
+            text += cel;
+          }
+          _narratorPayload = {text:text, timeLabel:timeLabel, home:home, away:away};
+          if(_narratorSpeechReady) _doNarrate();
+        }).catch(function(){
+          _narratorPayload = {text:text, timeLabel:timeLabel, home:home, away:away};
+          if(_narratorSpeechReady) _doNarrate();
+        });
+        return; // will be resolved async above
+      }
+      _narratorPayload = {text:text, timeLabel:timeLabel, home:home, away:away};
+      if(_narratorSpeechReady) _doNarrate();
+    })();
   }).catch(function(){});
 }
 
@@ -2846,8 +2884,8 @@ function _doNarrate(){
   function speakNow(){
     window.speechSynthesis.cancel();
     var utt = new SpeechSynthesisUtterance(p.text);
-    utt.rate = 0.92;
-    utt.pitch = 1.05;
+    utt.rate = 0.90;
+    utt.pitch = 0.95;
     var voices = window.speechSynthesis.getVoices();
     function pickVoice(lang){
       var prefix = lang.split('-')[0];
@@ -3776,7 +3814,32 @@ function syncFromFirebase(){
     setTimeout(function(){ refreshLeaderboardIfVisible(); }, 300);
   });
   db.ref('results').on('value', function(snap){
-    _globalResults = snap.val() || {};
+    var newResults = snap.val() || {};
+    // Announce newly entered results (skip the initial load to avoid reading all history)
+    if(_resultVoiceReady){
+      Object.keys(newResults).forEach(function(matchId){
+        if(!_globalResults[matchId] && newResults[matchId]){
+          var res = newResults[matchId];
+          var matchInfo = null;
+          for(var r=1; r<=7; r++){
+            var found = (MATCHES[r]||[]).find(function(m){ return m.id===matchId; });
+            if(found){ matchInfo = found; break; }
+          }
+          if(matchInfo){
+            var _rh = tn(matchInfo.home), _ra = tn(matchInfo.away);
+            var _sh = res.home, _sa = res.away;
+            setTimeout(function(){
+              speakVoice(currentLang==='es'
+                ? '¡Resultado! ' + _rh + ' ' + _sh + ', ' + _ra + ' ' + _sa + '.'
+                : 'Result! ' + _rh + ' ' + _sh + ', ' + _ra + ' ' + _sa + '.',
+                {pitch:1.1, rate:0.88});
+            }, 800);
+          }
+        }
+      });
+    }
+    _globalResults = newResults;
+    _resultVoiceReady = true;
     setTimeout(function(){ refreshLeaderboardIfVisible(); }, 300);
   });
   // Live listener: re-render when admin approves/revokes round access for this player
@@ -6710,6 +6773,49 @@ const TEAM_FLAG_CODES = {
 };
 function teamFlagUrl(code){ return 'https://flagcdn.com/'+code+'.svg'; }
 
+// ── SHARED VOICE HELPER ──────────────────────────────────────────
+// Picks the best available voice, ducks background music, and speaks.
+function speakVoice(text, opts){
+  if(!window.speechSynthesis || !text) return;
+  opts = opts || {};
+  window.speechSynthesis.cancel();
+  var utt = new SpeechSynthesisUtterance(text);
+  utt.rate   = opts.rate   !== undefined ? opts.rate   : 0.88;
+  utt.pitch  = opts.pitch  !== undefined ? opts.pitch  : 0.95;
+  utt.volume = opts.volume !== undefined ? opts.volume : 0.85;
+  var lang   = opts.lang || (currentLang === 'es' ? 'es-MX' : 'en-US');
+  var voices = window.speechSynthesis.getVoices();
+  var prefix = lang.split('-')[0];
+  var online = voices.filter(function(v){ return !v.localService && v.lang.startsWith(prefix); });
+  var picked = online.length
+    ? (online.find(function(v){ return v.name.toLowerCase().includes('google'); }) || online[0])
+    : (voices.find(function(v){ return v.lang==='es-US'; })
+    || voices.find(function(v){ return v.lang==='es-MX'; })
+    || voices.find(function(v){ return v.lang==='es-ES'; })
+    || voices.find(function(v){ return v.lang.startsWith(prefix); })
+    || null);
+  if(picked){ utt.voice = picked; utt.lang = picked.lang; } else { utt.lang = lang; }
+  var music = document.getElementById('bgMusic');
+  var origVol = null;
+  if(music && !music.paused && music.volume > 0){ origVol = music.volume; music.volume = 0.04; }
+  function restoreMusicSv(){
+    if(origVol === null || !music) return;
+    var target = origVol, step = (target - music.volume) / 20;
+    var t = setInterval(function(){
+      if(Math.abs(music.volume - target) <= Math.abs(step)){ music.volume = target; clearInterval(t); origVol = null; }
+      else { music.volume = Math.min(target, music.volume + step); }
+    }, 50);
+  }
+  utt.onend = restoreMusicSv; utt.onerror = restoreMusicSv;
+  window.speechSynthesis.speak(utt);
+}
+
+// State flags for countdown voice transitions (only announce on change, not on initial load)
+var _cdVoiceState   = null;   // 'live' | 'locked' | 'countdown' — previous state
+var _liveVoiceId    = null;   // last match ID announced as live
+var _lockedVoiceId  = null;   // last match ID announced as picks-locked
+var _resultVoiceReady = false; // true after first results snapshot (skip historical results)
+
 function updateCountdown(){
   const banner = document.getElementById('countdownBanner');
   const units = document.getElementById('countdownUnits');
@@ -6735,6 +6841,19 @@ function updateCountdown(){
   }
 
   if(ongoingMatch && ongoingKickoff){
+    // Announce live match once per match, only on transition (not on initial page load)
+    if(_cdVoiceState !== null && ongoingMatch.id !== _liveVoiceId){
+      _liveVoiceId = ongoingMatch.id;
+      var _lvm = ongoingMatch;
+      setTimeout(function(){
+        var t = tn(_lvm.home) + (currentLang==='es' ? ' contra ' : ' versus ') + tn(_lvm.away);
+        speakVoice(currentLang==='es'
+          ? '¡Arrancó el partido! ' + t + '. ¡Buena suerte a todos!'
+          : 'The match has started! ' + t + '. Good luck everyone!',
+          {pitch:1.1, rate:0.85});
+      }, 600);
+    }
+    _cdVoiceState = 'live';
     // Match in progress — show live chronometer counting up from kickoff
     const elapsedMs = now - ongoingKickoff.getTime();
     const elapsedMin = Math.floor(elapsedMs / (1000*60));
@@ -6793,6 +6912,19 @@ function updateCountdown(){
   banner.style.display = 'flex';
 
   if(diffToLock <= 0){
+    // Announce picks closed once per match, only on transition
+    if(_cdVoiceState !== null && nextM.id !== _lockedVoiceId){
+      _lockedVoiceId = nextM.id;
+      var _lnm = nextM;
+      setTimeout(function(){
+        var t = tn(_lnm.home) + (currentLang==='es' ? ' contra ' : ' versus ') + tn(_lnm.away);
+        speakVoice(currentLang==='es'
+          ? '¡Atención! Los picks de ' + t + ' ya están cerrados. ¡Que gane el mejor!'
+          : 'Attention! Picks for ' + t + ' are now locked. Good luck!',
+          {pitch:0.95, rate:0.88});
+      }, 600);
+    }
+    _cdVoiceState = 'locked';
     // Picks locked but match hasn't started — static message, no countdown
     if(title) title.innerHTML = currentLang==='es'
       ? `🔒 PICKS CERRADOS<span style="display:block;font-size:13px;color:#fff;letter-spacing:.5px;font-family:'DM Sans';margin-top:2px">${matchLabel}</span>`
@@ -6802,6 +6934,7 @@ function updateCountdown(){
   }
 
   // 3. Picks still open — countdown to kickoff
+  _cdVoiceState = 'countdown';
   const days  = Math.floor(diffToKick / (1000*60*60*24));
   const hours = Math.floor((diffToKick % (1000*60*60*24)) / (1000*60*60));
   const mins  = Math.floor((diffToKick % (1000*60*60)) / (1000*60));
@@ -7983,11 +8116,7 @@ function announceNextMatchVoice(){
     }
     text = texts[Math.floor(Math.random() * texts.length)];
   }
-  var utt = new SpeechSynthesisUtterance(text);
-  utt.lang = currentLang === 'es' ? 'es-MX' : 'en-US';
-  utt.volume = 0.85;
-  utt.rate = 0.88;
-  window.speechSynthesis.speak(utt);
+  speakVoice(text, {rate:0.88, pitch:1.0});
 }
 
 // ── ADMIN DASHBOARD NAVIGATION ────────────────────────
