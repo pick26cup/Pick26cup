@@ -780,13 +780,26 @@ nav button:hover,nav button.active{
 
 /* ── CONFETTI ────────────────────────────────────────────── */
 .confetti-piece{
-  position:fixed;width:10px;height:10px;
-  border-radius:2px;pointer-events:none;z-index:9999;
-  animation:confettiFall 2.5s ease-in forwards;
+  position:fixed;pointer-events:none;z-index:9999;
+  transform-style:preserve-3d;will-change:transform,opacity;
 }
 @keyframes confettiFall{
-  0%{transform:translateY(-20px) rotate(0deg);opacity:1}
-  100%{transform:translateY(100vh) rotate(720deg);opacity:0}
+  0%  {opacity:1;transform:perspective(400px) translateY(-20px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)}
+  25% {opacity:1;transform:perspective(400px) translateY(25vh)  rotateX(200deg) rotateY(120deg) rotateZ(250deg)}
+  65% {opacity:.85;transform:perspective(400px) translateY(65vh) rotateX(390deg) rotateY(280deg) rotateZ(530deg) scale(.9)}
+  100%{opacity:0;transform:perspective(400px) translateY(108vh) rotateX(540deg) rotateY(360deg) rotateZ(760deg) scale(.3)}
+}
+@keyframes confettiFall2{
+  0%  {opacity:1;transform:perspective(400px) translateY(-20px) translateX(0) rotateX(30deg) rotateY(0) rotateZ(0)}
+  30% {opacity:1;transform:perspective(400px) translateY(28vh) translateX(18px) rotateX(150deg) rotateY(200deg) rotateZ(180deg)}
+  70% {opacity:.8;transform:perspective(400px) translateY(68vh) translateX(-10px) rotateX(320deg) rotateY(300deg) rotateZ(480deg) scale(.85)}
+  100%{opacity:0;transform:perspective(400px) translateY(108vh) translateX(25px) rotateX(480deg) rotateY(420deg) rotateZ(680deg) scale(.25)}
+}
+@keyframes confettiFall3{
+  0%  {opacity:1;transform:perspective(400px) translateY(-20px) rotateX(-20deg) rotateY(40deg) rotateZ(0)}
+  40% {opacity:1;transform:perspective(400px) translateY(38vh) rotateX(240deg) rotateY(160deg) rotateZ(310deg) scale(1.1)}
+  75% {opacity:.7;transform:perspective(400px) translateY(72vh) rotateX(400deg) rotateY(240deg) rotateZ(560deg) scale(.75)}
+  100%{opacity:0;transform:perspective(400px) translateY(108vh) rotateX(600deg) rotateY(380deg) rotateZ(800deg) scale(.2)}
 }
 
 /* ── WINNER MODAL ───────────────────────────────────────── */
@@ -807,17 +820,21 @@ nav button:hover,nav button.active{
   position:relative;
 }
 @keyframes winnerModalIn{
-  from{opacity:0;transform:scale(.6) translateY(40px)}
-  to{opacity:1;transform:scale(1) translateY(0)}
+  0%  {opacity:0;transform:perspective(900px) scale(.55) rotateX(-30deg) translateY(50px)}
+  65% {opacity:1;transform:perspective(900px) scale(1.03) rotateX(4deg) translateY(-4px)}
+  85% {transform:perspective(900px) scale(.98) rotateX(-2deg) translateY(2px)}
+  100%{opacity:1;transform:perspective(900px) scale(1) rotateX(0deg) translateY(0)}
 }
 .winner-trophy{
   font-size:64px;display:block;margin-bottom:8px;
   animation:trophyBounce 1.2s ease-in-out infinite;
   filter:drop-shadow(0 0 16px rgba(212,175,55,.6));
+  transform-style:preserve-3d;
 }
 @keyframes trophyBounce{
-  0%,100%{transform:scale(1) rotate(-4deg)}
-  50%{transform:scale(1.15) rotate(4deg)}
+  0%  {transform:perspective(400px) scale(1) rotateY(0deg) rotateZ(-4deg)}
+  50% {transform:perspective(400px) scale(1.15) rotateY(18deg) rotateZ(4deg)}
+  100%{transform:perspective(400px) scale(1) rotateY(0deg) rotateZ(-4deg)}
 }
 .winner-round-label{
   font-size:11px;letter-spacing:3px;text-transform:uppercase;
@@ -1061,8 +1078,8 @@ nav button:hover,nav button.active{
   box-shadow:0 0 40px rgba(57,255,20,.45),0 0 90px rgba(57,255,20,.2),inset 0 0 30px rgba(57,255,20,.04);
   animation:narr-in .45s cubic-bezier(.17,.67,.35,1.3);
 }
-@keyframes narr-in{from{transform:scale(.3) translateY(-60px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
-@keyframes narr-out{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.5) translateY(30px)}}
+@keyframes narr-in{0%{transform:perspective(700px) rotateY(-90deg) scale(.85) translateY(-20px);opacity:0}65%{transform:perspective(700px) rotateY(6deg) scale(1.02) translateY(0);opacity:1}85%{transform:perspective(700px) rotateY(-3deg) scale(.99)}100%{transform:perspective(700px) rotateY(0deg) scale(1);opacity:1}}
+@keyframes narr-out{from{opacity:1;transform:perspective(700px) rotateY(0deg) scale(1)}to{opacity:0;transform:perspective(700px) rotateY(80deg) scale(.6) translateY(20px)}}
 .narrator-icon{
   width:72px;height:72px;border-radius:16px;object-fit:cover;
   margin:0 auto 10px;display:block;
@@ -1778,8 +1795,8 @@ nav button:hover,nav button.active{
   </div>
 </div>
 <style>
-@keyframes refCard{from{opacity:0;transform:scale(.7) rotate(-8deg)}to{opacity:1;transform:scale(1) rotate(0)}}
-@keyframes stampIn{0%{opacity:0;transform:rotate(-22deg) scale(2.8)}55%{opacity:1;transform:rotate(2.5deg) scale(0.93)}75%{transform:rotate(-1.5deg) scale(1.03)}100%{opacity:1;transform:rotate(-3deg) scale(1)}}
+@keyframes refCard{0%{opacity:0;transform:perspective(800px) rotateY(-90deg) scale(.85)}60%{opacity:1;transform:perspective(800px) rotateY(8deg) scale(1.03)}80%{transform:perspective(800px) rotateY(-4deg) scale(.99)}100%{opacity:1;transform:perspective(800px) rotateY(0deg) scale(1)}}
+@keyframes stampIn{0%{opacity:0;transform:perspective(600px) rotate(-22deg) rotateX(-55deg) scale(2.8) translateY(-30px)}55%{opacity:1;transform:perspective(600px) rotate(2.5deg) rotateX(6deg) scale(0.93) translateY(3px)}75%{transform:perspective(600px) rotate(-1.5deg) rotateX(-2deg) scale(1.03) translateY(-2px)}100%{opacity:1;transform:perspective(600px) rotate(-3deg) rotateX(0deg) scale(1) translateY(0)}}
 
 /* ── FIFA WINNER INTRO ────────────────────────────────── */
 @keyframes fwBgIn{from{opacity:0}to{opacity:1}}
@@ -1790,15 +1807,17 @@ nav button:hover,nav button.active{
 @keyframes fwLive{0%,100%{opacity:1}50%{opacity:.3}}
 @keyframes fwHeartbeat{0%{transform:scale(1)}14%{transform:scale(1.4)}28%{transform:scale(1)}42%{transform:scale(1.25)}56%{transform:scale(1)}100%{transform:scale(1)}}
 @keyframes fwFlash{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
-@keyframes fwTrophy{0%{opacity:0;transform:translateY(-180px) scale(.2) rotate(-20deg)}55%{opacity:1;transform:translateY(12px) scale(1.15) rotate(3deg)}75%{transform:translateY(-5px) scale(.97) rotate(-1deg)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
+@keyframes fwTrophy{0%{opacity:0;transform:perspective(600px) translateY(-200px) rotateX(-60deg) rotateY(-180deg) scale(.15)}50%{opacity:1;transform:perspective(600px) translateY(14px) rotateX(10deg) rotateY(12deg) scale(1.18)}70%{transform:perspective(600px) translateY(-6px) rotateX(-4deg) rotateY(-6deg) scale(.96)}85%{transform:perspective(600px) translateY(3px) rotateX(2deg) rotateY(3deg) scale(1.02)}100%{opacity:1;transform:perspective(600px) translateY(0) rotateX(0) rotateY(0) scale(1)}}
 @keyframes fwTrophyGlow{0%,100%{filter:drop-shadow(0 0 20px rgba(212,175,55,.8)) drop-shadow(0 8px 24px rgba(0,0,0,.9))}50%{filter:drop-shadow(0 0 50px rgba(255,220,80,1)) drop-shadow(0 0 80px rgba(212,175,55,.6))}}
 @keyframes fwLabel{from{opacity:0;letter-spacing:10px}to{opacity:1;letter-spacing:4px}}
-@keyframes fwLetterPop{0%{opacity:0;transform:scale(3) translateY(-10px);color:#fff}60%{transform:scale(.9) translateY(2px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes fwLetterPop{0%{opacity:0;transform:perspective(300px) rotateX(-90deg) scale(2.5) translateY(-8px);color:#fff}55%{transform:perspective(300px) rotateX(10deg) scale(.92) translateY(2px)}80%{transform:perspective(300px) rotateX(-4deg) scale(1.04) translateY(-1px)}100%{opacity:1;transform:perspective(300px) rotateX(0deg) scale(1) translateY(0)}}
 @keyframes fwNameGlow{0%,100%{text-shadow:0 0 30px rgba(212,175,55,.8),0 2px 0 rgba(0,0,0,1),-2px 0 6px rgba(255,80,80,.3),2px 0 6px rgba(80,80,255,.3)}50%{text-shadow:0 0 60px rgba(255,220,80,1),0 2px 0 rgba(0,0,0,1),-3px 0 10px rgba(255,80,80,.5),3px 0 10px rgba(80,130,255,.5)}}
-@keyframes fwPts{from{opacity:0;transform:scale(1.6)}to{opacity:1;transform:scale(1)}}
-@keyframes fwAvatar{0%{opacity:0;transform:scale(0) rotate(-180deg)}70%{transform:scale(1.12) rotate(5deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
-@keyframes fwPulseRing{0%{transform:scale(.9);opacity:.9}100%{transform:scale(2.4);opacity:0}}
-@keyframes fwParticle{0%{opacity:1;transform:translateY(0) rotate(0) scale(1)}100%{opacity:0;transform:translateY(-140vh) rotate(900deg) scale(.3)}}
+@keyframes fwPts{from{opacity:0;transform:perspective(400px) rotateX(-40deg) scale(1.4)}to{opacity:1;transform:perspective(400px) rotateX(0deg) scale(1)}}
+@keyframes fwAvatar{0%{opacity:0;transform:perspective(600px) rotateY(-200deg) scale(.2)}60%{opacity:1;transform:perspective(600px) rotateY(12deg) scale(1.1)}80%{transform:perspective(600px) rotateY(-5deg) scale(.97)}100%{opacity:1;transform:perspective(600px) rotateY(0deg) scale(1)}}
+@keyframes fwPulseRing{0%{transform:perspective(400px) scale(.9) rotateX(15deg);opacity:.9}100%{transform:perspective(400px) scale(2.4) rotateX(-10deg);opacity:0}}
+@keyframes fwParticle{0%{opacity:1;transform:perspective(500px) translateY(0) translateZ(0) rotateX(0) rotateY(0) rotateZ(0) scale(1)}100%{opacity:0;transform:perspective(500px) translateY(-145vh) translateZ(-120px) rotateX(480deg) rotateY(600deg) rotateZ(900deg) scale(.1)}}
+@keyframes fwParticleL{0%{opacity:1;transform:perspective(500px) translateY(0) translateX(0) translateZ(0) rotateX(0) rotateY(0) rotateZ(0) scale(1)}100%{opacity:0;transform:perspective(500px) translateY(-130vh) translateX(-60px) translateZ(-80px) rotateX(600deg) rotateY(400deg) rotateZ(720deg) scale(.1)}}
+@keyframes fwParticleR{0%{opacity:1;transform:perspective(500px) translateY(0) translateX(0) translateZ(0) rotateX(0) rotateY(0) rotateZ(0) scale(1)}100%{opacity:0;transform:perspective(500px) translateY(-130vh) translateX(60px) translateZ(-80px) rotateX(400deg) rotateY(650deg) rotateZ(800deg) scale(.1)}}
 @keyframes fwFlare{0%,100%{opacity:0;transform:scale(.6)}50%{opacity:.7;transform:scale(1)}}
 @keyframes fwLowerThird{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
 @keyframes fwRoundLbl{from{opacity:0;letter-spacing:16px}to{opacity:1;letter-spacing:6px}}
@@ -6964,22 +6983,32 @@ function startCountdown(){
 //  FEATURE: CONFETTI CELEBRATION
 // ══════════════════════════════════════════════════════════════
 function launchConfetti(){
-  const colors = ['#D4AF37','#F5D060','#2ECC71','#3498DB','#E74C3C','#ffffff','#B8860B'];
-  for(let i=0; i<80; i++){
+  const colors = ['#D4AF37','#F5D060','#2ECC71','#3498DB','#E74C3C','#ffffff','#B8860B','#FF6B6B','#4ECDC4'];
+  const anims  = ['confettiFall','confettiFall2','confettiFall3'];
+  for(let i=0; i<130; i++){
     setTimeout(()=>{
       const piece = document.createElement('div');
       piece.className = 'confetti-piece';
-      piece.style.left = Math.random()*100+'vw';
-      piece.style.top = '-10px';
-      piece.style.background = colors[Math.floor(Math.random()*colors.length)];
-      piece.style.width = (6+Math.random()*10)+'px';
-      piece.style.height = (6+Math.random()*10)+'px';
-      piece.style.borderRadius = Math.random()>0.5?'50%':'2px';
-      piece.style.animationDuration = (1.5+Math.random()*2)+'s';
-      piece.style.animationDelay = Math.random()*0.5+'s';
+      const roll = Math.random();
+      const isRibbon = roll > 0.65;
+      const isCircle = !isRibbon && roll > 0.35;
+      const w = isRibbon ? (2+Math.random()*3) : (5+Math.random()*9);
+      const h = isRibbon ? (10+Math.random()*12) : w;
+      piece.style.left   = (Math.random()*108-4)+'vw';
+      piece.style.top    = '-14px';
+      piece.style.width  = w+'px';
+      piece.style.height = h+'px';
+      piece.style.background    = colors[Math.floor(Math.random()*colors.length)];
+      piece.style.borderRadius  = isCircle?'50%':isRibbon?'1px':'3px';
+      piece.style.animationName = anims[Math.floor(Math.random()*anims.length)];
+      piece.style.animationDuration  = (1.8+Math.random()*2.5)+'s';
+      piece.style.animationDelay     = Math.random()*0.9+'s';
+      piece.style.animationFillMode  = 'forwards';
+      piece.style.animationTimingFunction = 'ease-in';
+      piece.style.opacity = (0.75+Math.random()*0.25).toString();
       document.body.appendChild(piece);
-      setTimeout(()=> piece.remove(), 3500);
-    }, i*30);
+      setTimeout(()=>piece.remove(), 5000);
+    }, i*22);
   }
 }
 
@@ -7008,7 +7037,9 @@ function _showFifaWinnerIntro(winner, round){
   splash.style.cssText = [
     'position:fixed;inset:0;z-index:10001;overflow:hidden;cursor:pointer',
     'background:radial-gradient(ellipse at 50% 20%,#0d1f0d 0%,#060e06 45%,#000 100%)',
-    'animation:fwBgIn .4s ease forwards'
+    'animation:fwBgIn .4s ease forwards',
+    'perspective:1200px',
+    'transform-style:preserve-3d'
   ].join(';');
 
   // Scanlines
@@ -7311,16 +7342,32 @@ function _fwFanfare(){
 function _spawnFifaWinnerParticles(){
   const cont = document.getElementById('fwParticles');
   if(!cont) return;
-  const colors = ['#D4AF37','#FFD700','#FFF','#2ECC71','#3498DB','#E74C3C','#F1C40F','#9B59B6','#E67E22'];
-  for(let i=0;i<100;i++){
+  const colors = ['#D4AF37','#FFD700','#FFF','#2ECC71','#3498DB','#E74C3C','#F1C40F','#9B59B6','#E67E22','#FF6B9D'];
+  const particleAnims = ['fwParticle','fwParticleL','fwParticleR'];
+  for(let i=0;i<140;i++){
     const p = document.createElement('div');
     const c = colors[i % colors.length];
-    const size = 4 + Math.random()*8;
+    const size = 3 + Math.random()*9;
     const left = Math.random()*100;
-    const delay = Math.random()*1.5;
-    const dur = 3.5 + Math.random()*3;
-    const isRect = Math.random() > 0.4;
-    p.style.cssText = `position:absolute;bottom:-10px;left:${left}%;width:${size}px;height:${isRect?size*2:size}px;background:${c};border-radius:${isRect?'2px':'50%'};opacity:0;animation:fwParticle ${dur}s ease-out ${delay}s forwards`;
+    const delay = Math.random()*1.8;
+    const dur = 3.5 + Math.random()*3.5;
+    const roll = Math.random();
+    const isRibbon = roll > 0.55;
+    const isCircle = !isRibbon && roll > 0.3;
+    const anim = particleAnims[Math.floor(Math.random()*particleAnims.length)];
+    p.style.cssText = [
+      'position:absolute',
+      'bottom:-10px',
+      `left:${left}%`,
+      `width:${size}px`,
+      `height:${isRibbon?size*2.5:size}px`,
+      `background:${c}`,
+      `border-radius:${isCircle?'50%':isRibbon?'1px':'3px'}`,
+      'opacity:0',
+      'transform-style:preserve-3d',
+      `box-shadow:0 0 ${3+Math.random()*4}px ${c}`,
+      `animation:${anim} ${dur}s ease-out ${delay}s forwards`
+    ].join(';');
     cont.appendChild(p);
   }
 }
