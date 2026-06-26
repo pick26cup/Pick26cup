@@ -5825,29 +5825,41 @@ function renderPickDist(round){
       const didSubmit = !!(pd.submittedRounds && pd.submittedRounds[round]);
       if(!didSubmit){ noPick.push({name:pName, submitted:false}); return; }
       const pick = (pd.picks||{})[m.id];
-      if(!pick || (pick.scoreH===undefined && pick.scoreA===undefined)){
+      // Regular matches store pick.pick ('home'/'draw'/'away'); closer/final also store scoreH/scoreA
+      const hasOutcomePick = pick && pick.pick;
+      const hasExactScore  = pick && (pick.scoreH !== undefined || pick.scoreA !== undefined);
+      if(!pick || (!hasOutcomePick && !hasExactScore)){
         noPick.push({name:pName, submitted:true});
         return;
       }
-      const sh = pick.scoreH !== undefined ? Number(pick.scoreH) : 0;
-      const sa = pick.scoreA !== undefined ? Number(pick.scoreA) : 0;
-      const scoreKey = sh+'-'+sa;
-      if(!dist[scoreKey]) dist[scoreKey] = [];
-      dist[scoreKey].push(pName);
+      var outcomeKey;
+      if(hasExactScore){
+        // Closer / final match: derive outcome from exact score
+        const sh = pick.scoreH !== undefined ? Number(pick.scoreH) : 0;
+        const sa = pick.scoreA !== undefined ? Number(pick.scoreA) : 0;
+        const scoreKey = sh+'-'+sa;
+        if(!dist[scoreKey]) dist[scoreKey] = [];
+        dist[scoreKey].push(pName);
+        homeGoals[sh] = (homeGoals[sh]||0) + 1;
+        awayGoals[sa] = (awayGoals[sa]||0) + 1;
+        outcomeKey = sh > sa ? 'home' : sh < sa ? 'away' : 'draw';
+      } else {
+        // Regular match: only outcome stored
+        outcomeKey = pick.pick;
+      }
       // outcome tally + name lists
-      if(sh > sa){ homeWins++; homeWinNames.push(pName); }
-      else if(sh < sa){ awayWins++; awayWinNames.push(pName); }
+      if(outcomeKey === 'home'){ homeWins++; homeWinNames.push(pName); }
+      else if(outcomeKey === 'away'){ awayWins++; awayWinNames.push(pName); }
       else { draws++; drawNames.push(pName); }
-      // goal distribution
-      homeGoals[sh] = (homeGoals[sh]||0) + 1;
-      awayGoals[sa] = (awayGoals[sa]||0) + 1;
     });
 
     const sorted = Object.entries(dist).sort(function(a,b){ return b[1].length - a[1].length; });
     const maxCount = sorted.length > 0 ? sorted[0][1].length : 1;
-    const totalVoted = sorted.reduce(function(s,e){ return s+e[1].length; },0);
+    // totalVoted = all players who picked an outcome (regular or exact)
+    const totalVoted = homeWins + draws + awayWins;
     const correctCount = resStr && dist[resStr] ? dist[resStr].length : 0;
     const pctCorrect = submittedCount > 0 && resStr ? Math.round(correctCount/submittedCount*100) : null;
+    const isCloserMatch = !!(m.closer || m.final);
 
     html += '<div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;margin-bottom:14px">';
 
@@ -5912,7 +5924,7 @@ function renderPickDist(round){
       };
       var resH = res ? res.home : null;
       var resA = res ? res.away : null;
-      if(Object.keys(homeGoals).length > 0 || Object.keys(awayGoals).length > 0){
+      if(isCloserMatch && (Object.keys(homeGoals).length > 0 || Object.keys(awayGoals).length > 0)){
         html += '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 12px;margin-bottom:10px">'
           +'<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase">Goles predichos</div>'
           +goalsRow('🏠 '+escapeHtml(m.home), homeGoals, resH)
@@ -5920,26 +5932,28 @@ function renderPickDist(round){
           +'</div>';
       }
 
-      // ── Exact scores ──────────────────────────────────────
-      html += '<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase">Marcadores exactos</div>';
-      sorted.forEach(function(entry){
-        const score = entry[0], names = entry[1];
-        const isWin = resStr && score === resStr;
-        const pct = totalVoted > 0 ? Math.round(names.length/totalVoted*100) : 0;
-        html += '<div style="margin-bottom:7px;padding:9px 12px;border-radius:8px;'
-          +'background:'+(isWin?'rgba(46,204,113,.07)':'rgba(255,255,255,.025)')+';'
-          +'border:1px solid '+(isWin?'rgba(46,204,113,.28)':'rgba(255,255,255,.06)')+'\">'
-          +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
-          +'<span style="font-family:\'Bebas Neue\';font-size:20px;letter-spacing:2px;color:'+(isWin?'#2ECC71':'#D4AF37')+';min-width:38px;line-height:1">'+escapeHtml(score)+'</span>'
-          +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+names.length+' jugador'+(names.length!==1?'es':'')+'</span>'
-          +'<span style="font-size:10px;color:var(--text2);">'+pct+'%</span>'
-          +(isWin?'<span style="font-size:11px;margin-left:2px">✅</span>':'')
-          +'</div>'
-          +'<div style="font-size:12px;color:'+(isWin?'rgba(46,204,113,.85)':'var(--text2)')+';padding-left:46px;line-height:1.8">'+names.map(function(n){ return escapeHtml(n); }).join(' · ')+'</div>'
-          +'</div>';
-      });
+      // ── Exact scores (closer/final only) ─────────────────
+      if(isCloserMatch && sorted.length > 0){
+        html += '<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase">Marcadores exactos</div>';
+        sorted.forEach(function(entry){
+          const score = entry[0], names = entry[1];
+          const isWin = resStr && score === resStr;
+          const pct = totalVoted > 0 ? Math.round(names.length/totalVoted*100) : 0;
+          html += '<div style="margin-bottom:7px;padding:9px 12px;border-radius:8px;'
+            +'background:'+(isWin?'rgba(46,204,113,.07)':'rgba(255,255,255,.025)')+';'
+            +'border:1px solid '+(isWin?'rgba(46,204,113,.28)':'rgba(255,255,255,.06)')+'\">'
+            +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+            +'<span style="font-family:\'Bebas Neue\';font-size:20px;letter-spacing:2px;color:'+(isWin?'#2ECC71':'#D4AF37')+';min-width:38px;line-height:1">'+escapeHtml(score)+'</span>'
+            +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+names.length+' jugador'+(names.length!==1?'es':'')+'</span>'
+            +'<span style="font-size:10px;color:var(--text2);">'+pct+'%</span>'
+            +(isWin?'<span style="font-size:11px;margin-left:2px">✅</span>':'')
+            +'</div>'
+            +'<div style="font-size:12px;color:'+(isWin?'rgba(46,204,113,.85)':'var(--text2)')+';padding-left:46px;line-height:1.8">'+names.map(function(n){ return escapeHtml(n); }).join(' · ')+'</div>'
+            +'</div>';
+        });
+      }
     } else {
-      html += '<p style="font-size:12px;color:#555;font-style:italic;margin:0">Nadie eligió marcador para este partido.</p>';
+      html += '<p style="font-size:12px;color:#555;font-style:italic;margin:0">Nadie envió pick para este partido.</p>';
     }
 
     // No pick / no submit section
