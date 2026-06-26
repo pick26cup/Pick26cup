@@ -8221,8 +8221,6 @@ function togglePaymentNudge(){
 
 function checkPaymentNudge(){
   if(!db) return;
-  const sessKey = 'wc2026_pnudge';
-  if(sessionStorage.getItem(sessKey)) return;
   db.ref('config/paymentNudge').once('value').then(function(snap){
     var cfg = snap.val();
     if(!cfg || !cfg.active || !cfg.round) return;
@@ -8234,7 +8232,6 @@ function checkPaymentNudge(){
     var msg = es
       ? greeting+'Recuerda que la <strong>Jornada '+r+'</strong> se aproxima y tienes un <strong>pago pendiente</strong> para poder participar. Contáctate con el administrador.'
       : greeting+'Remember that <strong>Round '+r+'</strong> is coming up and you have a <strong>pending payment</strong> to join. Contact the admin.';
-    sessionStorage.setItem(sessKey, '1');
     setTimeout(function(){ showPaymentNudgeBanner(msg); }, 700);
   });
 }
