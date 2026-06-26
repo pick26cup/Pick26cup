@@ -1070,6 +1070,23 @@ nav button:hover,nav button.active{
   background:rgba(0,0,0,.72);backdrop-filter:blur(8px);
   padding:20px;
 }
+/* ── PAYMENT NUDGE BANNER ────────────────────────────────── */
+#paymentNudgeBanner{
+  position:fixed;top:0;left:0;right:0;z-index:9998;
+  background:linear-gradient(135deg,#5a3800 0%,#8B6000 50%,#5a3800 100%);
+  border-bottom:2.5px solid #D4AF37;
+  padding:14px 16px 14px 20px;
+  display:flex;align-items:flex-start;gap:12px;
+  box-shadow:0 4px 28px rgba(0,0,0,.65);
+  animation:nudgeSlideDown .4s cubic-bezier(.2,.8,.3,1.2) forwards;
+}
+@keyframes nudgeSlideDown{from{transform:translateY(-110%);opacity:0}to{transform:translateY(0);opacity:1}}
+#paymentNudgeBanner .pnb-icon{font-size:22px;line-height:1;flex-shrink:0;margin-top:1px}
+#paymentNudgeBanner .pnb-text{flex:1;font-size:13px;line-height:1.6;color:#fff;font-family:'DM Sans'}
+#paymentNudgeBanner .pnb-text strong{color:#FFD700}
+#paymentNudgeBanner .pnb-close{background:none;border:none;color:rgba(255,255,255,.65);font-size:22px;cursor:pointer;line-height:1;padding:0 0 0 8px;flex-shrink:0;transition:.15s}
+#paymentNudgeBanner .pnb-close:hover{color:#fff}
+
 .narrator-card{
   background:linear-gradient(160deg,#001a00,#002f00,#001200);
   border:2px solid rgba(57,255,20,.55);
@@ -6107,12 +6124,28 @@ function renderRoundPayments(){
   const cont = document.getElementById('rpPlayerList');
   if(!cont || !db) return;
   const round = parseInt(document.getElementById('rpRoundSelect')?.value || 2);
-  cont.innerHTML = `<p style="color:var(--text2);font-size:12px">${currentLang==='es'?'Cargando...':'Loading...'}</p>`;
-  db.ref('players').once('value').then(function(snap){
-    const players = snap.val() || {};
+  const es = currentLang === 'es';
+  cont.innerHTML = `<p style="color:var(--text2);font-size:12px">${es?'Cargando...':'Loading...'}</p>`;
+  Promise.all([
+    db.ref('players').once('value'),
+    db.ref('config/paymentNudge').once('value')
+  ]).then(function([playersSnap, nudgeSnap]){
+    const players = playersSnap.val() || {};
+    const nudge   = nudgeSnap.val() || {};
+    const isActive = !!(nudge.active && nudge.round === round);
+    const nudgeBtn = `<button onclick="togglePaymentNudge()" style="
+      width:100%;margin-bottom:14px;padding:10px 14px;border-radius:10px;cursor:pointer;
+      font-family:'DM Sans';font-size:12px;font-weight:700;text-align:center;
+      border:1.5px solid ${isActive?'#E74C3C':'rgba(212,175,55,.45)'};
+      background:${isActive?'rgba(231,76,60,.12)':'rgba(212,175,55,.07)'};
+      color:${isActive?'#E74C3C':'#D4AF37'}">
+      ${isActive
+        ? (es?'🔔 Aviso ACTIVO · Clic para desactivar':'🔔 Nudge ACTIVE · Click to deactivate')
+        : (es?'📢 Activar aviso de pago a pendientes':'📢 Activate payment reminder for pending')}
+    </button>`;
     const entries = Object.entries(players).filter(([,p])=>p && p.name);
     if(!entries.length){
-      cont.innerHTML = `<p style="color:var(--text2);font-size:12px">${currentLang==='es'?'Sin jugadores aún.':'No players yet.'}</p>`;
+      cont.innerHTML = nudgeBtn+`<p style="color:var(--text2);font-size:12px">${es?'Sin jugadores aún.':'No players yet.'}</p>`;
       return;
     }
     entries.sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''));
@@ -6130,7 +6163,7 @@ function renderRoundPayments(){
         ${badge}${btn}
       </div>`;
     }).join('');
-    cont.innerHTML = rows;
+    cont.innerHTML = nudgeBtn + rows;
   }).catch(function(){
     cont.innerHTML = '<p style="color:var(--red);font-size:12px">⚠️ Error cargando jugadores.</p>';
   });
@@ -6558,7 +6591,7 @@ function showSection(name){
   const chBtn = document.getElementById('championsBtn');
   if(esBtn) esBtn.style.display = name==='leaderboard' ? 'block' : 'none';
   if(chBtn) chBtn.style.display = name==='leaderboard' ? 'block' : 'none';
-  if(name==='leaderboard'){ renderLeaderboard(); setTimeout(checkFifaSplashTrigger, 500); }
+  if(name==='leaderboard'){ renderLeaderboard(); setTimeout(checkFifaSplashTrigger, 500); checkPaymentNudge(); }
   if(name==='picks'){
     currentRound = activeWeek > 0 ? activeWeek : 1;
     renderRoundTabs();
@@ -8164,6 +8197,65 @@ function announceNextMatchVoice(){
     text = texts[Math.floor(Math.random() * texts.length)];
   }
   speakVoice(text, {rate:0.88, pitch:1.0});
+}
+
+// ── PAYMENT NUDGE ─────────────────────────────────────────────
+function togglePaymentNudge(){
+  if(!adminLoggedIn || !db) return;
+  const round = parseInt(document.getElementById('rpRoundSelect')?.value || 2);
+  db.ref('config/paymentNudge').once('value').then(function(snap){
+    const cur = snap.val();
+    if(cur && cur.active && cur.round === round){
+      db.ref('config/paymentNudge').remove().then(function(){
+        showToast(t('Aviso de pago desactivado','Payment nudge deactivated'),'info');
+        renderRoundPayments();
+      });
+    } else {
+      db.ref('config/paymentNudge').set({round:round, active:true}).then(function(){
+        showToast(t('✅ Aviso activo para Jornada ','✅ Nudge active for Round ')+round,'success');
+        renderRoundPayments();
+      });
+    }
+  });
+}
+
+function checkPaymentNudge(){
+  if(!db) return;
+  const sessKey = 'wc2026_pnudge';
+  if(sessionStorage.getItem(sessKey)) return;
+  db.ref('config/paymentNudge').once('value').then(function(snap){
+    var cfg = snap.val();
+    if(!cfg || !cfg.active || !cfg.round) return;
+    if(isApprovedForRound(cfg.round)) return;
+    var pFirst = playerData && playerData.name ? playerData.name.trim().split(/\s+/)[0] : '';
+    var es = currentLang === 'es';
+    var r = cfg.round;
+    var greeting = pFirst ? (es ? '¡Hola, '+pFirst+'! ' : 'Hey, '+pFirst+'! ') : '';
+    var msg = es
+      ? greeting+'Recuerda que la <strong>Jornada '+r+'</strong> se aproxima y tienes un <strong>pago pendiente</strong> para poder participar. Contáctate con el administrador.'
+      : greeting+'Remember that <strong>Round '+r+'</strong> is coming up and you have a <strong>pending payment</strong> to join. Contact the admin.';
+    sessionStorage.setItem(sessKey, '1');
+    setTimeout(function(){ showPaymentNudgeBanner(msg); }, 700);
+  });
+}
+
+function showPaymentNudgeBanner(msg){
+  if(document.getElementById('paymentNudgeBanner')) return;
+  var el = document.createElement('div');
+  el.id = 'paymentNudgeBanner';
+  el.innerHTML = '<div class="pnb-icon">⚠️</div>'
+    +'<div class="pnb-text">'+msg+'</div>'
+    +'<button class="pnb-close" onclick="closePaymentNudge()">✕</button>';
+  document.body.appendChild(el);
+}
+
+function closePaymentNudge(){
+  var b = document.getElementById('paymentNudgeBanner');
+  if(!b) return;
+  b.style.transition = 'transform .3s ease,opacity .25s';
+  b.style.transform  = 'translateY(-110%)';
+  b.style.opacity    = '0';
+  setTimeout(function(){ b.remove(); }, 330);
 }
 
 // ── ADMIN DASHBOARD NAVIGATION ────────────────────────
