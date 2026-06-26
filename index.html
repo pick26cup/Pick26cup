@@ -5816,6 +5816,7 @@ function renderPickDist(round){
     const dist = {};
     const noPick = [];
     let homeWins=0, draws=0, awayWins=0;
+    const homeWinNames=[], drawNames=[], awayWinNames=[];
     const homeGoals={}, awayGoals={};
 
     allKeys.forEach(function(k){
@@ -5833,8 +5834,10 @@ function renderPickDist(round){
       const scoreKey = sh+'-'+sa;
       if(!dist[scoreKey]) dist[scoreKey] = [];
       dist[scoreKey].push(pName);
-      // outcome tally
-      if(sh > sa) homeWins++; else if(sh < sa) awayWins++; else draws++;
+      // outcome tally + name lists
+      if(sh > sa){ homeWins++; homeWinNames.push(pName); }
+      else if(sh < sa){ awayWins++; awayWinNames.push(pName); }
+      else { draws++; drawNames.push(pName); }
       // goal distribution
       homeGoals[sh] = (homeGoals[sh]||0) + 1;
       awayGoals[sa] = (awayGoals[sa]||0) + 1;
@@ -5862,30 +5865,29 @@ function renderPickDist(round){
     html += '</div></div>';
 
     if(totalVoted > 0){
-      // ── Win/Draw/Loss consensus ───────────────────────────
-      var wdlMax = Math.max(homeWins, draws, awayWins, 1);
-      var wdlBar = function(n, color, isResult){
-        var w = Math.round(n/wdlMax*100);
-        var pct = Math.round(n/totalVoted*100);
-        return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">'
-          +'<div style="flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden">'
-          +'<div style="width:'+w+'%;height:100%;background:'+color+';border-radius:4px;opacity:'+(isResult?.9:.55)+'"></div>'
-          +'</div>'
-          +'<span style="font-size:11px;font-weight:700;color:var(--text);min-width:14px;text-align:right">'+n+'</span>'
+      // ── Win/Draw/Loss with player names ──────────────────
+      var outcomeRow = function(emoji, label, names, color, isResult){
+        if(names.length === 0) return '';
+        var pct = Math.round(names.length/totalVoted*100);
+        return '<div style="margin-bottom:7px;padding:8px 11px;border-radius:8px;'
+          +'background:'+(isResult?'rgba(46,204,113,.06)':'rgba(255,255,255,.025)')+';'
+          +'border:1px solid '+(isResult?'rgba(46,204,113,.28)':'rgba(255,255,255,.06)')+'\">'
+          +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">'
+          +'<span style="font-size:13px">'+emoji+'</span>'
+          +'<span style="font-size:11px;font-weight:700;color:'+color+';flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+label+'</span>'
+          +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+names.length+'</span>'
           +'<span style="font-size:10px;color:var(--text2);min-width:28px;text-align:right">'+pct+'%</span>'
-          +(isResult?'<span style="font-size:10px">✅</span>':'<span style="font-size:10px;opacity:0"> </span>')
+          +(isResult?'<span style="font-size:10px;margin-left:2px">✅</span>':'')
+          +'</div>'
+          +'<div style="font-size:11px;color:var(--text2);line-height:1.75;padding-left:20px">'+names.map(function(n){return escapeHtml(n);}).join(' · ')+'</div>'
           +'</div>';
       };
       html += '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 12px;margin-bottom:10px">'
         +'<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase">Pronóstico del grupo</div>'
-        +'<div style="display:grid;grid-template-columns:auto 1fr;gap:2px 8px;align-items:center">'
-        +'<span style="font-size:11px;color:var(--text2);white-space:nowrap">🏠 '+escapeHtml(m.home.split(' ')[0])+'</span>'
-        +wdlBar(homeWins,'#3498db', resOutcome==='home')
-        +'<span style="font-size:11px;color:var(--text2)">⚖️ Empate</span>'
-        +wdlBar(draws,'#D4AF37', resOutcome==='draw')
-        +'<span style="font-size:11px;color:var(--text2);white-space:nowrap">✈️ '+escapeHtml(m.away.split(' ')[0])+'</span>'
-        +wdlBar(awayWins,'#E74C3C', resOutcome==='away')
-        +'</div></div>';
+        +outcomeRow('🏠', escapeHtml(m.home), homeWinNames, '#5dade2', resOutcome==='home')
+        +outcomeRow('⚖️', 'Empate', drawNames, '#D4AF37', resOutcome==='draw')
+        +outcomeRow('✈️', escapeHtml(m.away), awayWinNames, '#e74c3c', resOutcome==='away')
+        +'</div>';
 
       // ── Goals distribution ────────────────────────────────
       var goalsRow = function(label, goalsObj, resGoals){
@@ -5923,21 +5925,17 @@ function renderPickDist(round){
       sorted.forEach(function(entry){
         const score = entry[0], names = entry[1];
         const isWin = resStr && score === resStr;
-        const barW = Math.round(names.length/maxCount*100);
         const pct = totalVoted > 0 ? Math.round(names.length/totalVoted*100) : 0;
-        html += '<div style="margin-bottom:7px;padding:7px 10px;border-radius:8px;'
-          +'background:'+(isWin?'rgba(46,204,113,.07)':'rgba(255,255,255,.02)')+';'
-          +'border:1px solid '+(isWin?'rgba(46,204,113,.22)':'rgba(255,255,255,.05)')+'\">'
+        html += '<div style="margin-bottom:7px;padding:9px 12px;border-radius:8px;'
+          +'background:'+(isWin?'rgba(46,204,113,.07)':'rgba(255,255,255,.025)')+';'
+          +'border:1px solid '+(isWin?'rgba(46,204,113,.28)':'rgba(255,255,255,.06)')+'\">'
           +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
-          +'<span style="font-family:\'Bebas Neue\';font-size:17px;letter-spacing:1px;color:'+(isWin?'#2ECC71':'#D4AF37')+';min-width:34px">'+escapeHtml(score)+'</span>'
-          +'<div style="flex:1;height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden">'
-          +'<div style="width:'+barW+'%;height:100%;background:'+(isWin?'#2ECC71':'#D4AF37')+';border-radius:4px"></div>'
+          +'<span style="font-family:\'Bebas Neue\';font-size:20px;letter-spacing:2px;color:'+(isWin?'#2ECC71':'#D4AF37')+';min-width:38px;line-height:1">'+escapeHtml(score)+'</span>'
+          +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+names.length+' jugador'+(names.length!==1?'es':'')+'</span>'
+          +'<span style="font-size:10px;color:var(--text2);">'+pct+'%</span>'
+          +(isWin?'<span style="font-size:11px;margin-left:2px">✅</span>':'')
           +'</div>'
-          +'<span style="font-size:12px;font-weight:700;color:var(--text);min-width:16px;text-align:right">'+names.length+'</span>'
-          +'<span style="font-size:10px;color:var(--text2);min-width:28px;text-align:right">'+pct+'%</span>'
-          +(isWin?'<span style="font-size:11px">✅</span>':'')
-          +'</div>'
-          +'<div style="font-size:11px;color:var(--text2);padding-left:42px;line-height:1.7">'+names.map(function(n){ return escapeHtml(n); }).join(' · ')+'</div>'
+          +'<div style="font-size:12px;color:'+(isWin?'rgba(46,204,113,.85)':'var(--text2)')+';padding-left:46px;line-height:1.8">'+names.map(function(n){ return escapeHtml(n); }).join(' · ')+'</div>'
           +'</div>';
       });
     } else {
