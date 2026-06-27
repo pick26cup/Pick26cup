@@ -1326,54 +1326,50 @@ nav button:hover,nav button.active{
   filter:drop-shadow(0 0 12px rgba(212,175,55,.5));line-height:1;margin-top:4px}
 .pod-sub-title{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:5px;color:rgba(212,175,55,.45);margin-top:2px}
 /* ── stage ── */
-.pod-stage{display:flex;align-items:flex-end;justify-content:center;gap:10px;width:100%;padding:0 4px;flex:1;min-height:0;overflow:visible}
+.pod-stage{display:flex;align-items:flex-end;justify-content:center;gap:8px;width:100%;padding:0 4px;flex:1;min-height:0;overflow:visible}
 .pod-slot{display:flex;flex-direction:column;align-items:center;position:relative}
-.pod-slot-1{flex:0 0 155px}
-.pod-slot-2{flex:0 0 132px}
-.pod-slot-3{flex:0 0 118px}
-/* trophy cup — starts hidden, drops in from above after players arrive */
+.pod-slot-1{flex:0 0 148px}
+.pod-slot-2{flex:0 0 124px}
+.pod-slot-3{flex:0 0 110px}
+/* trophy cup — starts hidden, drops in from above after cards arrive */
 @keyframes pod-trophy-in{0%{transform:translateY(-130px) scale(0.25) rotate(-8deg);opacity:0}65%{transform:translateY(8px) scale(1.12) rotate(2deg);opacity:1}100%{transform:translateY(0) scale(1) rotate(0deg);opacity:1}}
-.pod-cup{display:block;text-align:center;line-height:1;margin-bottom:4px;opacity:0}
-.pod-slot-1 .pod-cup{font-size:50px;filter:drop-shadow(0 0 20px rgba(255,215,0,1)) drop-shadow(0 0 40px rgba(212,175,55,.6));
-  animation:pod-trophy-in .65s 2.4s cubic-bezier(.34,1.4,.64,1) both,pod-trophy-float 2.5s 3.2s ease-in-out infinite}
-.pod-slot-2 .pod-cup{font-size:38px;filter:drop-shadow(0 0 14px rgba(192,192,192,.9)) drop-shadow(0 0 28px rgba(160,160,160,.4));
-  animation:pod-trophy-in .65s 2.0s cubic-bezier(.34,1.4,.64,1) both,pod-trophy-float 2.5s 2.8s ease-in-out infinite}
-.pod-slot-3 .pod-cup{font-size:30px;filter:drop-shadow(0 0 12px rgba(205,127,50,.9)) drop-shadow(0 0 22px rgba(180,100,20,.35));
-  animation:pod-trophy-in .65s 2.8s cubic-bezier(.34,1.4,.64,1) both,pod-trophy-float 2.5s 3.6s ease-in-out infinite}
-/* walking avatar wrapper */
-.pod-walk-wrap{position:relative;overflow:visible;display:flex;align-items:flex-end;justify-content:center}
-.pod-slot-1 .pod-walk-wrap svg{filter:drop-shadow(0 8px 22px rgba(255,215,0,.28))}
-.pod-slot-2 .pod-walk-wrap svg{filter:drop-shadow(0 6px 16px rgba(192,192,192,.20))}
-.pod-slot-3 .pod-walk-wrap svg{filter:drop-shadow(0 5px 14px rgba(205,127,50,.18))}
-/* small metallic platform */
-.pod-platform{width:88%;height:18px;border-radius:4px 4px 0 0;position:relative}
-.pod-platform::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.15) 50%,transparent 65%);border-radius:inherit}
-.pod-slot-1 .pod-platform{background:linear-gradient(180deg,#F0C020,#9A7814);box-shadow:0 0 36px rgba(212,175,55,.55),0 0 70px rgba(212,175,55,.20)}
-.pod-slot-2 .pod-platform{background:linear-gradient(180deg,#D8D8D8,#606060);box-shadow:0 0 22px rgba(160,160,160,.38)}
-.pod-slot-3 .pod-platform{background:linear-gradient(180deg,#CD8C45,#5A3008);box-shadow:0 0 18px rgba(180,100,20,.32)}
-/* ── WALK-IN FROM LOCKER ROOM ── */
-/* 2nd place walks from LEFT tunnel */
-@keyframes pod-walk-left{0%{transform:translateX(-500px);opacity:0}6%{opacity:1}100%{transform:translateX(0);opacity:1}}
-/* 3rd place walks from RIGHT tunnel */
-@keyframes pod-walk-right{0%{transform:translateX(500px);opacity:0}6%{opacity:1}100%{transform:translateX(0);opacity:1}}
-/* 1st place (star) walks from CENTER bottom — grows as approaches camera */
-@keyframes pod-walk-star{0%{transform:scale(0.35) translateY(50px);opacity:0}100%{transform:scale(1) translateY(0);opacity:1}}
-/* Body bob while celebrating (after arriving) */
-@keyframes pod-body-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-.pod-enter-2{animation:pod-walk-left 2.0s 0.0s cubic-bezier(0.4,0,0.25,1) both}
-.pod-enter-3{animation:pod-walk-right 2.0s 0.25s cubic-bezier(0.4,0,0.25,1) both}
-.pod-enter-1{animation:pod-walk-star 1.1s 0.6s cubic-bezier(.34,1.25,.64,1) both}
-/* bob after walk-in (starts after walk animation ends) */
-.pod-slot-1 .pod-walk-wrap svg{animation:pod-body-bob .85s 1.8s ease-in-out infinite}
-.pod-slot-2 .pod-walk-wrap svg{animation:pod-body-bob .85s 2.1s ease-in-out infinite}
-.pod-slot-3 .pod-walk-wrap svg{animation:pod-body-bob .85s 2.3s ease-in-out infinite}
-/* label */
-.pod-label{text-align:center;padding:6px 2px 0;max-width:130px}
-.pod-player-name{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1.5px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:128px}
-.pod-slot-1 .pod-player-name{font-size:15px;color:#FFD700;text-shadow:0 0 10px rgba(212,175,55,.6)}
-.pod-player-pts{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:1px;color:rgba(255,255,255,.42);margin-top:1px}
-.pod-slot-1 .pod-player-pts{color:rgba(255,215,0,.55)}
-.pod-round-wins{font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:1.5px;color:#FFD700;background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.28);border-radius:6px;padding:2px 6px;display:inline-block;margin-top:3px}
+.pod-cup{display:block;text-align:center;line-height:1;margin-bottom:6px;opacity:0}
+.pod-slot-1 .pod-cup{font-size:50px;filter:drop-shadow(0 0 20px rgba(255,215,0,1)) drop-shadow(0 0 40px rgba(212,175,55,.6));animation:pod-trophy-in .65s 2.4s cubic-bezier(.34,1.4,.64,1) both,pod-trophy-float 2.5s 3.2s ease-in-out infinite}
+.pod-slot-2 .pod-cup{font-size:38px;filter:drop-shadow(0 0 14px rgba(192,192,192,.9)) drop-shadow(0 0 28px rgba(160,160,160,.4));animation:pod-trophy-in .65s 2.0s cubic-bezier(.34,1.4,.64,1) both,pod-trophy-float 2.5s 2.8s ease-in-out infinite}
+.pod-slot-3 .pod-cup{font-size:30px;filter:drop-shadow(0 0 12px rgba(205,127,50,.9)) drop-shadow(0 0 22px rgba(180,100,20,.35));animation:pod-trophy-in .65s 2.8s cubic-bezier(.34,1.4,.64,1) both,pod-trophy-float 2.5s 3.6s ease-in-out infinite}
+/* player portrait card */
+.pod-card{position:relative;display:flex;flex-direction:column;align-items:center;border-radius:20px;padding:18px 12px 14px;width:100%;gap:10px;border:1.5px solid transparent}
+.pod-slot-1 .pod-card{background:rgba(212,175,55,0.09);border-color:rgba(212,175,55,0.42);box-shadow:0 0 50px rgba(212,175,55,0.22),inset 0 1px 0 rgba(255,255,255,0.08);animation:pod-card-glow 2.5s 2.5s ease-in-out infinite}
+.pod-slot-2 .pod-card{background:rgba(200,200,200,0.05);border-color:rgba(180,180,180,0.28);box-shadow:0 0 24px rgba(160,160,160,0.1)}
+.pod-slot-3 .pod-card{background:rgba(180,110,40,0.06);border-color:rgba(180,110,40,0.25);box-shadow:0 0 18px rgba(160,90,30,0.1)}
+@keyframes pod-card-glow{0%,100%{box-shadow:0 0 50px rgba(212,175,55,0.22),inset 0 1px 0 rgba(255,255,255,0.08)}50%{box-shadow:0 0 80px rgba(212,175,55,0.45),0 0 140px rgba(212,175,55,0.15),inset 0 1px 0 rgba(255,255,255,0.14)}}
+/* rank number badge */
+.pod-rank-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:16px;border:2px solid}
+.pod-slot-1 .pod-rank-badge{background:linear-gradient(135deg,#FFD700,#9A7010);border-color:#FFD700;color:#000;box-shadow:0 0 16px rgba(212,175,55,0.9),0 2px 6px rgba(0,0,0,0.5)}
+.pod-slot-2 .pod-rank-badge{background:linear-gradient(135deg,#E0E0E0,#686868);border-color:#C0C0C0;color:#000;box-shadow:0 2px 6px rgba(0,0,0,0.4)}
+.pod-slot-3 .pod-rank-badge{background:linear-gradient(135deg,#CD8C45,#5A3008);border-color:#B07040;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.4)}
+/* glowing avatar ring */
+.pod-ring{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.pod-slot-1 .pod-ring{padding:4px;background:#0D0C0A;box-shadow:0 0 0 3px #D4AF37,0 0 28px rgba(212,175,55,0.9),0 0 56px rgba(212,175,55,0.35);animation:pod-ring-glow 2.2s 2.5s ease-in-out infinite,pod-av-float 2.2s 1.8s ease-in-out infinite}
+.pod-slot-2 .pod-ring{padding:3px;background:#0D0C0A;box-shadow:0 0 0 2px #909090,0 0 16px rgba(150,150,150,0.4);animation:pod-av-float 2.4s 2.1s ease-in-out infinite}
+.pod-slot-3 .pod-ring{padding:3px;background:#0D0C0A;box-shadow:0 0 0 2px #8A5828,0 0 14px rgba(160,90,40,0.35);animation:pod-av-float 2.6s 2.4s ease-in-out infinite}
+@keyframes pod-ring-glow{0%,100%{box-shadow:0 0 0 3px #D4AF37,0 0 28px rgba(212,175,55,0.9),0 0 56px rgba(212,175,55,0.35)}50%{box-shadow:0 0 0 4px #FFE566,0 0 44px rgba(212,175,55,1),0 0 88px rgba(212,175,55,0.55)}}
+@keyframes pod-av-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.pod-ring-inner{border-radius:50%;overflow:hidden;display:block;line-height:0}
+/* labels */
+.pod-label{text-align:center;width:100%}
+.pod-player-name{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1.5px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;display:block}
+.pod-slot-1 .pod-player-name{font-size:17px;color:#FFD700;text-shadow:0 0 12px rgba(212,175,55,0.6)}
+.pod-player-pts{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;color:rgba(255,255,255,0.9);line-height:1.1;display:block;margin-top:2px}
+.pod-slot-1 .pod-player-pts{font-size:30px;color:#FFD700;filter:drop-shadow(0 0 8px rgba(212,175,55,0.6))}
+.pod-pts-label{font-family:'Bebas Neue',sans-serif;font-size:8px;letter-spacing:2.5px;color:rgba(255,255,255,0.28);display:block}
+.pod-round-wins{font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:1.5px;color:#FFD700;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.28);border-radius:6px;padding:2px 7px;display:inline-block;margin-top:4px}
+/* card reveal animations */
+@keyframes pod-card-in{0%{transform:translateY(180px) scale(0.72);opacity:0}65%{transform:translateY(-8px) scale(1.03)}100%{transform:translateY(0) scale(1);opacity:1}}
+@keyframes pod-card-in-star{0%{transform:translateY(220px) scale(0.62);opacity:0}65%{transform:translateY(-14px) scale(1.05)}100%{transform:translateY(0) scale(1);opacity:1}}
+.pod-enter-2{animation:pod-card-in .9s 0.1s cubic-bezier(.34,1.3,.64,1) both}
+.pod-enter-3{animation:pod-card-in .9s 0.4s cubic-bezier(.34,1.3,.64,1) both}
+.pod-enter-1{animation:pod-card-in-star 1.05s 0.8s cubic-bezier(.34,1.35,.64,1) both}
 .pod-floor{width:100%;height:2px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.25),rgba(212,175,55,.1),rgba(212,175,55,.25),transparent);margin-bottom:6px}
 @keyframes pod-fadein{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .pod-fadein{animation:pod-fadein .5s ease-out both}
@@ -8821,26 +8817,30 @@ function _buildPodium(){
       bokeh.innerHTML = bHtml;
     }
 
-    // Build slot HTML — walking avatar version
+    // Build slot HTML — professional portrait card
     function slotHtml(player, rank){
       if(!player) return '';
       var cups = {1:'🏆', 2:'🥈', 3:'🥉'};
-      var avSz = rank===1 ? 98 : rank===2 ? 82 : 72;
+      var rankNums = {1:'1', 2:'2', 3:'3'};
+      var avSz = rank===1 ? 110 : rank===2 ? 90 : 78;
       var avatarCfg = player.avatar || {skin:0,hair:0,hairColor:0,beard:0,jersey:'neutro'};
-      var walkSvg = renderWalkingSVG(avatarCfg, avSz);
+      var avSvg = renderAvatarSVG(avatarCfg, avSz);
       var ptsDisp = Number.isInteger(player.pts) ? player.pts : player.pts.toFixed(1);
-      var flag = player.country ? '<img src="https://flagcdn.com/'+player.country+'.svg" style="height:10px;border-radius:1px;vertical-align:middle;margin-right:3px;opacity:.8">' : '';
+      var flag = player.country ? '<img src="https://flagcdn.com/'+player.country+'.svg" style="height:12px;border-radius:1px;vertical-align:middle;margin-right:3px;opacity:.85">' : '';
       var rwBadge = player.roundWins > 0
         ? '<div class="pod-round-wins">⚡ '+player.roundWins+' ronda'+(player.roundWins>1?'s':'')+' ganada'+(player.roundWins>1?'s':'')+'</div>'
         : '';
       return '<div class="pod-slot pod-slot-'+rank+' pod-enter-'+rank+'">'
         +'<span class="pod-cup">'+cups[rank]+'</span>'
-        +'<div class="pod-walk-wrap">'+walkSvg+'</div>'
-        +'<div class="pod-platform"></div>'
+        +'<div class="pod-card">'
+        +'<div class="pod-rank-badge">'+rankNums[rank]+'</div>'
+        +'<div class="pod-ring"><div class="pod-ring-inner">'+avSvg+'</div></div>'
         +'<div class="pod-label">'
         +'<div class="pod-player-name">'+flag+escapeHtml(player.name)+'</div>'
-        +'<div class="pod-player-pts">'+ptsDisp+' pts totales</div>'
+        +'<div class="pod-player-pts">'+ptsDisp+'</div>'
+        +'<div class="pod-pts-label">PUNTOS TOTALES</div>'
         +rwBadge
+        +'</div>'
         +'</div>'
         +'</div>';
     }
