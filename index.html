@@ -6818,8 +6818,10 @@ function showSection(name){
   });
   const esBtn = document.getElementById('exactScoreBtn');
   const chBtn = document.getElementById('championsBtn');
+  const pbBtn = document.getElementById('podiumBtn');
   if(esBtn) esBtn.style.display = name==='leaderboard' ? 'block' : 'none';
   if(chBtn) chBtn.style.display = name==='leaderboard' ? 'block' : 'none';
+  if(pbBtn) pbBtn.style.display = name==='leaderboard' ? 'block' : 'none';
   if(name==='leaderboard'){ renderLeaderboard(); setTimeout(checkFifaSplashTrigger, 500); checkPaymentNudge(); }
   if(name==='picks'){
     currentRound = activeWeek > 0 ? activeWeek : 1;
@@ -8780,6 +8782,186 @@ function dismissInstall(){
   document.getElementById('installBanner').style.display = 'none';
   sessionStorage.setItem('pwa-dismissed', '1');
 }
+
+// ══ PODIUM FINAL ══════════════════════════════════════════
+
+var _confettiAnim = null;
+var _podiumBuilt = false;
+
+function showPodiumModal(){
+  if(!_podiumBuilt) _buildPodium();
+  var ov = document.getElementById('podiumOverlay');
+  ov.classList.add('pod-visible');
+  document.body.style.overflow = 'hidden';
+  _startConfetti();
+}
+
+function closePodium(){
+  var ov = document.getElementById('podiumOverlay');
+  ov.classList.remove('pod-visible');
+  document.body.style.overflow = '';
+  if(_confettiAnim){ cancelAnimationFrame(_confettiAnim); _confettiAnim = null; }
+}
+
+function _buildPodium(){
+  // Compute total points across ALL rounds for each player
+  var stage = document.getElementById('podStage');
+  if(!stage) return;
+  _podiumBuilt = true;
+
+  function buildFromData(players, allPicks, results){
+    if(!players) return;
+    var totals = [];
+    Object.entries(players).forEach(function(entry){
+      var key = entry[0], player = entry[1];
+      if(!player.approved) return;
+      var picks = (allPicks[key] && allPicks[key].picks) || {};
+      var totalPts = 0;
+      for(var r = 1; r <= 7; r++){
+        var submitted = hasSubmittedRound(allPicks[key], player, r);
+        if(!submitted) continue;
+        var roundMs = MATCHES[r] || [];
+        roundMs.forEach(function(m){
+          var res = results && results[m.id];
+          var p = picks[m.id];
+          if(!res || !p) return;
+          totalPts += scoreMatch(m, p, res);
+        });
+        var pen = (player.penalties||{})[r] || (player.penalties||{})[String(r)] || 0;
+        if(pen) totalPts = Math.round((totalPts + pen)*10)/10;
+      }
+      totals.push({name: player.name||key, pts: totalPts, key: key, avatar: player.avatar||null, country: player.country||null});
+    });
+    totals.sort(function(a,b){ return b.pts - a.pts; });
+
+    var p1 = totals[0], p2 = totals[1], p3 = totals[2];
+
+    // Generate bokeh
+    var bokeh = document.getElementById('podBokeh');
+    if(bokeh){
+      var bColors = ['rgba(212,175,55,','rgba(100,100,200,','rgba(50,150,80,','rgba(200,100,50,','rgba(255,255,200,'];
+      var bHtml = '';
+      for(var i=0;i<40;i++){
+        var x=Math.random()*100, y=20+Math.random()*70;
+        var sz=2+Math.random()*8, op=0.2+Math.random()*0.5;
+        var c=bColors[Math.floor(Math.random()*bColors.length)];
+        var delay=Math.random()*3;
+        bHtml+='<div class="pod-bk" style="left:'+x+'%;top:'+y+'%;width:'+sz+'px;height:'+sz+'px;background:'+c+op+');animation-delay:'+delay+'s"></div>';
+      }
+      bokeh.innerHTML = bHtml;
+    }
+
+    // Build slot HTML
+    function slotHtml(player, rank, delayMs){
+      if(!player) return '';
+      var slotClass = 'pod-slot pod-slot-'+rank;
+      var avatarCfg = player.avatar || {skin:0,hair:0,hairColor:0,beard:0,jersey:'neutro'};
+      var avSz = rank===1 ? 66 : rank===2 ? 54 : 48;
+      var avSvg = renderAvatarSVG(avatarCfg, avSz);
+      var ptsDisp = Number.isInteger(player.pts) ? player.pts : player.pts.toFixed(1);
+      var crown = rank===1 ? '<div class="pod-crown">👑</div>' : '';
+      var countryFlag = player.country ? '<img src="https://flagcdn.com/'+player.country+'.svg" style="height:11px;border-radius:1px;vertical-align:middle;margin-right:3px;opacity:.8">' : '';
+      var riseDelay = delayMs+'ms';
+      return '<div class="'+slotClass+'">'
+        +'<div class="pod-avatar-ring pod-fadein" style="animation-delay:'+(delayMs+200)+'ms;position:relative">'
+        +crown
+        +'<div class="pod-av-inner">'+avSvg+'</div>'
+        +'</div>'
+        +'<div class="pod-block pod-rise" style="width:100%;animation-delay:'+riseDelay+';transform-origin:bottom center">'
+        +'<div class="pod-sheen"></div>'
+        +'<div class="pod-rank-num">'+rank+'</div>'
+        +'</div>'
+        +'<div class="pod-label pod-fadein" style="animation-delay:'+(delayMs+400)+'ms">'
+        +'<div class="pod-player-name">'+countryFlag+escapeHtml(player.name)+'</div>'
+        +'<div class="pod-player-pts">'+ptsDisp+' pts</div>'
+        +'</div>'
+        +'</div>';
+    }
+
+    // Order: 2nd left, 1st center, 3rd right
+    stage.innerHTML = slotHtml(p2, 2, 100) + slotHtml(p1, 1, 0) + slotHtml(p3, 3, 200);
+  }
+
+  if(db){
+    Promise.all([
+      db.ref('players').once('value'),
+      db.ref('picks').once('value'),
+      db.ref('results').once('value')
+    ]).then(function(snaps){
+      buildFromData(snaps[0].val()||{}, snaps[1].val()||{}, snaps[2].val()||{});
+    });
+  }
+}
+
+function _startConfetti(){
+  var canvas = document.getElementById('confettiCanvas');
+  if(!canvas) return;
+  var W = window.innerWidth, H = window.innerHeight;
+  canvas.width = W; canvas.height = H;
+  var ctx = canvas.getContext('2d');
+
+  var colors = ['#FFD700','#FFF700','#FF3355','#33AAFF','#33FF88','#FF9933','#CC33FF','#ffffff','#D4AF37'];
+  var particles = [];
+  for(var i=0;i<180;i++){
+    particles.push({
+      x: Math.random()*W,
+      y: -20 - Math.random()*300,
+      vx: (Math.random()-0.5)*3,
+      vy: 1.5 + Math.random()*3,
+      rot: Math.random()*360,
+      rotV: (Math.random()-0.5)*8,
+      w: 6+Math.random()*10,
+      h: 3+Math.random()*5,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      type: Math.random()<0.15 ? 'circle' : 'rect',
+      alpha: 0.7+Math.random()*0.3,
+      wobble: Math.random()*Math.PI*2,
+      wobbleV: 0.05+Math.random()*0.05
+    });
+  }
+
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    var alive = false;
+    particles.forEach(function(p){
+      p.x += p.vx + Math.sin(p.wobble)*0.8;
+      p.y += p.vy;
+      p.vy += 0.06;
+      p.rot += p.rotV;
+      p.wobble += p.wobbleV;
+      if(p.y < H+20) alive = true;
+      ctx.save();
+      ctx.globalAlpha = p.y > H*0.8 ? p.alpha*(1-(p.y-H*0.8)/(H*0.2)) : p.alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI/180);
+      ctx.fillStyle = p.color;
+      if(p.type==='circle'){
+        ctx.beginPath();
+        ctx.arc(0,0,p.w/2,0,Math.PI*2);
+        ctx.fill();
+      } else {
+        ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      }
+      ctx.restore();
+      // respawn from top
+      if(p.y > H+20){
+        p.y = -20;
+        p.x = Math.random()*W;
+        p.vy = 1.5+Math.random()*3;
+      }
+    });
+    _confettiAnim = requestAnimationFrame(frame);
+  }
+  if(_confettiAnim) cancelAnimationFrame(_confettiAnim);
+  frame();
+}
+
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape'){
+    var ov = document.getElementById('podiumOverlay');
+    if(ov && ov.classList.contains('pod-visible')) closePodium();
+  }
+});
 </script>
 <!-- ══ PODIUM FINAL OVERLAY ══ -->
 <div id="podiumOverlay">
