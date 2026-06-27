@@ -1282,6 +1282,133 @@ nav button:hover,nav button.active{
 .bk-final-badge{display:inline-block;font-family:'Bebas Neue';font-size:8px;letter-spacing:1.5px;color:#000;background:linear-gradient(135deg,#D4AF37,#FFD700);border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle}
 /* Sub-section title for final */
 .bk-round-3 .bk-slot:last-child .bk-card{position:relative}
+/* ── PODIUM ──────────────────────────────────────────────── */
+#podiumOverlay{position:fixed;inset:0;z-index:1000;overflow:hidden;display:none;background:#020100}
+#podiumOverlay.pod-visible{display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+.pod-bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse 120% 60% at 50% 0%,rgba(212,175,55,0.10) 0%,transparent 60%),
+  radial-gradient(ellipse 80% 40% at 30% 80%,rgba(50,30,100,0.08) 0%,transparent 50%),
+  radial-gradient(ellipse 80% 40% at 70% 80%,rgba(30,80,50,0.06) 0%,transparent 50%),
+  linear-gradient(180deg,#050300 0%,#080600 50%,#030200 100%)}
+/* crowd bokeh dots */
+.pod-bokeh{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.pod-bk{position:absolute;border-radius:50%;filter:blur(8px);animation:pod-bk-pulse 3s ease-in-out infinite alternate}
+@keyframes pod-bk-pulse{0%{opacity:.3}100%{opacity:.7}}
+/* spotlight cones */
+.pod-spot{position:absolute;top:0;width:220px;height:70%;pointer-events:none;transform-origin:top center}
+.pod-spot-1{left:50%;margin-left:-110px;background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(212,175,55,0.13) 0%,transparent 70%)}
+.pod-spot-2{left:20%;background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(200,200,255,0.07) 0%,transparent 65%)}
+.pod-spot-3{right:20%;background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(200,200,255,0.07) 0%,transparent 65%)}
+/* modal content */
+.pod-modal{position:relative;z-index:5;width:100%;max-width:520px;padding:24px 16px 0;display:flex;flex-direction:column;align-items:center;flex:1;min-height:0}
+.pod-close{position:fixed;top:16px;right:16px;z-index:20;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;transition:.2s}
+.pod-close:hover{background:rgba(255,255,255,.15);color:#fff}
+/* title */
+.pod-title-wrap{text-align:center;margin-bottom:18px}
+.pod-trophy-icon{font-size:52px;line-height:1;display:block;filter:drop-shadow(0 0 20px rgba(212,175,55,.7)) drop-shadow(0 0 40px rgba(212,175,55,.3));animation:pod-trophy-float 3s ease-in-out infinite}
+@keyframes pod-trophy-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.pod-main-title{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:8px;
+  background:linear-gradient(170deg,#fff 0%,#FFD700 30%,#D4AF37 60%,#B8860B 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 12px rgba(212,175,55,.5));line-height:1;margin-top:6px}
+.pod-sub-title{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:5px;color:rgba(212,175,55,.45);margin-top:3px}
+/* stage */
+.pod-stage{display:flex;align-items:flex-end;justify-content:center;gap:6px;width:100%;padding:0 8px;flex:1;min-height:0;max-height:520px}
+/* each slot = avatar + block + label stack */
+.pod-slot{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative}
+.pod-slot-1{flex:0 0 160px}
+.pod-slot-2{flex:0 0 140px}
+.pod-slot-3{flex:0 0 130px}
+/* avatar ring */
+.pod-avatar-ring{position:relative;z-index:3;margin-bottom:-12px}
+.pod-avatar-ring .pod-av-inner{border-radius:50%;overflow:hidden;border:3px solid;box-shadow:0 0 20px,0 0 40px,0 4px 20px rgba(0,0,0,.8)}
+.pod-slot-1 .pod-av-inner{width:72px;height:72px;border-color:#FFD700;box-shadow:0 0 20px rgba(255,215,0,.7),0 0 50px rgba(212,175,55,.3),0 4px 20px rgba(0,0,0,.8)}
+.pod-slot-2 .pod-av-inner{width:60px;height:60px;border-color:#C0C0C0;box-shadow:0 0 16px rgba(192,192,192,.6),0 0 36px rgba(180,180,180,.25),0 4px 16px rgba(0,0,0,.8)}
+.pod-slot-3 .pod-av-inner{width:54px;height:54px;border-color:#CD7F32;box-shadow:0 0 14px rgba(205,127,50,.6),0 0 30px rgba(180,100,20,.25),0 4px 14px rgba(0,0,0,.8)}
+.pod-crown{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:20px;filter:drop-shadow(0 0 6px rgba(255,215,0,.8));animation:pod-crown-bounce .6s ease-in-out infinite alternate}
+@keyframes pod-crown-bounce{0%{transform:translateX(-50%) translateY(0)}100%{transform:translateX(-50%) translateY(-4px)}}
+/* block */
+.pod-block{width:100%;border-radius:6px 6px 0 0;position:relative;overflow:visible;transform-origin:bottom center}
+/* top face of block */
+.pod-block::before{content:'';position:absolute;top:-10px;left:4%;width:92%;height:14px;border-radius:4px 4px 0 0;z-index:1}
+/* floor reflection */
+.pod-block::after{content:'';position:absolute;bottom:-40px;left:5%;width:90%;height:40px;border-radius:0 0 50% 50%;filter:blur(16px);opacity:.5;z-index:-1}
+/* GOLD */
+.pod-slot-1 .pod-block{height:200px;
+  background:linear-gradient(180deg,
+    rgba(255,252,200,.95) 0%,rgba(255,235,80,.9) 2%,
+    #F0C020 10%,#D4AF37 28%,#C09828 48%,
+    #9A7814 65%,#70550A 82%,rgba(30,18,0,.85) 100%);
+  box-shadow:
+    inset 0 4px 20px rgba(255,255,180,.7),
+    inset 3px 0 12px rgba(255,240,150,.2),
+    inset -3px 0 12px rgba(0,0,0,.5),
+    inset 0 -6px 30px rgba(0,0,0,.85),
+    0 0 80px rgba(212,175,55,.55),
+    0 0 160px rgba(212,175,55,.18),
+    0 30px 60px rgba(0,0,0,.9)}
+.pod-slot-1 .pod-block::before{
+  background:linear-gradient(180deg,rgba(255,255,220,.9) 0%,rgba(230,190,60,.6) 100%);
+  box-shadow:0 0 12px rgba(255,230,100,.5)}
+.pod-slot-1 .pod-block::after{background:rgba(212,175,55,.6)}
+/* SILVER */
+.pod-slot-2 .pod-block{height:160px;
+  background:linear-gradient(180deg,
+    rgba(255,255,255,.95) 0%,rgba(230,230,230,.9) 2%,
+    #D8D8D8 10%,#C0C0C0 28%,#A8A8A8 48%,
+    #888 65%,#606060 82%,rgba(20,20,20,.85) 100%);
+  box-shadow:
+    inset 0 4px 18px rgba(255,255,255,.75),
+    inset 3px 0 10px rgba(255,255,255,.2),
+    inset -3px 0 10px rgba(0,0,0,.5),
+    inset 0 -5px 24px rgba(0,0,0,.85),
+    0 0 60px rgba(180,180,180,.4),
+    0 0 120px rgba(180,180,180,.12),
+    0 24px 50px rgba(0,0,0,.9)}
+.pod-slot-2 .pod-block::before{
+  background:linear-gradient(180deg,rgba(255,255,255,.9) 0%,rgba(200,200,200,.5) 100%);
+  box-shadow:0 0 10px rgba(220,220,220,.5)}
+.pod-slot-2 .pod-block::after{background:rgba(160,160,160,.5)}
+/* BRONZE */
+.pod-slot-3 .pod-block{height:130px;
+  background:linear-gradient(180deg,
+    rgba(255,220,180,.9) 0%,rgba(220,150,80,.85) 2%,
+    #CD8C45 10%,#CD7F32 28%,#B86A20 48%,
+    #8B4E10 65%,#5A3008 82%,rgba(25,10,0,.85) 100%);
+  box-shadow:
+    inset 0 4px 16px rgba(255,200,120,.6),
+    inset 3px 0 10px rgba(255,180,80,.15),
+    inset -3px 0 10px rgba(0,0,0,.5),
+    inset 0 -5px 22px rgba(0,0,0,.85),
+    0 0 50px rgba(205,127,50,.4),
+    0 0 100px rgba(180,100,20,.12),
+    0 20px 40px rgba(0,0,0,.9)}
+.pod-slot-3 .pod-block::before{
+  background:linear-gradient(180deg,rgba(255,210,160,.85) 0%,rgba(200,130,50,.5) 100%);
+  box-shadow:0 0 10px rgba(220,160,80,.4)}
+.pod-slot-3 .pod-block::after{background:rgba(180,100,30,.45)}
+/* anisotropic sheen line - that diagonal bright streak of real metal */
+.pod-block .pod-sheen{position:absolute;top:0;left:0;right:0;bottom:0;
+  background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.08) 45%,rgba(255,255,255,.18) 50%,rgba(255,255,255,.06) 55%,transparent 70%);
+  border-radius:inherit;pointer-events:none}
+/* rank number on block face */
+.pod-rank-num{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+  font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:2px;opacity:.12;color:#fff;pointer-events:none;line-height:1}
+/* label below block */
+.pod-label{text-align:center;padding:10px 4px 0;max-width:140px}
+.pod-player-name{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;color:#fff;text-shadow:0 0 12px rgba(0,0,0,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+.pod-slot-1 .pod-player-name{font-size:16px;color:#FFD700;text-shadow:0 0 10px rgba(212,175,55,.6)}
+.pod-player-pts{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1.5px;color:rgba(255,255,255,.45);margin-top:1px}
+.pod-slot-1 .pod-player-pts{color:rgba(255,215,0,.55)}
+/* floor */
+.pod-floor{width:100%;height:2px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.25),rgba(212,175,55,.1),rgba(212,175,55,.25),transparent);margin-bottom:6px}
+/* entrance animation */
+@keyframes pod-rise{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}
+@keyframes pod-fadein{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.pod-rise{animation:pod-rise .7s cubic-bezier(.34,1.36,.64,1) both}
+.pod-fadein{animation:pod-fadein .5s ease-out both}
+/* confetti canvas */
+#confettiCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:8}
 </style>
 </head>
 <body>
@@ -1849,6 +1976,7 @@ nav button:hover,nav button.active{
     <!-- ── Leaderboard floating buttons (leaderboard only) ── -->
     <button id="championsBtn" onclick="toggleChampionsModal()" title="Round Champions" style="display:none;position:fixed;bottom:24px;left:24px;z-index:300;padding:10px 18px;border-radius:30px;background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;cursor:pointer;box-shadow:0 4px 18px rgba(212,175,55,.45);color:#000;font-family:'Bebas Neue';font-size:14px;letter-spacing:2px;transition:.2s;white-space:nowrap">🏆 ROUND CHAMPIONS</button>
     <button id="exactScoreBtn" onclick="toggleCloserCard()" title="Exact Score" style="display:none;position:fixed;bottom:76px;left:24px;z-index:300;padding:10px 18px;border-radius:30px;background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;cursor:pointer;box-shadow:0 4px 18px rgba(212,175,55,.45);color:#000;font-family:'Bebas Neue';font-size:14px;letter-spacing:2px;transition:.2s;white-space:nowrap">⭐ EXACT SCORE</button>
+    <button id="podiumBtn" onclick="showPodiumModal()" title="Podio Final" style="display:none;position:fixed;bottom:128px;left:24px;z-index:300;padding:10px 18px;border-radius:30px;background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;cursor:pointer;box-shadow:0 4px 18px rgba(212,175,55,.45);color:#000;font-family:'Bebas Neue';font-size:14px;letter-spacing:2px;transition:.2s;white-space:nowrap">🏆 PODIO FINAL</button>
 
     <!-- ── Exact Score modal ── -->
     <div id="exactScoreModal" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding:0" onclick="if(event.target===this)toggleCloserCard()">
@@ -8653,5 +8781,24 @@ function dismissInstall(){
   sessionStorage.setItem('pwa-dismissed', '1');
 }
 </script>
+<!-- ══ PODIUM FINAL OVERLAY ══ -->
+<div id="podiumOverlay">
+  <canvas id="confettiCanvas"></canvas>
+  <div class="pod-bg"></div>
+  <div class="pod-bokeh" id="podBokeh"></div>
+  <div class="pod-spot pod-spot-1"></div>
+  <div class="pod-spot pod-spot-2"></div>
+  <div class="pod-spot pod-spot-3"></div>
+  <button class="pod-close" onclick="closePodium()">✕</button>
+  <div class="pod-modal">
+    <div class="pod-title-wrap pod-fadein" style="animation-delay:.1s">
+      <span class="pod-trophy-icon">🏆</span>
+      <div class="pod-main-title">CAMPEÓN</div>
+      <div class="pod-sub-title">PICK26 · COPA MUNDIAL 2026</div>
+    </div>
+    <div class="pod-stage" id="podStage"></div>
+    <div class="pod-floor"></div>
+  </div>
+</div>
 </body>
 </html>
