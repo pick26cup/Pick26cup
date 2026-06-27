@@ -5487,8 +5487,8 @@ function renderAdminMatches(){
         <input type="number" min="0" max="20" placeholder="A" id="rs_a_${m.id}" style="width:40px"/>
         ${isKO ? `<select id="rs_w_${m.id}" title="Solo si hubo penales / ET" style="background:#1a1a1a;border:1px solid #444;color:var(--text);border-radius:6px;padding:3px 6px;font-size:11px;margin-left:4px">
           <option value="">90min decide</option>
-          <option value="home">⚡ Local (PEN/ET)</option>
-          <option value="away">⚡ Visitante (PEN/ET)</option>
+          <option value="home">⚡ ${escapeHtml(aHomeName)} (PEN/ET)</option>
+          <option value="away">⚡ ${escapeHtml(aAwayName)} (PEN/ET)</option>
         </select>` : ''}
       </div>
       <button class="btn-sm btn-save" id="savebtn_${m.id}" onclick="saveResult('${m.id}')">Save</button>
