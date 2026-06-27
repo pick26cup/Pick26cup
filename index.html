@@ -2229,6 +2229,11 @@ function isPlaceholderTeam(name){
   return getFlag(name) === '';
 }
 
+function isKnockoutMatch(m){
+  if(!m || !m.id) return false;
+  return parseInt(m.id.split('_')[0]) >= 4;
+}
+
 // Turn a bracket placeholder into a human-readable, bilingual label.
 function prettyTeamLabel(name, lang){
   if(!name) return name;
@@ -4092,6 +4097,7 @@ function renderMatches(){
   roundMatches.forEach((m, idx)=>{
     const isFinal = m.final;
     const isCloser = m.closer;
+    const isKnockout = isKnockoutMatch(m);
     const userPick = picks[m.id] || {};
     const card = document.createElement('div');
     card.className = 'match-card';
@@ -4166,19 +4172,19 @@ function renderMatches(){
         </div>
       </div>
       ${(isFinal || isCloser) ? '' : `<div class="pick-btns">
-        <button class="pick-btn ${pickH}" ${disabledPick} 
+        <button class="pick-btn ${pickH}" ${disabledPick}
           onclick="setPick('${m.id}','home',this)">
           ${currentLang==='es'?'Local':'Home'} ${homeFlag}
         </button>
-        <button class="pick-btn ${pickD}" ${disabledPick}
+        ${!isKnockout ? `<button class="pick-btn ${pickD}" ${disabledPick}
           onclick="setPick('${m.id}','draw',this)">
           ${currentLang==='es'?'Empate':'Draw'} 🤝
-        </button>
+        </button>` : ''}
         <button class="pick-btn ${pickA}" ${disabledPick}
           onclick="setPick('${m.id}','away',this)">
           ${currentLang==='es'?'Visitante':'Away'} ${awayFlag}
         </button>
-      </div>`}
+      </div>${isKnockout ? `<p style="font-size:10px;color:rgba(255,215,0,.5);text-align:center;margin:4px 0 0;letter-spacing:.3px">⚡ ${currentLang==='es'?'Eliminatoria — sin empates (puede haber penales)':'Knockout — no draws (may go to penalties)'}</p>` : ''}`}
       ${scoreSection}
     `;
     container.appendChild(card);
@@ -5199,8 +5205,13 @@ function pickMatchesResult(pick, res){
   if(!pick||!res) return false;
   const diff = res.scoreH - res.scoreA;
   if(pick==='home' && diff>0) return true;
-  if(pick==='draw' && diff===0) return true;
   if(pick==='away' && diff<0) return true;
+  if(diff===0){
+    // Knockout: tied score decided by ET/penalties — use res.winner override
+    if(res.winner) return pick === res.winner;
+    // Group stage: real draw
+    return pick==='draw';
+  }
   return false;
 }
 
@@ -5241,7 +5252,7 @@ function scoreMatch(match, pick, res){
     const pH = Number(sH), pA = Number(sA);
     if(pH === rH && pA === rA) return 3;
     const predWinner = pH > pA ? 'home' : (pA > pH ? 'away' : 'draw');
-    const realWinner = rH > rA ? 'home' : (rA > rH ? 'away' : 'draw');
+    const realWinner = rH > rA ? 'home' : (rA > rH ? 'away' : (res.winner || 'draw'));
     const round = match.id ? parseInt(match.id.split('_')[0]) : 1;
     if(round >= 2) return predWinner === realWinner ? 1 : 0;
     // J1 tiered
@@ -5467,12 +5478,18 @@ function renderAdminMatches(){
     const aAway = customTeamNames[m.id+'_away']||m.away;
     const aHomeName = isPlaceholderTeam(aHome)?prettyTeamLabel(aHome):aHome;
     const aAwayName = isPlaceholderTeam(aAway)?prettyTeamLabel(aAway):aAway;
+    const isKO = isKnockoutMatch(m);
     item.innerHTML = `
       <div class="admin-match-teams">${getTeamVisual(aHome)} ${escapeHtml(aHomeName)} <strong>vs</strong> ${escapeHtml(aAwayName)} ${getTeamVisual(aAway)}</div>
       <div class="admin-score-inputs">
         <input type="number" min="0" max="20" placeholder="H" id="rs_h_${m.id}" style="width:40px"/>
         <span style="color:var(--gold);font-weight:700">—</span>
         <input type="number" min="0" max="20" placeholder="A" id="rs_a_${m.id}" style="width:40px"/>
+        ${isKO ? `<select id="rs_w_${m.id}" title="Solo si hubo penales / ET" style="background:#1a1a1a;border:1px solid #444;color:var(--text);border-radius:6px;padding:3px 6px;font-size:11px;margin-left:4px">
+          <option value="">90min decide</option>
+          <option value="home">⚡ Local (PEN/ET)</option>
+          <option value="away">⚡ Visitante (PEN/ET)</option>
+        </select>` : ''}
       </div>
       <button class="btn-sm btn-save" id="savebtn_${m.id}" onclick="saveResult('${m.id}')">Save</button>
       <button class="btn-sm btn-delete" id="clearbtn_${m.id}" onclick="clearResult('${m.id}')" style="display:none">🗑 Clear</button>
@@ -5488,8 +5505,10 @@ function renderAdminMatches(){
         if(r){
           const hEl = document.getElementById('rs_h_'+m.id);
           const aEl = document.getElementById('rs_a_'+m.id);
+          const wEl = document.getElementById('rs_w_'+m.id);
           if(hEl) hEl.value = r.scoreH;
           if(aEl) aEl.value = r.scoreA;
+          if(wEl && r.winner) wEl.value = r.winner;
           markSaveBtnSaved(m.id);
         }
       });
@@ -5502,8 +5521,10 @@ function renderAdminMatches(){
         const r = JSON.parse(saved);
         const hEl = document.getElementById('rs_h_'+m.id);
         const aEl = document.getElementById('rs_a_'+m.id);
+        const wEl = document.getElementById('rs_w_'+m.id);
         if(hEl) hEl.value = r.scoreH;
         if(aEl) aEl.value = r.scoreA;
+        if(wEl && r.winner) wEl.value = r.winner;
         markSaveBtnSaved(m.id);
       }
     });
@@ -5516,6 +5537,8 @@ function saveResult(matchId){
   const a = parseInt(document.getElementById('rs_a_'+matchId).value);
   if(isNaN(h)||isNaN(a)){ showToast(currentLang==='es'?'Ingresa un marcador válido':'Enter valid score','error'); return; }
   const result = {scoreH:h, scoreA:a, updatedAt:Date.now()};
+  const wEl = document.getElementById('rs_w_'+matchId);
+  if(wEl && wEl.value) result.winner = wEl.value;
   localStorage.setItem('wc2026_result_'+matchId, JSON.stringify(result));
   if(db){
     db.ref('results/'+matchId).set(result).then(function(){
@@ -6165,7 +6188,8 @@ function renderAdminPickViewerContent(){
     // Result + points
     let resHtml='', ptsHtml='', ptsBg='rgba(255,255,255,.04)';
     if(res){
-      resHtml=`<span style="font-size:11px;color:var(--text2)">${res.scoreH}-${res.scoreA}</span>`;
+      var penNote = (res.winner && res.scoreH === res.scoreA) ? ' <span style="font-size:9px;background:rgba(100,160,255,.25);color:#adf;border-radius:4px;padding:1px 4px">PEN</span>' : '';
+      resHtml=`<span style="font-size:11px;color:var(--text2)">${res.scoreH}-${res.scoreA}${penNote}</span>`;
       const pts = scoreMatch(m, pick, res);
       runningPts += pts;
       if(pts===3)       { ptsHtml=`<strong style="color:#2ecc71">+3</strong>`; ptsBg='rgba(46,204,113,.12)'; }
@@ -7717,6 +7741,7 @@ function renderBracket(){
       if(!r) return null;
       if(r.scoreH > r.scoreA) return 'home';
       if(r.scoreA > r.scoreH) return 'away';
+      if(r.winner) return r.winner; // ET/PEN tiebreak
       return null;
     }
 
@@ -7748,8 +7773,10 @@ function renderBracket(){
       var played = !!r2;
       var extra = isFinal ? ' bk-final-card' : '';
       if(played) extra += ' bk-played';
-      var badge = isFinal ? '<span class="bk-final-badge">'+(es?'FINAL':'FINAL')+'</span>' : '';
-      var dateLabel = m.date+' '+m.time+badge;
+      var badge = isFinal ? '<span class="bk-final-badge">FINAL</span>' : '';
+      var penBadge = (r2 && r2.winner && r2.scoreH === r2.scoreA)
+        ? '<span class="bk-final-badge" style="background:rgba(100,160,255,.8);color:#000;margin-left:3px">PEN</span>' : '';
+      var dateLabel = m.date+' '+m.time+badge+penBadge;
       return '<div class="bk-card'+extra+'">'
         +'<div class="bk-date">'+dateLabel+'</div>'
         +teamRowHtml(m, true)
