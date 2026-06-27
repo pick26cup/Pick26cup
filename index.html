@@ -1198,6 +1198,90 @@ nav button:hover,nav button.active{
 .lineup-num{width:24px;text-align:center;font-weight:800;color:var(--text2);font-size:12px;flex-shrink:0}
 .lineup-bench-lbl{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:1px;margin:8px 0 4px;text-transform:uppercase}
 .lineup-bench-player{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(240,232,208,.6);padding:2px 0}
+
+/* ── BRACKET / ELIMINATORIAS ──────────────────────────────── */
+.grp-tabs{display:flex;gap:8px;margin-bottom:16px}
+.grp-tab{flex:1;padding:9px 0;font-family:'Bebas Neue';font-size:15px;letter-spacing:2px;border-radius:10px;border:1.5px solid rgba(212,175,55,.22);background:transparent;color:var(--text2);cursor:pointer;transition:all .2s}
+.grp-tab.active{background:rgba(212,175,55,.15);border-color:var(--gold3);color:var(--gold);box-shadow:0 0 14px rgba(212,175,55,.18)}
+#panel-bracket{}
+.bk-outer{padding-top:4px}
+.bk-hdr-row{display:flex;padding:0 0 8px;gap:0;min-width:728px}
+.bk-hdr-col{text-align:center;font-family:'Bebas Neue';font-size:12px;letter-spacing:2px;color:var(--gold);opacity:.8;flex:0 0 148px}
+.bk-hdr-gap{flex:0 0 20px}
+.bk-hdr-champ{flex:0 0 56px;text-align:center;font-family:'Bebas Neue';font-size:11px;letter-spacing:2px;color:var(--gold);opacity:.6}
+.bk-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:16px}
+.bk-grid{display:flex;gap:20px;align-items:stretch;overflow:visible;min-width:728px;padding:2px 0 2px 2px}
+.bk-round{display:flex;flex-direction:column;overflow:visible;flex-shrink:0;width:148px}
+.bk-slot{position:relative;overflow:visible;display:flex;align-items:center}
+.bk-round-0 .bk-slot{height:60px}
+.bk-round-1 .bk-slot{height:120px}
+.bk-round-2 .bk-slot{height:240px}
+.bk-round-3 .bk-slot{height:480px}
+/* right connectors: top match of pair */
+.bk-round-0 .bk-slot:nth-child(odd)::after,
+.bk-round-1 .bk-slot:nth-child(odd)::after,
+.bk-round-2 .bk-slot:nth-child(odd)::after{
+  content:'';position:absolute;left:100%;top:50%;width:20px;height:50%;
+  border-top:1.5px solid rgba(212,175,55,.28);border-right:1.5px solid rgba(212,175,55,.28);
+  pointer-events:none;z-index:1}
+/* right connectors: bottom match of pair */
+.bk-round-0 .bk-slot:nth-child(even)::after,
+.bk-round-1 .bk-slot:nth-child(even)::after,
+.bk-round-2 .bk-slot:nth-child(even)::after{
+  content:'';position:absolute;left:100%;top:0;width:20px;height:50%;
+  border-bottom:1.5px solid rgba(212,175,55,.28);border-right:1.5px solid rgba(212,175,55,.28);
+  pointer-events:none;z-index:1}
+/* left connectors: incoming horizontal line for R16/QF/SF */
+.bk-round-1 .bk-slot::before,
+.bk-round-2 .bk-slot::before,
+.bk-round-3 .bk-slot::before{
+  content:'';position:absolute;right:100%;top:50%;width:20px;height:1.5px;
+  background:rgba(212,175,55,.28);transform:translateY(-50%);
+  pointer-events:none;z-index:1}
+/* Match card */
+.bk-card{width:100%;background:linear-gradient(160deg,rgba(24,22,14,.97),rgba(18,14,0,.95));border:1px solid rgba(212,175,55,.18);border-radius:9px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.bk-card.bk-played{border-color:rgba(212,175,55,.32)}
+.bk-card.bk-final-card{border:1.5px solid rgba(255,215,0,.55);box-shadow:0 0 22px rgba(212,175,55,.28),0 0 50px rgba(212,175,55,.1)}
+@keyframes bk-glow{0%,100%{box-shadow:0 0 22px rgba(212,175,55,.28),0 0 50px rgba(212,175,55,.1)}50%{box-shadow:0 0 40px rgba(255,220,0,.55),0 0 80px rgba(212,175,55,.25)}}
+.bk-card.bk-final-card.bk-played{animation:bk-glow 2.5s ease-in-out infinite}
+.bk-date{font-size:9px;color:rgba(255,255,255,.35);text-align:center;padding:3px 4px;letter-spacing:.4px;line-height:1;border-bottom:1px solid rgba(255,255,255,.05)}
+.bk-team{display:flex;align-items:center;gap:4px;padding:4px 6px;transition:background .15s}
+.bk-team+.bk-team{border-top:1px solid rgba(255,255,255,.05)}
+.bk-team.bk-win{background:rgba(212,175,55,.13)}
+.bk-team.bk-lose{opacity:.38}
+.bk-flag{font-size:13px;min-width:15px;line-height:1;flex-shrink:0}
+.bk-name{font-size:9.5px;font-weight:600;color:var(--text);flex:1;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.1px}
+.bk-name.bk-ph{color:rgba(255,255,255,.35);font-style:italic;font-size:8.5px}
+.bk-score{font-family:'Bebas Neue';font-size:13px;min-width:12px;text-align:right;color:var(--text2);flex-shrink:0}
+.bk-score.bk-sc-win{color:var(--gold);text-shadow:0 0 6px rgba(212,175,55,.6)}
+.bk-team.bk-win .bk-name{color:var(--gold)}
+/* Bigger cards for later rounds */
+.bk-round-1 .bk-name{font-size:10.5px}
+.bk-round-1 .bk-flag{font-size:15px}
+.bk-round-1 .bk-team{padding:6px 8px}
+.bk-round-1 .bk-date{font-size:10px;padding:4px 6px}
+.bk-round-1 .bk-score{font-size:15px}
+.bk-round-2 .bk-name{font-size:12px}
+.bk-round-2 .bk-flag{font-size:18px;min-width:20px}
+.bk-round-2 .bk-team{padding:9px 10px;gap:6px}
+.bk-round-2 .bk-date{font-size:11px;padding:6px 8px}
+.bk-round-2 .bk-score{font-size:18px}
+.bk-round-3 .bk-name{font-size:13px;font-weight:700}
+.bk-round-3 .bk-flag{font-size:22px;min-width:24px}
+.bk-round-3 .bk-team{padding:14px 12px;gap:8px}
+.bk-round-3 .bk-date{font-size:12px;padding:10px}
+.bk-round-3 .bk-score{font-size:22px;min-width:20px}
+/* Champion trophy */
+.bk-champ-col{flex:0 0 56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.bk-trophy-lbl{font-family:'Bebas Neue';font-size:10px;letter-spacing:2px;color:var(--gold);opacity:.8;text-align:center}
+.bk-trophy-icon{font-size:28px;line-height:1;animation:bk-trophy-in .6s cubic-bezier(.17,.67,.35,1.3)}
+@keyframes bk-trophy-in{from{transform:scale(.3) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.bk-champ-flag{font-size:22px;line-height:1}
+.bk-champ-name{font-family:'Bebas Neue';font-size:11px;letter-spacing:1.5px;color:var(--gold);text-align:center;line-height:1.3}
+/* Final badge */
+.bk-final-badge{display:inline-block;font-family:'Bebas Neue';font-size:8px;letter-spacing:1.5px;color:#000;background:linear-gradient(135deg,#D4AF37,#FFD700);border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle}
+/* Sub-section title for final */
+.bk-round-3 .bk-slot:last-child .bk-card{position:relative}
 </style>
 </head>
 <body>
@@ -1453,9 +1537,18 @@ nav button:hover,nav button.active{
 
     <!-- ═══ ADMIN SECTION ═══ -->
     <section id="sec-groups" class="hidden">
-      <div class="section-title">🌍 <span data-en="Group Standings" data-es="Tabla de Grupos">Group Standings</span></div>
-      <p class="section-sub" data-en="Live standings for all 12 groups. Updates each time you open this tab." data-es="Clasificación en vivo de los 12 grupos. Se actualiza cada vez que abres esta pestaña.">Live standings for all 12 groups. Updates each time you open this tab.</p>
-      <div id="groupsContainer"></div>
+      <div class="section-title">🌍 <span data-en="Groups &amp; Bracket" data-es="Grupos y Bracket">Groups &amp; Bracket</span></div>
+      <div class="grp-tabs">
+        <button class="grp-tab active" id="grp-tab-standings" onclick="switchGroupsTab('standings')" data-en="📊 Standings" data-es="📊 Tabla">📊 Tabla</button>
+        <button class="grp-tab" id="grp-tab-bracket" onclick="switchGroupsTab('bracket')" data-en="🏆 Bracket" data-es="🏆 Bracket">🏆 Bracket</button>
+      </div>
+      <div id="panel-standings">
+        <p class="section-sub" data-en="Live standings for all 12 groups. Updates each time you open this tab." data-es="Clasificación en vivo de los 12 grupos. Se actualiza cada vez que abres esta pestaña.">Clasificación en vivo de los 12 grupos. Se actualiza cada vez que abres esta pestaña.</p>
+        <div id="groupsContainer"></div>
+      </div>
+      <div id="panel-bracket" class="hidden">
+        <div id="bracketContainer"></div>
+      </div>
     </section>
 
     <section id="sec-admin" class="hidden">
@@ -6609,7 +6702,7 @@ function showSection(name){
     resultsRound = null; // will resolve to activeWeek inside renderMyResults
     renderMyResults();
   }
-  if(name==='groups') renderGroups();
+  if(name==='groups'){ switchGroupsTab(_activeBracketTab||'standings'); }
   if(name==='admin' && adminLoggedIn){
     document.getElementById('adminLogin').classList.add('hidden');
     document.getElementById('adminContent').classList.remove('hidden');
@@ -6671,7 +6764,7 @@ function toggleLang(){
   updateWeekBanner();
   renderRoundTabs();
   renderWelcomeBanner();
-  if(!document.getElementById('sec-groups').classList.contains('hidden')) renderGroups();
+  if(!document.getElementById('sec-groups').classList.contains('hidden')) switchGroupsTab(_activeBracketTab||'standings');
   refreshDailyMsgLang();
 }
 
@@ -7574,6 +7667,150 @@ function renderGroups(){
       <p style="font-size:11px;color:var(--text2);text-align:center;margin-top:16px">
         🟢 ${es?'Top 2 avanzan a eliminatorias':'Top 2 advance to knockout round'}
       </p>`;
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  FEATURE: GROUPS TAB SWITCH + BRACKET
+// ══════════════════════════════════════════════════════════════
+var _activeBracketTab = 'standings';
+
+function switchGroupsTab(tab){
+  _activeBracketTab = tab;
+  var ps = document.getElementById('panel-standings');
+  var pb = document.getElementById('panel-bracket');
+  var ts = document.getElementById('grp-tab-standings');
+  var tb = document.getElementById('grp-tab-bracket');
+  if(!ps||!pb||!ts||!tb) return;
+  var es = currentLang==='es';
+  if(tab==='standings'){
+    ps.classList.remove('hidden');
+    pb.classList.add('hidden');
+    ts.classList.add('active');
+    tb.classList.remove('active');
+    renderGroups();
+  } else {
+    ps.classList.add('hidden');
+    pb.classList.remove('hidden');
+    ts.classList.remove('active');
+    tb.classList.add('active');
+    renderBracket();
+  }
+}
+
+function renderBracket(){
+  var container = document.getElementById('bracketContainer');
+  if(!container) return;
+  var es = currentLang==='es';
+  if(!db){
+    container.innerHTML = '<p style="color:var(--text2);text-align:center;padding:20px">'+(es?'Conectando...':'Connecting...')+'</p>';
+    setTimeout(renderBracket, 2000);
+    return;
+  }
+  container.innerHTML = '<p style="color:var(--text2);text-align:center;padding:20px">'+(es?'Cargando bracket...':'Loading bracket...')+'</p>';
+
+  db.ref('results').once('value').then(function(snap){
+    var res = snap.val()||{};
+
+    function getW(m){
+      var r = res[m.id];
+      if(!r) return null;
+      if(r.scoreH > r.scoreA) return 'home';
+      if(r.scoreA > r.scoreH) return 'away';
+      return null;
+    }
+
+    function teamRowHtml(m, isHome){
+      var name = isHome ? m.home : m.away;
+      var w = getW(m);
+      var isWin  = w === (isHome ? 'home' : 'away');
+      var isLose = w && !isWin;
+      var r2 = res[m.id];
+      var score = r2 ? (isHome ? r2.scoreH : r2.scoreA) : null;
+      var isTba = isPlaceholderTeam(name);
+      var flag = isTba
+        ? '<span class="team-tba" style="font-size:10px;display:inline-block;line-height:1">?</span>'
+        : getTeamVisual(name);
+      var nameStr = isTba ? escapeHtml(prettyTeamLabel(name)) : escapeHtml(displayTeamName(name));
+      var cls = 'bk-team'+(isWin?' bk-win':'')+(isLose?' bk-lose':'');
+      var sc = score!==null
+        ? '<span class="bk-score'+(isWin?' bk-sc-win':'')+'">'+score+'</span>'
+        : '<span class="bk-score" style="opacity:0">0</span>';
+      return '<div class="'+cls+'">'
+        +'<span class="bk-flag">'+flag+'</span>'
+        +'<span class="bk-name'+(isTba?' bk-ph':'')+'">'+nameStr+'</span>'
+        +sc
+        +'</div>';
+    }
+
+    function cardHtml(m, isFinal){
+      var r2 = res[m.id];
+      var played = !!r2;
+      var extra = isFinal ? ' bk-final-card' : '';
+      if(played) extra += ' bk-played';
+      var badge = isFinal ? '<span class="bk-final-badge">'+(es?'FINAL':'FINAL')+'</span>' : '';
+      var dateLabel = m.date+' '+m.time+badge;
+      return '<div class="bk-card'+extra+'">'
+        +'<div class="bk-date">'+dateLabel+'</div>'
+        +teamRowHtml(m, true)
+        +teamRowHtml(m, false)
+        +'</div>';
+    }
+
+    /* Round configs: [matchesArray, roundIndex 0-3] */
+    var roundDefs = [
+      {matches: MATCHES[4]||[], ri:0, label: es?'32avos':'R. of 32',  dates:'28 Jun – 3 Jul'},
+      {matches: MATCHES[5]||[], ri:1, label: es?'Octavos':'R. of 16',  dates:'4 – 7 Jul'},
+      {matches: MATCHES[6]||[], ri:2, label: es?'Cuartos':'Quarters',  dates:'9 – 11 Jul'},
+      {matches: MATCHES[7]||[], ri:3, label: es?'Semis/Final':'Semis/Final', dates:'14 – 15 Jul'}
+    ];
+
+    /* Column headers */
+    var hdrHtml = roundDefs.map(function(rd){
+      return '<div class="bk-hdr-col"><div style="font-size:13px;letter-spacing:2px">'+rd.label+'</div>'
+             +'<div style="font-size:8.5px;color:rgba(255,255,255,.3);letter-spacing:.5px;margin-top:2px">'+rd.dates+'</div></div>'
+             +'<div class="bk-hdr-gap"></div>';
+    }).join('');
+
+    /* Champion from last match with final:true */
+    var finalMatch = null;
+    (MATCHES[7]||[]).forEach(function(m){ if(m.final) finalMatch = m; });
+    var champTeam = null;
+    if(finalMatch && res[finalMatch.id]){
+      var fr = res[finalMatch.id];
+      champTeam = fr.scoreH > fr.scoreA ? finalMatch.home : fr.scoreA > fr.scoreH ? finalMatch.away : null;
+    }
+    var champHtml = '';
+    if(champTeam && !isPlaceholderTeam(champTeam)){
+      champHtml = '<div class="bk-champ-col">'
+        +'<div class="bk-trophy-lbl">🏆</div>'
+        +'<div class="bk-champ-flag">'+getTeamVisual(champTeam)+'</div>'
+        +'<div class="bk-champ-name">'+escapeHtml(displayTeamName(champTeam))+'</div>'
+        +'</div>';
+    } else {
+      champHtml = '<div class="bk-champ-col">'
+        +'<div class="bk-trophy-lbl" style="font-size:22px;opacity:.18">🏆</div>'
+        +'</div>';
+    }
+
+    /* Build round columns */
+    var colsHtml = roundDefs.map(function(rd){
+      var slots = rd.matches.map(function(m, mi){
+        return '<div class="bk-slot">'+cardHtml(m, !!m.final)+'</div>';
+      }).join('');
+      return '<div class="bk-round bk-round-'+rd.ri+'">'+slots+'</div>';
+    }).join('');
+
+    container.innerHTML =
+      '<div class="bk-outer">'
+      +'<div class="bk-scroll">'
+      +'<div class="bk-hdr-row">'+hdrHtml+'<div class="bk-hdr-champ">'+(es?'Campeón':'Champ')+'</div></div>'
+      +'<div class="bk-grid">'+colsHtml+champHtml+'</div>'
+      +'</div>'
+      +'<p style="font-size:10px;color:var(--text2);text-align:center;margin-top:10px;letter-spacing:.5px">'
+      +(es?'← Desliza para ver el bracket completo →':'← Scroll to see full bracket →')
+      +'</p>'
+      +'</div>';
   });
 }
 
