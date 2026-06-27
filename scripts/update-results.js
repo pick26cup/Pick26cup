@@ -76,7 +76,7 @@ const TEAM_MAP = {
   'Colombia': 'Colombia',
 };
 
-// ── Match data (rounds 1-3, group stage) ─────────────────────
+// ── Match data (rounds 1-4) ───────────────────────────────────
 const MATCHES = {
   1: [
     {id:'1_1',home:'México',away:'Sudáfrica'},
@@ -156,6 +156,24 @@ const MATCHES = {
     {id:'3_23',home:'Argelia',away:'Austria'},
     {id:'3_24',home:'Jordania',away:'Argentina'},
   ],
+  4: [
+    {id:'4_1',home:'Sudáfrica',away:'Canadá'},
+    {id:'4_2',home:'Por confirmar',away:'Por confirmar'},
+    {id:'4_3',home:'Brasil',away:'Japón'},
+    {id:'4_4',home:'Alemania',away:'Paraguay'},
+    {id:'4_5',home:'Países Bajos',away:'Marruecos'},
+    {id:'4_6',home:'Costa de Marfil',away:'Noruega'},
+    {id:'4_7',home:'Francia',away:'Suecia'},
+    {id:'4_8',home:'México',away:'Por confirmar'},
+    {id:'4_9',home:'Por confirmar',away:'Por confirmar'},
+    {id:'4_10',home:'Estados Unidos',away:'Bosnia Herzegovina'},
+    {id:'4_11',home:'Por confirmar',away:'Por confirmar'},
+    {id:'4_12',home:'Por confirmar',away:'Por confirmar'},
+    {id:'4_13',home:'Por confirmar',away:'Por confirmar'},
+    {id:'4_14',home:'Por confirmar',away:'Por confirmar'},
+    {id:'4_15',home:'Por confirmar',away:'Por confirmar'},
+    {id:'4_16',home:'Por confirmar',away:'Por confirmar'},
+  ],
 };
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -169,7 +187,7 @@ function norm(name) {
 function findMatchId(homeEn, awayEn) {
   const homeEs = norm(TEAM_MAP[homeEn] || homeEn);
   const awayEs = norm(TEAM_MAP[awayEn] || awayEn);
-  for (const round of [1,2,3]) {
+  for (const round of [1,2,3,4]) {
     for (const m of (MATCHES[round] || [])) {
       if (norm(m.home) === homeEs && norm(m.away) === awayEs) return m.id;
     }
