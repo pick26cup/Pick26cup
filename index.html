@@ -1290,122 +1290,67 @@ nav button:hover,nav button.active{
   radial-gradient(ellipse 80% 40% at 30% 80%,rgba(50,30,100,0.08) 0%,transparent 50%),
   radial-gradient(ellipse 80% 40% at 70% 80%,rgba(30,80,50,0.06) 0%,transparent 50%),
   linear-gradient(180deg,#050300 0%,#080600 50%,#030200 100%)}
-/* crowd bokeh dots */
+/* grass strip at bottom */
+.pod-bg::after{content:'';position:absolute;bottom:0;left:0;right:0;height:28%;
+  background:linear-gradient(180deg,transparent 0%,rgba(10,40,8,.85) 40%,rgba(8,32,6,.98) 100%)}
 .pod-bokeh{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .pod-bk{position:absolute;border-radius:50%;filter:blur(8px);animation:pod-bk-pulse 3s ease-in-out infinite alternate}
 @keyframes pod-bk-pulse{0%{opacity:.3}100%{opacity:.7}}
-/* spotlight cones */
 .pod-spot{position:absolute;top:0;width:220px;height:70%;pointer-events:none;transform-origin:top center}
 .pod-spot-1{left:50%;margin-left:-110px;background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(212,175,55,0.13) 0%,transparent 70%)}
 .pod-spot-2{left:20%;background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(200,200,255,0.07) 0%,transparent 65%)}
 .pod-spot-3{right:20%;background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(200,200,255,0.07) 0%,transparent 65%)}
-/* modal content */
-.pod-modal{position:relative;z-index:5;width:100%;max-width:520px;padding:24px 16px 0;display:flex;flex-direction:column;align-items:center;flex:1;min-height:0}
+.pod-modal{position:relative;z-index:5;width:100%;max-width:520px;padding:18px 12px 0;display:flex;flex-direction:column;align-items:center;flex:1;min-height:0}
 .pod-close{position:fixed;top:16px;right:16px;z-index:20;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;transition:.2s}
 .pod-close:hover{background:rgba(255,255,255,.15);color:#fff}
-/* title */
-.pod-title-wrap{text-align:center;margin-bottom:18px}
-.pod-trophy-icon{font-size:52px;line-height:1;display:block;filter:drop-shadow(0 0 20px rgba(212,175,55,.7)) drop-shadow(0 0 40px rgba(212,175,55,.3));animation:pod-trophy-float 3s ease-in-out infinite}
+.pod-title-wrap{text-align:center;margin-bottom:10px}
+.pod-trophy-icon{font-size:46px;line-height:1;display:block;filter:drop-shadow(0 0 20px rgba(212,175,55,.7)) drop-shadow(0 0 40px rgba(212,175,55,.3));animation:pod-trophy-float 3s ease-in-out infinite}
 @keyframes pod-trophy-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-.pod-main-title{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:8px;
+.pod-main-title{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:8px;
   background:linear-gradient(170deg,#fff 0%,#FFD700 30%,#D4AF37 60%,#B8860B 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 0 12px rgba(212,175,55,.5));line-height:1;margin-top:6px}
-.pod-sub-title{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:5px;color:rgba(212,175,55,.45);margin-top:3px}
-/* stage */
-.pod-stage{display:flex;align-items:flex-end;justify-content:center;gap:6px;width:100%;padding:0 8px;flex:1;min-height:0;max-height:520px}
-/* each slot = avatar + block + label stack */
-.pod-slot{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative}
-.pod-slot-1{flex:0 0 160px}
-.pod-slot-2{flex:0 0 140px}
-.pod-slot-3{flex:0 0 130px}
-/* avatar ring */
-.pod-avatar-ring{position:relative;z-index:3;margin-bottom:-12px}
-.pod-avatar-ring .pod-av-inner{border-radius:50%;overflow:hidden;border:3px solid;box-shadow:0 0 20px,0 0 40px,0 4px 20px rgba(0,0,0,.8)}
-.pod-slot-1 .pod-av-inner{width:72px;height:72px;border-color:#FFD700;box-shadow:0 0 20px rgba(255,215,0,.7),0 0 50px rgba(212,175,55,.3),0 4px 20px rgba(0,0,0,.8)}
-.pod-slot-2 .pod-av-inner{width:60px;height:60px;border-color:#C0C0C0;box-shadow:0 0 16px rgba(192,192,192,.6),0 0 36px rgba(180,180,180,.25),0 4px 16px rgba(0,0,0,.8)}
-.pod-slot-3 .pod-av-inner{width:54px;height:54px;border-color:#CD7F32;box-shadow:0 0 14px rgba(205,127,50,.6),0 0 30px rgba(180,100,20,.25),0 4px 14px rgba(0,0,0,.8)}
-.pod-crown{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:20px;filter:drop-shadow(0 0 6px rgba(255,215,0,.8));animation:pod-crown-bounce .6s ease-in-out infinite alternate}
-@keyframes pod-crown-bounce{0%{transform:translateX(-50%) translateY(0)}100%{transform:translateX(-50%) translateY(-4px)}}
-/* block */
-.pod-block{width:100%;border-radius:6px 6px 0 0;position:relative;overflow:visible;transform-origin:bottom center}
-/* top face of block */
-.pod-block::before{content:'';position:absolute;top:-10px;left:4%;width:92%;height:14px;border-radius:4px 4px 0 0;z-index:1}
-/* floor reflection */
-.pod-block::after{content:'';position:absolute;bottom:-40px;left:5%;width:90%;height:40px;border-radius:0 0 50% 50%;filter:blur(16px);opacity:.5;z-index:-1}
-/* GOLD */
-.pod-slot-1 .pod-block{height:200px;
-  background:linear-gradient(180deg,
-    rgba(255,252,200,.95) 0%,rgba(255,235,80,.9) 2%,
-    #F0C020 10%,#D4AF37 28%,#C09828 48%,
-    #9A7814 65%,#70550A 82%,rgba(30,18,0,.85) 100%);
-  box-shadow:
-    inset 0 4px 20px rgba(255,255,180,.7),
-    inset 3px 0 12px rgba(255,240,150,.2),
-    inset -3px 0 12px rgba(0,0,0,.5),
-    inset 0 -6px 30px rgba(0,0,0,.85),
-    0 0 80px rgba(212,175,55,.55),
-    0 0 160px rgba(212,175,55,.18),
-    0 30px 60px rgba(0,0,0,.9)}
-.pod-slot-1 .pod-block::before{
-  background:linear-gradient(180deg,rgba(255,255,220,.9) 0%,rgba(230,190,60,.6) 100%);
-  box-shadow:0 0 12px rgba(255,230,100,.5)}
-.pod-slot-1 .pod-block::after{background:rgba(212,175,55,.6)}
-/* SILVER */
-.pod-slot-2 .pod-block{height:160px;
-  background:linear-gradient(180deg,
-    rgba(255,255,255,.95) 0%,rgba(230,230,230,.9) 2%,
-    #D8D8D8 10%,#C0C0C0 28%,#A8A8A8 48%,
-    #888 65%,#606060 82%,rgba(20,20,20,.85) 100%);
-  box-shadow:
-    inset 0 4px 18px rgba(255,255,255,.75),
-    inset 3px 0 10px rgba(255,255,255,.2),
-    inset -3px 0 10px rgba(0,0,0,.5),
-    inset 0 -5px 24px rgba(0,0,0,.85),
-    0 0 60px rgba(180,180,180,.4),
-    0 0 120px rgba(180,180,180,.12),
-    0 24px 50px rgba(0,0,0,.9)}
-.pod-slot-2 .pod-block::before{
-  background:linear-gradient(180deg,rgba(255,255,255,.9) 0%,rgba(200,200,200,.5) 100%);
-  box-shadow:0 0 10px rgba(220,220,220,.5)}
-.pod-slot-2 .pod-block::after{background:rgba(160,160,160,.5)}
-/* BRONZE */
-.pod-slot-3 .pod-block{height:130px;
-  background:linear-gradient(180deg,
-    rgba(255,220,180,.9) 0%,rgba(220,150,80,.85) 2%,
-    #CD8C45 10%,#CD7F32 28%,#B86A20 48%,
-    #8B4E10 65%,#5A3008 82%,rgba(25,10,0,.85) 100%);
-  box-shadow:
-    inset 0 4px 16px rgba(255,200,120,.6),
-    inset 3px 0 10px rgba(255,180,80,.15),
-    inset -3px 0 10px rgba(0,0,0,.5),
-    inset 0 -5px 22px rgba(0,0,0,.85),
-    0 0 50px rgba(205,127,50,.4),
-    0 0 100px rgba(180,100,20,.12),
-    0 20px 40px rgba(0,0,0,.9)}
-.pod-slot-3 .pod-block::before{
-  background:linear-gradient(180deg,rgba(255,210,160,.85) 0%,rgba(200,130,50,.5) 100%);
-  box-shadow:0 0 10px rgba(220,160,80,.4)}
-.pod-slot-3 .pod-block::after{background:rgba(180,100,30,.45)}
-/* anisotropic sheen line - that diagonal bright streak of real metal */
-.pod-block .pod-sheen{position:absolute;top:0;left:0;right:0;bottom:0;
-  background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.08) 45%,rgba(255,255,255,.18) 50%,rgba(255,255,255,.06) 55%,transparent 70%);
-  border-radius:inherit;pointer-events:none}
-/* rank number on block face */
-.pod-rank-num{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
-  font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:2px;opacity:.12;color:#fff;pointer-events:none;line-height:1}
-/* label below block */
-.pod-label{text-align:center;padding:10px 4px 0;max-width:140px}
-.pod-player-name{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;color:#fff;text-shadow:0 0 12px rgba(0,0,0,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
-.pod-slot-1 .pod-player-name{font-size:16px;color:#FFD700;text-shadow:0 0 10px rgba(212,175,55,.6)}
-.pod-player-pts{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1.5px;color:rgba(255,255,255,.45);margin-top:1px}
+  filter:drop-shadow(0 0 12px rgba(212,175,55,.5));line-height:1;margin-top:4px}
+.pod-sub-title{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:5px;color:rgba(212,175,55,.45);margin-top:2px}
+/* ── stage: 3 columns aligned at bottom ── */
+.pod-stage{display:flex;align-items:flex-end;justify-content:center;gap:10px;width:100%;padding:0 4px;flex:1;min-height:0}
+.pod-slot{display:flex;flex-direction:column;align-items:center;position:relative}
+.pod-slot-1{flex:0 0 155px}
+.pod-slot-2{flex:0 0 132px}
+.pod-slot-3{flex:0 0 118px}
+/* trophy cup above each avatar */
+.pod-cup{display:block;text-align:center;line-height:1;margin-bottom:4px}
+.pod-slot-1 .pod-cup{font-size:50px;filter:drop-shadow(0 0 18px rgba(255,215,0,.9)) drop-shadow(0 0 36px rgba(212,175,55,.5));animation:pod-trophy-float 2.5s ease-in-out infinite}
+.pod-slot-2 .pod-cup{font-size:38px;filter:drop-shadow(0 0 12px rgba(192,192,192,.8)) drop-shadow(0 0 24px rgba(160,160,160,.35));animation:pod-trophy-float 2.5s .2s ease-in-out infinite}
+.pod-slot-3 .pod-cup{font-size:30px;filter:drop-shadow(0 0 10px rgba(205,127,50,.8)) drop-shadow(0 0 20px rgba(180,100,20,.3));animation:pod-trophy-float 2.5s .4s ease-in-out infinite}
+/* walking avatar wrapper */
+.pod-walk-wrap{position:relative;overflow:visible;display:flex;align-items:flex-end;justify-content:center}
+.pod-slot-1 .pod-walk-wrap svg{animation:pod-body-bob .8s ease-in-out infinite;filter:drop-shadow(0 6px 18px rgba(255,215,0,.22))}
+.pod-slot-2 .pod-walk-wrap svg{animation:pod-body-bob .8s .1s ease-in-out infinite;filter:drop-shadow(0 6px 14px rgba(192,192,192,.18))}
+.pod-slot-3 .pod-walk-wrap svg{animation:pod-body-bob .8s .2s ease-in-out infinite;filter:drop-shadow(0 6px 12px rgba(205,127,50,.18))}
+@keyframes pod-body-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+/* small metallic platform below avatar */
+.pod-platform{width:88%;height:18px;border-radius:4px 4px 0 0;position:relative}
+.pod-platform::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.15) 50%,transparent 65%);border-radius:inherit}
+.pod-slot-1 .pod-platform{background:linear-gradient(180deg,#F0C020,#9A7814);box-shadow:0 0 30px rgba(212,175,55,.5),0 0 60px rgba(212,175,55,.18)}
+.pod-slot-2 .pod-platform{background:linear-gradient(180deg,#D8D8D8,#606060);box-shadow:0 0 20px rgba(160,160,160,.35)}
+.pod-slot-3 .pod-platform{background:linear-gradient(180deg,#CD8C45,#5A3008);box-shadow:0 0 16px rgba(180,100,20,.3)}
+/* entrance animations */
+@keyframes pod-enter-left{from{transform:translateX(-160px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes pod-enter-center{from{transform:translateY(24px) scale(.85);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes pod-enter-right{from{transform:translateX(160px);opacity:0}to{transform:translateX(0);opacity:1}}
+.pod-enter-1{animation:pod-enter-center .7s .0s cubic-bezier(.34,1.3,.64,1) both}
+.pod-enter-2{animation:pod-enter-left .75s .1s cubic-bezier(.34,1.2,.64,1) both}
+.pod-enter-3{animation:pod-enter-right .75s .05s cubic-bezier(.34,1.2,.64,1) both}
+/* label */
+.pod-label{text-align:center;padding:6px 2px 0;max-width:130px}
+.pod-player-name{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1.5px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:128px}
+.pod-slot-1 .pod-player-name{font-size:15px;color:#FFD700;text-shadow:0 0 10px rgba(212,175,55,.6)}
+.pod-player-pts{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:1px;color:rgba(255,255,255,.42);margin-top:1px}
 .pod-slot-1 .pod-player-pts{color:rgba(255,215,0,.55)}
-/* floor */
+.pod-round-wins{font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:1.5px;color:#FFD700;background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.28);border-radius:6px;padding:2px 6px;display:inline-block;margin-top:3px}
+/* floor line */
 .pod-floor{width:100%;height:2px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.25),rgba(212,175,55,.1),rgba(212,175,55,.25),transparent);margin-bottom:6px}
-/* entrance animation */
-@keyframes pod-rise{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}
-@keyframes pod-fadein{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.pod-rise{animation:pod-rise .7s cubic-bezier(.34,1.36,.64,1) both}
+@keyframes pod-fadein{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .pod-fadein{animation:pod-fadein .5s ease-out both}
 /* confetti canvas */
 #confettiCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:8}
@@ -8851,35 +8796,32 @@ function _buildPodium(){
       bokeh.innerHTML = bHtml;
     }
 
-    // Build slot HTML
-    function slotHtml(player, rank, delayMs){
+    // Build slot HTML — walking avatar version
+    function slotHtml(player, rank){
       if(!player) return '';
-      var slotClass = 'pod-slot pod-slot-'+rank;
+      var cups = {1:'🏆', 2:'🥈', 3:'🥉'};
+      var avSz = rank===1 ? 98 : rank===2 ? 82 : 72;
       var avatarCfg = player.avatar || {skin:0,hair:0,hairColor:0,beard:0,jersey:'neutro'};
-      var avSz = rank===1 ? 66 : rank===2 ? 54 : 48;
-      var avSvg = renderAvatarSVG(avatarCfg, avSz);
+      var walkSvg = renderWalkingSVG(avatarCfg, avSz);
       var ptsDisp = Number.isInteger(player.pts) ? player.pts : player.pts.toFixed(1);
-      var crown = rank===1 ? '<div class="pod-crown">👑</div>' : '';
-      var countryFlag = player.country ? '<img src="https://flagcdn.com/'+player.country+'.svg" style="height:11px;border-radius:1px;vertical-align:middle;margin-right:3px;opacity:.8">' : '';
-      var riseDelay = delayMs+'ms';
-      return '<div class="'+slotClass+'">'
-        +'<div class="pod-avatar-ring pod-fadein" style="animation-delay:'+(delayMs+200)+'ms;position:relative">'
-        +crown
-        +'<div class="pod-av-inner">'+avSvg+'</div>'
-        +'</div>'
-        +'<div class="pod-block pod-rise" style="width:100%;animation-delay:'+riseDelay+';transform-origin:bottom center">'
-        +'<div class="pod-sheen"></div>'
-        +'<div class="pod-rank-num">'+rank+'</div>'
-        +'</div>'
-        +'<div class="pod-label pod-fadein" style="animation-delay:'+(delayMs+400)+'ms">'
-        +'<div class="pod-player-name">'+countryFlag+escapeHtml(player.name)+'</div>'
-        +'<div class="pod-player-pts">'+ptsDisp+' pts</div>'
+      var flag = player.country ? '<img src="https://flagcdn.com/'+player.country+'.svg" style="height:10px;border-radius:1px;vertical-align:middle;margin-right:3px;opacity:.8">' : '';
+      var rwBadge = player.roundWins > 0
+        ? '<div class="pod-round-wins">⚡ '+player.roundWins+' ronda'+(player.roundWins>1?'s':'')+' ganada'+(player.roundWins>1?'s':'')+'</div>'
+        : '';
+      return '<div class="pod-slot pod-slot-'+rank+' pod-enter-'+rank+'">'
+        +'<span class="pod-cup">'+cups[rank]+'</span>'
+        +'<div class="pod-walk-wrap">'+walkSvg+'</div>'
+        +'<div class="pod-platform"></div>'
+        +'<div class="pod-label">'
+        +'<div class="pod-player-name">'+flag+escapeHtml(player.name)+'</div>'
+        +'<div class="pod-player-pts">'+ptsDisp+' pts totales</div>'
+        +rwBadge
         +'</div>'
         +'</div>';
     }
 
     // Order: 2nd left, 1st center, 3rd right
-    stage.innerHTML = slotHtml(p2, 2, 100) + slotHtml(p1, 1, 0) + slotHtml(p3, 3, 200);
+    stage.innerHTML = slotHtml(p2, 2) + slotHtml(p1, 1) + slotHtml(p3, 3);
   }
 
   if(db){
@@ -8891,6 +8833,110 @@ function _buildPodium(){
       buildFromData(snaps[0].val()||{}, snaps[1].val()||{}, snaps[2].val()||{});
     });
   }
+}
+
+function renderWalkingSVG(cfg, size){
+  var skins=['#FDDBB4','#F1C27D','#C68642','#8D5524','#5C3317','#2A1506'];
+  var hairColors=['#1A1A1A','#3B2314','#7B4F2E','#C48B3D','#E8C96E','#B85C38','#888888','#E8E8E8'];
+  var noseShades=['#d4956e','#c47e45','#9a6230','#6B3E1E','#4A2810','#1E0E05'];
+  var sk=skins[cfg.skin]||skins[0];
+  var hc=hairColors[cfg.hairColor]||hairColors[0];
+  var ns=noseShades[cfg.skin]||noseShades[0];
+  var jersey=(typeof JERSEY_TEAMS!=='undefined'?JERSEY_TEAMS:[]).find(function(t){return t.id===cfg.jersey;})||{c1:'#1a3a6e',c2:'#e8e8e8',txt:'#fff'};
+  var c1=jersey.c1, c2=jersey.c2, txt=jersey.txt;
+  var uid='wlk'+(++_avUid);
+  var dur='0.8s';
+  var hair='';
+  switch(cfg.hair){
+    case 0: hair='<path d="M22 22 Q22 4 40 4 Q58 4 58 22 Q55 13 40 13 Q25 13 22 22" fill="'+hc+'"/>'; break;
+    case 1: hair='<path d="M22 22 Q22 4 40 4 Q58 4 58 22 Q55 13 40 13 Q25 13 22 22" fill="'+hc+'"/>'
+      +'<path d="M22 21 Q14 31 15 47 Q16 55 22 53 Q21 43 24 33" fill="'+hc+'"/>'
+      +'<path d="M58 21 Q66 31 65 47 Q64 55 58 53 Q59 43 56 33" fill="'+hc+'"/>'; break;
+    case 2: break;
+    case 3: hair='<circle cx="28" cy="16" r="11" fill="'+hc+'"/><circle cx="40" cy="6" r="13" fill="'+hc+'"/><circle cx="52" cy="16" r="11" fill="'+hc+'"/>'; break;
+    case 4: hair='<ellipse cx="40" cy="10" rx="24" ry="20" fill="'+hc+'"/>'; break;
+    case 5: hair='<path d="M22 22 Q22 4 40 4 Q58 4 58 22 Q55 13 40 13 Q25 13 22 22" fill="'+hc+'"/>'
+      +'<path d="M36 13 Q33 28 34 50 Q36 59 40 60 Q44 59 46 50 Q47 28 44 13 Q42 17 40 17 Q38 17 36 13Z" fill="'+hc+'"/>'; break;
+    case 6: hair='<path d="M22 22 Q22 4 40 4 Q58 4 58 22 Q55 13 40 13 Q25 13 22 22" fill="'+hc+'"/>'
+      +'<circle cx="40" cy="-1" r="11" fill="'+hc+'"/>'; break;
+    default: hair='<path d="M22 22 Q22 4 40 4 Q58 4 58 22 Q55 13 40 13 Q25 13 22 22" fill="'+hc+'"/>';
+  }
+  var beard='';
+  switch(cfg.beard){
+    case 1: beard='<ellipse cx="40" cy="32" rx="11" ry="4" fill="'+hc+'" opacity="0.5"/>'; break;
+    case 2: beard='<path d="M29 27 Q30 39 40 41 Q50 39 51 27 Q46 33 40 33 Q34 33 29 27" fill="'+hc+'"/>'; break;
+    case 3: beard='<ellipse cx="40" cy="35" rx="7" ry="8" fill="'+hc+'"/>'; break;
+  }
+  var glasses='';
+  if(cfg.glasses===1) glasses='<rect x="24" y="18" width="12" height="9" rx="3.5" fill="rgba(0,0,0,0.85)"/>'
+    +'<rect x="44" y="18" width="12" height="9" rx="3.5" fill="rgba(0,0,0,0.85)"/>'
+    +'<line x1="36" y1="22" x2="44" y2="22" stroke="#555" stroke-width="1.5"/>';
+  var w=size||80; var h=Math.round(w*2.1);
+  // SVG with native animateTransform walking cycle
+  // Legs and arms use additive="sum" rotation on translated groups
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 168" width="'+w+'" height="'+h+'" style="overflow:visible">'
+    // ground shadow
+    +'<ellipse cx="40" cy="163" rx="20" ry="4.5" fill="rgba(0,0,0,0.3)"/>'
+    // RIGHT LEG — hip pivot at (47,96), swings forward
+    +'<g transform="translate(47,96)">'
+    +'<animateTransform attributeName="transform" type="rotate" values="-20;20;-20" dur="'+dur+'" repeatCount="indefinite" additive="sum"/>'
+    +'<line x1="0" y1="0" x2="2" y2="29" stroke="'+sk+'" stroke-width="11" stroke-linecap="round"/>'
+    +'<line x1="2" y1="29" x2="5" y2="56" stroke="'+sk+'" stroke-width="10" stroke-linecap="round"/>'
+    +'<line x1="5" y1="56" x2="6" y2="59" stroke="#eeeeee" stroke-width="10" stroke-linecap="round"/>'
+    +'<path d="M0 61 Q4 64 14 64 Q16 68 0 68 Q-4 66 0 61Z" fill="#111"/>'
+    +'</g>'
+    // LEFT LEG — hip pivot at (33,96), opposite phase
+    +'<g transform="translate(33,96)">'
+    +'<animateTransform attributeName="transform" type="rotate" values="20;-20;20" dur="'+dur+'" repeatCount="indefinite" additive="sum"/>'
+    +'<line x1="0" y1="0" x2="-2" y2="29" stroke="'+sk+'" stroke-width="11" stroke-linecap="round"/>'
+    +'<line x1="-2" y1="29" x2="-5" y2="56" stroke="'+sk+'" stroke-width="10" stroke-linecap="round"/>'
+    +'<line x1="-5" y1="56" x2="-6" y2="59" stroke="#eeeeee" stroke-width="10" stroke-linecap="round"/>'
+    +'<path d="M0 61 Q-4 64 -14 64 Q-16 68 0 68 Q4 66 0 61Z" fill="#111"/>'
+    +'</g>'
+    // SHORTS over hip area
+    +'<path d="M21 82 Q40 89 59 82 L57 98 Q50 104 40 104 Q30 104 23 98 Z" fill="'+c2+'"/>'
+    // JERSEY TORSO
+    +'<path d="M16 46 Q40 40 64 46 L59 82 Q50 88 40 88 Q30 88 21 82 Z" fill="'+c1+'"/>'
+    +'<path d="M16 46 L21 82 Q25 84 29 82 L24 48 Z" fill="rgba(0,0,0,.1)"/>'
+    +'<path d="M64 46 L59 82 Q55 84 51 82 L56 48 Z" fill="rgba(255,255,255,.07)"/>'
+    // jersey highlight sheen
+    +'<path d="M16 46 Q40 40 64 46 L59 82 Q50 88 40 88 Q30 88 21 82 Z" fill="url(#jsh'+uid+')" opacity="0.18"/>'
+    +'<defs><linearGradient id="jsh'+uid+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity="0"/><stop offset="40%" stop-color="#fff" stop-opacity="0.6"/><stop offset="60%" stop-color="#fff" stop-opacity="0.1"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>'
+    // number
+    +'<text x="40" y="72" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="bold" fill="'+txt+'" opacity="0.9">'+(cfg.jerseyNum||10)+'</text>'
+    // RIGHT ARM — shoulder pivot (62,50), back while right leg forward
+    +'<g transform="translate(62,50)">'
+    +'<animateTransform attributeName="transform" type="rotate" values="-28;28;-28" dur="'+dur+'" repeatCount="indefinite" additive="sum"/>'
+    +'<line x1="0" y1="0" x2="5" y2="17" stroke="'+c1+'" stroke-width="11" stroke-linecap="round"/>'
+    +'<line x1="5" y1="17" x2="7" y2="30" stroke="'+sk+'" stroke-width="9" stroke-linecap="round"/>'
+    +'<circle cx="8" cy="33" r="5" fill="'+sk+'"/>'
+    +'</g>'
+    // LEFT ARM — shoulder pivot (18,50), forward while right leg forward
+    +'<g transform="translate(18,50)">'
+    +'<animateTransform attributeName="transform" type="rotate" values="28;-28;28" dur="'+dur+'" repeatCount="indefinite" additive="sum"/>'
+    +'<line x1="0" y1="0" x2="-5" y2="17" stroke="'+c1+'" stroke-width="11" stroke-linecap="round"/>'
+    +'<line x1="-5" y1="17" x2="-7" y2="30" stroke="'+sk+'" stroke-width="9" stroke-linecap="round"/>'
+    +'<circle cx="-8" cy="33" r="5" fill="'+sk+'"/>'
+    +'</g>'
+    // NECK
+    +'<rect x="36" y="38" width="8" height="10" rx="3" fill="'+sk+'"/>'
+    // HEAD
+    +hair
+    +'<circle cx="40" cy="21" r="18" fill="'+sk+'"/>'
+    // eyebrows — confident arch
+    +'<path d="M29 15 Q32 12 35 15" stroke="#1A1A1A" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
+    +'<path d="M45 15 Q48 12 51 15" stroke="#1A1A1A" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
+    // eyes — determined, slightly narrowed
+    +'<ellipse cx="33" cy="20" rx="3.2" ry="2.6" fill="#1A1A1A"/>'
+    +'<ellipse cx="47" cy="20" rx="3.2" ry="2.6" fill="#1A1A1A"/>'
+    +'<circle cx="34" cy="19" r="1" fill="#fff"/>'
+    +'<circle cx="48" cy="19" r="1" fill="#fff"/>'
+    // nose
+    +'<ellipse cx="40" cy="26" rx="2.5" ry="1.8" fill="'+ns+'" opacity="0.5"/>'
+    // confident slight smile
+    +'<path d="M35 30 Q40 34 45 30" stroke="#5A3020" stroke-width="1.5" fill="none" stroke-linecap="round"/>'
+    +beard+glasses
+    +'</svg>';
 }
 
 function _startConfetti(){
