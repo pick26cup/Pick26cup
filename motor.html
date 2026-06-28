@@ -304,24 +304,25 @@ const FIX={
 };
 const KOR={
  4:{name:"Dieciseisavos · Ronda de 32",slots:[
-   "L1 · A1-MX vs B2-CA","L2 · B1-CH vs A2-ZA","L3 · C1-BR vs D2-AU","L4 · D1-US vs C2-MA",
-   "L5 · E1-DE vs F2-JP","L6 · F1-NL vs E2-CI","L7 · G1-BE vs H2-CV","L8 · H1-ES vs G2-EG",
-   "L9 · I1-NO vs J2-AT","L10 · J1-AR vs I2-FR","L11 · K1-CO vs L2-HR","L12 · L1-EN vs K2-PT",
-   "L13 · 3°K-CD vs 3°F-SE","L14 · 3°E-EC vs 3°I-SN","L15 · 3°L-GH vs 3°B-BA","L16 · 3°D-PY vs 3°J-DZ"]},
+   "L1 · A2-ZA vs B2-CA","L2 · C1-BR vs F2-JP","L3 · E1-DE vs D3-PY","L4 · F1-NL vs C2-MA",
+   "L5 · E2-CI vs I1-NO","L6 · E3-EC vs A1-MX","L7 · I2-FR vs F3-SE","L8 · H1-ES vs J2-AT",
+   "L9 · G1-BE vs I3-SN","L10 · J1-AR vs H2-CV","L11 · L1-EN vs K3-CD","L12 · D1-US vs B3-BA",
+   "L13 · B1-CH vs J3-DZ","L14 · K2-PT vs L2-HR","L15 · D2-AU vs G2-EG","L16 · K1-CO vs L3-GH"]},
  5:{name:"Octavos de final · Ronda de 16",slots:Array.from({length:8},(_,i)=>"Llave "+(i+1))},
  6:{name:"Cuartos de final",slots:["Cuartos 1","Cuartos 2","Cuartos 3","Cuartos 4"]},
  7:{name:"Semifinales y Final",slots:["Semifinal 1","Semifinal 2","Final","Tercer puesto"]},
 };
 const koState={4:[],5:[],6:[],7:[]};
 for(const r in KOR) koState[r]=KOR[r].slots.map(()=>({h:"",a:"",ha:"none"}));
-/* R32 pre-poblada · clasificados al 28-jun-2026 (72/72)
-   1ros: MX CH BR US DE NL BE ES NO AR CO EN
-   2dos: ZA CA AU MA JP CI CV EG AT FR HR PT
-   Mejores 3ros (8/12): CD SE EC GH BA DZ PY SN           */
-[["MX","CA"],["CH","ZA"],["BR","AU"],["US","MA"],
- ["DE","JP"],["NL","CI"],["BE","CV"],["ES","EG"],
- ["NO","AT"],["AR","FR"],["CO","HR"],["EN","PT"],
- ["CD","SE"],["EC","SN"],["GH","BA"],["PY","DZ"]
+/* R32 oficial FIFA 2026 · bracket verificado (fuente: ESPN/CBS/Yahoo Sports)
+   L1 28-jun: ZA-CA · L2 29-jun: BR-JP · L3 29-jun: DE-PY · L4 29-jun: NL-MA
+   L5 30-jun: CI-NO · L6 30-jun: EC-MX · L7 30-jun: FR-SE · L8: ES-AT
+   L9: BE-SN · L10: AR-CV · L11: EN-CD · L12: US-BA
+   L13 2-jul: CH-DZ · L14 2-jul: PT-HR · L15 3-jul: AU-EG · L16 4-jul: CO-GH */
+[["ZA","CA"],["BR","JP"],["DE","PY"],["NL","MA"],
+ ["CI","NO"],["EC","MX"],["FR","SE"],["ES","AT"],
+ ["BE","SN"],["AR","CV"],["EN","CD"],["US","BA"],
+ ["CH","DZ"],["PT","HR"],["AU","EG"],["CO","GH"]
 ].forEach(function(pair,i){koState[4][i].h=pair[0];koState[4][i].a=pair[1];});
 
 const fc=[1];for(let i=1;i<=15;i++)fc[i]=fc[i-1]*i;
