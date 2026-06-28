@@ -1282,6 +1282,99 @@ nav button:hover,nav button.active{
 .bk-final-badge{display:inline-block;font-family:'Bebas Neue';font-size:8px;letter-spacing:1.5px;color:#000;background:linear-gradient(135deg,#D4AF37,#FFD700);border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle}
 /* Sub-section title for final */
 .bk-round-3 .bk-slot:last-child .bk-card{position:relative}
+/* ── PODIUM ──────────────────────────────────────────────── */
+#podiumOverlay{position:fixed;inset:0;z-index:1000;overflow:hidden;display:none;background:#020100}
+#podiumOverlay.pod-visible{display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+/* Stadium night background */
+.pod-bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse 100% 50% at 50% -5%,rgba(212,175,55,0.18) 0%,transparent 55%),
+  radial-gradient(ellipse 60% 30% at 20% 75%,rgba(255,200,50,0.06) 0%,transparent 50%),
+  radial-gradient(ellipse 60% 30% at 80% 75%,rgba(100,180,255,0.04) 0%,transparent 50%),
+  linear-gradient(180deg,#030200 0%,#050400 35%,#060a02 65%,#081204 100%)}
+/* Football pitch floor (perspective 3D) */
+.pod-field{position:absolute;bottom:0;left:-15%;right:-15%;height:42%;transform:perspective(480px) rotateX(54deg);transform-origin:bottom center;overflow:hidden}
+.pod-field::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#0b1e0b 0px,#0b1e0b 52px,#0d230d 52px,#0d230d 104px)}
+.pod-field::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,0.55) 0%,transparent 40%)}
+/* Center circle line on pitch */
+.pod-center-line{position:absolute;bottom:26%;left:50%;transform:translateX(-50%);
+  width:200px;height:1px;background:rgba(255,255,255,0.07)}
+/* Crowd/bokeh dots */
+.pod-bokeh{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.pod-bk{position:absolute;border-radius:50%;filter:blur(8px);animation:pod-bk-pulse 3s ease-in-out infinite alternate}
+@keyframes pod-bk-pulse{0%{opacity:.3}100%{opacity:.7}}
+/* Stadium spotlights */
+.pod-spot{position:absolute;top:0;width:260px;height:75%;pointer-events:none;transform-origin:top center}
+.pod-spot-1{left:50%;margin-left:-130px;background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(212,175,55,0.16) 0%,transparent 68%)}
+.pod-spot-2{left:15%;background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(200,220,255,0.09) 0%,transparent 62%)}
+.pod-spot-3{right:15%;background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(200,220,255,0.09) 0%,transparent 62%)}
+/* Tunnel glow (sides) — lights up when players walk through */
+.pod-tunnel{position:absolute;top:55%;width:60px;height:30%;pointer-events:none;opacity:0;animation:pod-tunnel-flash .4s .2s forwards}
+.pod-tunnel-l{left:0;background:radial-gradient(ellipse 100% 100% at 0% 50%,rgba(255,200,80,0.25) 0%,transparent 70%)}
+.pod-tunnel-r{right:0;background:radial-gradient(ellipse 100% 100% at 100% 50%,rgba(255,200,80,0.25) 0%,transparent 70%)}
+@keyframes pod-tunnel-flash{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+.pod-modal{position:relative;z-index:5;width:100%;max-width:520px;padding:14px 10px 0;display:flex;flex-direction:column;align-items:center;flex:1;min-height:0}
+.pod-close{position:fixed;top:16px;right:16px;z-index:20;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;transition:.2s}
+.pod-close:hover{background:rgba(255,255,255,.15);color:#fff}
+.pod-title-wrap{text-align:center;margin-bottom:8px}
+.pod-trophy-icon{font-size:44px;line-height:1;display:block;filter:drop-shadow(0 0 20px rgba(212,175,55,.7)) drop-shadow(0 0 40px rgba(212,175,55,.3));animation:pod-trophy-float 3s ease-in-out infinite}
+@keyframes pod-trophy-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.pod-main-title{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:8px;
+  background:linear-gradient(170deg,#fff 0%,#FFD700 30%,#D4AF37 60%,#B8860B 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 12px rgba(212,175,55,.5));line-height:1;margin-top:4px}
+.pod-sub-title{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:5px;color:rgba(212,175,55,.45);margin-top:2px}
+/* ── stage ── */
+.pod-stage{display:flex;align-items:flex-end;justify-content:center;gap:8px;width:100%;padding:0 4px;flex:1;min-height:0;overflow:visible}
+.pod-slot{display:flex;flex-direction:column;align-items:center;position:relative}
+.pod-slot-1{flex:0 0 148px}
+.pod-slot-2{flex:0 0 124px}
+.pod-slot-3{flex:0 0 110px}
+/* trophy cup — starts hidden, drops in from above after cards arrive */
+@keyframes pod-trophy-in{0%{transform:translateY(-130px) scale(0.25) rotate(-8deg);opacity:0}65%{transform:translateY(8px) scale(1.12) rotate(2deg);opacity:1}100%{transform:translateY(0) scale(1) rotate(0deg);opacity:1}}
+.pod-cup{display:block;text-align:center;line-height:1;margin-bottom:6px;opacity:0}
+.pod-slot-1 .pod-cup{font-size:50px;filter:drop-shadow(0 0 20px rgba(255,215,0,1)) drop-shadow(0 0 40px rgba(212,175,55,.6));animation:pod-trophy-in .65s 2.4s cubic-bezier(.34,1.4,.64,1) both,pod-trophy-float 2.5s 3.2s ease-in-out infinite}
+.pod-slot-2 .pod-cup{font-size:38px;filter:drop-shadow(0 0 14px rgba(192,192,192,.9)) drop-shadow(0 0 28px rgba(160,160,160,.4));animation:pod-trophy-in .65s 2.0s cubic-bezier(.34,1.4,.64,1) both,pod-trophy-float 2.5s 2.8s ease-in-out infinite}
+.pod-slot-3 .pod-cup{font-size:30px;filter:drop-shadow(0 0 12px rgba(205,127,50,.9)) drop-shadow(0 0 22px rgba(180,100,20,.35));animation:pod-trophy-in .65s 2.8s cubic-bezier(.34,1.4,.64,1) both,pod-trophy-float 2.5s 3.6s ease-in-out infinite}
+/* player portrait card */
+.pod-card{position:relative;display:flex;flex-direction:column;align-items:center;border-radius:20px;padding:18px 12px 14px;width:100%;gap:10px;border:1.5px solid transparent}
+.pod-slot-1 .pod-card{background:rgba(212,175,55,0.09);border-color:rgba(212,175,55,0.42);box-shadow:0 0 50px rgba(212,175,55,0.22),inset 0 1px 0 rgba(255,255,255,0.08);animation:pod-card-glow 2.5s 2.5s ease-in-out infinite}
+.pod-slot-2 .pod-card{background:rgba(200,200,200,0.05);border-color:rgba(180,180,180,0.28);box-shadow:0 0 24px rgba(160,160,160,0.1)}
+.pod-slot-3 .pod-card{background:rgba(180,110,40,0.06);border-color:rgba(180,110,40,0.25);box-shadow:0 0 18px rgba(160,90,30,0.1)}
+@keyframes pod-card-glow{0%,100%{box-shadow:0 0 50px rgba(212,175,55,0.22),inset 0 1px 0 rgba(255,255,255,0.08)}50%{box-shadow:0 0 80px rgba(212,175,55,0.45),0 0 140px rgba(212,175,55,0.15),inset 0 1px 0 rgba(255,255,255,0.14)}}
+/* rank number badge */
+.pod-rank-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:16px;border:2px solid}
+.pod-slot-1 .pod-rank-badge{background:linear-gradient(135deg,#FFD700,#9A7010);border-color:#FFD700;color:#000;box-shadow:0 0 16px rgba(212,175,55,0.9),0 2px 6px rgba(0,0,0,0.5)}
+.pod-slot-2 .pod-rank-badge{background:linear-gradient(135deg,#E0E0E0,#686868);border-color:#C0C0C0;color:#000;box-shadow:0 2px 6px rgba(0,0,0,0.4)}
+.pod-slot-3 .pod-rank-badge{background:linear-gradient(135deg,#CD8C45,#5A3008);border-color:#B07040;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.4)}
+/* glowing avatar ring */
+.pod-ring{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.pod-slot-1 .pod-ring{padding:4px;background:#0D0C0A;box-shadow:0 0 0 3px #D4AF37,0 0 28px rgba(212,175,55,0.9),0 0 56px rgba(212,175,55,0.35);animation:pod-ring-glow 2.2s 2.5s ease-in-out infinite,pod-av-float 2.2s 1.8s ease-in-out infinite}
+.pod-slot-2 .pod-ring{padding:3px;background:#0D0C0A;box-shadow:0 0 0 2px #909090,0 0 16px rgba(150,150,150,0.4);animation:pod-av-float 2.4s 2.1s ease-in-out infinite}
+.pod-slot-3 .pod-ring{padding:3px;background:#0D0C0A;box-shadow:0 0 0 2px #8A5828,0 0 14px rgba(160,90,40,0.35);animation:pod-av-float 2.6s 2.4s ease-in-out infinite}
+@keyframes pod-ring-glow{0%,100%{box-shadow:0 0 0 3px #D4AF37,0 0 28px rgba(212,175,55,0.9),0 0 56px rgba(212,175,55,0.35)}50%{box-shadow:0 0 0 4px #FFE566,0 0 44px rgba(212,175,55,1),0 0 88px rgba(212,175,55,0.55)}}
+@keyframes pod-av-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.pod-ring-inner{border-radius:50%;overflow:hidden;display:block;line-height:0}
+/* labels */
+.pod-label{text-align:center;width:100%}
+.pod-player-name{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1.5px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;display:block}
+.pod-slot-1 .pod-player-name{font-size:17px;color:#FFD700;text-shadow:0 0 12px rgba(212,175,55,0.6)}
+.pod-player-pts{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;color:rgba(255,255,255,0.9);line-height:1.1;display:block;margin-top:2px}
+.pod-slot-1 .pod-player-pts{font-size:30px;color:#FFD700;filter:drop-shadow(0 0 8px rgba(212,175,55,0.6))}
+.pod-pts-label{font-family:'Bebas Neue',sans-serif;font-size:8px;letter-spacing:2.5px;color:rgba(255,255,255,0.28);display:block}
+.pod-round-wins{font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:1.5px;color:#FFD700;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.28);border-radius:6px;padding:2px 7px;display:inline-block;margin-top:4px}
+/* card reveal animations */
+@keyframes pod-card-in{0%{transform:translateY(180px) scale(0.72);opacity:0}65%{transform:translateY(-8px) scale(1.03)}100%{transform:translateY(0) scale(1);opacity:1}}
+@keyframes pod-card-in-star{0%{transform:translateY(220px) scale(0.62);opacity:0}65%{transform:translateY(-14px) scale(1.05)}100%{transform:translateY(0) scale(1);opacity:1}}
+.pod-enter-2{animation:pod-card-in .9s 0.1s cubic-bezier(.34,1.3,.64,1) both}
+.pod-enter-3{animation:pod-card-in .9s 0.4s cubic-bezier(.34,1.3,.64,1) both}
+.pod-enter-1{animation:pod-card-in-star 1.05s 0.8s cubic-bezier(.34,1.35,.64,1) both}
+.pod-floor{width:100%;height:2px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.25),rgba(212,175,55,.1),rgba(212,175,55,.25),transparent);margin-bottom:6px}
+@keyframes pod-fadein{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.pod-fadein{animation:pod-fadein .5s ease-out both}
+/* confetti canvas */
+#confettiCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:8}
 </style>
 </head>
 <body>
@@ -1849,6 +1942,7 @@ nav button:hover,nav button.active{
     <!-- ── Leaderboard floating buttons (leaderboard only) ── -->
     <button id="championsBtn" onclick="toggleChampionsModal()" title="Round Champions" style="display:none;position:fixed;bottom:24px;left:24px;z-index:300;padding:10px 18px;border-radius:30px;background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;cursor:pointer;box-shadow:0 4px 18px rgba(212,175,55,.45);color:#000;font-family:'Bebas Neue';font-size:14px;letter-spacing:2px;transition:.2s;white-space:nowrap">🏆 ROUND CHAMPIONS</button>
     <button id="exactScoreBtn" onclick="toggleCloserCard()" title="Exact Score" style="display:none;position:fixed;bottom:76px;left:24px;z-index:300;padding:10px 18px;border-radius:30px;background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;cursor:pointer;box-shadow:0 4px 18px rgba(212,175,55,.45);color:#000;font-family:'Bebas Neue';font-size:14px;letter-spacing:2px;transition:.2s;white-space:nowrap">⭐ EXACT SCORE</button>
+    <button id="podiumBtn" onclick="showPodiumModal()" title="Podio Final" style="display:none;position:fixed;bottom:128px;left:24px;z-index:300;padding:10px 18px;border-radius:30px;background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;cursor:pointer;box-shadow:0 4px 18px rgba(212,175,55,.45);color:#000;font-family:'Bebas Neue';font-size:14px;letter-spacing:2px;transition:.2s;white-space:nowrap">🏆 PODIO FINAL</button>
 
     <!-- ── Exact Score modal ── -->
     <div id="exactScoreModal" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding:0" onclick="if(event.target===this)toggleCloserCard()">
@@ -2375,21 +2469,21 @@ const MATCHES = {
   ],
   4:[
     {id:"4_1",home:"Sudáfrica",away:"Canadá",date:"28/06",time:"15:00"},
-    {id:"4_2",home:"Por confirmar",away:"Por confirmar",date:"29/06",time:"13:00"},
-    {id:"4_3",home:"Brasil",away:"Japón",date:"29/06",time:"16:30"},
-    {id:"4_4",home:"Alemania",away:"Paraguay",date:"29/06",time:"21:00"},
-    {id:"4_5",home:"Países Bajos",away:"Marruecos",date:"30/06",time:"13:00"},
-    {id:"4_6",home:"Costa de Marfil",away:"Noruega",date:"30/06",time:"17:00"},
-    {id:"4_7",home:"Francia",away:"Suecia",date:"30/06",time:"21:00"},
-    {id:"4_8",home:"México",away:"Por confirmar",date:"01/07",time:"12:00"},
-    {id:"4_9",home:"Por confirmar",away:"Por confirmar",date:"01/07",time:"16:00"},
+    {id:"4_2",home:"Brasil",away:"Japón",date:"29/06",time:"13:00"},
+    {id:"4_3",home:"Alemania",away:"Paraguay",date:"29/06",time:"16:30"},
+    {id:"4_4",home:"Países Bajos",away:"Marruecos",date:"29/06",time:"21:00"},
+    {id:"4_5",home:"Costa de Marfil",away:"Noruega",date:"30/06",time:"13:00"},
+    {id:"4_6",home:"Francia",away:"Suecia",date:"30/06",time:"17:00"},
+    {id:"4_7",home:"México",away:"Ecuador",date:"30/06",time:"21:00"},
+    {id:"4_8",home:"Inglaterra",away:"Congo",date:"01/07",time:"12:00"},
+    {id:"4_9",home:"Bélgica",away:"Senegal",date:"01/07",time:"16:00"},
     {id:"4_10",home:"Estados Unidos",away:"Bosnia Herzegovina",date:"01/07",time:"20:00"},
-    {id:"4_11",home:"Por confirmar",away:"Por confirmar",date:"02/07",time:"15:00"},
-    {id:"4_12",home:"Por confirmar",away:"Por confirmar",date:"02/07",time:"19:00"},
-    {id:"4_13",home:"Por confirmar",away:"Por confirmar",date:"02/07",time:"23:00"},
-    {id:"4_14",home:"Por confirmar",away:"Por confirmar",date:"03/07",time:"14:00"},
-    {id:"4_15",home:"Por confirmar",away:"Por confirmar",date:"03/07",time:"18:00"},
-    {id:"4_16",home:"Por confirmar",away:"Por confirmar",date:"03/07",time:"21:30",closer:true}
+    {id:"4_11",home:"España",away:"Austria",date:"02/07",time:"15:00"},
+    {id:"4_12",home:"Portugal",away:"Croacia",date:"02/07",time:"19:00"},
+    {id:"4_13",home:"Suiza",away:"Irán",date:"02/07",time:"23:00"},
+    {id:"4_14",home:"Australia",away:"Egipto",date:"03/07",time:"14:00"},
+    {id:"4_15",home:"Argentina",away:"Cabo Verde",date:"03/07",time:"18:00"},
+    {id:"4_16",home:"Colombia",away:"Ghana",date:"03/07",time:"21:30",closer:true}
   ],
   5:[
     {id:"5_1",home:"R32 W1",away:"R32 W3",date:"04/07",time:"13:00"},
@@ -6714,8 +6808,10 @@ function showSection(name){
   });
   const esBtn = document.getElementById('exactScoreBtn');
   const chBtn = document.getElementById('championsBtn');
+  const pbBtn = document.getElementById('podiumBtn');
   if(esBtn) esBtn.style.display = name==='leaderboard' ? 'block' : 'none';
   if(chBtn) chBtn.style.display = name==='leaderboard' ? 'block' : 'none';
+  if(pbBtn) pbBtn.style.display = name==='leaderboard' ? 'block' : 'none';
   if(name==='leaderboard'){ renderLeaderboard(); setTimeout(checkFifaSplashTrigger, 500); checkPaymentNudge(); }
   if(name==='picks'){
     currentRound = activeWeek > 0 ? activeWeek : 1;
@@ -8679,6 +8775,382 @@ function dismissInstall(){
   document.getElementById('installBanner').style.display = 'none';
   sessionStorage.setItem('pwa-dismissed', '1');
 }
+
+// ══ PODIUM FINAL ══════════════════════════════════════════
+
+var _confettiAnim = null;
+var _podiumBuilt = false;
+
+function showPodiumModal(){
+  if(!_podiumBuilt) _buildPodium();
+  var ov = document.getElementById('podiumOverlay');
+  ov.classList.add('pod-visible');
+  document.body.style.overflow = 'hidden';
+  _startConfetti();
+}
+
+function closePodium(){
+  var ov = document.getElementById('podiumOverlay');
+  ov.classList.remove('pod-visible');
+  document.body.style.overflow = '';
+  if(_confettiAnim){ cancelAnimationFrame(_confettiAnim); _confettiAnim = null; }
+}
+
+function _buildPodium(){
+  // Compute total points across ALL rounds for each player
+  var stage = document.getElementById('podStage');
+  if(!stage) return;
+  _podiumBuilt = true;
+
+  function buildFromData(players, allPicks, results){
+    if(!players) return;
+    var totals = [];
+    Object.entries(players).forEach(function(entry){
+      var key = entry[0], player = entry[1];
+      if(!player.approved) return;
+      var picks = (allPicks[key] && allPicks[key].picks) || {};
+      var totalPts = 0;
+      for(var r = 1; r <= 7; r++){
+        var submitted = hasSubmittedRound(allPicks[key], player, r);
+        if(!submitted) continue;
+        var roundMs = MATCHES[r] || [];
+        roundMs.forEach(function(m){
+          var res = results && results[m.id];
+          var p = picks[m.id];
+          if(!res || !p) return;
+          totalPts += scoreMatch(m, p, res);
+        });
+        var pen = (player.penalties||{})[r] || (player.penalties||{})[String(r)] || 0;
+        if(pen) totalPts = Math.round((totalPts + pen)*10)/10;
+      }
+      totals.push({name: player.name||key, pts: totalPts, key: key, avatar: player.avatar||null, country: player.country||null});
+    });
+    totals.sort(function(a,b){ return b.pts - a.pts; });
+
+    var p1 = totals[0], p2 = totals[1], p3 = totals[2];
+
+    // Generate bokeh
+    var bokeh = document.getElementById('podBokeh');
+    if(bokeh){
+      var bColors = ['rgba(212,175,55,','rgba(100,100,200,','rgba(50,150,80,','rgba(200,100,50,','rgba(255,255,200,'];
+      var bHtml = '';
+      for(var i=0;i<40;i++){
+        var x=Math.random()*100, y=20+Math.random()*70;
+        var sz=2+Math.random()*8, op=0.2+Math.random()*0.5;
+        var c=bColors[Math.floor(Math.random()*bColors.length)];
+        var delay=Math.random()*3;
+        bHtml+='<div class="pod-bk" style="left:'+x+'%;top:'+y+'%;width:'+sz+'px;height:'+sz+'px;background:'+c+op+');animation-delay:'+delay+'s"></div>';
+      }
+      bokeh.innerHTML = bHtml;
+    }
+
+    // Build slot HTML — professional portrait card
+    function slotHtml(player, rank){
+      if(!player) return '';
+      var cups = {1:'🏆', 2:'🥈', 3:'🥉'};
+      var rankNums = {1:'1', 2:'2', 3:'3'};
+      var avSz = rank===1 ? 110 : rank===2 ? 90 : 78;
+      var avatarCfg = player.avatar || {skin:0,hair:0,hairColor:0,beard:0,jersey:'neutro'};
+      var avSvg = renderAvatarSVG(avatarCfg, avSz);
+      var ptsDisp = Number.isInteger(player.pts) ? player.pts : player.pts.toFixed(1);
+      var flag = player.country ? '<img src="https://flagcdn.com/'+player.country+'.svg" style="height:12px;border-radius:1px;vertical-align:middle;margin-right:3px;opacity:.85">' : '';
+      var rwBadge = player.roundWins > 0
+        ? '<div class="pod-round-wins">⚡ '+player.roundWins+' ronda'+(player.roundWins>1?'s':'')+' ganada'+(player.roundWins>1?'s':'')+'</div>'
+        : '';
+      return '<div class="pod-slot pod-slot-'+rank+' pod-enter-'+rank+'">'
+        +'<span class="pod-cup">'+cups[rank]+'</span>'
+        +'<div class="pod-card">'
+        +'<div class="pod-rank-badge">'+rankNums[rank]+'</div>'
+        +'<div class="pod-ring"><div class="pod-ring-inner">'+avSvg+'</div></div>'
+        +'<div class="pod-label">'
+        +'<div class="pod-player-name">'+flag+escapeHtml(player.name)+'</div>'
+        +'<div class="pod-player-pts">'+ptsDisp+'</div>'
+        +'<div class="pod-pts-label">PUNTOS TOTALES</div>'
+        +rwBadge
+        +'</div>'
+        +'</div>'
+        +'</div>';
+    }
+
+    // Order: 2nd left, 1st center, 3rd right
+    stage.innerHTML = slotHtml(p2, 2) + slotHtml(p1, 1) + slotHtml(p3, 3);
+  }
+
+  if(db){
+    Promise.all([
+      db.ref('players').once('value'),
+      db.ref('picks').once('value'),
+      db.ref('results').once('value')
+    ]).then(function(snaps){
+      buildFromData(snaps[0].val()||{}, snaps[1].val()||{}, snaps[2].val()||{});
+    });
+  }
+}
+
+function renderWalkingSVG(cfg, size){
+  var skins   =['#FDDBB4','#F0C080','#C68642','#8D5524','#5C3317','#2A1506'];
+  var skDs    =['#C88050','#B87028','#9A5E2A','#6B3A18','#3A1E0C','#190802'];
+  var skLs    =['#FFE8CC','#FDDBB4','#D9956E','#A06035','#785020','#3A1A08'];
+  var hairColors=['#1A1A1A','#3B2314','#7B4F2E','#C48B3D','#E8C96E','#B85C38','#888888','#E8E8E8'];
+  var noseShades=['#d4956e','#c47e45','#9a6230','#6B3E1E','#4A2810','#1E0E05'];
+  var sk=skins[cfg.skin]||skins[0];
+  var skD=skDs[cfg.skin]||skDs[0];
+  var skL=skLs[cfg.skin]||skLs[0];
+  var hc=hairColors[cfg.hairColor]||hairColors[0];
+  var jersey=(typeof JERSEY_TEAMS!=='undefined'?JERSEY_TEAMS:[]).find(function(t){return t.id===cfg.jersey;})||{c1:'#1a3a6e',c2:'#e8e8e8',txt:'#fff'};
+  var c1=jersey.c1, c2=jersey.c2, ctxt=jersey.txt;
+  var uid='wlk'+(++_avUid);
+  var dur='0.85s';
+
+  // HEAD at cy=20, r=16. Top y=4, chin y=36, sides x=34 and x=66
+  var hair='';
+  switch(cfg.hair){
+    case 0:
+      hair='<path d="M34,20 Q34,3 50,2 Q66,3 66,20 Q62,10 50,10 Q38,10 34,20" fill="'+hc+'"/>'; break;
+    case 1:
+      hair='<path d="M34,20 Q34,3 50,2 Q66,3 66,20 Q62,10 50,10 Q38,10 34,20" fill="'+hc+'"/>'
+          +'<path d="M34,18 Q27,28 27,44 Q28,52 34,50 Q33,40 36,30" fill="'+hc+'"/>'
+          +'<path d="M66,18 Q73,28 73,44 Q72,52 66,50 Q67,40 64,30" fill="'+hc+'"/>'; break;
+    case 2: break;
+    case 3:
+      hair='<circle cx="36" cy="14" r="14" fill="'+hc+'"/>'
+          +'<circle cx="50" cy="6" r="15" fill="'+hc+'"/>'
+          +'<circle cx="64" cy="14" r="14" fill="'+hc+'"/>'; break;
+    case 4:
+      hair='<ellipse cx="50" cy="11" rx="23" ry="18" fill="'+hc+'"/>'; break;
+    case 5:
+      hair='<path d="M34,20 Q34,3 50,2 Q66,3 66,20 Q62,10 50,10 Q38,10 34,20" fill="'+hc+'"/>'
+          +'<path d="M36,10 Q32,28 33,56 Q35,66 50,68 Q65,66 67,56 Q68,28 64,10 Q59,15 50,15 Q41,15 36,10Z" fill="'+hc+'"/>'; break;
+    case 6:
+      hair='<path d="M34,20 Q34,3 50,2 Q66,3 66,20 Q62,10 50,10 Q38,10 34,20" fill="'+hc+'"/>'
+          +'<ellipse cx="50" cy="-2" rx="9" ry="12" fill="'+hc+'"/>'; break;
+    default:
+      hair='<path d="M34,20 Q34,3 50,2 Q66,3 66,20 Q62,10 50,10 Q38,10 34,20" fill="'+hc+'"/>';
+  }
+  var beard='';
+  switch(cfg.beard){
+    case 1: beard='<ellipse cx="50" cy="34" rx="11" ry="3.5" fill="'+hc+'" opacity="0.45"/>'; break;
+    case 2: beard='<path d="M37,29 Q38,43 50,46 Q62,43 63,29 Q57,38 50,38 Q43,38 37,29" fill="'+hc+'"/>'; break;
+    case 3: beard='<ellipse cx="50" cy="37" rx="14" ry="9" fill="'+hc+'"/>'; break;
+  }
+  var glasses='';
+  if(cfg.glasses===1) glasses=''
+    +'<rect x="33" y="19" width="12" height="9" rx="3.5" fill="rgba(0,0,0,0.82)"/>'
+    +'<rect x="55" y="19" width="12" height="9" rx="3.5" fill="rgba(0,0,0,0.82)"/>'
+    +'<line x1="45" y1="23.5" x2="55" y2="23.5" stroke="#555" stroke-width="1.5"/>';
+
+  var w=size||90; var h=Math.round(w*2.65);
+  var p=[];
+  p.push('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 250" width="'+w+'" height="'+h+'" style="overflow:visible">');
+  // Radial skin gradient for 3D sphere/cylinder effect
+  p.push('<defs>'
+    +'<radialGradient id="rsg'+uid+'" cx="36%" cy="30%" r="66%">'
+    +'<stop offset="0%" stop-color="'+skL+'"/>'
+    +'<stop offset="52%" stop-color="'+sk+'"/>'
+    +'<stop offset="100%" stop-color="'+skD+'"/>'
+    +'</radialGradient>'
+    +'</defs>');
+
+  // Ground shadow
+  p.push('<ellipse cx="50" cy="246" rx="26" ry="5.5" fill="rgba(0,0,0,0.35)"/>');
+
+  // ── LEFT LEG (behind, hip pivot left) ──
+  p.push('<g transform="translate(40,112)">');
+  p.push('<animateTransform attributeName="transform" type="rotate" values="22;-22;22" dur="'+dur+'" repeatCount="indefinite" additive="sum"/>');
+  // Thigh-calf silhouette (wider at thigh, tapers to ankle)
+  p.push('<path d="M-9,0 Q-10,24 -10,48 Q-12,56 -10,63 Q-8,84 -5,108 Q-2,115 2,114 Q6,113 7,108 Q8,84 8,63 Q10,56 9,48 Q9,24 9,0Z" fill="'+sk+'" opacity="0.88"/>');
+  // Knee highlight (subtle bump)
+  p.push('<ellipse cx="0" cy="56" rx="7" ry="5" fill="'+skL+'" opacity="0.20"/>');
+  // White sock
+  p.push('<rect x="-6" y="100" width="13" height="14" rx="3.5" fill="#EEEEEE" opacity="0.88"/>');
+  // Boot
+  p.push('<path d="M-7,111 Q-9,122 -6,130 Q-3,137 10,134 Q19,130 17,118 Q13,109 4,108Z" fill="#1C1C1C" opacity="0.88"/>');
+  p.push('<path d="M-2,127 Q5,133 12,131" stroke="#555" stroke-width="1.2" fill="none" opacity="0.45"/>');
+  p.push('</g>');
+
+  // ── RIGHT LEG (front, hip pivot right) ──
+  p.push('<g transform="translate(60,112)">');
+  p.push('<animateTransform attributeName="transform" type="rotate" values="-22;22;-22" dur="'+dur+'" repeatCount="indefinite" additive="sum"/>');
+  p.push('<path d="M-9,0 Q-9,24 -9,48 Q-11,56 -9,63 Q-7,84 -4,108 Q-1,115 3,114 Q7,113 8,108 Q9,84 9,63 Q11,56 10,48 Q10,24 10,0Z" fill="'+sk+'"/>');
+  p.push('<ellipse cx="0" cy="56" rx="7" ry="5" fill="'+skL+'" opacity="0.22"/>');
+  p.push('<rect x="-6" y="100" width="13" height="14" rx="3.5" fill="#EEEEEE"/>');
+  p.push('<path d="M-7,111 Q-9,122 -6,130 Q-3,137 10,134 Q19,130 17,118 Q13,109 4,108Z" fill="#1C1C1C"/>');
+  p.push('<path d="M-2,127 Q5,133 12,131" stroke="#555" stroke-width="1.2" fill="none" opacity="0.40"/>');
+  p.push('</g>');
+
+  // ── SHORTS ──
+  p.push('<path d="M22,102 Q50,115 78,102 L74,124 Q62,134 50,134 Q38,134 26,124Z" fill="'+c2+'"/>');
+  // Left shadow on shorts
+  p.push('<path d="M22,102 Q36,109 50,114 L50,134 Q38,134 26,124Z" fill="rgba(0,0,0,0.16)"/>');
+
+  // ── JERSEY (wide athletic V-shape) ──
+  p.push('<path d="M10,52 Q6,68 6,86 L12,104 Q26,115 50,117 Q74,115 88,104 L94,86 Q94,68 90,52 L70,46 Q50,42 30,46Z" fill="'+c1+'"/>');
+  // Left shadow (3D depth)
+  p.push('<path d="M10,52 Q6,68 6,86 L12,104 Q26,115 33,116 L30,50Z" fill="rgba(0,0,0,0.20)"/>');
+  // Right side highlight
+  p.push('<path d="M90,52 Q94,68 94,86 L88,104 Q74,115 67,116 L70,50Z" fill="rgba(255,255,255,0.07)"/>');
+  // Upper chest sheen (makes it look muscular/3D)
+  p.push('<path d="M38,46 Q50,42 62,46 L59,60 Q50,58 41,60Z" fill="rgba(255,255,255,0.12)"/>');
+  // Jersey number
+  p.push('<text x="50" y="92" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-size="18" font-weight="900" fill="'+ctxt+'" opacity="0.92">'+(cfg.jerseyNum||10)+'</text>');
+  // V collar
+  p.push('<path d="M42,47 Q50,54 58,47 L55,42 Q50,40 45,42Z" fill="'+c1+'" opacity="0.9"/>');
+
+  // ── LEFT ARM (behind torso) ──
+  p.push('<g transform="translate(14,62)">');
+  p.push('<animateTransform attributeName="transform" type="rotate" values="36;-36;36" dur="'+dur+'" repeatCount="indefinite" additive="sum"/>');
+  // Upper arm (jersey sleeve color)
+  p.push('<path d="M0,0 Q-10,13 -11,29 Q-9,34 -5,33 Q-2,32 0,28 Q3,13 0,0Z" fill="'+c1+'"/>');
+  // Forearm (skin)
+  p.push('<path d="M-5,33 Q-11,47 -10,60 Q-8,66 -4,65 Q-1,64 2,60 Q4,47 0,32Z" fill="url(#rsg'+uid+')"/>');
+  // Hand
+  p.push('<ellipse cx="-2" cy="68" rx="5.5" ry="6" fill="url(#rsg'+uid+')"/>');
+  p.push('</g>');
+
+  // ── RIGHT ARM (front) ──
+  p.push('<g transform="translate(86,62)">');
+  p.push('<animateTransform attributeName="transform" type="rotate" values="-36;36;-36" dur="'+dur+'" repeatCount="indefinite" additive="sum"/>');
+  p.push('<path d="M0,0 Q10,13 11,29 Q9,34 5,33 Q2,32 0,28 Q-3,13 0,0Z" fill="'+c1+'"/>');
+  p.push('<path d="M5,33 Q11,47 10,60 Q8,66 4,65 Q1,64 -2,60 Q-4,47 0,32Z" fill="url(#rsg'+uid+')"/>');
+  p.push('<ellipse cx="2" cy="68" rx="5.5" ry="6" fill="url(#rsg'+uid+')"/>');
+  p.push('</g>');
+
+  // ── NECK ──
+  p.push('<path d="M43,47 L43,35 Q50,41 57,35 L57,47 Q53,52 50,52 Q47,52 43,47Z" fill="url(#rsg'+uid+')"/>');
+
+  // ── HEAD ── cy=20, r=16
+  // Hair (behind)
+  p.push(hair);
+  // Head sphere with radial gradient for 3D effect
+  p.push('<circle cx="50" cy="20" r="16" fill="url(#rsg'+uid+')"/>');
+  // Ears
+  p.push('<ellipse cx="34" cy="22" rx="3.5" ry="4.5" fill="'+sk+'"/>');
+  p.push('<ellipse cx="34" cy="22" rx="2" ry="2.8" fill="'+skD+'" opacity="0.45"/>');
+  p.push('<ellipse cx="66" cy="22" rx="3.5" ry="4.5" fill="'+sk+'"/>');
+  p.push('<ellipse cx="66" cy="22" rx="2" ry="2.8" fill="'+skD+'" opacity="0.45"/>');
+  // Chin shadow for jaw definition
+  p.push('<ellipse cx="50" cy="35" rx="11" ry="3" fill="'+skD+'" opacity="0.22"/>');
+  // Eyebrows (confident arch)
+  p.push('<path d="M37,14 Q41,11 45,14" stroke="'+hc+'" stroke-width="2.2" fill="none" stroke-linecap="round"/>');
+  p.push('<path d="M55,14 Q59,11 63,14" stroke="'+hc+'" stroke-width="2.2" fill="none" stroke-linecap="round"/>');
+  // Eyes: white sclera → iris → pupil → specular highlight
+  p.push('<ellipse cx="41" cy="21" rx="5" ry="3.8" fill="white"/>');
+  p.push('<ellipse cx="41" cy="21" rx="3.2" ry="3.2" fill="#3A2A18"/>');
+  p.push('<ellipse cx="41" cy="21" rx="1.9" ry="1.9" fill="#050402"/>');
+  p.push('<circle cx="42.5" cy="19.5" r="1.2" fill="rgba(255,255,255,0.9)"/>');
+  p.push('<ellipse cx="59" cy="21" rx="5" ry="3.8" fill="white"/>');
+  p.push('<ellipse cx="59" cy="21" rx="3.2" ry="3.2" fill="#3A2A18"/>');
+  p.push('<ellipse cx="59" cy="21" rx="1.9" ry="1.9" fill="#050402"/>');
+  p.push('<circle cx="60.5" cy="19.5" r="1.2" fill="rgba(255,255,255,0.9)"/>');
+  // Upper eyelid line (makes eyes look sharp, not cartoonish)
+  p.push('<path d="M36,18 Q41,15.5 46,18" stroke="#1A1A1A" stroke-width="1.4" fill="none"/>');
+  p.push('<path d="M54,18 Q59,15.5 64,18" stroke="#1A1A1A" stroke-width="1.4" fill="none"/>');
+  // Nose (defined nostrils, not just a blob)
+  p.push('<path d="M47,27 Q48,31 50,32 Q52,31 53,27" stroke="'+skD+'" stroke-width="1.5" fill="none" stroke-linecap="round"/>');
+  p.push('<ellipse cx="47.5" cy="31" rx="1.6" ry="1.1" fill="'+skD+'" opacity="0.55"/>');
+  p.push('<ellipse cx="52.5" cy="31" rx="1.6" ry="1.1" fill="'+skD+'" opacity="0.55"/>');
+  // Mouth (confident smile)
+  p.push('<path d="M43,35 Q50,40 57,35" stroke="'+skD+'" stroke-width="1.9" fill="none" stroke-linecap="round"/>');
+  p.push(beard);
+  p.push(glasses);
+  p.push('</svg>');
+  return p.join('');
+}
+
+function _startConfetti(){
+  var canvas = document.getElementById('confettiCanvas');
+  if(!canvas) return;
+  var W = window.innerWidth, H = window.innerHeight;
+  canvas.width = W; canvas.height = H;
+  var ctx = canvas.getContext('2d');
+
+  var colors = ['#FFD700','#FFF700','#FF3355','#33AAFF','#33FF88','#FF9933','#CC33FF','#ffffff','#D4AF37'];
+  var particles = [];
+  for(var i=0;i<180;i++){
+    particles.push({
+      x: Math.random()*W,
+      y: -20 - Math.random()*300,
+      vx: (Math.random()-0.5)*3,
+      vy: 1.5 + Math.random()*3,
+      rot: Math.random()*360,
+      rotV: (Math.random()-0.5)*8,
+      w: 6+Math.random()*10,
+      h: 3+Math.random()*5,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      type: Math.random()<0.15 ? 'circle' : 'rect',
+      alpha: 0.7+Math.random()*0.3,
+      wobble: Math.random()*Math.PI*2,
+      wobbleV: 0.05+Math.random()*0.05
+    });
+  }
+
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    var alive = false;
+    particles.forEach(function(p){
+      p.x += p.vx + Math.sin(p.wobble)*0.8;
+      p.y += p.vy;
+      p.vy += 0.06;
+      p.rot += p.rotV;
+      p.wobble += p.wobbleV;
+      if(p.y < H+20) alive = true;
+      ctx.save();
+      ctx.globalAlpha = p.y > H*0.8 ? p.alpha*(1-(p.y-H*0.8)/(H*0.2)) : p.alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI/180);
+      ctx.fillStyle = p.color;
+      if(p.type==='circle'){
+        ctx.beginPath();
+        ctx.arc(0,0,p.w/2,0,Math.PI*2);
+        ctx.fill();
+      } else {
+        ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      }
+      ctx.restore();
+      // respawn from top
+      if(p.y > H+20){
+        p.y = -20;
+        p.x = Math.random()*W;
+        p.vy = 1.5+Math.random()*3;
+      }
+    });
+    _confettiAnim = requestAnimationFrame(frame);
+  }
+  if(_confettiAnim) cancelAnimationFrame(_confettiAnim);
+  frame();
+}
+
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape'){
+    var ov = document.getElementById('podiumOverlay');
+    if(ov && ov.classList.contains('pod-visible')) closePodium();
+  }
+});
 </script>
+<!-- ══ PODIUM FINAL OVERLAY ══ -->
+<div id="podiumOverlay">
+  <canvas id="confettiCanvas"></canvas>
+  <div class="pod-bg"></div>
+  <!-- Perspective football pitch floor -->
+  <div class="pod-field"></div>
+  <div class="pod-center-line"></div>
+  <!-- Tunnel glow from sides when players enter -->
+  <div class="pod-tunnel pod-tunnel-l"></div>
+  <div class="pod-tunnel pod-tunnel-r"></div>
+  <div class="pod-bokeh" id="podBokeh"></div>
+  <div class="pod-spot pod-spot-1"></div>
+  <div class="pod-spot pod-spot-2"></div>
+  <div class="pod-spot pod-spot-3"></div>
+  <button class="pod-close" onclick="closePodium()">✕</button>
+  <div class="pod-modal">
+    <div class="pod-title-wrap pod-fadein" style="animation-delay:.1s">
+      <span class="pod-trophy-icon">🏆</span>
+      <div class="pod-main-title">CAMPEÓN</div>
+      <div class="pod-sub-title">PICK26 · COPA MUNDIAL 2026</div>
+    </div>
+    <div class="pod-stage" id="podStage"></div>
+    <div class="pod-floor"></div>
+  </div>
+</div>
 </body>
 </html>
