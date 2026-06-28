@@ -196,10 +196,14 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
 .match-card:hover{border-color:var(--gold3);box-shadow:0 2px 16px rgba(212,175,55,.15)}
 .match-info{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
 .match-teams{display:flex;align-items:center;gap:10px;flex:1;min-width:200px}
-.team{display:flex;align-items:center;gap:8px;min-width:80px}
-.team-home{justify-content:flex-end;text-align:right}
-.team-away{justify-content:flex-start;text-align:left}
+.team{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:80px}
+.team-home{text-align:center}
+.team-away{text-align:center}
 .flag{font-size:22px}
+.match-teams .flag{display:none}
+.team-badge{width:64px;height:43px;border-radius:6px;object-fit:cover;display:block;box-shadow:0 3px 14px rgba(0,0,0,.6),0 0 0 1.5px rgba(255,255,255,.15)}
+.team-badge-tba{width:64px;height:43px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);color:rgba(255,255,255,.22);font-size:18px;box-shadow:0 0 0 1.5px rgba(255,255,255,.1)}
+.pick-badge{width:34px;height:23px;border-radius:3px;object-fit:cover;display:block;box-shadow:0 1px 5px rgba(0,0,0,.45);margin:0 auto 2px}
 .team-tba{
   display:inline-flex;align-items:center;justify-content:center;
   width:24px;height:18px;border-radius:2px;vertical-align:middle;margin:0 2px;
@@ -215,6 +219,7 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
   flex:1;min-width:70px;padding:8px 4px;background:rgba(255,255,255,.06);
   border:1.5px solid var(--gray);border-radius:8px;color:var(--text2);
   font-family:'DM Sans';font-size:12px;font-weight:600;cursor:pointer;transition:.15s;letter-spacing:.3px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
 }
 .pick-btn:hover{background:rgba(212,175,55,.25);border-color:var(--gold);color:var(--gold)}
 .pick-btn.selected-home{background:rgba(46,204,113,.2)!important;border-color:var(--green)!important;color:var(--green)!important}
@@ -610,6 +615,9 @@ nav button:hover,nav button.active{
   .vs-box{order:-1}
   .team-name{font-size:12px}
   .flag img{height:20px;width:26px}
+  .team-badge{width:48px;height:32px}
+  .team-badge-tba{width:48px;height:32px}
+  .pick-badge{width:28px;height:19px}
   .pick-btn{font-size:11px;padding:7px 2px;min-width:60px}
   .score-board{gap:8px;padding:10px 6px}
   .score-input{width:52px;font-size:20px}
@@ -2402,6 +2410,29 @@ function getTeamVisual(name){
   if(flag) return flag;
   // Neutral placeholder badge
   return '<span class="team-tba" title="To be determined">?</span>';
+}
+
+// Large badge-style team logo (flag as official crest)
+function getTeamBadge(name){
+  let code = FLAGS[name];
+  if(!code){
+    const lower = (name||'').trim().toLowerCase();
+    const k = Object.keys(FLAGS).find(k => k.toLowerCase() === lower);
+    if(k) code = FLAGS[k];
+  }
+  if(code) return '<img src="https://flagcdn.com/'+code+'.svg" class="team-badge" alt="'+escapeHtml(name)+'" title="'+escapeHtml(name)+'">';
+  return '<span class="team-badge team-badge-tba">?</span>';
+}
+
+function getPickBadge(name){
+  let code = FLAGS[name];
+  if(!code){
+    const lower = (name||'').trim().toLowerCase();
+    const k = Object.keys(FLAGS).find(k => k.toLowerCase() === lower);
+    if(k) code = FLAGS[k];
+  }
+  if(code) return '<img src="https://flagcdn.com/'+code+'.svg" class="pick-badge" alt="'+escapeHtml(name)+'">';
+  return '';
 }
 
 const TEAM_EN = {
@@ -4310,8 +4341,8 @@ function renderMatches(){
       <div class="match-info">
         <div class="match-teams">
           <div class="team team-home">
+            ${getTeamBadge(rawHome)}
             <span class="team-name">${homeName}</span>
-            <span class="flag">${homeFlag}</span>
           </div>
           <div class="vs-box">
             <div class="match-date">${m.date}</div>
@@ -4319,7 +4350,7 @@ function renderMatches(){
             ${specialBadge}
           </div>
           <div class="team team-away">
-            <span class="flag">${awayFlag}</span>
+            ${getTeamBadge(rawAway)}
             <span class="team-name">${awayName}</span>
           </div>
         </div>
@@ -4327,15 +4358,15 @@ function renderMatches(){
       ${(isFinal || isCloser) ? '' : `<div class="pick-btns">
         <button class="pick-btn ${pickH}" ${disabledPick}
           onclick="setPick('${m.id}','home',this)">
-          ${currentLang==='es'?'Local':'Home'} ${homeFlag}
+          ${getPickBadge(rawHome)}${currentLang==='es'?'Local':'Home'}
         </button>
         ${!isKnockout ? `<button class="pick-btn ${pickD}" ${disabledPick}
           onclick="setPick('${m.id}','draw',this)">
-          ${currentLang==='es'?'Empate':'Draw'} 🤝
+          🤝<span>${currentLang==='es'?'Empate':'Draw'}</span>
         </button>` : ''}
         <button class="pick-btn ${pickA}" ${disabledPick}
           onclick="setPick('${m.id}','away',this)">
-          ${currentLang==='es'?'Visitante':'Away'} ${awayFlag}
+          ${getPickBadge(rawAway)}${currentLang==='es'?'Visitante':'Away'}
         </button>
       </div>${isKnockout ? `<p style="font-size:10px;color:rgba(255,215,0,.5);text-align:center;margin:4px 0 0;letter-spacing:.3px">⚡ ${currentLang==='es'?'Eliminatoria — sin empates (puede haber penales)':'Knockout — no draws (may go to penalties)'}</p>` : ''}`}
       ${scoreSection}
