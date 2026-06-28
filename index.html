@@ -8505,13 +8505,9 @@ function playRefWhistle(){
 
 function showRedCardWarning(){
   if(!currentUser || !activeWeek || activeWeek <= 0) return;
-  // Only if player hasn't submitted picks for this round yet
+  // Show every time app opens while player hasn't submitted picks for this round
   var submitted = submittedRounds[activeWeek] || submittedRounds[String(activeWeek)];
   if(submitted) return;
-  // Show once per round (resets when activeWeek changes)
-  var seenKey = 'wc2026_rcwarn_r' + activeWeek + '_' + currentUser;
-  if(localStorage.getItem(seenKey)) return;
-  localStorage.setItem(seenKey, '1');
 
   var es = currentLang === 'es';
   var badge = document.getElementById('rcBadgeText');
@@ -8540,7 +8536,7 @@ function showRedCardWarning(){
   if(body) body.innerHTML = es ? msgEs : msgEn;
 
   var el = document.getElementById('redCardWarning');
-  if(el) el.classList.add('rc-visible');
+  if(el){ el.onclick = rcPlayAndClose; el.classList.add('rc-visible'); }
   // Store voice text for when user taps the button (browser requires user gesture for audio)
   var voiceEs = '¡Atención, jugador! Aquí el árbitro. Todavía no has enviado tus picks para la jornada '
     + activeWeek + '. Recuerda: tienes hasta cinco horas antes del partido. '
