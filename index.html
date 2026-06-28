@@ -8508,6 +8508,11 @@ function showRedCardWarning(){
   // Show every time app opens while player hasn't submitted picks for this round
   var submitted = submittedRounds[activeWeek] || submittedRounds[String(activeWeek)];
   if(submitted) return;
+  // Stop showing 5 hours before the first match of the round (deadline passed)
+  var roundMatches = MATCHES[activeWeek] || [];
+  if(roundMatches.length === 0) return;
+  var firstKickoff = parseMatchDate(roundMatches[0]);
+  if(firstKickoff && Date.now() >= firstKickoff.getTime() - LOCK_BEFORE_MS) return;
 
   var es = currentLang === 'es';
   var badge = document.getElementById('rcBadgeText');
