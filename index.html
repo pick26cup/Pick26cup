@@ -2133,7 +2133,7 @@ nav button:hover,nav button.active{
 </div>
 
 <!-- RED CARD WARNING -->
-<div id="redCardWarning">
+<div id="redCardWarning" onclick="rcPlayAndClose()">
   <div class="rc-panel">
     <div class="rc-card-icon">🟥</div>
     <div class="rc-badge"><span style="font-size:18px">🏟️</span><span class="rc-badge-text" id="rcBadgeText">AVISO OFICIAL PICK26</span></div>
@@ -2141,8 +2141,7 @@ nav button:hover,nav button.active{
     <div class="rc-body" id="rcBody"></div>
     <span class="rc-pts">-1</span>
     <span class="rc-pts-label" id="rcPtsLabel">CASTIGO POR TARJETA ROJA</span>
-    <button class="rc-close" id="rcCloseBtn" onclick="rcPlayAndClose()" style="margin-bottom:8px">🔊 ESCUCHAR Y CERRAR</button>
-    <button onclick="closeRedCardWarning()" style="background:transparent;border:none;color:rgba(255,100,100,.5);font-size:11px;cursor:pointer;letter-spacing:1px;font-family:'Bebas Neue',sans-serif;width:100%">CERRAR SIN AUDIO</button>
+    <div style="margin-top:18px;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;color:rgba(255,100,100,.45);animation:rcFlash 1.4s ease-in-out infinite" id="rcTapHint">👆 TOCA LA PANTALLA PARA ESCUCHAR</div>
   </div>
 </div>
 
@@ -8557,11 +8556,18 @@ function showRedCardWarning(){
 }
 
 function rcPlayAndClose(){
+  var el = document.getElementById('redCardWarning');
+  if(!el || !el.classList.contains('rc-visible')) return;
+  // Remove onclick so double-tap doesn't re-fire
+  el.onclick = null;
+  var hint = document.getElementById('rcTapHint');
+  if(hint) hint.style.display = 'none';
   // User gesture unlocks AudioContext + speechSynthesis
   playRefWhistle();
   var txt = window._rcVoiceText || '';
   if(txt) setTimeout(function(){ speakVoice(txt, {pitch:0.88, rate:0.86}); }, 650);
-  closeRedCardWarning();
+  // Close after whistle + voice have played (~4s)
+  setTimeout(closeRedCardWarning, 4200);
 }
 
 function closeRedCardWarning(){
