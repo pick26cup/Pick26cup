@@ -8559,28 +8559,41 @@ function showRedCardWarning(){
 function rcPlayAndClose(){
   var el = document.getElementById('redCardWarning');
   if(!el || !el.classList.contains('rc-visible')) return;
-  // Remove onclick so double-tap doesn't re-fire
   el.onclick = null;
   var hint = document.getElementById('rcTapHint');
   if(hint) hint.style.display = 'none';
-  // Suppress the next-match voice announcement so it doesn't overlap
+  // Suppress next-match voice so it doesn't overlap while referee speaks
   _voiceAnnounced = true;
-  // User gesture unlocks AudioContext + speechSynthesis
+  // Play whistle + voice (user gesture unlocks audio)
   playRefWhistle();
   var txt = window._rcVoiceText || '';
-  if(txt) setTimeout(function(){ speakVoice(txt, {pitch:0.88, rate:0.86}); }, 650);
-  // Close after whistle + voice have played (~4s), then re-enable next-match voice
-  setTimeout(function(){
-    closeRedCardWarning();
-    _voiceAnnounced = false;
-  }, 4200);
+  if(txt){
+    var utt = new SpeechSynthesisUtterance('');
+    setTimeout(function(){
+      speakVoice(txt, {pitch:0.88, rate:0.86});
+      // Re-enable next-match voice once utterance ends naturally
+      var check = setInterval(function(){
+        if(!window.speechSynthesis.speaking){ clearInterval(check); _voiceAnnounced = false; }
+      }, 500);
+    }, 650);
+  } else {
+    setTimeout(function(){ _voiceAnnounced = false; }, 5000);
+  }
+  // Close modal visually after 1.5s — voice keeps playing after modal is gone
+  setTimeout(function(){ _dismissRedCard(); }, 1500);
+}
+
+function _dismissRedCard(){
+  var el = document.getElementById('redCardWarning');
+  if(!el) return;
+  el.style.opacity='0'; el.style.transition='opacity .5s';
+  setTimeout(function(){ el.classList.remove('rc-visible'); el.style.opacity=''; el.style.transition=''; window._rcVoiceText=null; }, 520);
 }
 
 function closeRedCardWarning(){
-  var el = document.getElementById('redCardWarning');
-  if(el){ el.style.opacity='0'; el.style.transition='opacity .4s'; setTimeout(function(){ el.classList.remove('rc-visible'); el.style.opacity=''; el.style.transition=''; }, 420); }
   window.speechSynthesis && window.speechSynthesis.cancel();
-  window._rcVoiceText = null;
+  _voiceAnnounced = false;
+  _dismissRedCard();
 }
 
 function playStampSound(){
