@@ -4880,7 +4880,7 @@ function renderHallOfFame(players, allPicks, results){
         pts += scoreMatch(m, p, res);
       });
       const pen = (player.penalties || {})[round] || (player.penalties || {})[String(round)] || 0;
-      pts = Math.round((pts + pen) * 10) / 10;
+      pts = Math.max(0, Math.round((pts + pen) * 10) / 10);
       const tb = closerTBData(pp, results, round);
       scores.push({name: player.name||key, pts, tb});
     });
@@ -5162,7 +5162,7 @@ function renderLeaderboard(){
           else if(mp===1) result++;
         });
         const pen = (player.penalties||{})[scoringRound] || (player.penalties||{})[String(scoringRound)] || 0;
-        if(pen) pts = Math.round((pts + pen) * 10) / 10;
+        if(pen) pts = Math.max(0, Math.round((pts + pen) * 10) / 10);
       }
 
       const tb = (results && scoringRound && hasSubmittedActive)
@@ -9016,7 +9016,7 @@ function _buildPodium(){
           pts += scoreMatch(m, p, res);
         });
         var pen = (player.penalties||{})[r] || (player.penalties||{})[String(r)] || 0;
-        pts = Math.round((pts + pen)*10)/10;
+        pts = Math.max(0, Math.round((pts + pen)*10)/10);
         roundScores.push({key: key, pts: pts});
         totalPtsMap[key] = Math.round(((totalPtsMap[key]||0) + pts)*10)/10;
       });
