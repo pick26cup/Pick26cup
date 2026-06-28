@@ -130,7 +130,7 @@
     <div class="kicker">FIFA World Cup 2026 · Motor Predictivo</div>
     <h1>Motor <b>Elo → Poisson</b> · Jornadas</h1>
     <div class="sub">Calendario real (72 partidos de grupos) con predicción por jornada · eliminatorias editables conforme avanza el Mundial.</div>
-    <div class="sub" style="margin-top:6px;color:#7d8a9a"><span class="flag" style="margin:0">Estado de datos</span> Elo: J1 COMPLETA (24/24) al 17-jun-2026. Listo para J2 (~19-jun). FIFA ranking 11-jun cargado para 18 equipos.</div>
+    <div class="sub" style="margin-top:6px;color:#7d8a9a"><span class="flag" style="margin:0">Estado de datos</span> Fase de grupos COMPLETA (72/72 · 28-jun-2026) · Elo post-J3 · FIFA 11-jun (48/48) · R32 pre-poblada · calibración de goles activa.</div>
   </header>
 
   <div class="tabs">
@@ -303,13 +303,26 @@ const FIX={
     ["JO","AR","J"],["DZ","AT","J"],["CO","PT","K"],["CD","UZ","K"],["PA","EN","L"],["HR","GH","L"]],
 };
 const KOR={
- 4:{name:"Dieciseisavos · Ronda de 32",slots:Array.from({length:16},(_,i)=>"Llave "+(i+1))},
+ 4:{name:"Dieciseisavos · Ronda de 32",slots:[
+   "L1 · A1-MX vs B2-CA","L2 · B1-CH vs A2-ZA","L3 · C1-BR vs D2-AU","L4 · D1-US vs C2-MA",
+   "L5 · E1-DE vs F2-JP","L6 · F1-NL vs E2-CI","L7 · G1-BE vs H2-CV","L8 · H1-ES vs G2-EG",
+   "L9 · I1-NO vs J2-AT","L10 · J1-AR vs I2-FR","L11 · K1-CO vs L2-HR","L12 · L1-EN vs K2-PT",
+   "L13 · 3°K-CD vs 3°F-SE","L14 · 3°E-EC vs 3°I-SN","L15 · 3°L-GH vs 3°B-BA","L16 · 3°D-PY vs 3°J-DZ"]},
  5:{name:"Octavos de final · Ronda de 16",slots:Array.from({length:8},(_,i)=>"Llave "+(i+1))},
  6:{name:"Cuartos de final",slots:["Cuartos 1","Cuartos 2","Cuartos 3","Cuartos 4"]},
  7:{name:"Semifinales y Final",slots:["Semifinal 1","Semifinal 2","Final","Tercer puesto"]},
 };
 const koState={4:[],5:[],6:[],7:[]};
 for(const r in KOR) koState[r]=KOR[r].slots.map(()=>({h:"",a:"",ha:"none"}));
+/* R32 pre-poblada · clasificados al 28-jun-2026 (72/72)
+   1ros: MX CH BR US DE NL BE ES NO AR CO EN
+   2dos: ZA CA AU MA JP CI CV EG AT FR HR PT
+   Mejores 3ros (8/12): CD SE EC GH BA DZ PY SN           */
+[["MX","CA"],["CH","ZA"],["BR","AU"],["US","MA"],
+ ["DE","JP"],["NL","CI"],["BE","CV"],["ES","EG"],
+ ["NO","AT"],["AR","FR"],["CO","HR"],["EN","PT"],
+ ["CD","SE"],["EC","SN"],["GH","BA"],["PY","DZ"]
+].forEach(function(pair,i){koState[4][i].h=pair[0];koState[4][i].a=pair[1];});
 
 const fc=[1];for(let i=1;i<=15;i++)fc[i]=fc[i-1]*i;
 const pois=(k,l)=>Math.exp(-l)*Math.pow(l,k)/fc[k];
@@ -371,13 +384,59 @@ function renderGroupJ(j){
   });
   jcontent.innerHTML=html;
 }
+function renderKOGoalsTable(j){
+  const def=KOR[j];
+  let rows="";
+  def.slots.forEach(function(label,si){
+    const st=koState[j][si];
+    if(!st.h||!st.a||st.h===st.a){
+      rows+=`<tr><td colspan="7" style="padding:5px 8px;color:var(--muted);font-size:11px">${label}</td></tr>`;
+      return;
+    }
+    const h=TEAMS[IDX[st.h]],a=TEAMS[IDX[st.a]];
+    const haS=st.ha==='none'?null:st.ha;
+    const R=predict(h,a,haS);
+    const t=R.scores[0];
+    const favH=R.pH>=R.pA;
+    const top3=R.scores.slice(0,3).map(function(s){return s[0]+'-'+s[1]+'<span style="color:var(--muted);font-size:9.5px">('+pct0(s[2])+')</span>';}).join('  ');
+    rows+=`<tr style="border-bottom:1px solid #161d27">
+      <td style="padding:5px 8px;white-space:nowrap">
+        <span style="font-weight:700;color:${favH?'var(--win)':'#8a93a0'}">${h.c}</span>
+        <span style="color:var(--muted);font-size:10px"> vs </span>
+        <span style="font-weight:700;color:${!favH?'var(--loss)':'#8a93a0'}">${a.c}</span></td>
+      <td style="padding:5px 10px;text-align:center;color:var(--win);font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:800">${R.lh.toFixed(2)}</td>
+      <td style="padding:5px 10px;text-align:center;color:var(--loss);font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:800">${R.la.toFixed(2)}</td>
+      <td style="padding:5px 10px;text-align:center;color:var(--amber);font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:800">${t[0]}-${t[1]}<span style="font-size:10px;color:var(--muted);font-family:inherit"> ${pct0(t[2])}</span></td>
+      <td style="padding:5px 8px;text-align:center;font-size:11.5px">${pct0(R.over)}</td>
+      <td style="padding:5px 8px;text-align:center;font-size:11.5px">${pct0(R.btts)}</td>
+      <td style="padding:5px 8px;font-size:11px;color:var(--txt)">${top3}</td>
+    </tr>`;
+  });
+  return `<div id="ko-goals-table-${j}" class="card" style="margin-bottom:18px;overflow-x:auto">
+    <h2>⚽ Calibración de goles · ${def.name}</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+    <thead><tr style="border-bottom:1px solid var(--line)">
+      <th style="padding:6px 8px;text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Partido</th>
+      <th style="padding:6px 8px;text-align:center;color:var(--win);font-size:10px;text-transform:uppercase;letter-spacing:.1em">λ izq.</th>
+      <th style="padding:6px 8px;text-align:center;color:var(--loss);font-size:10px;text-transform:uppercase;letter-spacing:.1em">λ der.</th>
+      <th style="padding:6px 8px;text-align:center;color:var(--amber);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Más probable</th>
+      <th style="padding:6px 8px;text-align:center;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Over 2.5</th>
+      <th style="padding:6px 8px;text-align:center;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">BTTS</th>
+      <th style="padding:6px 8px;text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Top 3 marcadores</th>
+    </tr></thead>
+    <tbody>${rows}</tbody></table></div>`;
+}
 function renderKO(j){
   const def=KOR[j];
   jhead.textContent=`Jornada ${j} · ${def.name}`;
-  jnote.innerHTML=`Estas llaves se definen <b style="color:var(--amber)">conforme avanza el Mundial</b>. Elige los equipos que clasifican y el modelo predice cada cruce. (Sede neutral por defecto.)`;
+  if(j===4){
+    jnote.innerHTML=`<b style="color:var(--amber)">R32 pre-poblada</b> con los 32 clasificados (72/72 partidos al 28-jun-2026). Tabla de goles calibrada con Elo+FIFA post-J3. Ajusta sede si algún equipo juega en casa.`;
+  } else {
+    jnote.innerHTML=`Estas llaves se definen <b style="color:var(--amber)">conforme avanza el Mundial</b>. Elige los equipos que clasifican y el modelo predice cada cruce. (Sede neutral por defecto.)`;
+  }
   const opts=`<option value="">— equipo —</option>`+TEAMS.map(t=>`<option value="${t.c}">${t.n}</option>`).join("");
   const selOf=v=> v ? opts.replace(`value="${v}"`,`value="${v}" selected`) : opts;
-  let html="";
+  let html=renderKOGoalsTable(j);
   def.slots.forEach((label,si)=>{
     const st=koState[j][si];
     html+=`<div class="koslot"><div class="lbl">${label}</div>
@@ -402,9 +461,17 @@ function koResult(j,si){
   const haS=st.ha==='none'?null:st.ha;
   const R=predict(h,a,haS);const t=R.scores[0];const kfav=R.pH>=R.pA?'H':'A';
   const koBox=(lbl,side)=>kfav===side?`<span style="border:1.5px solid var(--amber);border-radius:5px;padding:1px 6px;color:var(--amber);background:rgba(255,176,0,0.09);box-shadow:0 0 8px rgba(255,176,0,0.25);font-weight:700">${lbl}</span>`:lbl;
-  return `${koBox(h.c+' '+pct0(R.pH),'H')} · X ${pct0(R.pD)} · ${koBox(a.c+' '+pct0(R.pA),'A')} · ▸ <b>${t[0]}-${t[1]}</b> · <a href="#" onclick="openMatch('${st.h}','${st.a}',${haS?`'${haS}'`:'null'});return false">detalle</a>`;
+  const top3=R.scores.slice(0,3).map(function(s){return '<b>'+s[0]+'-'+s[1]+'</b> <span style="color:var(--muted);font-size:10px">'+pct0(s[2])+'</span>';}).join('  ');
+  return `${koBox(h.c+' '+pct0(R.pH),'H')} · X ${pct0(R.pD)} · ${koBox(a.c+' '+pct0(R.pA),'A')}<br>
+    <span style="color:var(--blue)">λ ${R.lh.toFixed(2)}</span> <span style="color:var(--muted)">goles esp.</span> <span style="color:var(--blue)">λ ${R.la.toFixed(2)}</span> <span style="color:var(--muted);margin-left:6px">Over2.5 ${pct0(R.over)} · BTTS ${pct0(R.btts)}</span><br>
+    ▸ ${top3} · <a href="#" onclick="openMatch('${st.h}','${st.a}',${haS?`'${haS}'`:'null'});return false" style="font-size:11px">detalle →</a>`;
 }
-function koSet(j,si,k,v){koState[j][si][k]=v;document.getElementById(`kores-${j}-${si}`).innerHTML=koResult(j,si);}
+function koSet(j,si,k,v){
+  koState[j][si][k]=v;
+  document.getElementById(`kores-${j}-${si}`).innerHTML=koResult(j,si);
+  const gt=document.getElementById('ko-goals-table-'+j);
+  if(gt) gt.outerHTML=renderKOGoalsTable(j);
+}
 
 function fillSelect(s){const v=s.value;s.innerHTML=TEAMS.map((t,i)=>`<option value="${i}">${t.g} · ${t.n} (${t.elo})</option>`).join("");if(v)s.value=v;}
 function render(){
