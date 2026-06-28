@@ -2136,12 +2136,13 @@ nav button:hover,nav button.active{
 <div id="redCardWarning">
   <div class="rc-panel">
     <div class="rc-card-icon">🟥</div>
-    <div class="rc-badge"><span style="font-size:18px">🏟️</span><span class="rc-badge-text" id="rcBadgeText">AVISO OFICIAL FIFA</span></div>
+    <div class="rc-badge"><span style="font-size:18px">🏟️</span><span class="rc-badge-text" id="rcBadgeText">AVISO OFICIAL PICK26</span></div>
     <div class="rc-title" id="rcTitle">⚠️ ATENCIÓN JUGADOR ⚠️</div>
     <div class="rc-body" id="rcBody"></div>
     <span class="rc-pts">-1</span>
-    <span class="rc-pts-label" id="rcPtsLabel">PUNTOS POR TARJETA ROJA</span>
-    <button class="rc-close" id="rcCloseBtn" onclick="closeRedCardWarning()">ENTENDIDO — CERRAR</button>
+    <span class="rc-pts-label" id="rcPtsLabel">CASTIGO POR TARJETA ROJA</span>
+    <button class="rc-close" id="rcCloseBtn" onclick="rcPlayAndClose()" style="margin-bottom:8px">🔊 ESCUCHAR Y CERRAR</button>
+    <button onclick="closeRedCardWarning()" style="background:transparent;border:none;color:rgba(255,100,100,.5);font-size:11px;cursor:pointer;letter-spacing:1px;font-family:'Bebas Neue',sans-serif;width:100%">CERRAR SIN AUDIO</button>
   </div>
 </div>
 
@@ -8541,28 +8542,33 @@ function showRedCardWarning(){
 
   var el = document.getElementById('redCardWarning');
   if(el) el.classList.add('rc-visible');
+  // Store voice text for when user taps the button (browser requires user gesture for audio)
+  var voiceEs = '¡Atención, jugador! Aquí el árbitro. Todavía no has enviado tus picks para la jornada '
+    + activeWeek + '. Recuerda: tienes hasta cinco horas antes del partido. '
+    + 'El que envía a tiempo está bien, no pierde puntos. '
+    + 'Pero si no cumples, contacta al administrador. La sanción es tarjeta roja: menos un punto como castigo. '
+    + '¡Envía tus predicciones, campeón!';
+  var voiceEn = 'Attention player! This is your referee speaking. '
+    + 'You have not submitted your picks for round ' + activeWeek + ' yet. '
+    + 'You have five hours before kickoff to submit. Players who submit on time are fine — no penalty. '
+    + 'But if you miss the deadline, contact the administrator. '
+    + 'The penalty is a red card: minus one point. Submit your picks, champion!';
+  window._rcVoiceText = es ? voiceEs : voiceEn;
+}
 
-  // Whistle then voice
-  setTimeout(function(){
-    playRefWhistle();
-    var voiceEs = '¡Atención, jugador! Aquí el árbitro. Todavía no has enviado tus picks para la jornada '
-      + activeWeek + '. Recuerda: tienes hasta cinco horas antes del partido. '
-      + 'El que envía a tiempo está bien, no pierde puntos. '
-      + 'Pero si no cumples, contacta al administrador. La sanción es tarjeta roja: menos un punto como castigo. '
-      + '¡Envía tus predicciones, campeón!';
-    var voiceEn = 'Attention player! This is your referee speaking. '
-      + 'You have not submitted your picks for round ' + activeWeek + ' yet. '
-      + 'You have five hours before kickoff to submit. Players who submit on time are fine — no penalty. '
-      + 'But if you miss the deadline, contact the administrator. '
-      + 'The penalty is a red card: minus one point. Submit your picks, champion!';
-    setTimeout(function(){ speakVoice(es ? voiceEs : voiceEn, {pitch:0.88, rate:0.86}); }, 650);
-  }, 600);
+function rcPlayAndClose(){
+  // User gesture unlocks AudioContext + speechSynthesis
+  playRefWhistle();
+  var txt = window._rcVoiceText || '';
+  if(txt) setTimeout(function(){ speakVoice(txt, {pitch:0.88, rate:0.86}); }, 650);
+  closeRedCardWarning();
 }
 
 function closeRedCardWarning(){
   var el = document.getElementById('redCardWarning');
   if(el){ el.style.opacity='0'; el.style.transition='opacity .4s'; setTimeout(function(){ el.classList.remove('rc-visible'); el.style.opacity=''; el.style.transition=''; }, 420); }
   window.speechSynthesis && window.speechSynthesis.cancel();
+  window._rcVoiceText = null;
 }
 
 function playStampSound(){
