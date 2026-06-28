@@ -3911,12 +3911,36 @@ function setEditRound(r){
   renderEditTeams();
 }
 
+function saveAllTeamNames(){
+  const roundMatches = MATCHES[editRound];
+  if(!roundMatches) return;
+  let updated = 0;
+  roundMatches.forEach(m=>{
+    const hEl = document.getElementById('tn_h_'+m.id);
+    const aEl = document.getElementById('tn_a_'+m.id);
+    const hVal = (hEl ? hEl.value.trim() : '') || m.home;
+    const aVal = (aEl ? aEl.value.trim() : '') || m.away;
+    if(hVal && aVal){
+      customTeamNames[m.id+'_home'] = hVal;
+      customTeamNames[m.id+'_away'] = aVal;
+      updated++;
+    }
+  });
+  localStorage.setItem('wc2026_teamNames', JSON.stringify(customTeamNames));
+  if(db) db.ref('teamNames').set(customTeamNames)
+    .then(()=>showToast('✅ '+updated+' partidos guardados en Firebase','success'))
+    .catch(()=>showToast(t('Error al guardar','Save error'),'error'));
+  renderEditTeams();
+  renderMatches();
+}
+
 function renderEditTeams(){
   const cont = document.getElementById('editTeamsContent');
   if(!cont) return;
   const roundMatches = MATCHES[editRound];
   if(!roundMatches){ cont.innerHTML='<p style="color:var(--text2);font-size:13px">No matches.</p>'; return; }
-  cont.innerHTML = '';
+  // Header with "Save All" button
+  cont.innerHTML = '<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="btn-sm btn-save" onclick="saveAllTeamNames()" style="padding:7px 18px;font-size:13px">💾 '+(currentLang==='es'?'Guardar Todos':'Save All')+'</button></div>';
   roundMatches.forEach(m=>{
     const homeVal = customTeamNames[m.id+'_home'] || m.home;
     const awayVal = customTeamNames[m.id+'_away'] || m.away;
