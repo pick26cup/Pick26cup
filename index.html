@@ -8512,7 +8512,7 @@ function showRedCardWarning(){
   var roundMatches = MATCHES[activeWeek] || [];
   if(roundMatches.length === 0) return;
   var firstKickoff = parseMatchDate(roundMatches[0]);
-  if(firstKickoff && Date.now() >= firstKickoff.getTime() - LOCK_BEFORE_MS) return;
+  if(firstKickoff && Date.now() >= firstKickoff.getTime() - (4*60+55)*60*1000) return;
 
   var es = currentLang === 'es';
   var badge = document.getElementById('rcBadgeText');
