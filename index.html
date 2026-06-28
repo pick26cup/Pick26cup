@@ -8563,12 +8563,17 @@ function rcPlayAndClose(){
   el.onclick = null;
   var hint = document.getElementById('rcTapHint');
   if(hint) hint.style.display = 'none';
+  // Suppress the next-match voice announcement so it doesn't overlap
+  _voiceAnnounced = true;
   // User gesture unlocks AudioContext + speechSynthesis
   playRefWhistle();
   var txt = window._rcVoiceText || '';
   if(txt) setTimeout(function(){ speakVoice(txt, {pitch:0.88, rate:0.86}); }, 650);
-  // Close after whistle + voice have played (~4s)
-  setTimeout(closeRedCardWarning, 4200);
+  // Close after whistle + voice have played (~4s), then re-enable next-match voice
+  setTimeout(function(){
+    closeRedCardWarning();
+    _voiceAnnounced = false;
+  }, 4200);
 }
 
 function closeRedCardWarning(){
