@@ -353,6 +353,19 @@ function predict(h,a,haSide,caution){
 const hostSide=(h,a)=> h.host?'h':(a.host?'a':null);
 const pct=x=>(x*100).toFixed(1)+"%";
 const pct0=x=>(x*100).toFixed(0)+"%";
+/* En eliminatorias el empate va a prórr./penales → redistribuir 50/50 */
+function koAdvance(R){return {pHadv:R.pH+R.pD*0.5,pAadv:R.pA+R.pD*0.5,pET:R.pD};}
+/* Forma del equipo en fase de grupos (usando resultsState ya cargado) */
+function teamForm(c){
+  var wins=0,draws=0,losses=0,gfor=0,gagst=0;
+  [1,2,3].forEach(function(jj){FIX[jj].forEach(function(m,i){
+    var rs=resultsState[jj][i];if(rs.gh===""||rs.ga==="")return;
+    var isH=m[0]===c,isA=m[1]===c;if(!isH&&!isA)return;
+    var gh=+rs.gh,gaa=+rs.ga,sc=isH?gh:gaa,co=isH?gaa:gh;
+    gfor+=sc;gagst+=co;if(sc>co)wins++;else if(sc===co)draws++;else losses++;
+  });});
+  return {w:wins,d:draws,l:losses,gf:gfor,ga:gagst};
+}
 
 let curJ=1;
 function buildJrow(){
@@ -387,70 +400,90 @@ function renderGroupJ(j){
 }
 function renderKOGoalsTable(j){
   const def=KOR[j];
-  /* 1ª pasada: calcular todas las predicciones y encontrar la de mayor probabilidad global */
-  const preds=[];
-  let bestProb=0;
+  const isKO=j>=4;
+  /* 1ª pasada: predicciones + mejor marcador global */
+  const preds=[];let bestProb=0;
   def.slots.forEach(function(label,si){
     const st=koState[j][si];
     if(!st.h||!st.a||st.h===st.a){preds.push(null);return;}
     const h=TEAMS[IDX[st.h]],a=TEAMS[IDX[st.a]];
     const haS=st.ha==='none'?null:st.ha;
     const R=predict(h,a,haS);
-    preds.push({h,a,R,haS});
-    if(R.scores[0][2]>bestProb) bestProb=R.scores[0][2];
+    const KA=isKO?koAdvance(R):null;
+    const fH=teamForm(st.h),fA=teamForm(st.a);
+    preds.push({h,a,R,KA,fH,fA,haS});
+    if(R.scores[0][2]>bestProb)bestProb=R.scores[0][2];
   });
-  /* 2ª pasada: construir filas */
+  /* 2ª pasada: filas */
   let rows="";
   def.slots.forEach(function(label,si){
     const p=preds[si];
-    if(!p){
-      rows+=`<tr><td colspan="7" style="padding:5px 8px;color:var(--muted);font-size:11px">${label}</td></tr>`;
-      return;
-    }
-    const {h,a,R}=p;
+    if(!p){rows+=`<tr><td colspan="6" style="padding:5px 8px;color:var(--muted);font-size:11px">${label}</td></tr>`;return;}
+    const {h,a,R,KA,fH,fA}=p;
     const t=R.scores[0];
     const isBest=Math.abs(t[2]-bestProb)<0.0001;
-    const favH=R.pH>=R.pA;
-    /* badge para el marcador más probable — dorado si es el mejor global, ámbar si no */
+    /* % de avance (en KO: incluye redistribución 50/50 del empate) */
+    const pHwin=KA?KA.pHadv:R.pH, pAwin=KA?KA.pAadv:R.pA;
+    const favH=pHwin>=pAwin;
+    /* badge PICK */
+    const pickSt='border:2px solid var(--amber);border-radius:8px;padding:3px 10px;color:var(--amber);background:rgba(255,176,0,0.13);box-shadow:0 0 13px rgba(255,176,0,0.42);font-weight:800;font-family:"Bricolage Grotesque",sans-serif;font-size:15px';
+    const muteSt='color:#586273;font-weight:600;font-size:13px;padding:3px 8px';
+    const formStr=f=>`${f.w}V·${f.d}E·${f.l}D ${f.gf}:${f.ga}`;
+    const eloH=h.elo,eloA=a.elo,dElo=eloH-eloA;
+    const pickCell=`<div style="display:flex;align-items:center;gap:8px;white-space:nowrap">
+      <div style="text-align:center">
+        <div><span style="${favH?pickSt:muteSt}">${h.c}</span></div>
+        <div style="font-size:9.5px;color:${favH?'var(--amber)':'var(--muted)'};margin-top:2px;font-weight:${favH?700:400}">${pct0(pHwin)}${isKO?' avanza':' gana'}</div>
+        <div style="font-size:8.5px;color:var(--muted)">${formStr(fH)}</div>
+        <div style="font-size:8px;color:var(--muted)">Elo ${eloH}</div>
+      </div>
+      <span style="color:var(--muted);font-size:10px">vs</span>
+      <div style="text-align:center">
+        <div><span style="${!favH?pickSt:muteSt}">${a.c}</span></div>
+        <div style="font-size:9.5px;color:${!favH?'var(--amber)':'var(--muted)'};margin-top:2px;font-weight:${!favH?700:400}">${pct0(pAwin)}${isKO?' avanza':' gana'}</div>
+        <div style="font-size:8.5px;color:var(--muted)">${formStr(fA)}</div>
+        <div style="font-size:8px;color:var(--muted)">Elo ${eloA}</div>
+      </div>
+    </div>
+    <div style="font-size:9px;color:var(--muted);margin-top:3px">ΔElo ${dElo>=0?'+':''}${dElo}${isKO?' · empate → ET/penas 50/50':''}</div>`;
+    /* marcador más probable */
     const badgeBg=isBest?'rgba(255,176,0,0.22)':'rgba(255,176,0,0.09)';
-    const badgeBorder=isBest?'2px solid var(--amber)':'1.5px solid rgba(255,176,0,0.4)';
-    const badgeShadow=isBest?'0 0 16px rgba(255,176,0,0.55)':'none';
-    const crownMark=isBest?'<span style="font-size:13px;margin-right:3px" title="Marcador con mayor probabilidad del torneo">★</span>':'';
-    const scoreCell=`<span style="display:inline-flex;align-items:center;gap:3px;border:${badgeBorder};border-radius:8px;padding:4px 12px;background:${badgeBg};box-shadow:${badgeShadow};font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;color:var(--amber)">${crownMark}${t[0]}-${t[1]}</span><br><span style="font-size:10.5px;color:var(--muted)">${pct0(t[2])}</span>`;
+    const badgeBdr=isBest?'2px solid var(--amber)':'1.5px solid rgba(255,176,0,0.38)';
+    const badgeGlow=isBest?'0 0 18px rgba(255,176,0,0.6)':'none';
+    const scoreCell=`<span style="display:inline-flex;align-items:center;gap:3px;border:${badgeBdr};border-radius:8px;padding:4px 12px;background:${badgeBg};box-shadow:${badgeGlow};font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;color:var(--amber)">${isBest?'★ ':''}${t[0]}-${t[1]}</span><br><span style="font-size:10px;color:var(--muted)">${pct0(t[2])}</span>`;
+    /* top 3 */
     const top3=R.scores.slice(0,3).map(function(s,idx){
-      const sc=`${s[0]}-${s[1]}`;
-      if(idx===0) return `<span style="color:var(--amber);font-weight:700">${sc}</span><span style="color:var(--muted);font-size:9.5px"> ${pct0(s[2])}</span>`;
-      return `<span style="color:var(--txt)">${sc}</span><span style="color:var(--muted);font-size:9.5px"> ${pct0(s[2])}</span>`;
+      return (idx===0
+        ?`<span style="color:var(--amber);font-weight:700">${s[0]}-${s[1]}</span>`
+        :`<span style="color:var(--txt)">${s[0]}-${s[1]}</span>`)
+        +`<span style="color:var(--muted);font-size:9.5px"> ${pct0(s[2])}</span>`;
     }).join('  ');
-    /* badge PICK para el equipo favorito */
-    const pickStyle='border:1.5px solid var(--amber);border-radius:7px;padding:3px 9px;color:var(--amber);background:rgba(255,176,0,0.12);box-shadow:0 0 10px rgba(255,176,0,0.35);font-weight:800;font-size:13px';
-    const loseStyle='color:#586273;font-weight:600;font-size:13px;padding:3px 9px';
-    const pickCell=`<div style="display:flex;align-items:center;gap:6px;white-space:nowrap">
-        <span style="${favH?pickStyle:loseStyle}">${h.c}</span>
-        <span style="color:var(--muted);font-size:10px">vs</span>
-        <span style="${!favH?pickStyle:loseStyle}">${a.c}</span></div>
-      <div style="font-size:10px;color:var(--muted);margin-top:3px;padding-left:2px">${pct0(favH?R.pH:R.pA)} ganar · X ${pct0(R.pD)}</div>`;
-    rows+=`<tr style="border-bottom:1px solid #161d27${isBest?';background:rgba(255,176,0,0.04)':''}">
+    /* columna ET/penas o Over 2.5 */
+    const col5=isKO&&KA
+      ?`<span style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:700;color:${KA.pET>0.30?'var(--amber)':'var(--txt)'}">${pct0(KA.pET)}</span><div style="font-size:8.5px;color:var(--muted)">ET/penas</div>`
+      :`<span style="font-size:12px">${pct0(R.over)}</span><div style="font-size:8.5px;color:var(--muted)">Over 2.5</div>`;
+    rows+=`<tr style="border-bottom:1px solid #161d27${isBest?';background:rgba(255,176,0,0.035)':''}">
       <td style="padding:6px 8px">${pickCell}</td>
-      <td style="padding:5px 10px;text-align:center;color:var(--win);font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:800">${R.lh.toFixed(2)}</td>
-      <td style="padding:5px 10px;text-align:center;color:var(--loss);font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:800">${R.la.toFixed(2)}</td>
+      <td style="padding:5px 10px;text-align:center;color:var(--win);font-family:'Bricolage Grotesque',sans-serif;font-size:18px;font-weight:800">${R.lh.toFixed(2)}</td>
+      <td style="padding:5px 10px;text-align:center;color:var(--loss);font-family:'Bricolage Grotesque',sans-serif;font-size:18px;font-weight:800">${R.la.toFixed(2)}</td>
       <td style="padding:6px 10px;text-align:center">${scoreCell}</td>
-      <td style="padding:5px 8px;text-align:center;font-size:11.5px">${pct0(R.over)}</td>
-      <td style="padding:5px 8px;text-align:center;font-size:11.5px">${pct0(R.btts)}</td>
+      <td style="padding:5px 8px;text-align:center">${col5}</td>
       <td style="padding:5px 8px;font-size:11px;color:var(--txt)">${top3}</td>
     </tr>`;
   });
+  const legend=isKO
+    ?`<span style="border:1.5px solid var(--amber);border-radius:5px;padding:1px 5px;color:var(--amber);font-size:10px">PICK</span> = equipo con mayor % de avance · % avanza incluye prórr./penales (empate → 50/50) · ★ = marcador con mayor probabilidad del tramo`
+    :`<span style="border:1.5px solid var(--amber);border-radius:5px;padding:1px 5px;color:var(--amber);font-size:10px">PICK</span> = equipo favorito del modelo · ★ = marcador con mayor probabilidad del tramo`;
   return `<div id="ko-goals-table-${j}" class="card" style="margin-bottom:18px;overflow-x:auto">
-    <h2>⚽ Calibración de goles · ${def.name}</h2>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:10px"><span style="border:1.5px solid var(--amber);border-radius:5px;padding:1px 5px;color:var(--amber);font-size:10px">PICK</span> = equipo favorito del modelo · ★ = marcador con mayor probabilidad del tramo</div>
+    <h2>⚽ Calibración · ${def.name}</h2>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">${legend}</div>
     <table style="width:100%;border-collapse:collapse;font-size:12.5px">
     <thead><tr style="border-bottom:1px solid var(--line)">
-      <th style="padding:6px 8px;text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Partido</th>
+      <th style="padding:6px 8px;text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">PICK · Forma · Elo</th>
       <th style="padding:6px 8px;text-align:center;color:var(--win);font-size:10px;text-transform:uppercase;letter-spacing:.1em">λ izq.</th>
       <th style="padding:6px 8px;text-align:center;color:var(--loss);font-size:10px;text-transform:uppercase;letter-spacing:.1em">λ der.</th>
-      <th style="padding:6px 8px;text-align:center;color:var(--amber);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Marcador más probable</th>
-      <th style="padding:6px 8px;text-align:center;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Over 2.5</th>
-      <th style="padding:6px 8px;text-align:center;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">BTTS</th>
+      <th style="padding:6px 8px;text-align:center;color:var(--amber);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Marcador ★</th>
+      <th style="padding:6px 8px;text-align:center;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">${isKO?'ET/Penas':'Over 2.5'}</th>
       <th style="padding:6px 8px;text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Top 3</th>
     </tr></thead>
     <tbody>${rows}</tbody></table></div>`;
@@ -459,7 +492,7 @@ function renderKO(j){
   const def=KOR[j];
   jhead.textContent=`Jornada ${j} · ${def.name}`;
   if(j===4){
-    jnote.innerHTML=`<b style="color:var(--amber)">R32 pre-poblada</b> con los 32 clasificados (72/72 partidos al 28-jun-2026). Tabla de goles calibrada con Elo+FIFA post-J3. Ajusta sede si algún equipo juega en casa.`;
+    jnote.innerHTML=`<b style="color:var(--amber)">R32 pre-poblada · bracket oficial FIFA 2026</b> (72/72 partidos verificados al 28-jun-2026). <span style="color:var(--muted)">% avanza = prob. de clasificar a cuartos; el empate en 90 min se redistribuye 50/50 entre prórr. y penales. Ajusta sede si algún equipo juega en casa.</span>`;
   } else {
     jnote.innerHTML=`Estas llaves se definen <b style="color:var(--amber)">conforme avanza el Mundial</b>. Elige los equipos que clasifican y el modelo predice cada cruce. (Sede neutral por defecto.)`;
   }
@@ -488,10 +521,12 @@ function koResult(j,si){
   if(st.h===st.a) return '<span style="color:var(--loss)">Equipos distintos, por favor.</span>';
   const h=TEAMS[IDX[st.h]],a=TEAMS[IDX[st.a]];
   const haS=st.ha==='none'?null:st.ha;
-  const R=predict(h,a,haS);const t=R.scores[0];const kfav=R.pH>=R.pA?'H':'A';
+  const R=predict(h,a,haS);
+  const KA=koAdvance(R);
+  const kfav=KA.pHadv>=KA.pAadv?'H':'A';
   const koBox=(lbl,side)=>kfav===side?`<span style="border:1.5px solid var(--amber);border-radius:5px;padding:1px 6px;color:var(--amber);background:rgba(255,176,0,0.09);box-shadow:0 0 8px rgba(255,176,0,0.25);font-weight:700">${lbl}</span>`:lbl;
   const top3=R.scores.slice(0,3).map(function(s){return '<b>'+s[0]+'-'+s[1]+'</b> <span style="color:var(--muted);font-size:10px">'+pct0(s[2])+'</span>';}).join('  ');
-  return `${koBox(h.c+' '+pct0(R.pH),'H')} · X ${pct0(R.pD)} · ${koBox(a.c+' '+pct0(R.pA),'A')}<br>
+  return `${koBox(h.c+' avanza '+pct0(KA.pHadv),'H')} · ET/Pen ${pct0(KA.pET)} · ${koBox(a.c+' avanza '+pct0(KA.pAadv),'A')}<br>
     <span style="color:var(--blue)">λ ${R.lh.toFixed(2)}</span> <span style="color:var(--muted)">goles esp.</span> <span style="color:var(--blue)">λ ${R.la.toFixed(2)}</span> <span style="color:var(--muted);margin-left:6px">Over2.5 ${pct0(R.over)} · BTTS ${pct0(R.btts)}</span><br>
     ▸ ${top3} · <a href="#" onclick="openMatch('${st.h}','${st.a}',${haS?`'${haS}'`:'null'});return false" style="font-size:11px">detalle →</a>`;
 }
