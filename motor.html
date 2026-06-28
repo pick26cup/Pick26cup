@@ -523,12 +523,26 @@ function koResult(j,si){
   const haS=st.ha==='none'?null:st.ha;
   const R=predict(h,a,haS);
   const KA=koAdvance(R);
-  const kfav=KA.pHadv>=KA.pAadv?'H':'A';
-  const koBox=(lbl,side)=>kfav===side?`<span style="border:1.5px solid var(--amber);border-radius:5px;padding:1px 6px;color:var(--amber);background:rgba(255,176,0,0.09);box-shadow:0 0 8px rgba(255,176,0,0.25);font-weight:700">${lbl}</span>`:lbl;
-  const top3=R.scores.slice(0,3).map(function(s){return '<b>'+s[0]+'-'+s[1]+'</b> <span style="color:var(--muted);font-size:10px">'+pct0(s[2])+'</span>';}).join('  ');
-  return `${koBox(h.c+' avanza '+pct0(KA.pHadv),'H')} · ET/Pen ${pct0(KA.pET)} · ${koBox(a.c+' avanza '+pct0(KA.pAadv),'A')}<br>
-    <span style="color:var(--blue)">λ ${R.lh.toFixed(2)}</span> <span style="color:var(--muted)">goles esp.</span> <span style="color:var(--blue)">λ ${R.la.toFixed(2)}</span> <span style="color:var(--muted);margin-left:6px">Over2.5 ${pct0(R.over)} · BTTS ${pct0(R.btts)}</span><br>
-    ▸ ${top3} · <a href="#" onclick="openMatch('${st.h}','${st.a}',${haS?`'${haS}'`:'null'});return false" style="font-size:11px">detalle →</a>`;
+  const favH=KA.pHadv>=KA.pAadv;
+  const winner=favH?h:a, winPct=favH?KA.pHadv:KA.pAadv;
+  const t=R.scores[0];
+  /* línea ganador */
+  const winnerLine=`<span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Clasificado</span><br>
+    <span style="border:2px solid var(--amber);border-radius:8px;padding:4px 14px;color:var(--amber);background:rgba(255,176,0,0.13);box-shadow:0 0 16px rgba(255,176,0,0.45);font-weight:800;font-family:'Bricolage Grotesque',sans-serif;font-size:18px;letter-spacing:.04em">${winner.n}</span>
+    <span style="color:var(--amber);font-weight:700;margin-left:6px;font-size:13px">${pct0(winPct)}</span>
+    <span style="color:var(--muted);font-size:11px;margin-left:4px">· ET/Pen ${pct0(KA.pET)}</span>`;
+  /* marcador exacto más probable */
+  const scoreLine=`<span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Marcador</span><br>
+    <span style="border:2px solid var(--amber);border-radius:8px;padding:4px 18px;background:rgba(255,176,0,0.18);box-shadow:0 0 18px rgba(255,176,0,0.5);font-family:'Bricolage Grotesque',sans-serif;font-size:26px;font-weight:800;color:#fff;letter-spacing:.06em">${t[0]}-${t[1]}</span>
+    <span style="color:var(--amber);font-size:12px;font-weight:700;margin-left:8px">${pct0(t[2])}</span>`;
+  /* opciones alternativas */
+  const alt=R.scores.slice(1,4).map(function(s){return '<span style="color:var(--txt);font-size:11.5px">'+s[0]+'-'+s[1]+'</span><span style="color:var(--muted);font-size:10px"> '+pct0(s[2])+'</span>';}).join('  ');
+  return `<div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap">
+    <div style="line-height:1.6">${winnerLine}</div>
+    <div style="line-height:1.6">${scoreLine}</div>
+  </div>
+  <div style="margin-top:5px;color:var(--muted);font-size:10.5px">Otros: ${alt} · <a href="#" onclick="openMatch('${st.h}','${st.a}',${haS?`'${haS}'`:'null'});return false" style="font-size:10.5px">ver detalle →</a></div>
+  <div style="margin-top:2px;font-size:10px;color:#586273">λ ${R.lh.toFixed(2)} / ${R.la.toFixed(2)} · Over2.5 ${pct0(R.over)} · BTTS ${pct0(R.btts)}</div>`;
 }
 function koSet(j,si,k,v){
   koState[j][si][k]=v;
