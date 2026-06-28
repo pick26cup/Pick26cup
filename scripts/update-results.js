@@ -74,6 +74,24 @@ const TEAM_MAP = {
   'Panama': 'Panamá',
   'Uzbekistan': 'Uzbekistán',
   'Colombia': 'Colombia',
+  // Explicit same-name mappings so they appear in TEAM_MAP for clarity
+  'Paraguay': 'Paraguay',
+  'Argentina': 'Argentina',
+  'Austria': 'Austria',
+  'Scotland': 'Escocia',
+  // Additional football-data.org API variants
+  'Congo': 'Congo',
+  'Republic of Congo': 'Congo',
+  "Cote d'Ivoire": 'Costa de Marfil',
+  'CIV': 'Costa de Marfil',
+  'KSA': 'Arabia Saudí',
+  'RSA': 'Sudáfrica',
+  'KOR': 'Corea del Sur',
+  'CZE': 'República Checa',
+  'NED': 'Países Bajos',
+  'USA': 'Estados Unidos',
+  'BIH': 'Bosnia Herzegovina',
+  'NZL': 'Nueva Zelanda',
 };
 
 // ── Match data (rounds 1-4) ───────────────────────────────────
@@ -181,15 +199,21 @@ function norm(name) {
   return (name || '').toLowerCase()
     .replace(/[áàä]/g,'a').replace(/[éèë]/g,'e')
     .replace(/[íìï]/g,'i').replace(/[óòö]/g,'o')
-    .replace(/[úùü]/g,'u').replace(/[ñ]/g,'n');
+    .replace(/[úùü]/g,'u').replace(/[ñ]/g,'n')
+    .replace(/[ç]/g,'c');
 }
 
+// Returns { id, reversed } or null.
+// reversed=true means API listed teams in opposite order from our schedule,
+// so caller must swap scoreH/scoreA before storing.
 function findMatchId(homeEn, awayEn) {
   const homeEs = norm(TEAM_MAP[homeEn] || homeEn);
   const awayEs = norm(TEAM_MAP[awayEn] || awayEn);
   for (const round of [1,2,3,4]) {
     for (const m of (MATCHES[round] || [])) {
-      if (norm(m.home) === homeEs && norm(m.away) === awayEs) return m.id;
+      const mh = norm(m.home), ma = norm(m.away);
+      if (mh === homeEs && ma === awayEs) return { id: m.id, reversed: false };
+      if (mh === awayEs && ma === homeEs) return { id: m.id, reversed: true };
     }
   }
   return null;
@@ -230,21 +254,26 @@ async function run() {
 
     const homeEn = match.homeTeam?.name || '';
     const awayEn = match.awayTeam?.name || '';
-    const matchId = findMatchId(homeEn, awayEn);
+    const found = findMatchId(homeEn, awayEn);
 
-    if (!matchId) {
+    if (!found) {
       notFound.push(`${homeEn} vs ${awayEn}`);
       continue;
     }
 
+    const { id: matchId, reversed } = found;
+    const storeH = reversed ? scoreA : scoreH;
+    const storeA = reversed ? scoreH : scoreA;
+    if (reversed) console.log(`  ↔️  Reversed home/away for ${matchId} (${homeEn} vs ${awayEn})`);
+
     // Skip if already stored with same score
     const snap = await db.ref(`results/${matchId}`).once('value');
     const existing = snap.val();
-    if (existing && existing.scoreH === scoreH && existing.scoreA === scoreA) continue;
+    if (existing && existing.scoreH === storeH && existing.scoreA === storeA) continue;
 
-    await db.ref(`results/${matchId}`).set({ scoreH, scoreA, updatedAt: Date.now() });
+    await db.ref(`results/${matchId}`).set({ scoreH: storeH, scoreA: storeA, updatedAt: Date.now() });
     updated++;
-    console.log(`✅ ${matchId}: ${homeEn} ${scoreH}-${scoreA} ${awayEn}`);
+    console.log(`✅ ${matchId}: ${homeEn} ${storeH}-${storeA} ${awayEn}${reversed ? ' (reversed)' : ''}`);
   }
 
   if (notFound.length) console.log('⚠️  No ID found for:', notFound.join(' | '));
@@ -274,12 +303,15 @@ async function run() {
         for (const f of fixtures) {
           const homeEn = f.teams?.home?.name || '';
           const awayEn = f.teams?.away?.name || '';
-          const matchId = findMatchId(homeEn, awayEn);
-          if (!matchId) { console.log(`⚠️  No ID: ${homeEn} vs ${awayEn}`); continue; }
+          const found = findMatchId(homeEn, awayEn);
+          if (!found) { console.log(`⚠️  No ID: ${homeEn} vs ${awayEn}`); continue; }
 
+          const { id: matchId, reversed } = found;
           const fixtureId = f.fixture?.id;
-          const scoreH   = f.goals?.home ?? 0;
-          const scoreA   = f.goals?.away ?? 0;
+          const rawH = f.goals?.home ?? 0;
+          const rawA = f.goals?.away ?? 0;
+          const scoreH = reversed ? rawA : rawH;
+          const scoreA = reversed ? rawH : rawA;
           const minute   = f.fixture?.status?.elapsed ?? null;
           const homeId   = f.teams?.home?.id;
 
@@ -360,17 +392,20 @@ async function run() {
         for (const match of liveMatches) {
           const homeEn = match.homeTeam?.name || '';
           const awayEn = match.awayTeam?.name || '';
-          const matchId = findMatchId(homeEn, awayEn);
-          if (!matchId) { console.log(`⚠️  No ID found: ${homeEn} vs ${awayEn}`); continue; }
+          const found = findMatchId(homeEn, awayEn);
+          if (!found) { console.log(`⚠️  No ID found: ${homeEn} vs ${awayEn}`); continue; }
+          const { id: matchId, reversed } = found;
           const s = match.score || {};
-          const scoreH = s.fullTime?.home ?? s.halfTime?.home ?? 0;
-          const scoreA = s.fullTime?.away ?? s.halfTime?.away ?? 0;
+          const rawH = s.fullTime?.home ?? s.halfTime?.home ?? 0;
+          const rawA = s.fullTime?.away ?? s.halfTime?.away ?? 0;
+          const scoreH = reversed ? rawA : rawH;
+          const scoreA = reversed ? rawH : rawA;
           const minute = match.minute ?? null;
           liveMatchIds.add(matchId);
           const payload = { scoreH, scoreA, homeEn, awayEn, updatedAt: Date.now() };
           if (minute !== null) payload.minute = minute;
           await db.ref(`liveScores/${matchId}`).set(payload);
-          console.log(`⚽ LIVE ${matchId}: ${homeEn} ${scoreH}-${scoreA} ${awayEn}${minute ? ` (${minute}')` : ''}`);
+          console.log(`⚽ LIVE ${matchId}: ${homeEn} ${scoreH}-${scoreA} ${awayEn}${minute ? ` (${minute}')` : ''}${reversed ? ' (reversed)' : ''}`);
         }
       }
     } catch (e) { console.warn('Live fetch error:', e.message); }
