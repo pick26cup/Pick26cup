@@ -4906,6 +4906,8 @@ function refreshLeaderboardIfVisible(){
   const sec = document.getElementById('sec-leaderboard');
   if(sec && !sec.classList.contains('hidden')){
     renderLeaderboard();
+    const pbBtn = document.getElementById('podiumBtn');
+    if(pbBtn) pbBtn.style.display = _globalResults['7_2'] ? 'block' : 'none';
   }
 }
 
@@ -6836,7 +6838,7 @@ function showSection(name){
   const pbBtn = document.getElementById('podiumBtn');
   if(esBtn) esBtn.style.display = name==='leaderboard' ? 'block' : 'none';
   if(chBtn) chBtn.style.display = name==='leaderboard' ? 'block' : 'none';
-  if(pbBtn) pbBtn.style.display = name==='leaderboard' ? 'block' : 'none';
+  if(pbBtn) pbBtn.style.display = (name==='leaderboard' && !!_globalResults['7_2']) ? 'block' : 'none';
   if(name==='leaderboard'){ renderLeaderboard(); setTimeout(checkFifaSplashTrigger, 500); checkPaymentNudge(); }
   if(name==='picks'){
     currentRound = activeWeek > 0 ? activeWeek : 1;
@@ -8822,35 +8824,70 @@ function closePodium(){
 }
 
 function _buildPodium(){
-  // Compute total points across ALL rounds for each player
+  // Rank by number of rounds won (rounds 1-7); tiebreak by total pts
   var stage = document.getElementById('podStage');
   if(!stage) return;
   _podiumBuilt = true;
 
   function buildFromData(players, allPicks, results){
     if(!players) return;
-    var totals = [];
+
+    // Collect approved player keys
+    var roundWinMap = {}, totalPtsMap = {}, playerMeta = {};
     Object.entries(players).forEach(function(entry){
       var key = entry[0], player = entry[1];
       if(!player.approved) return;
-      var picks = (allPicks[key] && allPicks[key].picks) || {};
-      var totalPts = 0;
-      for(var r = 1; r <= 7; r++){
-        var submitted = hasSubmittedRound(allPicks[key], player, r);
-        if(!submitted) continue;
-        var roundMs = MATCHES[r] || [];
+      roundWinMap[key] = 0;
+      totalPtsMap[key] = 0;
+      playerMeta[key] = {name: player.name||key, avatar: player.avatar||null, country: player.country||null};
+    });
+
+    // For each round, score every player and find round winner(s)
+    for(var r = 1; r <= 7; r++){
+      var roundMs = MATCHES[r] || [];
+      var hasRoundResults = roundMs.length > 0 && roundMs.every(function(m){ return results && results[m.id]; });
+      if(!hasRoundResults) continue;
+
+      var roundScores = [];
+      Object.keys(playerMeta).forEach(function(key){
+        var player = players[key];
+        if(!hasSubmittedRound(allPicks[key], player, r)) return;
+        var picks = (allPicks[key] && allPicks[key].picks) || {};
+        var pts = 0;
         roundMs.forEach(function(m){
           var res = results && results[m.id];
           var p = picks[m.id];
           if(!res || !p) return;
-          totalPts += scoreMatch(m, p, res);
+          pts += scoreMatch(m, p, res);
         });
         var pen = (player.penalties||{})[r] || (player.penalties||{})[String(r)] || 0;
-        if(pen) totalPts = Math.round((totalPts + pen)*10)/10;
-      }
-      totals.push({name: player.name||key, pts: totalPts, key: key, avatar: player.avatar||null, country: player.country||null});
+        pts = Math.round((pts + pen)*10)/10;
+        roundScores.push({key: key, pts: pts});
+        totalPtsMap[key] = Math.round(((totalPtsMap[key]||0) + pts)*10)/10;
+      });
+
+      if(!roundScores.length) continue;
+      var maxPts = Math.max.apply(null, roundScores.map(function(s){ return s.pts; }));
+      roundScores.forEach(function(s){
+        if(s.pts === maxPts) roundWinMap[s.key] = (roundWinMap[s.key]||0) + 1;
+      });
+    }
+
+    var totals = Object.keys(playerMeta).map(function(key){
+      return {
+        name: playerMeta[key].name,
+        key: key,
+        avatar: playerMeta[key].avatar,
+        country: playerMeta[key].country,
+        roundWins: roundWinMap[key] || 0,
+        pts: totalPtsMap[key] || 0
+      };
     });
-    totals.sort(function(a,b){ return b.pts - a.pts; });
+    // Primary: most rounds won; tiebreak: total pts
+    totals.sort(function(a,b){
+      if(b.roundWins !== a.roundWins) return b.roundWins - a.roundWins;
+      return b.pts - a.pts;
+    });
 
     var p1 = totals[0], p2 = totals[1], p3 = totals[2];
 
@@ -8869,7 +8906,7 @@ function _buildPodium(){
       bokeh.innerHTML = bHtml;
     }
 
-    // Build slot HTML — professional portrait card
+    // Build slot HTML — portrait card showing round wins
     function slotHtml(player, rank){
       if(!player) return '';
       var cups = {1:'🏆', 2:'🥈', 3:'🥉'};
@@ -8877,11 +8914,8 @@ function _buildPodium(){
       var avSz = rank===1 ? 110 : rank===2 ? 90 : 78;
       var avatarCfg = player.avatar || {skin:0,hair:0,hairColor:0,beard:0,jersey:'neutro'};
       var avSvg = renderAvatarSVG(avatarCfg, avSz);
-      var ptsDisp = Number.isInteger(player.pts) ? player.pts : player.pts.toFixed(1);
+      var rw = player.roundWins || 0;
       var flag = player.country ? '<img src="https://flagcdn.com/'+player.country+'.svg" style="height:12px;border-radius:1px;vertical-align:middle;margin-right:3px;opacity:.85">' : '';
-      var rwBadge = player.roundWins > 0
-        ? '<div class="pod-round-wins">⚡ '+player.roundWins+' ronda'+(player.roundWins>1?'s':'')+' ganada'+(player.roundWins>1?'s':'')+'</div>'
-        : '';
       return '<div class="pod-slot pod-slot-'+rank+' pod-enter-'+rank+'">'
         +'<span class="pod-cup">'+cups[rank]+'</span>'
         +'<div class="pod-card">'
@@ -8889,9 +8923,8 @@ function _buildPodium(){
         +'<div class="pod-ring"><div class="pod-ring-inner">'+avSvg+'</div></div>'
         +'<div class="pod-label">'
         +'<div class="pod-player-name">'+flag+escapeHtml(player.name)+'</div>'
-        +'<div class="pod-player-pts">'+ptsDisp+'</div>'
-        +'<div class="pod-pts-label">PUNTOS TOTALES</div>'
-        +rwBadge
+        +'<div class="pod-player-pts">'+rw+'</div>'
+        +'<div class="pod-pts-label">RONDAS GANADAS</div>'
         +'</div>'
         +'</div>'
         +'</div>';
