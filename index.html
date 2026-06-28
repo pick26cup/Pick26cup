@@ -5102,21 +5102,6 @@ function renderLeaderboard(){
     // Points for the ACTIVE ROUND only (each round is independent)
     const scoringRound = activeWeek && activeWeek > 0 ? activeWeek : null;
 
-    // Build date → sorted match list for days that have results (used for per-day streak)
-    const _dateMatchMap = {};
-    for(let r=1;r<=7;r++){
-      (MATCHES[r]||[]).forEach(m=>{
-        if(results && results[m.id]){
-          if(!_dateMatchMap[m.date]) _dateMatchMap[m.date] = [];
-          _dateMatchMap[m.date].push(m);
-        }
-      });
-    }
-    const _sortedDates = Object.keys(_dateMatchMap).sort((a,b)=>{
-      const [da,ma] = a.split('/').map(Number);
-      const [db,mb] = b.split('/').map(Number);
-      return ma !== mb ? ma - mb : da - db;
-    });
 
     // Compute points
     const ranked = [];
@@ -5152,16 +5137,14 @@ function renderLeaderboard(){
 
       const noSubmit = !hasSubmittedActive;
       const pen = scoringRound ? ((player.penalties||{})[scoringRound] || (player.penalties||{})[String(scoringRound)] || 0) : 0;
-      // ── Racha: partidos correctos consecutivos desde el más reciente hacia atrás ──
+      // ── Racha: partidos correctos consecutivos dentro del round activo ──
       let streak = 0;
-      outerStreak: for(let di = _sortedDates.length - 1; di >= 0; di--){
-        const dayMs = _dateMatchMap[_sortedDates[di]];
-        for(let mi = dayMs.length - 1; mi >= 0; mi--){
-          const m = dayMs[mi];
-          const res = results && results[m.id];
-          const pp = playerPickData[m.id];
-          if(!res) continue;
-          if(!pp || scoreMatch(m, pp, res) < 1) break outerStreak;
+      if(scoringRound && hasSubmittedActive){
+        const roundMs = (MATCHES[scoringRound]||[]).filter(m => results && results[m.id]);
+        for(let mi = roundMs.length - 1; mi >= 0; mi--){
+          const res = results[roundMs[mi].id];
+          const pp = playerPickData[roundMs[mi].id];
+          if(!pp || scoreMatch(roundMs[mi], pp, res) < 1) break;
           streak++;
         }
       }
