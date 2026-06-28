@@ -2025,6 +2025,26 @@ nav button:hover,nav button.active{
 @keyframes fwTrophyGlow2{0%,100%{filter:drop-shadow(0 0 18px rgba(212,175,55,.7))}50%{filter:drop-shadow(0 0 40px rgba(212,175,55,1))}}
 @keyframes fwPulseRing2{0%{transform:scale(.8);opacity:.8}100%{transform:scale(2.2);opacity:0}}
 
+/* ── RED CARD WARNING ───────────────────────────────────── */
+@keyframes rcOverlayIn{0%{opacity:0}100%{opacity:1}}
+@keyframes rcCardDrop{0%{transform:translateY(-120px) rotate(-15deg) scale(.5);opacity:0}60%{transform:translateY(8px) rotate(3deg) scale(1.08);opacity:1}80%{transform:translateY(-4px) rotate(-1deg) scale(1.02)}100%{transform:translateY(0) rotate(0) scale(1);opacity:1}}
+@keyframes rcPulse{0%,100%{box-shadow:0 0 60px rgba(210,20,20,.55),0 0 120px rgba(180,10,10,.2)}50%{box-shadow:0 0 100px rgba(255,40,40,.85),0 0 200px rgba(210,20,20,.45)}}
+@keyframes rcBadgeIn{0%{transform:scale(0) rotate(20deg);opacity:0}70%{transform:scale(1.12) rotate(-4deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes rcFlash{0%,100%{opacity:1}50%{opacity:.55}}
+#redCardWarning{display:none;position:fixed;inset:0;z-index:11000;background:rgba(4,0,0,.93);align-items:center;justify-content:center;animation:rcOverlayIn .35s ease-out}
+#redCardWarning.rc-visible{display:flex}
+.rc-panel{position:relative;max-width:340px;width:92%;background:linear-gradient(160deg,#1a0202 0%,#0e0000 100%);border:2px solid rgba(200,20,20,.55);border-radius:22px;padding:28px 22px 24px;text-align:center;animation:rcPulse 2.2s 1.2s ease-in-out infinite}
+.rc-card-icon{display:inline-block;font-size:64px;line-height:1;animation:rcCardDrop .7s .25s cubic-bezier(.34,1.4,.64,1) both}
+.rc-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(200,20,20,.18);border:1.5px solid rgba(220,40,40,.55);border-radius:30px;padding:5px 14px;margin:10px 0 14px;animation:rcBadgeIn .5s .9s cubic-bezier(.34,1.4,.64,1) both}
+.rc-badge-text{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;color:#ff4444}
+.rc-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:#fff;line-height:1.15;margin-bottom:10px;animation:rcFlash .9s .3s ease-in-out 3}
+.rc-body{font-size:13px;color:rgba(255,255,255,.72);line-height:1.65;margin-bottom:18px}
+.rc-body strong{color:#ff5555}
+.rc-pts{font-family:'Bebas Neue',sans-serif;font-size:38px;color:#e81010;letter-spacing:2px;display:block;line-height:1;filter:drop-shadow(0 0 12px rgba(230,20,20,.8))}
+.rc-pts-label{font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:3px;color:rgba(255,80,80,.55);display:block;margin-top:2px;margin-bottom:16px}
+.rc-close{background:rgba(200,20,20,.18);border:1.5px solid rgba(220,40,40,.45);color:#ff6666;border-radius:12px;padding:10px 28px;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;cursor:pointer;width:100%;transition:.2s}
+.rc-close:active{background:rgba(200,20,20,.35)}
+
 /* ── FIFA MATCH INTRO ───────────────────────────────────── */
 @keyframes fifaFlagLeft{
   0%  {transform:scale(.08) translate(0,120px);opacity:0}
@@ -2109,6 +2129,19 @@ nav button:hover,nav button.active{
     <div style="font-family:'Bebas Neue';font-size:22px;color:rgba(255,255,255,.6);letter-spacing:4px;margin-bottom:6px">JORNADA 2 · GRUPO H · MUNDIAL 2026</div>
     <div id="fifaMatchTime" style="font-family:'DM Sans';font-size:14px;color:rgba(255,255,255,.45);letter-spacing:2px"></div>
     <div style="margin-top:14px;font-family:'DM Sans';font-size:12px;color:rgba(255,255,255,.25)">Toca para cerrar</div>
+  </div>
+</div>
+
+<!-- RED CARD WARNING -->
+<div id="redCardWarning">
+  <div class="rc-panel">
+    <div class="rc-card-icon">🟥</div>
+    <div class="rc-badge"><span style="font-size:18px">🏟️</span><span class="rc-badge-text" id="rcBadgeText">AVISO OFICIAL FIFA</span></div>
+    <div class="rc-title" id="rcTitle">⚠️ ATENCIÓN JUGADOR ⚠️</div>
+    <div class="rc-body" id="rcBody"></div>
+    <span class="rc-pts">-1</span>
+    <span class="rc-pts-label" id="rcPtsLabel">PUNTOS POR TARJETA ROJA</span>
+    <button class="rc-close" id="rcCloseBtn" onclick="closeRedCardWarning()">ENTENDIDO — CERRAR</button>
   </div>
 </div>
 
@@ -2769,6 +2802,7 @@ window.onload = function(){
   renderRoundTabs();
   startCountdown();
   showDailyMsgIfNeeded();
+  setTimeout(showRedCardWarning, 1800);
   // Show avatar button in settings once logged in
   const avBtn = document.getElementById('settingsAvatarBtn');
   if(avBtn && currentUser) avBtn.style.display = 'flex';
@@ -8441,6 +8475,91 @@ function checkFifaSplashTrigger(){
   // Colombia vs Congo (2_24) terminó — splash desactivado
   return;
 }
+function playRefWhistle(){
+  try{
+    var ctx = new (window.AudioContext||window.webkitAudioContext)();
+    function blast(t, dur){
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      var lfo = ctx.createOscillator();
+      var lfoG = ctx.createGain();
+      lfo.frequency.value = 22; lfoG.gain.value = 28;
+      lfo.connect(lfoG); lfoG.connect(osc.frequency);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(2900, t);
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.48, t+0.018);
+      gain.gain.setValueAtTime(0.48, t+dur-0.025);
+      gain.gain.linearRampToValueAtTime(0, t+dur);
+      osc.connect(gain); gain.connect(ctx.destination);
+      lfo.start(t); lfo.stop(t+dur);
+      osc.start(t); osc.stop(t+dur);
+    }
+    var t = ctx.currentTime;
+    blast(t, 0.18);
+    blast(t+0.27, 0.18);
+    blast(t+0.54, 0.55);
+    setTimeout(function(){ try{ctx.close();}catch(e){} }, 1600);
+  }catch(e){}
+}
+
+function showRedCardWarning(){
+  var seen = localStorage.getItem('wc2026_rcwarn_v1_'+new Date().toISOString().slice(0,10));
+  if(seen) return;
+  localStorage.setItem('wc2026_rcwarn_v1_'+new Date().toISOString().slice(0,10), '1');
+
+  var es = currentLang === 'es';
+  var badge = document.getElementById('rcBadgeText');
+  var title = document.getElementById('rcTitle');
+  var body  = document.getElementById('rcBody');
+  var ptsLabel = document.getElementById('rcPtsLabel');
+  var closeBtn = document.getElementById('rcCloseBtn');
+
+  if(badge) badge.textContent = es ? 'AVISO OFICIAL PICK26' : 'OFFICIAL PICK26 NOTICE';
+  if(title) title.textContent = es ? '⚠️ ATENCIÓN JUGADOR ⚠️' : '⚠️ PLAYER WARNING ⚠️';
+  if(ptsLabel) ptsLabel.textContent = es ? 'PUNTOS POR TARJETA ROJA' : 'POINTS — RED CARD';
+  if(closeBtn) closeBtn.textContent = es ? 'ENTENDIDO — CERRAR' : 'UNDERSTOOD — CLOSE';
+
+  var msgEs = 'Tienes <strong>5 horas antes del partido</strong> para enviar tus predicciones. '
+    + 'El reglamento es claro: el jugador que <strong>no envíe sus picks a tiempo</strong> '
+    + 'deberá contactar al administrador. El administrador determinará la sanción: '
+    + '<strong>TARJETA ROJA = −1 punto</strong> en tu marcador. '
+    + 'Respeta las reglas del juego. 🏟️';
+
+  var msgEn = 'You have <strong>5 hours before kickoff</strong> to submit your picks. '
+    + 'The rules are clear: any player who <strong>fails to submit picks on time</strong> '
+    + 'must contact the administrator. The administrator will assess the penalty: '
+    + '<strong>RED CARD = −1 point</strong> on your score. '
+    + 'Respect the rules of the game. 🏟️';
+
+  if(body) body.innerHTML = es ? msgEs : msgEn;
+
+  var el = document.getElementById('redCardWarning');
+  if(el) el.classList.add('rc-visible');
+
+  // Whistle then voice
+  setTimeout(function(){
+    playRefWhistle();
+    var voiceEs = '¡Atención, jugador! Aquí el árbitro. Escucha con atención. '
+      + 'Tienes hasta cinco horas antes del partido para enviar tus predicciones. '
+      + 'El jugador que no envíe sus picks a tiempo deberá contactar al administrador. '
+      + 'La sanción es tarjeta roja: menos un punto en tu marcador. '
+      + '¡Respeta las reglas del juego, campeón!';
+    var voiceEn = 'Attention player! This is your referee speaking. Listen carefully. '
+      + 'You have five hours before kickoff to submit your picks. '
+      + 'Any player who misses the deadline must contact the administrator immediately. '
+      + 'The penalty is a red card: minus one point on your score. '
+      + 'Respect the rules of the game, champion!';
+    setTimeout(function(){ speakVoice(es ? voiceEs : voiceEn, {pitch:0.88, rate:0.86}); }, 650);
+  }, 600);
+}
+
+function closeRedCardWarning(){
+  var el = document.getElementById('redCardWarning');
+  if(el){ el.style.opacity='0'; el.style.transition='opacity .4s'; setTimeout(function(){ el.classList.remove('rc-visible'); el.style.opacity=''; el.style.transition=''; }, 420); }
+  window.speechSynthesis && window.speechSynthesis.cancel();
+}
+
 function playStampSound(){
   try{
     var ctx=new (window.AudioContext||window.webkitAudioContext)();
