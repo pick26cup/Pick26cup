@@ -1284,6 +1284,7 @@ nav button:hover,nav button.active{
 .bk-round-3 .bk-slot:last-child .bk-card{position:relative}
 /* ── PODIUM ──────────────────────────────────────────────── */
 #podiumOverlay{position:fixed;inset:0;z-index:1000;overflow:hidden;display:none;background:#020100}
+#podiumOverlay *{box-sizing:border-box}
 #podiumOverlay.pod-visible{display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
 /* Stadium night background */
 .pod-bg{position:absolute;inset:0;background:
@@ -1328,7 +1329,7 @@ nav button:hover,nav button.active{
 /* ── stage ── */
 .pod-stage{display:flex;align-items:flex-end;justify-content:center;gap:8px;width:100%;padding:0 4px;flex:1;min-height:0;overflow:visible}
 .pod-slot{display:flex;flex-direction:column;align-items:center;position:relative}
-.pod-slot-1{flex:0 0 148px}
+.pod-slot-1{flex:0 0 146px}
 .pod-slot-2{flex:0 0 124px}
 .pod-slot-3{flex:0 0 110px}
 /* trophy cup — starts hidden, drops in from above after cards arrive */
@@ -1338,7 +1339,7 @@ nav button:hover,nav button.active{
 .pod-slot-2 .pod-cup{font-size:38px;filter:drop-shadow(0 0 14px rgba(192,192,192,.9)) drop-shadow(0 0 28px rgba(160,160,160,.4));animation:pod-trophy-in .65s 2.0s cubic-bezier(.34,1.4,.64,1) both,pod-trophy-float 2.5s 2.8s ease-in-out infinite}
 .pod-slot-3 .pod-cup{font-size:30px;filter:drop-shadow(0 0 12px rgba(205,127,50,.9)) drop-shadow(0 0 22px rgba(180,100,20,.35));animation:pod-trophy-in .65s 2.8s cubic-bezier(.34,1.4,.64,1) both,pod-trophy-float 2.5s 3.6s ease-in-out infinite}
 /* player portrait card */
-.pod-card{position:relative;display:flex;flex-direction:column;align-items:center;border-radius:20px;padding:18px 12px 14px;width:100%;gap:10px;border:1.5px solid transparent}
+.pod-card{position:relative;display:flex;flex-direction:column;align-items:center;border-radius:20px;padding:18px 8px 14px;width:100%;gap:10px;border:1.5px solid transparent}
 .pod-slot-1 .pod-card{background:rgba(212,175,55,0.09);border-color:rgba(212,175,55,0.42);box-shadow:0 0 50px rgba(212,175,55,0.22),inset 0 1px 0 rgba(255,255,255,0.08);animation:pod-card-glow 2.5s 2.5s ease-in-out infinite}
 .pod-slot-2 .pod-card{background:rgba(200,200,200,0.05);border-color:rgba(180,180,180,0.28);box-shadow:0 0 24px rgba(160,160,160,0.1)}
 .pod-slot-3 .pod-card{background:rgba(180,110,40,0.06);border-color:rgba(180,110,40,0.25);box-shadow:0 0 18px rgba(160,90,30,0.1)}
