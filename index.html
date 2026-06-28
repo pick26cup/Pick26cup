@@ -5211,6 +5211,30 @@ function renderLeaderboard(){
       }
     }
 
+    // ── Voz de racha: anuncia cuando el jugador lleva 2+ partidos consecutivos ──
+    if(myKey){
+      const myData = ranked.find(p => p.key === myKey);
+      if(myData && myData.streak >= 2){
+        const seenKey = 'wc2026_streak_voice_' + myKey + '_r' + (scoringRound||0) + '_s' + myData.streak;
+        if(!localStorage.getItem(seenKey)){
+          localStorage.setItem(seenKey, '1');
+          const n = myData.streak;
+          const nombre = myData.name ? myData.name.trim().split(/\s+/)[0] : 'campeón';
+          const mensajes = [
+            null, null, // 0 y 1 no se usan
+            '¡Excelente, ' + nombre + '! ¡Llevas 2 partidos seguidos acertados! ¡Vas por buen camino, campeón!',
+            '¡Increíble, ' + nombre + '! ¡3 partidos consecutivos correctos! ¡Estás en racha, campeón!',
+            '¡Imparable, ' + nombre + '! ¡4 aciertos seguidos! ¡Eres una máquina!',
+            '¡Legendario, ' + nombre + '! ¡5 partidos en racha! ¡Nadie te detiene, campeón!',
+            '¡Fenomenal, ' + nombre + '! ¡6 partidos en racha! ¡Eres un genio del fútbol!',
+            '¡Histórico, ' + nombre + '! ¡7 partidos seguidos! ¡Eres imbatible, campeón!',
+          ];
+          const msg = mensajes[n] || ('¡Increíble, ' + nombre + '! ¡Llevas ' + n + ' partidos seguidos acertados! ¡Eres imparable, campeón!');
+          setTimeout(() => speakVoice(msg, {pitch:1.12, rate:0.88}), 900);
+        }
+      }
+    }
+
     // Medals only when ALL matches in the round have results
     const roundMatchList = MATCHES[scoringRound] || [];
     const roundComplete = scoringRound && roundMatchList.length > 0 &&
