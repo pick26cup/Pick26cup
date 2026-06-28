@@ -386,27 +386,49 @@ function renderGroupJ(j){
 }
 function renderKOGoalsTable(j){
   const def=KOR[j];
-  let rows="";
+  /* 1ª pasada: calcular todas las predicciones y encontrar la de mayor probabilidad global */
+  const preds=[];
+  let bestProb=0;
   def.slots.forEach(function(label,si){
     const st=koState[j][si];
-    if(!st.h||!st.a||st.h===st.a){
-      rows+=`<tr><td colspan="7" style="padding:5px 8px;color:var(--muted);font-size:11px">${label}</td></tr>`;
-      return;
-    }
+    if(!st.h||!st.a||st.h===st.a){preds.push(null);return;}
     const h=TEAMS[IDX[st.h]],a=TEAMS[IDX[st.a]];
     const haS=st.ha==='none'?null:st.ha;
     const R=predict(h,a,haS);
+    preds.push({h,a,R,haS});
+    if(R.scores[0][2]>bestProb) bestProb=R.scores[0][2];
+  });
+  /* 2ª pasada: construir filas */
+  let rows="";
+  def.slots.forEach(function(label,si){
+    const p=preds[si];
+    if(!p){
+      rows+=`<tr><td colspan="7" style="padding:5px 8px;color:var(--muted);font-size:11px">${label}</td></tr>`;
+      return;
+    }
+    const {h,a,R}=p;
     const t=R.scores[0];
+    const isBest=Math.abs(t[2]-bestProb)<0.0001;
     const favH=R.pH>=R.pA;
-    const top3=R.scores.slice(0,3).map(function(s){return s[0]+'-'+s[1]+'<span style="color:var(--muted);font-size:9.5px">('+pct0(s[2])+')</span>';}).join('  ');
-    rows+=`<tr style="border-bottom:1px solid #161d27">
+    /* badge para el marcador más probable — dorado si es el mejor global, ámbar si no */
+    const badgeBg=isBest?'rgba(255,176,0,0.22)':'rgba(255,176,0,0.09)';
+    const badgeBorder=isBest?'2px solid var(--amber)':'1.5px solid rgba(255,176,0,0.4)';
+    const badgeShadow=isBest?'0 0 16px rgba(255,176,0,0.55)':'none';
+    const crownMark=isBest?'<span style="font-size:13px;margin-right:3px" title="Marcador con mayor probabilidad del torneo">★</span>':'';
+    const scoreCell=`<span style="display:inline-flex;align-items:center;gap:3px;border:${badgeBorder};border-radius:8px;padding:4px 12px;background:${badgeBg};box-shadow:${badgeShadow};font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;color:var(--amber)">${crownMark}${t[0]}-${t[1]}</span><br><span style="font-size:10.5px;color:var(--muted)">${pct0(t[2])}</span>`;
+    const top3=R.scores.slice(0,3).map(function(s,idx){
+      const sc=`${s[0]}-${s[1]}`;
+      if(idx===0) return `<span style="color:var(--amber);font-weight:700">${sc}</span><span style="color:var(--muted);font-size:9.5px"> ${pct0(s[2])}</span>`;
+      return `<span style="color:var(--txt)">${sc}</span><span style="color:var(--muted);font-size:9.5px"> ${pct0(s[2])}</span>`;
+    }).join('  ');
+    rows+=`<tr style="border-bottom:1px solid #161d27${isBest?';background:rgba(255,176,0,0.04)':''}">
       <td style="padding:5px 8px;white-space:nowrap">
         <span style="font-weight:700;color:${favH?'var(--win)':'#8a93a0'}">${h.c}</span>
         <span style="color:var(--muted);font-size:10px"> vs </span>
         <span style="font-weight:700;color:${!favH?'var(--loss)':'#8a93a0'}">${a.c}</span></td>
       <td style="padding:5px 10px;text-align:center;color:var(--win);font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:800">${R.lh.toFixed(2)}</td>
       <td style="padding:5px 10px;text-align:center;color:var(--loss);font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:800">${R.la.toFixed(2)}</td>
-      <td style="padding:5px 10px;text-align:center;color:var(--amber);font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:800">${t[0]}-${t[1]}<span style="font-size:10px;color:var(--muted);font-family:inherit"> ${pct0(t[2])}</span></td>
+      <td style="padding:6px 10px;text-align:center">${scoreCell}</td>
       <td style="padding:5px 8px;text-align:center;font-size:11.5px">${pct0(R.over)}</td>
       <td style="padding:5px 8px;text-align:center;font-size:11.5px">${pct0(R.btts)}</td>
       <td style="padding:5px 8px;font-size:11px;color:var(--txt)">${top3}</td>
@@ -414,15 +436,16 @@ function renderKOGoalsTable(j){
   });
   return `<div id="ko-goals-table-${j}" class="card" style="margin-bottom:18px;overflow-x:auto">
     <h2>⚽ Calibración de goles · ${def.name}</h2>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">★ = marcador con mayor probabilidad de este tramo · verde = equipo favorito · rojo = segundo favorito</div>
     <table style="width:100%;border-collapse:collapse;font-size:12.5px">
     <thead><tr style="border-bottom:1px solid var(--line)">
       <th style="padding:6px 8px;text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Partido</th>
       <th style="padding:6px 8px;text-align:center;color:var(--win);font-size:10px;text-transform:uppercase;letter-spacing:.1em">λ izq.</th>
       <th style="padding:6px 8px;text-align:center;color:var(--loss);font-size:10px;text-transform:uppercase;letter-spacing:.1em">λ der.</th>
-      <th style="padding:6px 8px;text-align:center;color:var(--amber);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Más probable</th>
+      <th style="padding:6px 8px;text-align:center;color:var(--amber);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Marcador más probable</th>
       <th style="padding:6px 8px;text-align:center;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Over 2.5</th>
       <th style="padding:6px 8px;text-align:center;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">BTTS</th>
-      <th style="padding:6px 8px;text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Top 3 marcadores</th>
+      <th style="padding:6px 8px;text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em">Top 3</th>
     </tr></thead>
     <tbody>${rows}</tbody></table></div>`;
 }
