@@ -5671,11 +5671,15 @@ function renderAdminMatches(){
         <input type="number" min="0" max="20" placeholder="H" id="rs_h_${m.id}" style="width:40px"/>
         <span style="color:var(--gold);font-weight:700">—</span>
         <input type="number" min="0" max="20" placeholder="A" id="rs_a_${m.id}" style="width:40px"/>
-        ${isKO ? `<select id="rs_w_${m.id}" title="Solo si hubo penales / ET" style="background:#1a1a1a;border:1px solid #444;color:var(--text);border-radius:6px;padding:3px 6px;font-size:11px;margin-left:4px">
+        ${isKO ? `<select id="rs_w_${m.id}" title="Solo si hubo penales / ET" onchange="togglePenInputs('${m.id}')" style="background:#1a1a1a;border:1px solid #444;color:var(--text);border-radius:6px;padding:3px 6px;font-size:11px;margin-left:4px">
           <option value="">90min decide</option>
           <option value="home">⚡ ${escapeHtml(aHomeName)} (PEN/ET)</option>
           <option value="away">⚡ ${escapeHtml(aAwayName)} (PEN/ET)</option>
-        </select>` : ''}
+        </select>
+        <span id="rs_pen_wrap_${m.id}" style="display:none;align-items:center;gap:3px;margin-left:6px;font-size:10px;color:rgba(100,160,255,.8)">
+          PEN: <input type="number" min="0" max="30" placeholder="H" id="rs_ph_${m.id}" style="width:34px;background:#111;border:1px solid rgba(100,160,255,.4);color:#adf;border-radius:4px;padding:2px 4px;font-size:11px;text-align:center"/>
+          – <input type="number" min="0" max="30" placeholder="A" id="rs_pa_${m.id}" style="width:34px;background:#111;border:1px solid rgba(100,160,255,.4);color:#adf;border-radius:4px;padding:2px 4px;font-size:11px;text-align:center"/>
+        </span>` : ''}
       </div>
       <button class="btn-sm btn-save" id="savebtn_${m.id}" onclick="saveResult('${m.id}')">Save</button>
       <button class="btn-sm btn-delete" id="clearbtn_${m.id}" onclick="clearResult('${m.id}')" style="display:none">🗑 Clear</button>
@@ -5694,7 +5698,11 @@ function renderAdminMatches(){
           const wEl = document.getElementById('rs_w_'+m.id);
           if(hEl) hEl.value = r.scoreH;
           if(aEl) aEl.value = r.scoreA;
-          if(wEl && r.winner) wEl.value = r.winner;
+          if(wEl && r.winner){ wEl.value = r.winner; togglePenInputs(m.id); }
+          const phEl = document.getElementById('rs_ph_'+m.id);
+          const paEl = document.getElementById('rs_pa_'+m.id);
+          if(phEl && r.penH != null) phEl.value = r.penH;
+          if(paEl && r.penA != null) paEl.value = r.penA;
           markSaveBtnSaved(m.id);
         }
       });
@@ -5710,7 +5718,11 @@ function renderAdminMatches(){
         const wEl = document.getElementById('rs_w_'+m.id);
         if(hEl) hEl.value = r.scoreH;
         if(aEl) aEl.value = r.scoreA;
-        if(wEl && r.winner) wEl.value = r.winner;
+        if(wEl && r.winner){ wEl.value = r.winner; togglePenInputs(m.id); }
+        const phEl = document.getElementById('rs_ph_'+m.id);
+        const paEl = document.getElementById('rs_pa_'+m.id);
+        if(phEl && r.penH != null) phEl.value = r.penH;
+        if(paEl && r.penA != null) paEl.value = r.penA;
         markSaveBtnSaved(m.id);
       }
     });
@@ -5724,7 +5736,13 @@ function saveResult(matchId){
   if(isNaN(h)||isNaN(a)){ showToast(currentLang==='es'?'Ingresa un marcador válido':'Enter valid score','error'); return; }
   const result = {scoreH:h, scoreA:a, updatedAt:Date.now()};
   const wEl = document.getElementById('rs_w_'+matchId);
-  if(wEl && wEl.value) result.winner = wEl.value;
+  if(wEl && wEl.value){
+    result.winner = wEl.value;
+    const ph = parseInt((document.getElementById('rs_ph_'+matchId)||{}).value);
+    const pa = parseInt((document.getElementById('rs_pa_'+matchId)||{}).value);
+    if(!isNaN(ph)) result.penH = ph;
+    if(!isNaN(pa)) result.penA = pa;
+  }
   localStorage.setItem('wc2026_result_'+matchId, JSON.stringify(result));
   if(db){
     db.ref('results/'+matchId).set(result).then(function(){
@@ -5738,6 +5756,12 @@ function saveResult(matchId){
     markSaveBtnSaved(matchId);
     showToast(currentLang==='es'?'Guardado local (sin Firebase)':'Saved locally (no Firebase)','success');
   }
+}
+
+function togglePenInputs(matchId){
+  const wEl = document.getElementById('rs_w_'+matchId);
+  const wrap = document.getElementById('rs_pen_wrap_'+matchId);
+  if(wrap) wrap.style.display = (wEl && wEl.value) ? 'inline-flex' : 'none';
 }
 
 function markSaveBtnSaved(matchId){
@@ -6374,7 +6398,9 @@ function renderAdminPickViewerContent(){
     // Result + points
     let resHtml='', ptsHtml='', ptsBg='rgba(255,255,255,.04)';
     if(res){
-      var penNote = (res.winner && res.scoreH === res.scoreA) ? ' <span style="font-size:9px;background:rgba(100,160,255,.25);color:#adf;border-radius:4px;padding:1px 4px">PEN</span>' : '';
+      const _hasPen = res.winner && res.scoreH === res.scoreA;
+      const _penStr = (_hasPen && res.penH != null && res.penA != null) ? ` (${res.penH}-${res.penA})` : '';
+      var penNote = _hasPen ? ` <span style="font-size:9px;background:rgba(100,160,255,.25);color:#adf;border-radius:4px;padding:1px 4px">PEN${_penStr}</span>` : '';
       resHtml=`<span style="font-size:11px;color:var(--text2)">${res.scoreH}-${res.scoreA}${penNote}</span>`;
       const pts = scoreMatch(m, pick, res);
       runningPts += pts;
@@ -8258,8 +8284,10 @@ function renderMyResults(){
               }
             }
 
-            const penBadge = (res && res.winner && res.scoreH === res.scoreA && !m.closer && !m.final)
-              ? ' <span style="font-size:9px;background:rgba(100,160,255,.25);color:#adf;border-radius:4px;padding:1px 4px">PEN</span>' : '';
+            const hasPen = res && res.winner && res.scoreH === res.scoreA && !m.closer && !m.final;
+            const penScoreStr = (hasPen && res.penH != null && res.penA != null) ? ` (${res.penH}–${res.penA})` : '';
+            const penBadge = hasPen
+              ? ` <span style="font-size:9px;background:rgba(100,160,255,.25);color:#adf;border-radius:4px;padding:1px 4px">PEN${penScoreStr}</span>` : '';
             const scoreChip = (res && res.scoreH!==undefined && res.scoreA!==undefined && !m.closer && !m.final)
               ? `<span style="background:rgba(212,175,55,.15);border:1px solid var(--gold3);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;color:var(--gold)">${res.scoreH}–${res.scoreA}${penBadge}</span>`
               : '';
