@@ -5671,16 +5671,21 @@ function renderAdminMatches(){
         <input type="number" min="0" max="20" placeholder="H" id="rs_h_${m.id}" style="width:40px"/>
         <span style="color:var(--gold);font-weight:700">—</span>
         <input type="number" min="0" max="20" placeholder="A" id="rs_a_${m.id}" style="width:40px"/>
-        ${isKO ? `<select id="rs_w_${m.id}" title="Solo si hubo penales / ET" onchange="togglePenInputs('${m.id}')" style="background:#1a1a1a;border:1px solid #444;color:var(--text);border-radius:6px;padding:3px 6px;font-size:11px;margin-left:4px">
-          <option value="">90min decide</option>
-          <option value="home">⚡ ${escapeHtml(aHomeName)} (PEN/ET)</option>
-          <option value="away">⚡ ${escapeHtml(aAwayName)} (PEN/ET)</option>
-        </select>
-        <span id="rs_pen_wrap_${m.id}" style="display:none;align-items:center;gap:3px;margin-left:6px;font-size:10px;color:rgba(100,160,255,.8)">
-          PEN: <input type="number" min="0" max="30" placeholder="H" id="rs_ph_${m.id}" style="width:34px;background:#111;border:1px solid rgba(100,160,255,.4);color:#adf;border-radius:4px;padding:2px 4px;font-size:11px;text-align:center"/>
-          – <input type="number" min="0" max="30" placeholder="A" id="rs_pa_${m.id}" style="width:34px;background:#111;border:1px solid rgba(100,160,255,.4);color:#adf;border-radius:4px;padding:2px 4px;font-size:11px;text-align:center"/>
-        </span>` : ''}
+        ${isKO ? `<select id="rs_w_${m.id}" onchange="togglePenInputs('${m.id}')" style="background:#1a1a1a;border:1px solid #444;color:var(--text);border-radius:6px;padding:3px 6px;font-size:11px;margin-left:8px">
+          <option value="">90 min</option>
+          <option value="pen">⚡ PEN/ET</option>
+        </select>` : ''}
       </div>
+      ${isKO ? `<div id="rs_pen_wrap_${m.id}" style="display:none;margin-top:6px;background:rgba(100,160,255,.08);border:1px solid rgba(100,160,255,.25);border-radius:8px;padding:8px 10px">
+        <div style="font-size:10px;color:rgba(100,160,255,.7);font-weight:700;letter-spacing:1px;margin-bottom:6px">⚡ PENALES</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px">
+          <span style="color:var(--text);min-width:60px;text-align:right">${escapeHtml(aHomeName)}</span>
+          <input type="number" min="0" max="30" placeholder="0" id="rs_ph_${m.id}" style="width:38px;background:#111;border:1px solid rgba(100,160,255,.4);color:#adf;border-radius:4px;padding:3px 5px;font-size:13px;font-weight:700;text-align:center"/>
+          <span style="color:rgba(100,160,255,.6);font-weight:700">–</span>
+          <input type="number" min="0" max="30" placeholder="0" id="rs_pa_${m.id}" style="width:38px;background:#111;border:1px solid rgba(100,160,255,.4);color:#adf;border-radius:4px;padding:3px 5px;font-size:13px;font-weight:700;text-align:center"/>
+          <span style="color:var(--text);min-width:60px">${escapeHtml(aAwayName)}</span>
+        </div>
+      </div>` : ''}
       <button class="btn-sm btn-save" id="savebtn_${m.id}" onclick="saveResult('${m.id}')">Save</button>
       <button class="btn-sm btn-delete" id="clearbtn_${m.id}" onclick="clearResult('${m.id}')" style="display:none">🗑 Clear</button>
     `;
@@ -5698,7 +5703,7 @@ function renderAdminMatches(){
           const wEl = document.getElementById('rs_w_'+m.id);
           if(hEl) hEl.value = r.scoreH;
           if(aEl) aEl.value = r.scoreA;
-          if(wEl && r.winner){ wEl.value = r.winner; togglePenInputs(m.id); }
+          if(wEl && r.winner){ wEl.value = 'pen'; togglePenInputs(m.id); }
           const phEl = document.getElementById('rs_ph_'+m.id);
           const paEl = document.getElementById('rs_pa_'+m.id);
           if(phEl && r.penH != null) phEl.value = r.penH;
@@ -5718,7 +5723,7 @@ function renderAdminMatches(){
         const wEl = document.getElementById('rs_w_'+m.id);
         if(hEl) hEl.value = r.scoreH;
         if(aEl) aEl.value = r.scoreA;
-        if(wEl && r.winner){ wEl.value = r.winner; togglePenInputs(m.id); }
+        if(wEl && r.winner){ wEl.value = 'pen'; togglePenInputs(m.id); }
         const phEl = document.getElementById('rs_ph_'+m.id);
         const paEl = document.getElementById('rs_pa_'+m.id);
         if(phEl && r.penH != null) phEl.value = r.penH;
@@ -5736,12 +5741,18 @@ function saveResult(matchId){
   if(isNaN(h)||isNaN(a)){ showToast(currentLang==='es'?'Ingresa un marcador válido':'Enter valid score','error'); return; }
   const result = {scoreH:h, scoreA:a, updatedAt:Date.now()};
   const wEl = document.getElementById('rs_w_'+matchId);
-  if(wEl && wEl.value){
-    result.winner = wEl.value;
+  if(wEl && wEl.value === 'pen'){
     const ph = parseInt((document.getElementById('rs_ph_'+matchId)||{}).value);
     const pa = parseInt((document.getElementById('rs_pa_'+matchId)||{}).value);
-    if(!isNaN(ph)) result.penH = ph;
-    if(!isNaN(pa)) result.penA = pa;
+    if(!isNaN(ph) && !isNaN(pa) && ph !== pa){
+      result.penH = ph;
+      result.penA = pa;
+      result.winner = ph > pa ? 'home' : 'away';
+    } else if(isNaN(ph) || isNaN(pa)){
+      showToast(currentLang==='es'?'Ingresa el marcador de penales':'Enter the penalty score','error'); return;
+    } else {
+      showToast(currentLang==='es'?'El marcador de penales no puede ser empate':'Penalty score cannot be a draw','error'); return;
+    }
   }
   localStorage.setItem('wc2026_result_'+matchId, JSON.stringify(result));
   if(db){
@@ -5761,7 +5772,7 @@ function saveResult(matchId){
 function togglePenInputs(matchId){
   const wEl = document.getElementById('rs_w_'+matchId);
   const wrap = document.getElementById('rs_pen_wrap_'+matchId);
-  if(wrap) wrap.style.display = (wEl && wEl.value) ? 'inline-flex' : 'none';
+  if(wrap) wrap.style.display = (wEl && wEl.value === 'pen') ? 'block' : 'none';
 }
 
 function markSaveBtnSaved(matchId){
