@@ -8249,14 +8249,19 @@ function renderMyResults(){
                 realTeam = `${res.scoreH} — ${res.scoreA}`;
               } else {
                 const diff = res.scoreH - res.scoreA;
+                const penTag = '<span style="font-size:9px;background:rgba(100,160,255,.25);color:#adf;border-radius:4px;padding:1px 4px;margin-left:3px">PEN</span>';
                 if(diff > 0) realTeam = homeName;
                 else if(diff < 0) realTeam = awayName;
+                else if(res.winner === 'home') realTeam = homeName + penTag;
+                else if(res.winner === 'away') realTeam = awayName + penTag;
                 else realTeam = currentLang==='es' ? '🤝 Empate' : '🤝 Draw';
               }
             }
 
+            const penBadge = (res && res.winner && res.scoreH === res.scoreA && !m.closer && !m.final)
+              ? ' <span style="font-size:9px;background:rgba(100,160,255,.25);color:#adf;border-radius:4px;padding:1px 4px">PEN</span>' : '';
             const scoreChip = (res && res.scoreH!==undefined && res.scoreA!==undefined && !m.closer && !m.final)
-              ? `<span style="background:rgba(212,175,55,.15);border:1px solid var(--gold3);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;color:var(--gold)">${res.scoreH}–${res.scoreA}</span>`
+              ? `<span style="background:rgba(212,175,55,.15);border:1px solid var(--gold3);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;color:var(--gold)">${res.scoreH}–${res.scoreA}${penBadge}</span>`
               : '';
 
             return `
