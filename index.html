@@ -6958,6 +6958,7 @@ function showSection(name){
     _newPlayerCount = 0;
     updateAdminBadge();
     renderPendingPlayers();
+    setAdminRound(activeWeek > 0 ? activeWeek : adminRound);
   }
 }
 
