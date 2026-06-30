@@ -8150,18 +8150,47 @@ function renderBracket(){
       return '<button class="bk2-tab'+act+'" onclick="_bracketViewRound='+rd.r+';renderBracket()">'+rd.label+'</button>';
     }).join('');
 
+    // Sort groups in bracket tree order (top-half → bottom-half)
+    function getSortedGroups(gs,rn){
+      var nextOrder=[];
+      if(rn===4){
+        var addR16=function(ref){var pm=ref&&ref.match(/^R16 W(\d+)$/i);if(pm){var id='5_'+pm[1];if(nextOrder.indexOf(id)<0)nextOrder.push(id);}};
+        var addQFx=function(ref){var pm=ref&&ref.match(/^QF W(\d+)$/i);if(!pm)return;var qf=(MATCHES[6]||[]).find(function(m){return m.id==='6_'+pm[1];});if(qf){addR16(qf.home);addR16(qf.away);}};
+        (MATCHES[7]||[]).forEach(function(sf){addQFx(sf.home);addQFx(sf.away);});
+      } else if(rn===5){
+        var addQFy=function(ref){var pm=ref&&ref.match(/^QF W(\d+)$/i);if(pm){var id='6_'+pm[1];if(nextOrder.indexOf(id)<0)nextOrder.push(id);}};
+        (MATCHES[7]||[]).forEach(function(sf){addQFy(sf.home);addQFy(sf.away);});
+      } else if(rn===6){
+        (MATCHES[7]||[]).forEach(function(sf){if(nextOrder.indexOf(sf.id)<0)nextOrder.push(sf.id);});
+      }
+      if(!nextOrder.length) return gs;
+      var om={}; nextOrder.forEach(function(id,i){om[id]=i;});
+      return gs.slice().sort(function(a,b){
+        var ai=a.nextId&&om[a.nextId]!==undefined?om[a.nextId]:999;
+        var bi=b.nextId&&om[b.nextId]!==undefined?om[b.nextId]:999;
+        return ai-bi;
+      });
+    }
     // Build and render groups for current round
-    var groups=buildGroups(MATCHES[_bracketViewRound]||[]);
-    var groupsHtml=groups.map(function(g){
+    var groups=getSortedGroups(buildGroups(MATCHES[_bracketViewRound]||[]),_bracketViewRound);
+    var halfLen=Math.floor(groups.length/2);
+    var groupsHtml='';
+    groups.forEach(function(g,i){
+      if(_bracketViewRound<7&&groups.length>1&&i===halfLen){
+        groupsHtml+='<div style="border-top:1px solid rgba(212,175,55,.2);margin:8px 0 14px;text-align:center">'
+          +'<span style="font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.35)">'
+          +(es?'──── 2ª MITAD ────':'──── BOTTOM HALF ────')+'</span></div>';
+      }
       var cards=g.matches.map(function(m){return matchCard(m);}).join('<div class="bk2-match-gap"></div>');
       if(!g.nextId||g.matches.length<2){
-        return '<div class="bk2-group" style="margin-bottom:10px"><div class="bk2-matches">'+cards+'</div></div>';
+        groupsHtml+='<div class="bk2-group" style="margin-bottom:10px"><div class="bk2-matches">'+cards+'</div></div>';
+      } else {
+        var conn='<div class="bk2-conn"><div class="bk2-conn-t"></div><div class="bk2-conn-b"></div></div>';
+        groupsHtml+='<div class="bk2-group" style="margin-bottom:10px">'
+          +'<div class="bk2-matches">'+cards+'</div>'
+          +conn+nextSlot(g.nextId)+'</div>';
       }
-      var conn='<div class="bk2-conn"><div class="bk2-conn-t"></div><div class="bk2-conn-b"></div></div>';
-      return '<div class="bk2-group" style="margin-bottom:10px">'
-        +'<div class="bk2-matches">'+cards+'</div>'
-        +conn+nextSlot(g.nextId)+'</div>';
-    }).join('');
+    });
 
     // Champion display (round 7 final)
     var champHtml='';
