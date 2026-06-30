@@ -3248,7 +3248,7 @@ function initNarrator(){
           var exact = 0;
           (MATCHES[lastRound]||[]).forEach(function(m){
             var res=_globalResults[m.id], pk=myPicks[m.id];
-            if(res && pk && Number(pk.scoreH)===res.home && Number(pk.scoreA)===res.away) exact++;
+            if(res && pk && Number(pk.scoreH)===Number(res.scoreH) && Number(pk.scoreA)===Number(res.scoreA)) exact++;
           });
           if(exact > 0){
             var cel = currentLang==='es'
@@ -4247,7 +4247,7 @@ function syncFromFirebase(){
           }
           if(matchInfo){
             var _rh = tn(matchInfo.home), _ra = tn(matchInfo.away);
-            var _sh = res.home, _sa = res.away;
+            var _sh = res.scoreH, _sa = res.scoreA;
             setTimeout(function(){
               speakVoice(currentLang==='es'
                 ? '¡Resultado! ' + _rh + ' ' + _sh + ', ' + _ra + ' ' + _sa + '.'
@@ -6306,7 +6306,7 @@ function renderPickDist(round){
     submitted.forEach(function(k){
       totalPossible++;
       const p = ((picks[k].picks)||{})[m.id];
-      if(p && p.scoreH === res.home && p.scoreA === res.away) totalCorrect++;
+      if(p && Number(p.scoreH) === Number(res.scoreH) && Number(p.scoreA) === Number(res.scoreA)) totalCorrect++;
     });
   });
   const accPct = totalPossible > 0 ? Math.round(totalCorrect/totalPossible*100) : null;
@@ -6319,8 +6319,8 @@ function renderPickDist(round){
 
   matches.forEach(function(m){
     const res = results[m.id];
-    const resStr = res ? res.home+'-'+res.away : null;
-    const resOutcome = res ? (res.home > res.away ? 'home' : res.home < res.away ? 'away' : 'draw') : null;
+    const resStr = res ? res.scoreH+'-'+res.scoreA : null;
+    const resOutcome = res ? (res.scoreH > res.scoreA ? 'home' : res.scoreH < res.scoreA ? 'away' : 'draw') : null;
 
     // Build pick groups
     const dist = {};
@@ -6432,8 +6432,8 @@ function renderPickDist(round){
           +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">'+cells+'</div>'
           +'</div>';
       };
-      var resH = res ? res.home : null;
-      var resA = res ? res.away : null;
+      var resH = res ? res.scoreH : null;
+      var resA = res ? res.scoreA : null;
       if(isCloserMatch && (Object.keys(homeGoals).length > 0 || Object.keys(awayGoals).length > 0)){
         html += '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 12px;margin-bottom:10px">'
           +'<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase">Goles predichos</div>'
