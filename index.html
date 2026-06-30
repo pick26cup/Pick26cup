@@ -32,9 +32,15 @@ html,body{min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);ov
 body{background:transparent;}
 #bg-layer{
   position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:url('bg.jpg');
-  background-size:cover;background-position:center top;
+  overflow:hidden;
+}
+#bg-layer img{
+  width:100%;height:100%;
+  object-fit:cover;object-position:center top;
   filter:saturate(1.1) brightness(0.95) contrast(1.0);
+  display:block;
+  -webkit-transform:translateZ(0);transform:translateZ(0);
+  will-change:transform;
 }
 body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:1;pointer-events:none}
 #root{position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column}
@@ -1458,7 +1464,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
 </head>
 <body>
 <!-- Background layer (separate from body so CSS filter doesn't break position:fixed on Android) -->
-<div id="bg-layer"></div>
+<div id="bg-layer"><img src="bg.jpg" alt="" fetchpriority="high" decoding="async"/></div>
 <div id="root">
   <!-- REGISTER OVERLAY -->
   <div id="registerOverlay">
