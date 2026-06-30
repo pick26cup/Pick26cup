@@ -2915,7 +2915,7 @@ window.onload = function(){
   if(savedName){
     currentUser = savedName;
     document.getElementById('registerOverlay').style.display = 'none';
-    document.getElementById('logoutBtn').style.display = '';
+    document.getElementById('logoutBtn').style.display = 'block';
     loadUserData();
   } else {
     // No saved session — show overlay with spinner while Firebase loads.
@@ -3000,7 +3000,7 @@ function initFirebase(){
     const s = document.createElement('script');
     s.src = scripts[i];
     s.onload = ()=> loadNext(i+1);
-    s.onerror = ()=>{ console.warn('Firebase script failed to load — offline mode'); showLoginStep(); };
+    s.onerror = ()=>{ console.warn('Firebase script failed to load — offline mode'); if(!currentUser) showLoginStep(); };
     document.head.appendChild(s);
   }
   loadNext(0);
@@ -3024,7 +3024,7 @@ function setupFirebase(){
     // Firebase is now ready — sync picks if user is already logged in,
     // otherwise reveal the login form.
     // Sign regular users in anonymously so Firebase rules can verify auth !== null
-    if(firebase.auth){
+    if(firebase && firebase.auth){
       firebase.auth().onAuthStateChanged(function(user){
         if(!user) firebase.auth().signInAnonymously().catch(function(){});
       });
@@ -3619,7 +3619,7 @@ function doLogin(){
 
 function hideRegister(){
   document.getElementById('registerOverlay').style.display='none';
-  document.getElementById('logoutBtn').style.display='';
+  document.getElementById('logoutBtn').style.display='block';
   const avBtn = document.getElementById('settingsAvatarBtn');
   if(avBtn) avBtn.style.display = 'flex';
 }
@@ -4832,6 +4832,10 @@ function printMyPicks(){
 
 function openSubmitModal(){
   if(!currentUser){ showToast(t('Primero regístrate','Please register first'),'error'); return; }
+  if(submittedRounds[currentRound] || submittedRounds[String(currentRound)]){
+    showToast(currentLang==='es'?'✅ Ya enviaste esta jornada':'✅ Already submitted this round','info');
+    return;
+  }
   if(isRoundLocked(currentRound)){
     showToast(currentLang==='es'?'🔒 Predicciones cerradas (5 h antes del partido).':'🔒 Picks locked — closes 5 h before kickoff.','error');
     return;
@@ -5718,7 +5722,7 @@ function activateSelectedWeek(){
     db.ref('activeWeek').set(activeWeek).then(function(){
       showToast((currentLang==='es'?'Jornada activada: ':'Round activated: ')+val,'success');
     }).catch(function(){
-      showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+      showToast(t('Error de escritura Firebase — verifica la sesión admin','Firebase write error — check admin session'),'error');
     });
   } else {
     showToast((currentLang==='es'?'Jornada activada (local): ':'Round activated (local): ')+val,'success');
@@ -5733,7 +5737,7 @@ function deactivateWeek(){
     db.ref('activeWeek').set(0).then(function(){
       showToast(currentLang==='es'?'Todas las jornadas desactivadas 🔒':'All rounds deactivated 🔒','success');
     }).catch(function(){
-      showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+      showToast(t('Error de escritura Firebase — verifica la sesión admin','Firebase write error — check admin session'),'error');
     });
   } else {
     showToast(currentLang==='es'?'Desactivadas (local) 🔒':'Deactivated (local) 🔒','success');
@@ -5932,7 +5936,7 @@ function saveResult(matchId){
       showToast(currentLang==='es'?'Resultado guardado ✅':'Result saved ✅','success');
       recalcAllPoints();
     }).catch(function(){
-      showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+      showToast(t('Error de escritura Firebase — verifica la sesión admin','Firebase write error — check admin session'),'error');
     });
   } else {
     markSaveBtnSaved(matchId);
@@ -5963,7 +5967,7 @@ function clearResult(matchId){
   if(!confirm(currentLang==='es'?'¿Borrar este resultado?':'Delete this result?')) return;
   localStorage.removeItem('wc2026_result_'+matchId);
   if(db) db.ref('results/'+matchId).remove().catch(function(){
-    showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+    showToast(t('Error de escritura Firebase — verifica la sesión admin','Firebase write error — check admin session'),'error');
   });
   // Reset inputs
   const hEl = document.getElementById('rs_h_'+matchId);
@@ -6731,7 +6735,7 @@ function setPlayerApproval(key, approved){
     if(approved) setTimeout(recalcAllPoints, 400);
     renderAdminPlayers();
   }).catch(function(){
-    showToast(t('Error: actualiza las reglas de Firebase (Rules → .write: true)','Error: update Firebase Rules (.write: true)'),'error');
+    showToast(t('Error de escritura Firebase — verifica la sesión admin','Firebase write error — check admin session'),'error');
   });
 }
 
