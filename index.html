@@ -2944,6 +2944,15 @@ function setupFirebase(){
       if(psel && activeWeek > 0) psel.value = activeWeek;
       if(currentUser) setupPickNotification();
       if(currentUser && activeWeek > 0) setTimeout(showRedCardWarning, 1200);
+      // Sync currentRound to activeWeek and re-render picks if visible
+      if(activeWeek > 0 && currentRound !== activeWeek){
+        currentRound = activeWeek;
+        const picksSec = document.getElementById('sec-picks');
+        if(picksSec && !picksSec.classList.contains('hidden')){
+          renderRoundTabs();
+          renderMatches();
+        }
+      }
     });
 
     // Listen for admin-announced round winners
