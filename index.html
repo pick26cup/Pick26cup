@@ -53,11 +53,14 @@ header{
 .logo span{color:var(--text2);font-size:14px;display:block;letter-spacing:4px;margin-top:-6px}
 nav{display:flex;gap:6px;flex-wrap:wrap;flex:1;justify-content:center}
 nav button{
-  background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);color:var(--text2);
+  background:rgba(212,175,55,.13);border:1.5px solid rgba(212,175,55,.4);color:var(--text2);
   font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
-  padding:6px 14px;border-radius:20px;cursor:pointer;transition:.2s;letter-spacing:.5px;
+  padding:6px 14px;border-radius:20px;cursor:pointer;transition:.15s;letter-spacing:.5px;
+  box-shadow:0 2px 8px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);
 }
-nav button:hover,nav button.active{background:rgba(212,175,55,.32);border-color:var(--gold);color:var(--gold)}
+nav button:hover{background:rgba(212,175,55,.28);border-color:var(--gold);color:var(--gold);box-shadow:0 3px 12px rgba(212,175,55,.25),inset 0 1px 0 rgba(255,255,255,.07)}
+nav button.active{background:rgba(212,175,55,.32);border-color:var(--gold);color:var(--gold);box-shadow:0 0 14px rgba(212,175,55,.3),inset 0 1px 0 rgba(255,255,255,.07)}
+nav button:active{transform:scale(0.95);box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .header-right{display:flex;align-items:center;gap:8px}
 #langBtn{
   background:rgba(212,175,55,.28);border:1px solid var(--gold);color:var(--gold);
@@ -173,12 +176,14 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
 /* ── ROUND TABS ─────────────────────────────────────── */
 .round-tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
 .round-tab{
-  background:rgba(212,175,55,.13);border:1.5px solid rgba(212,175,55,.35);
+  background:rgba(212,175,55,.13);border:1.5px solid rgba(212,175,55,.4);
   color:var(--text2);font-family:'DM Sans';font-size:14px;font-weight:600;
-  padding:8px 20px;border-radius:24px;cursor:pointer;transition:.2s;
+  padding:8px 20px;border-radius:24px;cursor:pointer;transition:.15s;
+  box-shadow:0 2px 8px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);
 }
-.round-tab:hover{background:rgba(212,175,55,.25);border-color:var(--gold);color:var(--gold)}
-.round-tab.active{background:rgba(212,175,55,.38)!important;border-color:var(--gold)!important;color:var(--gold)!important;font-weight:600!important;animation:none!important}
+.round-tab:hover{background:rgba(212,175,55,.28);border-color:var(--gold);color:var(--gold);box-shadow:0 3px 14px rgba(212,175,55,.22)}
+.round-tab:active{transform:scale(0.95);box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.round-tab.active{background:rgba(212,175,55,.38)!important;border-color:var(--gold)!important;color:var(--gold)!important;font-weight:700!important;animation:none!important;box-shadow:0 0 16px rgba(212,175,55,.35)!important}
 .round-tab.locked{opacity:.35;cursor:not-allowed;pointer-events:none;border-style:dashed}
 .round-tab.round-pending{border-color:#E74C3C;animation:blink-red .85s step-start infinite}
 .round-tab.round-submitted{background:#2ECC71;border-color:#27ae60;color:#fff;font-weight:800}
@@ -216,12 +221,14 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
 .match-time{font-size:14px;font-weight:700;color:var(--gold);font-family:'Bebas Neue';letter-spacing:1px}
 .pick-btns{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
 .pick-btn{
-  flex:1;min-width:70px;padding:8px 4px;background:rgba(255,255,255,.06);
-  border:1.5px solid var(--gray);border-radius:8px;color:var(--text2);
-  font-family:'DM Sans';font-size:12px;font-weight:600;cursor:pointer;transition:.15s;letter-spacing:.3px;
+  flex:1;min-width:70px;padding:8px 4px;background:rgba(255,255,255,.09);
+  border:1.5px solid rgba(255,255,255,.2);border-radius:8px;color:var(--text);
+  font-family:'DM Sans';font-size:12px;font-weight:700;cursor:pointer;transition:.15s;letter-spacing:.3px;
   display:flex;flex-direction:column;align-items:center;gap:3px;
+  box-shadow:0 2px 8px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.08);
 }
-.pick-btn:hover{background:rgba(212,175,55,.25);border-color:var(--gold);color:var(--gold)}
+.pick-btn:hover{background:rgba(212,175,55,.22);border-color:var(--gold);color:var(--gold);box-shadow:0 3px 12px rgba(212,175,55,.25)}
+.pick-btn:active{transform:scale(0.95);box-shadow:0 1px 4px rgba(0,0,0,.5)}
 .pick-btn.selected-home{background:rgba(46,204,113,.2)!important;border-color:var(--green)!important;color:var(--green)!important}
 .pick-btn.selected-draw{background:rgba(52,152,219,.2)!important;border-color:var(--blue)!important;color:var(--blue)!important}
 .pick-btn.selected-away{background:rgba(231,76,60,.2)!important;border-color:var(--red)!important;color:var(--red)!important}
@@ -253,10 +260,12 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
 .btn-submit{
   background:linear-gradient(135deg,var(--gold3),var(--gold));
   border:none;border-radius:var(--radius);color:#000;font-family:'Bebas Neue';
-  font-size:22px;letter-spacing:2px;cursor:pointer;padding:14px 48px;transition:.2s;
+  font-size:22px;letter-spacing:2px;cursor:pointer;padding:14px 48px;transition:.15s;
+  box-shadow:0 4px 16px rgba(212,175,55,.35),0 2px 6px rgba(0,0,0,.4);
 }
-.btn-submit:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(212,175,55,.5)}
-.btn-submit:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(212,175,55,.55),0 2px 6px rgba(0,0,0,.4)}
+.btn-submit:active{transform:translateY(0) scale(0.97);box-shadow:0 2px 8px rgba(212,175,55,.3)}
+.btn-submit:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
 
 /* ── LEADERBOARD ─────────────────────────────────────── */
 .leaderboard{display:grid;gap:8px}
@@ -354,16 +363,21 @@ main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:20px 16px 40px}
 .admin-score-inputs input:focus{outline:none;border-color:var(--gold)}
 .btn-sm{
   padding:5px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid;
+  box-shadow:0 2px 6px rgba(0,0,0,.35);transition:.15s;
   transition:.15s;letter-spacing:.3px;
 }
-.btn-approve{background:rgba(46,204,113,.15);border-color:var(--green);color:var(--green)}
-.btn-approve:hover{background:rgba(46,204,113,.35)}
-.btn-revoke{background:rgba(231,76,60,.1);border-color:var(--red);color:var(--red)}
-.btn-revoke:hover{background:rgba(231,76,60,.3)}
-.btn-delete{background:rgba(180,50,30,.1);border-color:#8B0000;color:#c0392b}
-.btn-delete:hover{background:rgba(180,50,30,.3)}
-.btn-save{background:rgba(212,175,55,.15);border-color:var(--gold3);color:var(--gold)}
-.btn-save:hover{background:rgba(212,175,55,.3)}
+.btn-approve{background:rgba(46,204,113,.18);border-color:var(--green);color:var(--green)}
+.btn-approve:hover{background:rgba(46,204,113,.38);box-shadow:0 3px 10px rgba(46,204,113,.3)}
+.btn-approve:active{transform:scale(0.95)}
+.btn-revoke{background:rgba(231,76,60,.14);border-color:var(--red);color:var(--red)}
+.btn-revoke:hover{background:rgba(231,76,60,.34);box-shadow:0 3px 10px rgba(231,76,60,.25)}
+.btn-revoke:active{transform:scale(0.95)}
+.btn-delete{background:rgba(180,50,30,.14);border-color:#8B0000;color:#c0392b}
+.btn-delete:hover{background:rgba(180,50,30,.34);box-shadow:0 3px 10px rgba(180,50,30,.3)}
+.btn-delete:active{transform:scale(0.95)}
+.btn-save{background:rgba(212,175,55,.18);border-color:var(--gold);color:var(--gold)}
+.btn-save:hover{background:rgba(212,175,55,.35);box-shadow:0 3px 10px rgba(212,175,55,.28)}
+.btn-save:active{transform:scale(0.95)}
 .player-row{
   display:flex;align-items:center;gap:8px;padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,.06);flex-wrap:wrap;
@@ -1209,8 +1223,10 @@ nav button:hover,nav button.active{
 
 /* ── BRACKET / ELIMINATORIAS ──────────────────────────────── */
 .grp-tabs{display:flex;gap:8px;margin-bottom:16px}
-.grp-tab{flex:1;padding:9px 0;font-family:'Bebas Neue';font-size:15px;letter-spacing:2px;border-radius:10px;border:1.5px solid rgba(212,175,55,.22);background:transparent;color:var(--text2);cursor:pointer;transition:all .2s}
-.grp-tab.active{background:rgba(212,175,55,.15);border-color:var(--gold3);color:var(--gold);box-shadow:0 0 14px rgba(212,175,55,.18)}
+.grp-tab{flex:1;padding:9px 0;font-family:'Bebas Neue';font-size:15px;letter-spacing:2px;border-radius:10px;border:1.5px solid rgba(212,175,55,.35);background:rgba(212,175,55,.08);color:var(--text2);cursor:pointer;transition:all .15s;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.grp-tab:hover{background:rgba(212,175,55,.18);border-color:rgba(212,175,55,.6);color:var(--gold)}
+.grp-tab:active{transform:scale(0.97)}
+.grp-tab.active{background:rgba(212,175,55,.22);border-color:var(--gold);color:var(--gold);box-shadow:0 0 18px rgba(212,175,55,.28),0 2px 8px rgba(0,0,0,.35)}
 #panel-bracket{}
 .bk-outer{padding-top:4px}
 .bk-hdr-row{display:flex;padding:0 0 8px;gap:0;min-width:728px}
@@ -1292,8 +1308,10 @@ nav button:hover,nav button.active{
 .bk-round-3 .bk-slot:last-child .bk-card{position:relative}
 /* ── BRACKET V2 (Google / FIFA style, per-round) ─────────── */
 .bk2-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;-webkit-overflow-scrolling:touch;padding-bottom:2px}
-.bk2-tab{flex-shrink:0;padding:7px 13px;font-family:'Bebas Neue';font-size:13px;letter-spacing:1.5px;border-radius:20px;border:1.5px solid rgba(212,175,55,.22);background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .2s}
-.bk2-tab.bk2-tab-active{background:rgba(212,175,55,.18);border-color:var(--gold);color:var(--gold)}
+.bk2-tab{flex-shrink:0;padding:7px 13px;font-family:'Bebas Neue';font-size:13px;letter-spacing:1.5px;border-radius:20px;border:1.5px solid rgba(212,175,55,.38);background:rgba(212,175,55,.08);color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.bk2-tab:hover{background:rgba(212,175,55,.18);border-color:rgba(212,175,55,.6);color:var(--gold)}
+.bk2-tab:active{transform:scale(0.95)}
+.bk2-tab.bk2-tab-active{background:rgba(212,175,55,.25);border-color:var(--gold);color:var(--gold);box-shadow:0 0 14px rgba(212,175,55,.3)}
 .bk2-group{display:flex;align-items:stretch;gap:0;margin-bottom:10px}
 .bk2-matches{flex:1;display:flex;flex-direction:column;min-width:0}
 .bk2-match-gap{height:5px;flex-shrink:0}
