@@ -8593,7 +8593,7 @@ function renderGroupStats(players, allPicks, results){
 // ── STADIUM 3D CROWD AUDIO ─────────────────────────────────────
 var stadiumAudio = (function(){
   var ctx = null, masterGain = null, started = false;
-  var CROWD_VOL = 0.55;
+  var CROWD_VOL = 0.75;
 
   function makeImpulse(dur, decay) {
     var len = ctx.sampleRate * dur;
@@ -8651,7 +8651,7 @@ var stadiumAudio = (function(){
     lfo.connect(lfoAmp);
 
     var sectionGain = ctx.createGain();
-    sectionGain.gain.value = 0.35;
+    sectionGain.gain.value = 0.55;
     lfoAmp.connect(sectionGain.gain);
 
     // 3D panner
