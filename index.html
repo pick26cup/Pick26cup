@@ -8590,11 +8590,10 @@ function renderGroupStats(players, allPicks, results){
   });
 })();
 
-// ── MUTE TOGGLE ───────────────────────────────────────────────
 // ── STADIUM 3D CROWD AUDIO ─────────────────────────────────────
 var stadiumAudio = (function(){
   var ctx = null, masterGain = null, started = false;
-  var CROWD_VOL = 0.20;
+  var CROWD_VOL = 0.55;
 
   function makeImpulse(dur, decay) {
     var len = ctx.sampleRate * dur;
@@ -8607,52 +8606,71 @@ var stadiumAudio = (function(){
     return buf;
   }
 
-  function makeSection(dryOut, conv, x, y, z, freq, lfoHz) {
+  function makeSection(dryOut, conv, x, y, z, voiceHz, lfoHz) {
     var len = ctx.sampleRate * 3;
     var nb = ctx.createBuffer(1, len, ctx.sampleRate);
-    var d = nb.getChannelData(0);
-    for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    var nd = nb.getChannelData(0);
+    for (var i = 0; i < len; i++) nd[i] = Math.random() * 2 - 1;
 
     var src = ctx.createBufferSource();
     src.buffer = nb;
     src.loop = true;
 
-    var bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.frequency.value = freq;
-    bp.Q.value = 0.65;
+    // Layer 1: low roar (body of crowd)
+    var bpLow = ctx.createBiquadFilter();
+    bpLow.type = 'bandpass';
+    bpLow.frequency.value = 180;
+    bpLow.Q.value = 0.4;
 
+    // Layer 2: voice chant range
+    var bpMid = ctx.createBiquadFilter();
+    bpMid.type = 'bandpass';
+    bpMid.frequency.value = voiceHz;
+    bpMid.Q.value = 0.45;
+
+    // Soft top cut
     var lp = ctx.createBiquadFilter();
     lp.type = 'lowpass';
-    lp.frequency.value = 3200;
+    lp.frequency.value = 4000;
 
-    // LFO crowd swell (sine oscillates gain ±amplitude around base)
+    // Mix both layers
+    var lowG = ctx.createGain();
+    lowG.gain.value = 0.40;
+    var midG = ctx.createGain();
+    midG.gain.value = 0.60;
+
+    var merge = ctx.createGain();
+    merge.gain.value = 1;
+
+    // LFO — slow crowd swell
     var lfo = ctx.createOscillator();
     lfo.type = 'sine';
     lfo.frequency.value = lfoHz;
     var lfoAmp = ctx.createGain();
-    lfoAmp.gain.value = 0.05;
+    lfoAmp.gain.value = 0.18;
     lfo.connect(lfoAmp);
 
-    var gn = ctx.createGain();
-    gn.gain.value = 0.11;
-    lfoAmp.connect(gn.gain); // additive: base ± lfo
+    var sectionGain = ctx.createGain();
+    sectionGain.gain.value = 0.35;
+    lfoAmp.connect(sectionGain.gain);
 
+    // 3D panner
     var pan = ctx.createPanner();
     pan.panningModel = 'HRTF';
     pan.distanceModel = 'inverse';
     pan.refDistance = 1;
-    pan.rolloffFactor = 0.35;
+    pan.rolloffFactor = 0.3;
     pan.positionX.value = x;
     pan.positionY.value = y;
     pan.positionZ.value = z;
 
-    src.connect(bp);
-    bp.connect(lp);
-    lp.connect(gn);
-    gn.connect(pan);
-    pan.connect(dryOut);  // dry
-    pan.connect(conv);    // reverb send
+    // Route: src → both filters → gains → merge → sectionGain → pan → out + reverb
+    src.connect(bpLow); bpLow.connect(lowG); lowG.connect(merge);
+    src.connect(bpMid); bpMid.connect(lp); lp.connect(midG); midG.connect(merge);
+    merge.connect(sectionGain);
+    sectionGain.connect(pan);
+    pan.connect(dryOut);
+    pan.connect(conv);
 
     src.start();
     lfo.start();
@@ -8660,31 +8678,37 @@ var stadiumAudio = (function(){
 
   function init() {
     ctx = new (window.AudioContext || window.webkitAudioContext)();
+    ctx.resume();
+
     masterGain = ctx.createGain();
     masterGain.gain.value = CROWD_VOL;
     masterGain.connect(ctx.destination);
 
-    // Stadium reverb (4 sec tail, decay 2.2)
+    // Stadium reverb — long 4.5s tail
     var conv = ctx.createConvolver();
-    conv.buffer = makeImpulse(4, 2.2);
+    conv.buffer = makeImpulse(4.5, 2.0);
     var revG = ctx.createGain();
-    revG.gain.value = 0.50;
+    revG.gain.value = 0.55;
     conv.connect(revG);
     revG.connect(masterGain);
 
-    // 8 crowd sections around the stadium [x, y(height), z, voiceHz, lfoHz]
+    // 8 crowd sections [x, y, z, voiceHz, lfoHz]
     [
-      [ -9,  5,  13,  720, 0.07],  // front-left stand
-      [  9,  5,  13,  860, 0.09],  // front-right stand
-      [-13,  4,   0,  640, 0.11],  // side-left
-      [ 13,  4,   0,  780, 0.08],  // side-right
-      [ -9,  5, -13,  670, 0.10],  // back-left stand
-      [  9,  5, -13,  820, 0.06],  // back-right stand
-      [  0,  7,  16,  920, 0.13],  // front-center top tier
-      [  0,  7, -15,  710, 0.09],  // back-center top tier
+      [ -9,  5,  13,  720, 0.07],
+      [  9,  5,  13,  860, 0.09],
+      [-13,  4,   0,  640, 0.11],
+      [ 13,  4,   0,  780, 0.08],
+      [ -9,  5, -13,  670, 0.10],
+      [  9,  5, -13,  820, 0.06],
+      [  0,  7,  16,  920, 0.13],
+      [  0,  7, -15,  710, 0.09],
     ].forEach(function(s){
       makeSection(masterGain, conv, s[0], s[1], s[2], s[3], s[4]);
     });
+
+    // Lower bgMusic to balance mix
+    var m = document.getElementById('bgMusic');
+    if (m && m.volume > 0.36) m.volume = 0.36;
   }
 
   function start() {
