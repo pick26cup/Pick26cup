@@ -1741,6 +1741,13 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
             style="letter-spacing:6px;font-size:20px;font-weight:700;text-align:center"
             onkeydown="if(event.key==='Enter')doAdminLogin()"/>
           <button class="btn-gold" style="width:100%;font-size:18px;padding:12px" onclick="doAdminLogin()" data-en="Access" data-es="Acceder">Access</button>
+          <div id="deviceRegWrap" style="margin-top:14px;text-align:center;display:none">
+            <div style="font-size:12px;color:var(--text2);margin-bottom:8px" data-en="Register this device to enable admin access" data-es="Registra este dispositivo para habilitar el acceso admin">Registra este dispositivo para habilitar el acceso admin</div>
+            <button class="btn-sm" onclick="registerThisDevice()" style="width:100%;padding:10px;font-size:13px;letter-spacing:2px">📱 REGISTRAR DISPOSITIVO</button>
+          </div>
+          <div id="deviceBlockMsg" style="display:none;margin-top:14px;padding:12px;background:rgba(255,50,50,.15);border:1px solid rgba(255,50,50,.4);border-radius:6px;font-size:13px;color:#ff6b6b;text-align:center">
+            🚫 Dispositivo no autorizado
+          </div>
         </div>
       </div>
 
@@ -2819,6 +2826,9 @@ let avatarConfig = {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro', jerse
 // Hash below = SHA-256 of the admin password. To change it, run:
 //   echo -n 'YOUR_NEW_PASSWORD' | sha256sum
 const ADMIN_PWD_HASH = 'cd7bfe22819aec51412cef21226c714f27bf470da7afb4412aea088e02764ca1';
+// Device restriction: SHA-256 of the registered device token
+const DEVICE_TOKEN_HASH = '2630dc9e97243526e6374f4c1ac8576b94567e97bea205389513ff8370ced5de';
+const _RAW_DEVICE_TOKEN = '590318210760d102345feb37e7d355ac0c14e5d1248da70a65ea0dbf5064a8b2';
 
 // TOTP secret (base32). Scan the QR code in Admin → first-time setup.
 const TOTP_SECRET = '3AQAMDUPV4WLMGLCBANQJGTZTBIG6C4C';
@@ -5590,7 +5600,29 @@ function findMatch(mid){
 // ══════════════════════════════════════════════════════
 //  ADMIN
 // ══════════════════════════════════════════════════════
+async function isDeviceAuthorized(){
+  const stored = localStorage.getItem('p26_device') || '';
+  try { return (await sha256Hex(stored)) === DEVICE_TOKEN_HASH; } catch(e){ return false; }
+}
+
+function registerThisDevice(){
+  localStorage.setItem('p26_device', _RAW_DEVICE_TOKEN);
+  document.getElementById('deviceRegWrap').style.display='none';
+  document.getElementById('deviceBlockMsg').style.display='none';
+  showToast('✅ Dispositivo registrado. Ahora puedes ingresar.','success');
+}
+
 async function doAdminLogin(){
+  const authorized = await isDeviceAuthorized();
+  if(!authorized){
+    document.getElementById('deviceBlockMsg').style.display='block';
+    // Show register button only if no device is registered yet
+    if(!localStorage.getItem('p26_device')){
+      document.getElementById('deviceRegWrap').style.display='block';
+    }
+    showToast('🚫 Dispositivo no autorizado','error');
+    return;
+  }
   const pwd = document.getElementById('adminPwd').value;
   const totp = document.getElementById('adminTOTP').value.trim();
   let pwdOk = false, totpOk = false;
