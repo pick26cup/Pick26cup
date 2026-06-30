@@ -5866,46 +5866,44 @@ function renderAdminMatches(){
     `;
     cont.appendChild(item);
   });
-  // Load existing results
-  if(db){
-    db.ref('results').once('value').then(snap=>{
-      const results = snap.val()||{};
-      MATCHES[adminRound].forEach(m=>{
-        const r = results[m.id];
-        if(r){
-          const hEl = document.getElementById('rs_h_'+m.id);
-          const aEl = document.getElementById('rs_a_'+m.id);
-          const wEl = document.getElementById('rs_w_'+m.id);
-          if(hEl) hEl.value = r.scoreH;
-          if(aEl) aEl.value = r.scoreA;
-          if(wEl && r.winner){ wEl.value = 'pen'; togglePenInputs(m.id); }
-          const phEl = document.getElementById('rs_ph_'+m.id);
-          const paEl = document.getElementById('rs_pa_'+m.id);
-          if(phEl && r.penH != null) phEl.value = r.penH;
-          if(paEl && r.penA != null) paEl.value = r.penA;
-          markSaveBtnSaved(m.id);
-        }
-      });
-    });
-  } else {
-    // Load from localStorage offline
+  // Load existing results — use live cache first (instant, no flash), fall back to Firebase fetch
+  function _applyAdminResults(results){
     MATCHES[adminRound].forEach(m=>{
-      const saved = localStorage.getItem('wc2026_result_'+m.id);
-      if(saved){
-        const r = JSON.parse(saved);
+      const r = results[m.id];
+      if(r){
         const hEl = document.getElementById('rs_h_'+m.id);
         const aEl = document.getElementById('rs_a_'+m.id);
         const wEl = document.getElementById('rs_w_'+m.id);
         if(hEl) hEl.value = r.scoreH;
         if(aEl) aEl.value = r.scoreA;
-        if(wEl && r.winner){ wEl.value = 'pen'; togglePenInputs(m.id); }
+        if(wEl){
+          if(r.winner){ wEl.value = 'pen'; }
+          else { wEl.value = ''; }
+          togglePenInputs(m.id);
+        }
         const phEl = document.getElementById('rs_ph_'+m.id);
         const paEl = document.getElementById('rs_pa_'+m.id);
-        if(phEl && r.penH != null) phEl.value = r.penH;
-        if(paEl && r.penA != null) paEl.value = r.penA;
+        if(phEl) phEl.value = (r.penH != null) ? r.penH : '';
+        if(paEl) paEl.value = (r.penA != null) ? r.penA : '';
         markSaveBtnSaved(m.id);
       }
     });
+  }
+  if(Object.keys(_globalResults).length > 0){
+    // Cache already populated — fill instantly with no async delay
+    _applyAdminResults(_globalResults);
+  } else if(db){
+    db.ref('results').once('value').then(snap=>{
+      _applyAdminResults(snap.val()||{});
+    });
+  } else {
+    // Offline: load from localStorage
+    const lsResults = {};
+    MATCHES[adminRound].forEach(m=>{
+      const saved = localStorage.getItem('wc2026_result_'+m.id);
+      if(saved) try{ lsResults[m.id] = JSON.parse(saved); }catch(e){}
+    });
+    _applyAdminResults(lsResults);
   }
 }
 
@@ -5969,11 +5967,17 @@ function clearResult(matchId){
   if(db) db.ref('results/'+matchId).remove().catch(function(){
     showToast(t('Error de escritura Firebase — verifica la sesión admin','Firebase write error — check admin session'),'error');
   });
-  // Reset inputs
+  // Reset inputs including penalty section
   const hEl = document.getElementById('rs_h_'+matchId);
   const aEl = document.getElementById('rs_a_'+matchId);
   if(hEl) hEl.value = '';
   if(aEl) aEl.value = '';
+  const wEl = document.getElementById('rs_w_'+matchId);
+  if(wEl){ wEl.value = ''; togglePenInputs(matchId); }
+  const phEl = document.getElementById('rs_ph_'+matchId);
+  const paEl = document.getElementById('rs_pa_'+matchId);
+  if(phEl) phEl.value = '';
+  if(paEl) paEl.value = '';
   // Reset save button
   const btn = document.getElementById('savebtn_'+matchId);
   if(btn){
