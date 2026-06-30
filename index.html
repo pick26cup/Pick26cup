@@ -86,6 +86,11 @@ nav button:active{transform:scale(0.97)}
   letter-spacing:.5px;display:none;transition:.2s;
 }
 #logoutBtn:hover{background:rgba(231,76,60,.3)}
+/* ── FLOATING RIGHT BUTTONS ──────────────────────────── */
+#rightBtns{
+  position:fixed;right:14px;top:50%;transform:translateY(-50%);
+  z-index:800;display:flex;flex-direction:column;align-items:center;gap:10px;
+}
 /* ── SETTINGS GEAR ───────────────────────────────────── */
 #settingsWrap{position:relative}
 #settingsBtn{
@@ -95,7 +100,7 @@ nav button:active{transform:scale(0.97)}
 }
 #settingsBtn:hover{background:rgba(212,175,55,.45)}
 .settings-dropdown{
-  position:absolute;top:42px;right:0;
+  position:absolute;top:0;right:42px;
   background:#1c1600;border:1.5px solid var(--gold3);border-radius:12px;
   padding:6px;min-width:200px;z-index:999;
   box-shadow:0 8px 32px rgba(0,0,0,.85);
@@ -1607,26 +1612,30 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
         <button onclick="showSection('admin')" data-section="admin" data-en="Admin" data-es="Admin">Admin <span id="adminNavBadge" style="display:none" class="notif-badge">0</span></button>
       </nav>
       <div class="header-right">
-        <button id="helpBtn" onclick="openRulesModal()" title="Cómo funciona / How it works" aria-label="Reglas">❓</button>
-        <button id="soundBtn" onclick="toggleMute()" title="Silenciar / Activar música" aria-label="Mute">🔊</button>
-        <div id="settingsWrap">
-          <button id="settingsBtn" onclick="toggleSettingsMenu()" title="Settings / Configuración">⚙️</button>
-          <div class="settings-dropdown" id="settingsMenu" style="display:none">
-            <button class="settings-item" onclick="toggleLang();closeSettingsMenu()">
-              <span class="si">🌐</span>
-              <span id="settingsLangLabel">Cambiar a Español</span>
-            </button>
-            <div class="settings-div"></div>
-            <button class="settings-item" id="settingsAvatarBtn" onclick="openAvatarEditor()" style="display:none">
-              <span class="si">👤</span>
-              <span data-en="Edit Avatar" data-es="Editar Avatar">Edit Avatar</span>
-            </button>
-          </div>
-        </div>
         <button id="logoutBtn" onclick="doLogout()">Logout</button>
       </div>
     </div>
   </header>
+
+  <!-- FLOATING RIGHT BUTTONS -->
+  <div id="rightBtns">
+    <button id="helpBtn" onclick="openRulesModal()" title="Cómo funciona / How it works" aria-label="Reglas">❓</button>
+    <button id="soundBtn" onclick="toggleMute()" title="Silenciar / Activar música" aria-label="Mute">🔊</button>
+    <div id="settingsWrap">
+      <button id="settingsBtn" onclick="toggleSettingsMenu()" title="Settings / Configuración">⚙️</button>
+      <div class="settings-dropdown" id="settingsMenu" style="display:none">
+        <button class="settings-item" onclick="toggleLang();closeSettingsMenu()">
+          <span class="si">🌐</span>
+          <span id="settingsLangLabel">Cambiar a Español</span>
+        </button>
+        <div class="settings-div"></div>
+        <button class="settings-item" id="settingsAvatarBtn" onclick="openAvatarEditor()" style="display:none">
+          <span class="si">👤</span>
+          <span data-en="Edit Avatar" data-es="Editar Avatar">Edit Avatar</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- NARRATOR OVERLAY -->
   <div id="narratorOverlay" onclick="if(event.target===this)closeNarratorOverlay()"></div>
