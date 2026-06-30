@@ -8593,7 +8593,7 @@ function renderGroupStats(players, allPicks, results){
 // ── STADIUM 3D CROWD AUDIO ─────────────────────────────────────
 var stadiumAudio = (function(){
   var ctx = null, masterGain = null, started = false;
-  var CROWD_VOL = 0.75;
+  var CROWD_VOL = 0.85;
 
   function makeImpulse(dur, decay) {
     var len = ctx.sampleRate * dur;
@@ -8606,109 +8606,98 @@ var stadiumAudio = (function(){
     return buf;
   }
 
-  function makeSection(dryOut, conv, x, y, z, voiceHz, lfoHz) {
-    var len = ctx.sampleRate * 3;
-    var nb = ctx.createBuffer(1, len, ctx.sampleRate);
-    var nd = nb.getChannelData(0);
-    for (var i = 0; i < len; i++) nd[i] = Math.random() * 2 - 1;
+  function build() {
+    masterGain = ctx.createGain();
+    masterGain.gain.value = 0;
+    masterGain.connect(ctx.destination);
 
-    var src = ctx.createBufferSource();
-    src.buffer = nb;
-    src.loop = true;
+    // Stadium reverb
+    var conv = ctx.createConvolver();
+    conv.buffer = makeImpulse(3.5, 2.0);
+    var revG = ctx.createGain();
+    revG.gain.value = 0.42;
+    conv.connect(revG);
+    revG.connect(masterGain);
 
-    // Layer 1: low roar (body of crowd)
-    var bpLow = ctx.createBiquadFilter();
-    bpLow.type = 'bandpass';
-    bpLow.frequency.value = 180;
-    bpLow.Q.value = 0.4;
+    // ── LAYER 1: broadband noise roar (3 stereo bands) ──
+    [[-0.7, 200], [0, 350], [0.7, 280]].forEach(function(cfg) {
+      var len = ctx.sampleRate * 4;
+      var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+      var d = buf.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      var src = ctx.createBufferSource();
+      src.buffer = buf; src.loop = true;
+      var bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass'; bp.frequency.value = cfg[1]; bp.Q.value = 0.3;
+      var sp = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      var g = ctx.createGain(); g.gain.value = 0.7;
+      src.connect(bp); bp.connect(g);
+      if (sp) { sp.pan.value = cfg[0]; g.connect(sp); sp.connect(masterGain); sp.connect(conv); }
+      else { g.connect(masterGain); g.connect(conv); }
+      src.start();
+    });
 
-    // Layer 2: voice chant range
-    var bpMid = ctx.createBiquadFilter();
-    bpMid.type = 'bandpass';
-    bpMid.frequency.value = voiceHz;
-    bpMid.Q.value = 0.45;
+    // ── LAYER 2: 36 sawtooth voices (human voice harmonics) ──
+    var voiceOut = ctx.createGain();
+    voiceOut.gain.value = 0.028;
+    voiceOut.connect(masterGain);
+    voiceOut.connect(conv);
 
-    // Soft top cut
-    var lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = 4000;
+    for (var v = 0; v < 36; v++) {
+      var osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.value = 150 + Math.random() * 320; // 150–470 Hz voice range
 
-    // Mix both layers
-    var lowG = ctx.createGain();
-    lowG.gain.value = 0.40;
-    var midG = ctx.createGain();
-    midG.gain.value = 0.60;
+      // Vibrato — makes each voice feel alive
+      var vib = ctx.createOscillator();
+      vib.frequency.value = 4 + Math.random() * 4;
+      var vibG = ctx.createGain();
+      vibG.gain.value = 5 + Math.random() * 9;
+      vib.connect(vibG); vibG.connect(osc.frequency);
 
-    var merge = ctx.createGain();
-    merge.gain.value = 1;
+      // Lowpass — soften harsh sawtooth
+      var lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 700 + Math.random() * 900;
 
-    // LFO — slow crowd swell
-    var lfo = ctx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.value = lfoHz;
-    var lfoAmp = ctx.createGain();
-    lfoAmp.gain.value = 0.18;
-    lfo.connect(lfoAmp);
+      // Per-voice volume variation
+      var vg = ctx.createGain();
+      vg.gain.value = 0.35 + Math.random() * 0.65;
 
-    var sectionGain = ctx.createGain();
-    sectionGain.gain.value = 0.55;
-    lfoAmp.connect(sectionGain.gain);
+      // Stereo spread
+      var sp2 = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      osc.connect(lp); lp.connect(vg);
+      if (sp2) { sp2.pan.value = (Math.random() * 2 - 1) * 0.9; vg.connect(sp2); sp2.connect(voiceOut); }
+      else { vg.connect(voiceOut); }
 
-    // 3D panner
-    var pan = ctx.createPanner();
-    pan.panningModel = 'HRTF';
-    pan.distanceModel = 'inverse';
-    pan.refDistance = 1;
-    pan.rolloffFactor = 0.3;
-    pan.positionX.value = x;
-    pan.positionY.value = y;
-    pan.positionZ.value = z;
+      osc.start(); vib.start();
+    }
 
-    // Route: src → both filters → gains → merge → sectionGain → pan → out + reverb
-    src.connect(bpLow); bpLow.connect(lowG); lowG.connect(merge);
-    src.connect(bpMid); bpMid.connect(lp); lp.connect(midG); midG.connect(merge);
-    merge.connect(sectionGain);
-    sectionGain.connect(pan);
-    pan.connect(dryOut);
-    pan.connect(conv);
+    // ── GLOBAL SWELL (slow oscillation over whole crowd) ──
+    var swellOsc = ctx.createOscillator();
+    swellOsc.frequency.value = 0.06;
+    var swellG = ctx.createGain();
+    swellG.gain.value = 0.18;
+    swellOsc.connect(swellG);
+    swellG.connect(voiceOut.gain);
+    swellOsc.start();
 
-    src.start();
-    lfo.start();
+    // Fade in over 4 seconds
+    masterGain.gain.setValueAtTime(0, ctx.currentTime);
+    masterGain.gain.linearRampToValueAtTime(CROWD_VOL, ctx.currentTime + 4);
+
+    // Lower bgMusic
+    var m = document.getElementById('bgMusic');
+    if (m) m.volume = 0.15;
   }
 
   function init() {
     ctx = new (window.AudioContext || window.webkitAudioContext)();
-    ctx.resume();
-
-    masterGain = ctx.createGain();
-    masterGain.gain.value = CROWD_VOL;
-    masterGain.connect(ctx.destination);
-
-    // Stadium reverb — long 4.5s tail
-    var conv = ctx.createConvolver();
-    conv.buffer = makeImpulse(4.5, 2.0);
-    var revG = ctx.createGain();
-    revG.gain.value = 0.55;
-    conv.connect(revG);
-    revG.connect(masterGain);
-
-    // 8 crowd sections [x, y, z, voiceHz, lfoHz]
-    [
-      [ -9,  5,  13,  720, 0.07],
-      [  9,  5,  13,  860, 0.09],
-      [-13,  4,   0,  640, 0.11],
-      [ 13,  4,   0,  780, 0.08],
-      [ -9,  5, -13,  670, 0.10],
-      [  9,  5, -13,  820, 0.06],
-      [  0,  7,  16,  920, 0.13],
-      [  0,  7, -15,  710, 0.09],
-    ].forEach(function(s){
-      makeSection(masterGain, conv, s[0], s[1], s[2], s[3], s[4]);
-    });
-
-    // Lower bgMusic to balance mix
-    var m = document.getElementById('bgMusic');
-    if (m) m.volume = 0.18;
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(build);
+    } else {
+      build();
+    }
   }
 
   function start() {
@@ -8727,7 +8716,8 @@ var stadiumAudio = (function(){
   return {
     mute: function(on) {
       if (!masterGain) return;
-      masterGain.gain.value = on ? 0 : CROWD_VOL;
+      masterGain.gain.cancelScheduledValues(ctx.currentTime);
+      masterGain.gain.setValueAtTime(on ? 0 : CROWD_VOL, ctx.currentTime);
     }
   };
 })();
