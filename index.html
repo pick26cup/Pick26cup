@@ -2818,14 +2818,11 @@ let _globalResults = {}; // live cache updated by Firebase listener
 let activeWeek = 1;
 let avatarConfig = {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro', jerseyNum:10, hat:0, hatColor:0, glasses:0, earrings:0};
 
-// ⚠️ CLIENT-SIDE ADMIN GATE — NOT REAL SECURITY.
-// This only hides the literal password from casual "View Source". Anyone who
-// opens DevTools can still bypass it, and the Firebase database remains the
-// real attack surface. For a competition with prizes, replace this with
-// Firebase Authentication + Security Rules (see firebase-rules in the README).
-// Hash below = SHA-256 of the admin password. To change it, run:
-//   echo -n 'YOUR_NEW_PASSWORD' | sha256sum
 const ADMIN_PWD_HASH = 'cd7bfe22819aec51412cef21226c714f27bf470da7afb4412aea088e02764ca1';
+// Firebase Auth credentials for admin — these sign the admin into Firebase so
+// Firebase Security Rules can verify identity before allowing results/config writes.
+const _FB_ADMIN_EMAIL = 'admin@pick26.app';
+const _FB_ADMIN_PASS  = 'aFt0Fzn-M0Qcbb01-FKMXGK68s-K4wrU';
 // Device restriction: SHA-256 of the registered device token
 const DEVICE_TOKEN_HASH = '2630dc9e97243526e6374f4c1ac8576b94567e97bea205389513ff8370ced5de';
 const _RAW_DEVICE_TOKEN = '590318210760d102345feb37e7d355ac0c14e5d1248da70a65ea0dbf5064a8b2';
@@ -2995,7 +2992,8 @@ function initFirebase(){
   // executing them out of order.
   const scripts = [
     'https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js',
-    'https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js'
+    'https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js',
+    'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js'
   ];
   function loadNext(i){
     if(i >= scripts.length){ setupFirebase(); return; }
@@ -3025,6 +3023,13 @@ function setupFirebase(){
     // Trust localStorage directly — no Firebase round-trip needed.
     // Firebase is now ready — sync picks if user is already logged in,
     // otherwise reveal the login form.
+    // Sign regular users in anonymously so Firebase rules can verify auth !== null
+    if(firebase.auth){
+      firebase.auth().onAuthStateChanged(function(user){
+        if(!user) firebase.auth().signInAnonymously().catch(function(){});
+      });
+    }
+
     if(currentUser){
       syncFromFirebase();
     } else {
@@ -5657,6 +5662,11 @@ async function doAdminLogin(){
 
 function grantAdminUI(){
   adminLoggedIn = true;
+  // Sign into Firebase Auth as admin so security rules allow results/config writes
+  if(firebase && firebase.auth){
+    firebase.auth().signInWithEmailAndPassword(_FB_ADMIN_EMAIL, _FB_ADMIN_PASS)
+      .catch(function(e){ console.warn('Firebase admin auth failed:', e.code); });
+  }
   document.getElementById('adminLogin').classList.add('hidden');
   document.getElementById('adminContent').classList.remove('hidden');
   startSecurityMonitor();
@@ -5676,6 +5686,12 @@ function grantAdminUI(){
 
 function adminLogout(){
   adminLoggedIn = false;
+  // Sign back to anonymous so results/config become write-protected again
+  if(firebase && firebase.auth){
+    firebase.auth().signOut().then(function(){
+      firebase.auth().signInAnonymously().catch(function(){});
+    }).catch(function(){});
+  }
   const fab = document.getElementById('adminPdfBtn');
   if(fab) fab.style.display = 'none';
   closeAdminPlayerList();
