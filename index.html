@@ -86,12 +86,6 @@ nav button:active{transform:scale(0.97)}
 }
 #soundBtn:hover{background:rgba(212,175,55,.45)}
 #soundBtn.muted{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.25);color:var(--text2)}
-#logoutBtn{
-  background:rgba(231,76,60,.15);border:1px solid #c0392b;color:#e74c3c;
-  font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer;
-  letter-spacing:.5px;display:none;transition:.2s;
-}
-#logoutBtn:hover{background:rgba(231,76,60,.3)}
 /* ── SETTINGS GEAR ───────────────────────────────────── */
 #settingsWrap{position:relative}
 #settingsBtn{
@@ -541,7 +535,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
   main{padding:28px 40px 60px}
   .header-inner{min-height:72px;gap:16px}
   nav button{font-size:17px;padding:10px 28px}
-  #langBtn,#logoutBtn,#soundBtn{font-size:15px;padding:8px 18px}
+  #langBtn,#soundBtn{font-size:15px;padding:8px 18px}
   .section-title{font-size:42px}
   .match-card{padding:22px 26px}
   .team-name{font-size:17px}
@@ -567,7 +561,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
   .header-inner{min-height:56px;gap:8px}
   nav{gap:4px}
   nav button{font-size:12px;padding:6px 12px}
-  #langBtn,#logoutBtn{font-size:11px;padding:5px 12px}
+  #langBtn{font-size:11px;padding:5px 12px}
   .matches-grid{grid-template-columns:1fr}
   .admin-grid{grid-template-columns:1fr 1fr}
   .hof-grid{grid-template-columns:repeat(4,1fr)}
@@ -582,7 +576,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
   nav{order:3;flex:0 0 100%;width:100%;justify-content:flex-start;gap:5px;padding:4px 0 2px}
   nav button{font-size:12px;padding:6px 14px}
   nav button.active{background:var(--gold);border-color:var(--gold);color:#000}
-  #langBtn,#logoutBtn{font-size:11px;padding:5px 12px}
+  #langBtn{font-size:11px;padding:5px 12px}
   main{padding:14px 14px 40px}
   .section-title{font-size:26px}
   .matches-grid{grid-template-columns:1fr}
@@ -625,7 +619,6 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
     color:#000;font-weight:700;
   }
   #langBtn{font-size:11px;padding:5px 10px}
-  #logoutBtn{font-size:11px;padding:5px 10px}
   #soundBtn{width:30px;height:30px;font-size:13px}
   /* Main content */
   main{padding:10px 10px 32px}
@@ -1631,11 +1624,6 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
             <button class="settings-item" id="settingsAvatarBtn" onclick="openAvatarEditor()" style="display:none">
               <span class="si">👤</span>
               <span data-en="Edit Avatar" data-es="Editar Avatar">Edit Avatar</span>
-            </button>
-            <div class="settings-div" id="settingsLogoutDiv" style="display:none"></div>
-            <button class="settings-item" id="logoutBtn" onclick="doLogout();closeSettingsMenu()" style="display:none">
-              <span class="si">🚪</span>
-              <span data-en="Logout" data-es="Salir">Salir</span>
             </button>
           </div>
         </div>
@@ -2923,8 +2911,6 @@ window.onload = function(){
   if(savedName){
     currentUser = savedName;
     document.getElementById('registerOverlay').style.display = 'none';
-    document.getElementById('logoutBtn').style.display = 'flex';
-    const _sld=document.getElementById('settingsLogoutDiv'); if(_sld) _sld.style.display='block';
     loadUserData();
   } else {
     // No saved session — show overlay with spinner while Firebase loads.
@@ -3628,8 +3614,6 @@ function doLogin(){
 
 function hideRegister(){
   document.getElementById('registerOverlay').style.display='none';
-  document.getElementById('logoutBtn').style.display='flex';
-  const sld=document.getElementById('settingsLogoutDiv'); if(sld) sld.style.display='block';
   const avBtn = document.getElementById('settingsAvatarBtn');
   if(avBtn) avBtn.style.display = 'flex';
 }
@@ -6795,8 +6779,6 @@ function deletePlayer(key){
     localStorage.removeItem('wc2026_user');
     // Show register overlay
     document.getElementById('registerOverlay').style.display = 'flex';
-    document.getElementById('logoutBtn').style.display = 'none';
-    const _sld2=document.getElementById('settingsLogoutDiv'); if(_sld2) _sld2.style.display='none';
     document.getElementById('regName').value = '';
     showToast(currentLang==='es'
       ? 'Tu cuenta fue eliminada. Regístrate nuevamente.'
@@ -7228,8 +7210,6 @@ function doLogout(){
   picks = {};
   submittedRounds = {};
   localStorage.removeItem('wc2026_user');
-  document.getElementById('logoutBtn').style.display='none';
-  const sld2=document.getElementById('settingsLogoutDiv'); if(sld2) sld2.style.display='none';
   const avBtn = document.getElementById('settingsAvatarBtn');
   if(avBtn) avBtn.style.display = 'none';
   closeSettingsMenu();
