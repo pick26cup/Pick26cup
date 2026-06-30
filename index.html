@@ -1290,6 +1290,50 @@ nav button:hover,nav button.active{
 .bk-final-badge{display:inline-block;font-family:'Bebas Neue';font-size:8px;letter-spacing:1.5px;color:#000;background:linear-gradient(135deg,#D4AF37,#FFD700);border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle}
 /* Sub-section title for final */
 .bk-round-3 .bk-slot:last-child .bk-card{position:relative}
+/* ── BRACKET V2 (Google / FIFA style, per-round) ─────────── */
+.bk2-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.bk2-tab{flex-shrink:0;padding:7px 13px;font-family:'Bebas Neue';font-size:13px;letter-spacing:1.5px;border-radius:20px;border:1.5px solid rgba(212,175,55,.22);background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .2s}
+.bk2-tab.bk2-tab-active{background:rgba(212,175,55,.18);border-color:var(--gold);color:var(--gold)}
+.bk2-group{display:flex;align-items:stretch;gap:0;margin-bottom:10px}
+.bk2-matches{flex:1;display:flex;flex-direction:column;min-width:0}
+.bk2-match-gap{height:5px;flex-shrink:0}
+.bk2-card{background:rgba(20,16,6,.97);border:1px solid rgba(212,175,55,.14);border-radius:10px;overflow:hidden}
+.bk2-card.bk2-played{border-color:rgba(212,175,55,.32)}
+.bk2-card.bk2-final{border:1.5px solid rgba(255,215,0,.5);box-shadow:0 0 20px rgba(212,175,55,.2)}
+.bk2-card-hdr{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;border-bottom:1px solid rgba(255,255,255,.06)}
+.bk2-date{font-size:10px;color:rgba(255,255,255,.32);letter-spacing:.3px}
+.bk2-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.5px}
+.bk2-fin{background:rgba(46,204,113,.18);color:#2ECC71}
+.bk2-pen{background:rgba(100,160,255,.18);color:#adf}
+.bk2-team-row{display:flex;align-items:center;gap:8px;padding:9px 10px}
+.bk2-team-row+.bk2-team-row{border-top:1px solid rgba(255,255,255,.05)}
+.bk2-team-row.bk2-win{background:rgba(212,175,55,.1)}
+.bk2-team-row.bk2-lose{opacity:.32}
+.bk2-t-flag{font-size:17px;min-width:22px;line-height:1;flex-shrink:0}
+.bk2-t-name{font-size:13px;font-weight:600;flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk2-team-row.bk2-win .bk2-t-name{color:var(--gold)}
+.bk2-score-wrap{display:flex;align-items:center;gap:3px;flex-shrink:0}
+.bk2-sc{font-family:'Bebas Neue';font-size:18px;color:var(--text2);min-width:18px;text-align:right;line-height:1}
+.bk2-team-row.bk2-win .bk2-sc{color:var(--gold);text-shadow:0 0 8px rgba(212,175,55,.5)}
+.bk2-arrow{color:var(--gold);font-size:11px}
+.bk2-pen-sc{font-size:10px;color:rgba(100,160,255,.85);font-weight:700}
+/* Connector lines between pair */
+.bk2-conn{width:18px;flex-shrink:0;display:flex;flex-direction:column;align-self:stretch}
+.bk2-conn-t{flex:1;border-right:2px solid rgba(212,175,55,.3);border-top:2px solid rgba(212,175,55,.3);border-radius:0 5px 0 0;margin-top:24px}
+.bk2-conn-b{flex:1;border-right:2px solid rgba(212,175,55,.3);border-bottom:2px solid rgba(212,175,55,.3);border-radius:0 0 5px 0;margin-bottom:24px}
+/* Next round slot */
+.bk2-next{flex-shrink:0;width:120px;background:rgba(12,10,3,.97);border:1px solid rgba(212,175,55,.18);border-radius:10px;overflow:hidden;align-self:center}
+.bk2-next-hdr{font-size:9px;color:rgba(255,255,255,.28);padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.05);letter-spacing:.3px}
+.bk2-next-team{display:flex;align-items:center;gap:5px;padding:7px 8px}
+.bk2-next-team+.bk2-next-team{border-top:1px solid rgba(255,255,255,.05)}
+.bk2-next-flag{font-size:14px;flex-shrink:0;min-width:18px}
+.bk2-next-name{font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk2-next-tbd{font-size:11px;color:rgba(255,255,255,.25);font-style:italic}
+/* Champion */
+.bk2-champ{text-align:center;padding:22px 16px;background:linear-gradient(135deg,rgba(212,175,55,.14),rgba(180,130,0,.07));border:1.5px solid var(--gold3);border-radius:14px;margin-top:10px}
+.bk2-champ-trophy{font-size:38px;margin-bottom:6px}
+.bk2-champ-flag{font-size:30px;margin-bottom:4px}
+.bk2-champ-name{font-family:'Bebas Neue';font-size:26px;letter-spacing:3px;color:var(--gold)}
 /* ── PODIUM ──────────────────────────────────────────────── */
 #podiumOverlay{position:fixed;inset:0;z-index:1000;overflow:hidden;display:none;background:#020100}
 #podiumOverlay *{box-sizing:border-box}
@@ -7933,6 +7977,7 @@ function renderGroups(){
 //  FEATURE: GROUPS TAB SWITCH + BRACKET
 // ══════════════════════════════════════════════════════════════
 var _activeBracketTab = 'standings';
+var _bracketViewRound = 4;
 
 function switchGroupsTab(tab){
   _activeBracketTab = tab;
@@ -7966,142 +8011,177 @@ function renderBracket(){
     setTimeout(renderBracket, 2000);
     return;
   }
-  container.innerHTML = '<p style="color:var(--text2);text-align:center;padding:20px">'+(es?'Cargando bracket...':'Loading bracket...')+'</p>';
+  container.innerHTML = '<p style="color:var(--text2);text-align:center;padding:20px">'+(es?'Cargando...':'Loading...')+'</p>';
 
   db.ref('results').once('value').then(function(snap){
     var res = snap.val()||{};
 
-    // Resolve "R32 Wn" / "R16 Wn" / "QF Wn" placeholders to actual winner team names
+    // Resolve placeholder names (R32 W1, R16 W2, QF W3) to actual team
     function resolveTeam(name){
       if(!name) return name;
       var pm;
-      pm = name.match(/^R32 W(\d+)$/i);
-      if(pm) return getWinnerTeam('4_'+pm[1]) || name;
-      pm = name.match(/^R16 W(\d+)$/i);
-      if(pm) return getWinnerTeam('5_'+pm[1]) || name;
-      pm = name.match(/^QF W(\d+)$/i);
-      if(pm) return getWinnerTeam('6_'+pm[1]) || name;
+      pm = name.match(/^R32 W(\d+)$/i); if(pm) return getWT('4_'+pm[1]) || name;
+      pm = name.match(/^R16 W(\d+)$/i); if(pm) return getWT('5_'+pm[1]) || name;
+      pm = name.match(/^QF W(\d+)$/i);  if(pm) return getWT('6_'+pm[1]) || name;
       return name;
     }
-    function getWinnerTeam(matchId){
-      var r = res[matchId];
-      if(!r) return null;
-      var rn = parseInt(matchId.split('_')[0]);
-      var md = (MATCHES[rn]||[]).find(function(x){ return x.id===matchId; });
-      if(!md) return null;
-      var h = resolveTeam(md.home), a = resolveTeam(md.away);
-      if(r.scoreH > r.scoreA) return h;
-      if(r.scoreA > r.scoreH) return a;
+    function getWT(mid){
+      var r=res[mid]; if(!r) return null;
+      var rn=parseInt(mid.split('_')[0]);
+      var md=(MATCHES[rn]||[]).find(function(x){return x.id===mid;}); if(!md) return null;
+      var h=resolveTeam(md.home), a=resolveTeam(md.away);
+      if(r.scoreH>r.scoreA) return h;
+      if(r.scoreA>r.scoreH) return a;
       if(r.winner==='home') return h;
       if(r.winner==='away') return a;
       return null;
     }
-
-    function getW(m){
-      var r = res[m.id];
-      if(!r) return null;
-      if(r.scoreH > r.scoreA) return 'home';
-      if(r.scoreA > r.scoreH) return 'away';
-      if(r.winner) return r.winner; // ET/PEN tiebreak
-      return null;
+    function tname(m, isHome){
+      var raw=isHome?m.home:m.away;
+      return customTeamNames[m.id+(isHome?'_home':'_away')] || resolveTeam(raw);
+    }
+    function winnerSide(r2){
+      if(!r2) return null;
+      if(r2.scoreH>r2.scoreA) return 'home';
+      if(r2.scoreA>r2.scoreH) return 'away';
+      return r2.winner||null;
     }
 
-    function teamRowHtml(m, isHome){
-      var rawName = isHome ? m.home : m.away;
-      var customKey = m.id + (isHome ? '_home' : '_away');
-      var name = customTeamNames[customKey] || resolveTeam(rawName);
-      var w = getW(m);
-      var isWin  = w === (isHome ? 'home' : 'away');
-      var isLose = w && !isWin;
-      var r2 = res[m.id];
-      var score = r2 ? (isHome ? r2.scoreH : r2.scoreA) : null;
-      var isTba = isPlaceholderTeam(name);
-      var flag = isTba
-        ? '<span class="team-tba" style="font-size:10px;display:inline-block;line-height:1">?</span>'
-        : getTeamVisual(name);
-      var nameStr = isTba ? escapeHtml(prettyTeamLabel(rawName)) : escapeHtml(displayTeamName(name));
-      var cls = 'bk-team'+(isWin?' bk-win':'')+(isLose?' bk-lose':'');
-      var sc = score!==null
-        ? '<span class="bk-score'+(isWin?' bk-sc-win':'')+'">'+score+'</span>'
-        : '<span class="bk-score" style="opacity:0">0</span>';
-      return '<div class="'+cls+'">'
-        +'<span class="bk-flag">'+flag+'</span>'
-        +'<span class="bk-name'+(isTba?' bk-ph':'')+'">'+nameStr+'</span>'
-        +sc
-        +'</div>';
+    // Build next-round mapping: matchId → {nextId, side}
+    var nextMap={};
+    [5,6,7].forEach(function(r){
+      (MATCHES[r]||[]).forEach(function(nm){
+        ['home','away'].forEach(function(side){
+          var n=nm[side], pm;
+          pm=n&&n.match(/^R32 W(\d+)$/i); if(pm) nextMap['4_'+pm[1]]={nextId:nm.id,side:side};
+          pm=n&&n.match(/^R16 W(\d+)$/i); if(pm) nextMap['5_'+pm[1]]={nextId:nm.id,side:side};
+          pm=n&&n.match(/^QF W(\d+)$/i);  if(pm) nextMap['6_'+pm[1]]={nextId:nm.id,side:side};
+        });
+      });
+    });
+
+    // Group matches into pairs that feed the same next slot
+    function buildGroups(matches){
+      var groups=[], seen={};
+      matches.forEach(function(m){
+        if(seen[m.id]) return;
+        var info=nextMap[m.id];
+        if(!info){ groups.push({matches:[m],nextId:null}); seen[m.id]=true; return; }
+        var partner=matches.find(function(m2){
+          if(m2.id===m.id||seen[m2.id]) return false;
+          var i2=nextMap[m2.id]; return i2&&i2.nextId===info.nextId;
+        });
+        if(partner){
+          var hm=info.side==='home'?m:partner, am=info.side==='away'?m:partner;
+          groups.push({matches:[hm,am], nextId:info.nextId});
+          seen[m.id]=true; seen[partner.id]=true;
+        } else {
+          groups.push({matches:[m], nextId:null}); seen[m.id]=true;
+        }
+      });
+      return groups;
     }
 
-    function cardHtml(m, isFinal){
-      var r2 = res[m.id];
-      var played = !!r2;
-      var extra = isFinal ? ' bk-final-card' : '';
-      if(played) extra += ' bk-played';
-      var badge = isFinal ? '<span class="bk-final-badge">FINAL</span>' : '';
-      var penBadge = (r2 && r2.winner && r2.scoreH === r2.scoreA)
-        ? '<span class="bk-final-badge" style="background:rgba(100,160,255,.8);color:#000;margin-left:3px">PEN</span>' : '';
-      var dateLabel = m.date+' '+m.time+badge+penBadge;
-      return '<div class="bk-card'+extra+'">'
-        +'<div class="bk-date">'+dateLabel+'</div>'
-        +teamRowHtml(m, true)
-        +teamRowHtml(m, false)
-        +'</div>';
+    // Render one team row inside a match card
+    function teamRow(name, r2, isHome){
+      var known=!isPlaceholderTeam(name);
+      var ws=winnerSide(r2);
+      var side=isHome?'home':'away';
+      var isWin=ws===side, isLose=ws&&!isWin;
+      var score=r2?(isHome?r2.scoreH:r2.scoreA):null;
+      var isPen=r2&&r2.winner&&r2.scoreH===r2.scoreA;
+      var penSc=isPen?(isHome?r2.penH:r2.penA):null;
+      var flag=known?getTeamVisual(name):'<span style="color:rgba(255,255,255,.2);font-size:11px">?</span>';
+      var nameHtml=known?escapeHtml(displayTeamName(name)):'<em style="color:rgba(255,255,255,.25);font-size:11px">'+(es?'A definir':'TBD')+'</em>';
+      var scoreHtml='';
+      if(score!==null){
+        var pen=penSc!=null?'<span class="bk2-pen-sc"> ('+penSc+')</span>':'';
+        var arr=isWin?'<span class="bk2-arrow"> ◄</span>':'';
+        scoreHtml='<div class="bk2-score-wrap"><span class="bk2-sc">'+score+'</span>'+pen+arr+'</div>';
+      }
+      return '<div class="bk2-team-row'+(isWin?' bk2-win':'')+(isLose?' bk2-lose':'')+'">'
+        +'<span class="bk2-t-flag">'+flag+'</span>'
+        +'<span class="bk2-t-name">'+nameHtml+'</span>'
+        +scoreHtml+'</div>';
     }
 
-    /* Round configs: [matchesArray, roundIndex 0-3] */
-    var roundDefs = [
-      {matches: MATCHES[4]||[], ri:0, label: es?'32avos':'R. of 32',  dates:'28 Jun – 3 Jul'},
-      {matches: MATCHES[5]||[], ri:1, label: es?'Octavos':'R. of 16',  dates:'4 – 7 Jul'},
-      {matches: MATCHES[6]||[], ri:2, label: es?'Cuartos':'Quarters',  dates:'9 – 11 Jul'},
-      {matches: MATCHES[7]||[], ri:3, label: es?'Semis/Final':'Semis/Final', dates:'14 – 15 Jul'}
+    // Render a match card
+    function matchCard(m){
+      var r2=res[m.id];
+      var h=tname(m,true), a=tname(m,false);
+      var isPen=r2&&r2.winner&&r2.scoreH===r2.scoreA;
+      var badge=r2?(isPen?'<span class="bk2-badge bk2-pen">'+(es?'Fin (P)':'Final (P)')+'</span>'
+                        :'<span class="bk2-badge bk2-fin">'+(es?'Fin':'Final')+'</span>'):'';
+      return '<div class="bk2-card'+(r2?' bk2-played':'')+(m.final?' bk2-final':'')+'">'
+        +'<div class="bk2-card-hdr"><span class="bk2-date">'+m.date+' '+m.time+'</span>'+badge+'</div>'
+        +teamRow(h,r2,true)+teamRow(a,r2,false)+'</div>';
+    }
+
+    // Render next-round preview slot
+    function nextSlot(nextId){
+      if(!nextId) return '';
+      var nm=null;
+      for(var r=5;r<=7;r++){var f=(MATCHES[r]||[]).find(function(x){return x.id===nextId;}); if(f){nm=f;break;}}
+      if(!nm) return '';
+      var h=tname(nm,true), a=tname(nm,false);
+      var hk=!isPlaceholderTeam(h), ak=!isPlaceholderTeam(a);
+      function nt(name, known){
+        return '<div class="bk2-next-team">'
+          +'<span class="bk2-next-flag">'+(known?getTeamVisual(name):'❓')+'</span>'
+          +'<span class="'+(known?'bk2-next-name':'bk2-next-tbd')+'">'
+          +(known?escapeHtml(displayTeamName(name)):(es?'A definir':'TBD'))
+          +'</span></div>';
+      }
+      return '<div class="bk2-next">'
+        +'<div class="bk2-next-hdr">'+nm.date+' '+nm.time+'</div>'
+        +nt(h,hk)+nt(a,ak)+'</div>';
+    }
+
+    // Round tabs
+    if(!_bracketViewRound||_bracketViewRound<4) _bracketViewRound=4;
+    var roundDefs=[
+      {r:4, label:es?'Eliminatoria de 32':'Round of 32'},
+      {r:5, label:es?'Octavos de final':'Round of 16'},
+      {r:6, label:es?'Cuartos de final':'Quarterfinals'},
+      {r:7, label:es?'Semis / Final':'Semis / Final'}
     ];
-
-    /* Column headers */
-    var hdrHtml = roundDefs.map(function(rd){
-      return '<div class="bk-hdr-col"><div style="font-size:13px;letter-spacing:2px">'+rd.label+'</div>'
-             +'<div style="font-size:8.5px;color:rgba(255,255,255,.3);letter-spacing:.5px;margin-top:2px">'+rd.dates+'</div></div>'
-             +'<div class="bk-hdr-gap"></div>';
+    var tabsHtml=roundDefs.map(function(rd){
+      var act=rd.r===_bracketViewRound?' bk2-tab-active':'';
+      return '<button class="bk2-tab'+act+'" onclick="_bracketViewRound='+rd.r+';renderBracket()">'+rd.label+'</button>';
     }).join('');
 
-    /* Champion from last match with final:true */
-    var finalMatch = null;
-    (MATCHES[7]||[]).forEach(function(m){ if(m.final) finalMatch = m; });
-    var champTeam = null;
-    if(finalMatch && res[finalMatch.id]){
-      var fr = res[finalMatch.id];
-      var champRaw = fr.scoreH > fr.scoreA ? finalMatch.home : fr.scoreA > fr.scoreH ? finalMatch.away : (fr.winner==='home' ? finalMatch.home : fr.winner==='away' ? finalMatch.away : null);
-      champTeam = champRaw ? resolveTeam(champRaw) : null;
-    }
-    var champHtml = '';
-    if(champTeam && !isPlaceholderTeam(champTeam)){
-      champHtml = '<div class="bk-champ-col">'
-        +'<div class="bk-trophy-lbl">🏆</div>'
-        +'<div class="bk-champ-flag">'+getTeamVisual(champTeam)+'</div>'
-        +'<div class="bk-champ-name">'+escapeHtml(displayTeamName(champTeam))+'</div>'
-        +'</div>';
-    } else {
-      champHtml = '<div class="bk-champ-col">'
-        +'<div class="bk-trophy-lbl" style="font-size:22px;opacity:.18">🏆</div>'
-        +'</div>';
-    }
-
-    /* Build round columns */
-    var colsHtml = roundDefs.map(function(rd){
-      var slots = rd.matches.map(function(m, mi){
-        return '<div class="bk-slot">'+cardHtml(m, !!m.final)+'</div>';
-      }).join('');
-      return '<div class="bk-round bk-round-'+rd.ri+'">'+slots+'</div>';
+    // Build and render groups for current round
+    var groups=buildGroups(MATCHES[_bracketViewRound]||[]);
+    var groupsHtml=groups.map(function(g){
+      var cards=g.matches.map(function(m){return matchCard(m);}).join('<div class="bk2-match-gap"></div>');
+      if(!g.nextId||g.matches.length<2){
+        return '<div class="bk2-group" style="margin-bottom:10px"><div class="bk2-matches">'+cards+'</div></div>';
+      }
+      var conn='<div class="bk2-conn"><div class="bk2-conn-t"></div><div class="bk2-conn-b"></div></div>';
+      return '<div class="bk2-group" style="margin-bottom:10px">'
+        +'<div class="bk2-matches">'+cards+'</div>'
+        +conn+nextSlot(g.nextId)+'</div>';
     }).join('');
 
-    container.innerHTML =
-      '<div class="bk-outer">'
-      +'<div class="bk-scroll">'
-      +'<div class="bk-hdr-row">'+hdrHtml+'<div class="bk-hdr-champ">'+(es?'Campeón':'Champ')+'</div></div>'
-      +'<div class="bk-grid">'+colsHtml+champHtml+'</div>'
-      +'</div>'
-      +'<p style="font-size:10px;color:var(--text2);text-align:center;margin-top:10px;letter-spacing:.5px">'
-      +(es?'← Desliza para ver el bracket completo →':'← Scroll to see full bracket →')
-      +'</p>'
-      +'</div>';
+    // Champion display (round 7 final)
+    var champHtml='';
+    if(_bracketViewRound===7){
+      var fm=(MATCHES[7]||[]).find(function(m){return m.final;});
+      if(fm&&res[fm.id]){
+        var fr=res[fm.id];
+        var cr=fr.scoreH>fr.scoreA?fm.home:fr.scoreA>fr.scoreH?fm.away:(fr.winner==='home'?fm.home:fr.winner==='away'?fm.away:null);
+        var ct=cr?resolveTeam(cr):null;
+        if(ct&&!isPlaceholderTeam(ct)){
+          champHtml='<div class="bk2-champ">'
+            +'<div class="bk2-champ-trophy">🏆</div>'
+            +'<div class="bk2-champ-flag">'+getTeamVisual(ct)+'</div>'
+            +'<div class="bk2-champ-name">'+escapeHtml(displayTeamName(ct))+'</div>'
+            +'</div>';
+        }
+      }
+    }
+
+    container.innerHTML='<div class="bk2-tabs">'+tabsHtml+'</div><div>'+groupsHtml+champHtml+'</div>';
   });
 }
 
