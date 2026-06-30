@@ -1632,9 +1632,13 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
               <span class="si">👤</span>
               <span data-en="Edit Avatar" data-es="Editar Avatar">Edit Avatar</span>
             </button>
+            <div class="settings-div" id="settingsLogoutDiv" style="display:none"></div>
+            <button class="settings-item" id="logoutBtn" onclick="doLogout();closeSettingsMenu()" style="display:none">
+              <span class="si">🚪</span>
+              <span data-en="Logout" data-es="Salir">Salir</span>
+            </button>
           </div>
         </div>
-        <button id="logoutBtn" onclick="doLogout()">Logout</button>
       </div>
     </div>
   </header>
@@ -2919,7 +2923,8 @@ window.onload = function(){
   if(savedName){
     currentUser = savedName;
     document.getElementById('registerOverlay').style.display = 'none';
-    document.getElementById('logoutBtn').style.display = 'block';
+    document.getElementById('logoutBtn').style.display = 'flex';
+    const _sld=document.getElementById('settingsLogoutDiv'); if(_sld) _sld.style.display='block';
     loadUserData();
   } else {
     // No saved session — show overlay with spinner while Firebase loads.
@@ -3623,7 +3628,8 @@ function doLogin(){
 
 function hideRegister(){
   document.getElementById('registerOverlay').style.display='none';
-  document.getElementById('logoutBtn').style.display='block';
+  document.getElementById('logoutBtn').style.display='flex';
+  const sld=document.getElementById('settingsLogoutDiv'); if(sld) sld.style.display='block';
   const avBtn = document.getElementById('settingsAvatarBtn');
   if(avBtn) avBtn.style.display = 'flex';
 }
@@ -6790,6 +6796,7 @@ function deletePlayer(key){
     // Show register overlay
     document.getElementById('registerOverlay').style.display = 'flex';
     document.getElementById('logoutBtn').style.display = 'none';
+    const _sld2=document.getElementById('settingsLogoutDiv'); if(_sld2) _sld2.style.display='none';
     document.getElementById('regName').value = '';
     showToast(currentLang==='es'
       ? 'Tu cuenta fue eliminada. Regístrate nuevamente.'
@@ -7208,9 +7215,6 @@ function updateLang(){
   // submit button
   const sb = document.getElementById('submitBtn');
   if(sb) sb.innerHTML = currentLang==='es'?'✅ Enviar Predicciones':'✅ Submit Picks';
-  // logout
-  const lb = document.getElementById('logoutBtn');
-  if(lb) lb.textContent = currentLang==='es'?'Salir':'Logout';
   // re-render avatar picker if open so hair/beard labels update
   const avatarStep = document.getElementById('avatarStep');
   if(avatarStep && avatarStep.style.display !== 'none') initAvatarPicker();
@@ -7225,6 +7229,7 @@ function doLogout(){
   submittedRounds = {};
   localStorage.removeItem('wc2026_user');
   document.getElementById('logoutBtn').style.display='none';
+  const sld2=document.getElementById('settingsLogoutDiv'); if(sld2) sld2.style.display='none';
   const avBtn = document.getElementById('settingsAvatarBtn');
   if(avBtn) avBtn.style.display = 'none';
   closeSettingsMenu();
