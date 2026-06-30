@@ -7971,6 +7971,32 @@ function renderBracket(){
   db.ref('results').once('value').then(function(snap){
     var res = snap.val()||{};
 
+    // Resolve "R32 Wn" / "R16 Wn" / "QF Wn" placeholders to actual winner team names
+    function resolveTeam(name){
+      if(!name) return name;
+      var pm;
+      pm = name.match(/^R32 W(\d+)$/i);
+      if(pm) return getWinnerTeam('4_'+pm[1]) || name;
+      pm = name.match(/^R16 W(\d+)$/i);
+      if(pm) return getWinnerTeam('5_'+pm[1]) || name;
+      pm = name.match(/^QF W(\d+)$/i);
+      if(pm) return getWinnerTeam('6_'+pm[1]) || name;
+      return name;
+    }
+    function getWinnerTeam(matchId){
+      var r = res[matchId];
+      if(!r) return null;
+      var rn = parseInt(matchId.split('_')[0]);
+      var md = (MATCHES[rn]||[]).find(function(x){ return x.id===matchId; });
+      if(!md) return null;
+      var h = resolveTeam(md.home), a = resolveTeam(md.away);
+      if(r.scoreH > r.scoreA) return h;
+      if(r.scoreA > r.scoreH) return a;
+      if(r.winner==='home') return h;
+      if(r.winner==='away') return a;
+      return null;
+    }
+
     function getW(m){
       var r = res[m.id];
       if(!r) return null;
@@ -7981,7 +8007,9 @@ function renderBracket(){
     }
 
     function teamRowHtml(m, isHome){
-      var name = isHome ? m.home : m.away;
+      var rawName = isHome ? m.home : m.away;
+      var customKey = m.id + (isHome ? '_home' : '_away');
+      var name = customTeamNames[customKey] || resolveTeam(rawName);
       var w = getW(m);
       var isWin  = w === (isHome ? 'home' : 'away');
       var isLose = w && !isWin;
@@ -7991,7 +8019,7 @@ function renderBracket(){
       var flag = isTba
         ? '<span class="team-tba" style="font-size:10px;display:inline-block;line-height:1">?</span>'
         : getTeamVisual(name);
-      var nameStr = isTba ? escapeHtml(prettyTeamLabel(name)) : escapeHtml(displayTeamName(name));
+      var nameStr = isTba ? escapeHtml(prettyTeamLabel(rawName)) : escapeHtml(displayTeamName(name));
       var cls = 'bk-team'+(isWin?' bk-win':'')+(isLose?' bk-lose':'');
       var sc = score!==null
         ? '<span class="bk-score'+(isWin?' bk-sc-win':'')+'">'+score+'</span>'
@@ -8040,7 +8068,8 @@ function renderBracket(){
     var champTeam = null;
     if(finalMatch && res[finalMatch.id]){
       var fr = res[finalMatch.id];
-      champTeam = fr.scoreH > fr.scoreA ? finalMatch.home : fr.scoreA > fr.scoreH ? finalMatch.away : null;
+      var champRaw = fr.scoreH > fr.scoreA ? finalMatch.home : fr.scoreA > fr.scoreH ? finalMatch.away : (fr.winner==='home' ? finalMatch.home : fr.winner==='away' ? finalMatch.away : null);
+      champTeam = champRaw ? resolveTeam(champRaw) : null;
     }
     var champHtml = '';
     if(champTeam && !isPlaceholderTeam(champTeam)){
