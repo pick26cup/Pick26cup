@@ -4714,7 +4714,25 @@ function setScore(matchId, side, val){
 
 function savePicks(){
   localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
-  if(db) db.ref('picks/'+playerKey()+'/picks').set(picks).catch(()=>{});
+  if(!db) return;
+  // Build set of match IDs that belong to already-submitted rounds
+  const lockedMatchIds = new Set();
+  Object.keys(submittedRounds).forEach(function(r){
+    if(submittedRounds[r]){
+      (MATCHES[Number(r)] || []).forEach(function(m){ lockedMatchIds.add(m.id); });
+    }
+  });
+  // Only write picks for rounds that are NOT yet submitted
+  const safeToWrite = {};
+  Object.keys(picks).forEach(function(mid){
+    if(!lockedMatchIds.has(mid)) safeToWrite[mid] = picks[mid];
+  });
+  // Merge-update only the unlocked picks (don't overwrite the whole object)
+  if(Object.keys(safeToWrite).length > 0){
+    const updates = {};
+    Object.keys(safeToWrite).forEach(function(mid){ updates[mid] = safeToWrite[mid]; });
+    db.ref('picks/'+playerKey()+'/picks').update(updates).catch(function(){});
+  }
 }
 
 // ══════════════════════════════════════════════════════
