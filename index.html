@@ -28,15 +28,13 @@
   --radius:10px;--shadow:0 4px 24px rgba(0,0,0,.7);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);overflow-x:hidden;
-  background:url('bg.jpg') center top/cover no-repeat fixed;
-}
+html,body{min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);overflow-x:hidden;background:#000}
 body{background:transparent;}
 #bg-layer{
   position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:url('fondo.png');
-  background-size:cover;background-position:center 35%;
-  filter:saturate(1.6) brightness(1.08) contrast(1.05);
+  background-image:url('bg.jpg');
+  background-size:cover;background-position:center top;
+  filter:saturate(1.1) brightness(0.95) contrast(1.0);
 }
 body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:1;pointer-events:none}
 #root{position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column}
