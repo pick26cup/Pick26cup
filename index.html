@@ -1755,6 +1755,17 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
           </span>
         </div>
 
+        <!-- ══ SECURITY MONITOR ══ -->
+        <div class="admin-card" id="secMonitorCard" style="margin-bottom:14px;border-color:rgba(46,204,113,.35)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <h3 style="margin:0;color:#2ECC71">🔒 <span data-en="Security Monitor" data-es="Monitor de Seguridad">Monitor de Seguridad</span></h3>
+            <span id="secMonitorStatus" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(46,204,113,.15);border:1px solid #2ECC71;color:#2ECC71">● LIVE</span>
+          </div>
+          <div id="secMonitorLog" style="max-height:180px;overflow-y:auto;font-size:12px;font-family:'DM Sans';display:flex;flex-direction:column;gap:5px">
+            <div style="color:var(--text2);font-size:11px">Esperando actividad...</div>
+          </div>
+        </div>
+
         <!-- Always-visible Picks Pendientes bar -->
         <div class="admin-card" style="margin-bottom:14px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -4846,6 +4857,13 @@ function doSubmitPicks(){
       submittedRounds,
       updatedAt: Date.now()
     }).catch(()=>{});
+    // Security log
+    db.ref('_seclog').push({
+      user: currentUser, key,
+      action: 'submit_picks',
+      ts: Date.now(),
+      ua: navigator.userAgent.slice(0,120)
+    }).catch(()=>{});
     // Register player if not exists
     db.ref('players/'+key).transaction(cur=>{
       if(!cur) return {name:currentUser, approved:false, pts:0, submittedRounds};
@@ -5591,6 +5609,7 @@ function grantAdminUI(){
   adminLoggedIn = true;
   document.getElementById('adminLogin').classList.add('hidden');
   document.getElementById('adminContent').classList.remove('hidden');
+  startSecurityMonitor();
   renderAdminMatches();
   renderAdminPlayers();
   renderRoundPayments();
@@ -9307,6 +9326,58 @@ function closePaymentNudge(){
   b.style.transition = 'opacity .35s ease';
   b.style.opacity = '0';
   setTimeout(function(){ b.remove(); }, 380);
+}
+
+// ── SECURITY MONITOR ──────────────────────────────────
+var _secMonitorOn = false;
+function startSecurityMonitor(){
+  if(_secMonitorOn || !db) return;
+  _secMonitorOn = true;
+  var log = document.getElementById('secMonitorLog');
+  if(!log) return;
+  log.innerHTML = '';
+
+  function addEntry(color, icon, msg, ts){
+    var d = new Date(ts||Date.now());
+    var timeStr = d.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px;align-items:flex-start;padding:6px 8px;border-radius:6px;background:rgba(255,255,255,.04);border-left:3px solid '+color;
+    row.innerHTML = '<span style="font-size:14px;flex-shrink:0">'+icon+'</span>'
+      +'<div style="flex:1;min-width:0"><div style="color:'+color+';font-weight:700;font-size:12px;word-break:break-all">'+msg+'</div>'
+      +'<div style="color:var(--text2);font-size:10px;margin-top:1px">'+timeStr+'</div></div>';
+    log.insertBefore(row, log.firstChild);
+    // Keep max 30 entries
+    while(log.children.length > 30) log.removeChild(log.lastChild);
+    // Flash badge in nav
+    var badge = document.getElementById('adminNavBadge');
+    if(badge){ var n=(parseInt(badge.textContent)||0)+1; badge.textContent=n; badge.style.display=''; }
+  }
+
+  // Watch security log (pick submissions)
+  db.ref('_seclog').limitToLast(1).on('child_added', function(snap){
+    var d = snap.val();
+    if(!d) return;
+    var age = Date.now() - (d.ts||0);
+    if(age > 60000) return; // ignore entries older than 1 min on init
+    addEntry('#2ECC71','📝', (d.user||d.key||'?')+' — submit_picks', d.ts);
+    showToast('⚠️ Actividad: '+(d.user||d.key||'?')+' envió picks','warning');
+  });
+
+  // Watch picks for any modification
+  db.ref('picks').on('child_changed', function(snap){
+    var d = snap.val();
+    var name = (d&&d.name)||snap.key||'?';
+    addEntry('#F39C12','✏️', name+' — picks modificados', d&&d.updatedAt);
+  });
+
+  // Watch new players
+  db.ref('players').on('child_added', function(snap){
+    var d = snap.val();
+    if(!d) return;
+    addEntry('#3498DB','👤', (d.name||snap.key)+' — nuevo jugador registrado', Date.now());
+  });
+
+  addEntry('#2ECC71','🔒','Monitor activo — escuchando cambios en tiempo real', Date.now());
 }
 
 // ── ADMIN DASHBOARD NAVIGATION ────────────────────────
