@@ -8566,7 +8566,7 @@ function renderGroupStats(players, allPicks, results){
   var m=document.getElementById('bgMusic');
   if(!m) return;
   var START_VOL = 0.05;
-  var TARGET_VOL = 0.50;
+  var TARGET_VOL = 0.18;
   var FADE_STEPS = 80;   // 80 steps × 100ms = 8 seconds gradual rise
   m.volume = START_VOL;
   var played = false;
@@ -8708,7 +8708,7 @@ var stadiumAudio = (function(){
 
     // Lower bgMusic to balance mix
     var m = document.getElementById('bgMusic');
-    if (m && m.volume > 0.36) m.volume = 0.36;
+    if (m) m.volume = 0.18;
   }
 
   function start() {
@@ -8733,14 +8733,14 @@ var stadiumAudio = (function(){
 })();
 
 // ── MUTE TOGGLE ────────────────────────────────────────────────
-var _savedMusicVol = 0.50;
+var _savedMusicVol = 0.18;
 function toggleMute(){
   var m = document.getElementById('bgMusic');
   var btn = document.getElementById('soundBtn');
   if(!m || !btn) return;
   if(m.muted || m.volume === 0){
     m.muted = false;
-    m.volume = _savedMusicVol || 0.50;
+    m.volume = _savedMusicVol || 0.18;
     stadiumAudio.mute(false);
     btn.textContent = '🔊';
     btn.classList.remove('muted');
