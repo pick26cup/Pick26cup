@@ -73,6 +73,13 @@ nav button:active{transform:scale(0.97)}
   cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;
 }
 #helpBtn:hover{background:rgba(212,175,55,.45)}
+#soundBtn{
+  background:rgba(212,175,55,.25);border:1px solid var(--gold);color:var(--gold);
+  font-size:15px;width:30px;height:30px;border-radius:50%;
+  cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;
+}
+#soundBtn:hover{background:rgba(212,175,55,.45)}
+#soundBtn.muted{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.25);color:var(--text2)}
 #logoutBtn{
   background:rgba(231,76,60,.15);border:1px solid #c0392b;color:#e74c3c;
   font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer;
@@ -1601,6 +1608,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
       </nav>
       <div class="header-right">
         <button id="helpBtn" onclick="openRulesModal()" title="Cómo funciona / How it works" aria-label="Reglas">❓</button>
+        <button id="soundBtn" onclick="toggleMute()" title="Silenciar / Activar música" aria-label="Mute">🔊</button>
         <div id="settingsWrap">
           <button id="settingsBtn" onclick="toggleSettingsMenu()" title="Settings / Configuración">⚙️</button>
           <div class="settings-dropdown" id="settingsMenu" style="display:none">
@@ -8581,6 +8589,27 @@ function renderGroupStats(players, allPicks, results){
     document.addEventListener(e, play, {passive:true});
   });
 })();
+
+// ── MUTE TOGGLE ───────────────────────────────────────────────
+var _savedMusicVol = 0.50;
+function toggleMute(){
+  var m = document.getElementById('bgMusic');
+  var btn = document.getElementById('soundBtn');
+  if(!m || !btn) return;
+  if(m.muted || m.volume === 0){
+    m.muted = false;
+    m.volume = _savedMusicVol || 0.50;
+    btn.textContent = '🔊';
+    btn.classList.remove('muted');
+    btn.title = 'Silenciar música';
+  } else {
+    _savedMusicVol = m.volume || 0.50;
+    m.muted = true;
+    btn.textContent = '🔇';
+    btn.classList.add('muted');
+    btn.title = 'Activar música';
+  }
+}
 
 // ── SUBMIT STAMP ──────────────────────────────────────────────
 function showSubmitStamp(){
