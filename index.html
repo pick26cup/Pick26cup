@@ -2805,6 +2805,7 @@ let currentRound = 1;
 let adminRound = 1;
 let currentUser = null;
 let adminLoggedIn = false;
+let _fbAuthOk = false; // true only when Firebase Auth signed in as password user
 let playerData = {}; // current player's Firebase node (approvedRounds etc.)
 let editRound = 4;
 let _watchedPlayerKeys = null;
@@ -5682,17 +5683,20 @@ function grantAdminUI(){
   if(firebase && firebase.auth){
     firebase.auth().signInWithEmailAndPassword(_FB_ADMIN_EMAIL, _FB_ADMIN_PASS)
       .then(function(){
+        _fbAuthOk = true;
         _setFbAuthStatus('ok');
         showToast(t('🔐 Firebase Auth OK — puedes guardar resultados','🔐 Firebase Auth OK — you can save results'),'success');
       })
       .catch(function(e){
+        _fbAuthOk = false;
         _setFbAuthStatus('error', e.code);
         showToast(
-          t('⚠️ Firebase Auth falló ('+e.code+'). Crea el usuario admin en Firebase Console → Authentication → Users',
-            '⚠️ Firebase Auth failed ('+e.code+'). Create admin user in Firebase Console → Authentication → Users'),
-          'error', 8000);
+          t('⚠️ Firebase Auth falló ('+e.code+'). Los marcadores se REVERTIRÁN si intentas guardar.',
+            '⚠️ Firebase Auth failed ('+e.code+'). Scores WILL REVERT if you try to save.'),
+          'error', 10000);
       });
   } else {
+    _fbAuthOk = false;
     _setFbAuthStatus('error', 'no-firebase');
   }
   startSecurityMonitor();
@@ -5730,6 +5734,7 @@ function _setFbAuthStatus(status, detail){
 
 function adminLogout(){
   adminLoggedIn = false;
+  _fbAuthOk = false;
   // Sign back to anonymous so results/config become write-protected again
   if(firebase && firebase.auth){
     firebase.auth().signOut().then(function(){
@@ -6147,15 +6152,37 @@ function resSave(matchId){
 
   localStorage.setItem('wc2026_result_'+matchId, JSON.stringify(result));
   if(db){
+    // Guard: if Firebase Auth is not active the SDK will reject + REVERT the write silently
+    if(!_fbAuthOk){
+      // Double-check current auth state in case it changed since login
+      const authUser = firebase && firebase.auth && firebase.auth().currentUser;
+      const isPassword = authUser && authUser.providerData &&
+        authUser.providerData.some(p => p.providerId === 'password');
+      if(!isPassword){
+        showToast(
+          t('⛔ Firebase Auth inactiva — el marcador se REVERTIRÁ si intentas guardar. Cierra el panel admin y vuelve a entrar.',
+            '⛔ Firebase Auth inactive — score WILL REVERT. Close admin panel and log in again.'),
+          'error', 10000);
+        return;
+      }
+      _fbAuthOk = true; // auth state confirms it's fine
+    }
     db.ref('results/'+matchId).set(result)
       .then(()=>{
         _globalResults[matchId] = result;
         _resMarkSaved(matchId);
-        showToast(t('Resultado guardado ✅  — presiona 🔓 Bloquear para protegerlo','Result saved ✅ — press 🔓 Lock to protect it'),'success', 5000);
+        showToast(t('Resultado guardado ✅  — presiona 🔒 Bloquear para protegerlo','Result saved ✅ — press 🔒 Lock to protect it'),'success', 5000);
         recalcAllPoints();
         _refreshNukePanel();
       })
-      .catch(()=>showToast(t('Error Firebase — verifica sesión admin','Firebase error — check admin session'),'error'));
+      .catch(e=>{
+        showToast(
+          t('⛔ Firebase rechazó el guardado — el marcador se REVIRTIÓ. Verifica sesión admin.',
+            '⛔ Firebase rejected save — score REVERTED. Check admin session.'),
+          'error', 8000);
+        // Revert local cache to match what Firebase has
+        if(db) db.ref('results/'+matchId).once('value').then(s=>{ if(s.val()) _globalResults[matchId]=s.val(); });
+      });
   } else {
     _globalResults[matchId] = result;
     _resMarkSaved(matchId);
