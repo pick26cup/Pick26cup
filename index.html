@@ -5846,7 +5846,7 @@ function renderAdminMatches(){
         </select>` : ''}
       </div>
       ${isKO ? `<div id="rs_pen_wrap_${m.id}" style="display:none;margin-top:6px;background:rgba(100,160,255,.08);border:1px solid rgba(100,160,255,.25);border-radius:8px;padding:8px 12px">
-        <div style="font-size:10px;color:rgba(100,160,255,.7);font-weight:700;letter-spacing:1px;margin-bottom:8px">⚡ GANADOR / WINNER</div>
+        <div style="font-size:11px;color:rgba(100,160,255,.9);font-weight:700;margin-bottom:8px">⚡ ¿Quién ganó en penales?</div>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;color:var(--text)">
             <input type="radio" name="rs_winner_${m.id}" id="rs_wh_${m.id}" value="home" style="accent-color:#adf;width:15px;height:15px"/>
@@ -8549,31 +8549,40 @@ function renderMyResults(){
             }
 
             // Build "Real result" with team name
-            let realTeam = '';
+            let realTeam = '', resultLine = '';
             if(res){
               if(m.closer || m.final){
                 realTeam = `${res.scoreH} — ${res.scoreA}`;
+                resultLine = `<span>⚽ ${currentLang==='es'?'Marcador':'Score'}: <strong style="color:var(--gold)">${realTeam}</strong></span>`;
               } else {
                 const diff = res.scoreH - res.scoreA;
-                const penTag = '<span style="font-size:9px;background:rgba(100,160,255,.25);color:#adf;border-radius:4px;padding:1px 4px;margin-left:3px">PEN</span>';
-                if(diff > 0) realTeam = homeName;
-                else if(diff < 0) realTeam = awayName;
-                else if(res.winner === 'home') realTeam = homeName + penTag;
-                else if(res.winner === 'away') realTeam = awayName + penTag;
-                else realTeam = currentLang==='es' ? '🤝 Empate' : '🤝 Draw';
+                const isPenMatch = res.winner && res.scoreH === res.scoreA;
+                if(diff > 0){
+                  realTeam = homeName;
+                  resultLine = `<span>⚽ ${currentLang==='es'?'Ganó':'Winner'}: <strong style="color:var(--gold)">${realTeam}</strong></span>`;
+                } else if(diff < 0){
+                  realTeam = awayName;
+                  resultLine = `<span>⚽ ${currentLang==='es'?'Ganó':'Winner'}: <strong style="color:var(--gold)">${realTeam}</strong></span>`;
+                } else if(res.winner === 'home'){
+                  realTeam = homeName;
+                  resultLine = `<span>⚽ <strong style="color:var(--gold)">${realTeam}</strong> ${currentLang==='es'?'ganó en penales':'won on penalties'}</span>`;
+                } else if(res.winner === 'away'){
+                  realTeam = awayName;
+                  resultLine = `<span>⚽ <strong style="color:var(--gold)">${realTeam}</strong> ${currentLang==='es'?'ganó en penales':'won on penalties'}</span>`;
+                } else {
+                  realTeam = currentLang==='es' ? '🤝 Empate' : '🤝 Draw';
+                  resultLine = `<span>⚽ ${currentLang==='es'?'Resultado':'Result'}: <strong style="color:var(--gold)">${realTeam}</strong></span>`;
+                }
               }
             }
 
-            const hasPen = res && res.winner && res.scoreH === res.scoreA && !m.closer && !m.final;
-            const penBadge = hasPen
-              ? ` <span style="font-size:9px;background:rgba(100,160,255,.25);color:#adf;border-radius:4px;padding:1px 4px">⚡ PEN</span>` : '';
             const scoreChip = (res && res.scoreH!==undefined && res.scoreA!==undefined && !m.closer && !m.final)
-              ? `<span style="background:rgba(212,175,55,.15);border:1px solid var(--gold3);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;color:var(--gold)">${res.scoreH}–${res.scoreA}${penBadge}</span>`
+              ? `<span style="background:rgba(212,175,55,.15);border:1px solid var(--gold3);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;color:var(--gold)">${res.scoreH}–${res.scoreA}</span>`
               : '';
 
             return `
               <span>🎯 ${currentLang==='es'?'Elegiste':'You picked'}: <strong style="color:var(--text)">${myPickTeam}</strong></span>
-              ${res ? `<span>⚽ ${currentLang==='es'?'Ganó':'Winner'}: <strong style="color:var(--gold)">${realTeam}</strong></span>${scoreChip}` : ''}
+              ${res ? `${resultLine}${scoreChip}` : ''}
               <span style="font-size:11px;color:#555">${m.date} ${m.time}</span>
             `;
           })()}
