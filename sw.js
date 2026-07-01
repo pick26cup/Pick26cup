@@ -1,4 +1,4 @@
-// v3 — clear all caches, network-only (no offline fallback)
+// v4 — clear all caches, network-only (no offline fallback)
 self.addEventListener('install', e => {
   self.skipWaiting();
 });
