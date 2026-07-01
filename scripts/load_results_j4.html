@@ -2,132 +2,155 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Cargador Jornada 4 — Pick26Cup</title>
+<title>Fix Jornada 4 — Pick26Cup</title>
 <style>
-body{font-family:monospace;background:#111;color:#eee;padding:24px;max-width:700px;margin:0 auto}
-h2{color:#F1C40F}
-.log{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:16px;margin-top:16px;min-height:120px}
-.ok{color:#2ECC71}.err{color:#E74C3C}.warn{color:#F39C12}.info{color:#3498DB}
-button{background:#F1C40F;color:#000;border:none;padding:10px 24px;border-radius:6px;font-size:16px;cursor:pointer;margin-top:12px;font-weight:700}
-button:disabled{opacity:.5;cursor:not-allowed}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,sans-serif;background:#0a0a0a;color:#eee;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#141414;border:1px solid #2a2a2a;border-radius:16px;padding:28px;max-width:540px;width:100%}
+h1{font-size:22px;margin-bottom:6px;color:#F1C40F}
+.sub{color:#888;font-size:13px;margin-bottom:24px}
+.item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #1e1e1e;font-size:14px}
+.item:last-child{border:none}
+.badge{font-family:monospace;font-size:12px;padding:2px 8px;border-radius:4px;background:#1a1a1a;border:1px solid #333;color:#ccc;white-space:nowrap;flex-shrink:0}
+.icon{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.status{width:28px;text-align:center;font-size:18px;flex-shrink:0}
+.name{flex:1;min-width:0}
+.pen{font-size:11px;color:#3498DB}
+.result-ok .badge{background:rgba(46,204,113,.1);border-color:#2ECC71;color:#2ECC71}
+.result-err .badge{background:rgba(231,76,60,.1);border-color:#e74c3c;color:#e74c3c}
+.footer{margin-top:20px;padding:14px;border-radius:10px;font-size:13px;text-align:center;display:none}
+.footer.ok{background:rgba(46,204,113,.1);border:1px solid #2ECC71;color:#2ECC71;display:block}
+.footer.err{background:rgba(231,76,60,.1);border:1px solid #e74c3c;color:#e74c3c;display:block}
+.progress{margin-top:16px;height:6px;background:#1e1e1e;border-radius:3px;overflow:hidden}
+.progress-bar{height:100%;background:#F1C40F;width:0;transition:width .4s}
 </style>
 </head>
 <body>
-<h2>⚽ Pick26Cup — Cargador de Resultados Jornada 4</h2>
-<p style="color:#aaa">Este script carga los resultados correctos de la Jornada 4 directamente en Firebase.<br>
-Presiona el botón y espera a que termine.</p>
+<div class="card">
+  <h1>⚽ Reparación Jornada 4</h1>
+  <p class="sub">Cargando resultados correctos y bloqueándolos en Firebase...</p>
 
-<button id="btn" onclick="run()">🚀 Cargar Resultados Jornada 4</button>
+  <div id="items"></div>
 
-<div class="log" id="log"><span class="info">Listo para ejecutar...</span></div>
+  <div class="progress"><div class="progress-bar" id="bar"></div></div>
 
-<!-- Firebase SDK -->
+  <div class="footer" id="footer"></div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyAt-YPPSX2jFsA-VtdZn6dlIWgdOR45eBQ",
-  authDomain: "your-world-cup-prediction.firebaseapp.com",
-  databaseURL: "https://your-world-cup-prediction-default-rtdb.firebaseio.com",
-  projectId: "your-world-cup-prediction",
-  messagingSenderId: "167527835666",
-  appId: "1:167527835666:web:a7b19da5a01e1de04c90cb"
-};
-
-// Resultados confirmados Jornada 4 (Round of 32 — Mundial 2026)
 const RESULTADOS = [
-  // 28 jun
-  { id:'4_1', home:'Sudáfrica',        away:'Canadá',             scoreH:0, scoreA:1 },
-  // 29 jun
-  { id:'4_2', home:'Brasil',           away:'Japón',              scoreH:2, scoreA:1 },
-  { id:'4_3', home:'Alemania',         away:'Paraguay',           scoreH:1, scoreA:1, winner:'away' }, // PEN: Paraguay 4-3
-  { id:'4_4', home:'Países Bajos',     away:'Marruecos',          scoreH:1, scoreA:1, winner:'away' }, // PEN: Marruecos 3-2
-  // 30 jun
-  { id:'4_5', home:'Costa de Marfil',  away:'Noruega',            scoreH:1, scoreA:2 },
-  { id:'4_6', home:'Francia',          away:'Suecia',             scoreH:3, scoreA:0 },
-  { id:'4_7', home:'México',           away:'Ecuador',            scoreH:2, scoreA:0 },
-  // 01 jul
-  { id:'4_8', home:'Inglaterra',       away:'Congo',              scoreH:2, scoreA:1 },
+  { id:'4_1', home:'Sudáfrica',       away:'Canadá',    scoreH:0, scoreA:1 },
+  { id:'4_2', home:'Brasil',          away:'Japón',     scoreH:2, scoreA:1 },
+  { id:'4_3', home:'Alemania',        away:'Paraguay',  scoreH:1, scoreA:1, winner:'away' },
+  { id:'4_4', home:'Países Bajos',    away:'Marruecos', scoreH:1, scoreA:1, winner:'away' },
+  { id:'4_5', home:'Costa de Marfil', away:'Noruega',   scoreH:1, scoreA:2 },
+  { id:'4_6', home:'Francia',         away:'Suecia',    scoreH:3, scoreA:0 },
+  { id:'4_7', home:'México',          away:'Ecuador',   scoreH:2, scoreA:0 },
+  { id:'4_8', home:'Inglaterra',      away:'Congo',     scoreH:2, scoreA:1 },
 ];
 
-function log(msg, cls='') {
-  const el = document.getElementById('log');
-  el.innerHTML += `<div class="${cls}">${msg}</div>`;
-  el.scrollTop = el.scrollHeight;
+// Build UI rows
+const container = document.getElementById('items');
+RESULTADOS.forEach(r => {
+  const score = r.scoreH + '–' + r.scoreA;
+  const pen = r.winner ? ' · PEN: ' + (r.winner==='home'?r.home:r.away) : '';
+  container.innerHTML += `
+    <div class="item" id="row_${r.id}">
+      <span class="status" id="ico_${r.id}">⏳</span>
+      <span class="name">${r.home} <span style="color:#555">vs</span> ${r.away}<br>
+        <span class="pen">${pen}</span>
+      </span>
+      <span class="badge" id="bdg_${r.id}">${score}${pen}</span>
+    </div>`;
+});
+
+function setRow(id, state, label) {
+  const ico = document.getElementById('ico_'+id);
+  const row = document.getElementById('row_'+id);
+  const bdg = document.getElementById('bdg_'+id);
+  if(state==='ok')   { ico.textContent='✅'; row.className='item result-ok'; }
+  if(state==='lock') { ico.textContent='🔒'; row.className='item result-ok'; }
+  if(state==='skip') { ico.textContent='🔒'; row.className='item'; }
+  if(state==='err')  { ico.textContent='❌'; row.className='item result-err'; }
+  if(label) bdg.textContent=label;
+}
+
+function setProgress(pct) {
+  document.getElementById('bar').style.width = pct + '%';
 }
 
 async function run() {
-  const btn = document.getElementById('btn');
-  btn.disabled = true;
-  document.getElementById('log').innerHTML = '';
-  log('Iniciando...', 'info');
+  const app = firebase.initializeApp({
+    apiKey:'AIzaSyAt-YPPSX2jFsA-VtdZn6dlIWgdOR45eBQ',
+    authDomain:'your-world-cup-prediction.firebaseapp.com',
+    databaseURL:'https://your-world-cup-prediction-default-rtdb.firebaseio.com',
+    projectId:'your-world-cup-prediction',
+    messagingSenderId:'167527835666',
+    appId:'1:167527835666:web:a7b19da5a01e1de04c90cb'
+  });
+  const db   = firebase.database();
+  const auth = firebase.auth();
 
-  // Init Firebase
-  let app, db, auth;
+  // Auth
   try {
-    app = firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
-    auth = firebase.auth();
-    log('✅ Firebase inicializado', 'ok');
+    await auth.signInWithEmailAndPassword('admin@pick26.app','aFt0Fzn-M0Qcbb01-FKMXGK68s-K4wrU');
   } catch(e) {
-    log('❌ Error iniciando Firebase: ' + e.message, 'err');
-    btn.disabled = false;
+    document.getElementById('footer').className='footer err';
+    document.getElementById('footer').textContent='❌ Auth falló ('+e.code+'). El usuario admin@pick26.app no existe en Firebase Authentication.';
+    RESULTADOS.forEach(r=>setRow(r.id,'err','auth failed'));
     return;
   }
 
-  // Sign in
-  log('🔐 Autenticando como admin@pick26.app...', 'info');
-  try {
-    await auth.signInWithEmailAndPassword('admin@pick26.app', 'aFt0Fzn-M0Qcbb01-FKMXGK68s-K4wrU');
-    log('✅ Autenticación exitosa', 'ok');
-  } catch(e) {
-    log('❌ Auth falló: ' + e.code + ' — ' + e.message, 'err');
-    log('⚠️ Crea el usuario admin@pick26.app en Firebase Console → Authentication → Users', 'warn');
-    btn.disabled = false;
-    return;
-  }
-
-  // Write results — with locked:true so nobody can change them
-  log('', '');
-  log('📝 Escribiendo y bloqueando resultados...', 'info');
   const now = Date.now();
-  let ok = 0, fail = 0, skipped = 0;
+  let ok=0, skipped=0, errors=0;
 
-  for (const r of RESULTADOS) {
-    const data = { scoreH: r.scoreH, scoreA: r.scoreA, updatedAt: now, locked: true, lockedAt: now };
-    if (r.winner) data.winner = r.winner;
-    const scoreStr = r.scoreH + '-' + r.scoreA + (r.winner ? ' (PEN: ' + (r.winner==='home'?r.home:r.away) + ')' : '');
+  for(let i=0; i<RESULTADOS.length; i++){
+    const r = RESULTADOS[i];
+    setProgress(Math.round((i/RESULTADOS.length)*100));
+
     try {
-      // Check if already locked in Firebase
-      const snap = await db.ref('results/' + r.id).once('value');
+      const snap = await db.ref('results/'+r.id).once('value');
       const existing = snap.val();
-      if (existing && existing.locked) {
-        log(`🔒 ${r.id} — ${r.home} ${scoreStr} ${r.away} — ya bloqueado, no se modifica`, 'warn');
-        skipped++;
-        continue;
+
+      if(existing && existing.locked) {
+        // Already locked with correct score — verify it matches
+        const scoreOk = existing.scoreH===r.scoreH && existing.scoreA===r.scoreA &&
+                        (r.winner ? existing.winner===r.winner : !existing.winner);
+        if(scoreOk) { setRow(r.id,'skip','ya bloqueado ✓'); skipped++; continue; }
+        // Locked but wrong score — this shouldn't happen, report it
+        setRow(r.id,'err','🔒 bloqueado con valor incorrecto');
+        errors++; continue;
       }
-      await db.ref('results/' + r.id).set(data);
-      log(`✅🔒 ${r.id} — ${r.home} ${scoreStr} ${r.away} — guardado y BLOQUEADO`, 'ok');
+
+      const data = { scoreH:r.scoreH, scoreA:r.scoreA, updatedAt:now, locked:true, lockedAt:now };
+      if(r.winner) data.winner = r.winner;
+
+      await db.ref('results/'+r.id).set(data);
+      setRow(r.id,'lock','guardado + 🔒');
       ok++;
     } catch(e) {
-      log(`❌ ${r.id} — ${r.home} vs ${r.away} — ERROR: ${e.message}`, 'err');
-      if (e.message && e.message.includes('PERMISSION_DENIED')) {
-        log('⚠️ Firebase rechazó la escritura — verifica que las reglas de seguridad permitan escritura desde password auth', 'warn');
-      }
-      fail++;
+      setRow(r.id,'err', e.message.includes('PERMISSION_DENIED') ? 'sin permisos' : 'error');
+      errors++;
     }
   }
 
-  log('', '');
-  log(`🏁 Listo: ${ok} guardados+bloqueados, ${skipped} ya bloqueados, ${fail} errores`, fail === 0 ? 'ok' : 'warn');
-  if (fail === 0) {
-    log('✅ Resultados cargados y bloqueados. Ya nadie puede cambiarlos. Puedes cerrar esta página.', 'ok');
+  setProgress(100);
+  const footer = document.getElementById('footer');
+  if(errors===0){
+    footer.className='footer ok';
+    footer.innerHTML='✅ Listo. '+ok+' guardados y bloqueados, '+skipped+' ya estaban correctos.<br><br>'+
+      '<strong>Cierra esta pestaña.</strong> Los marcadores ya no pueden ser modificados.';
+  } else {
+    footer.className='footer err';
+    footer.textContent='⚠️ '+errors+' errores. Verifica las reglas de Firebase y vuelve a intentar.';
   }
-
-  btn.disabled = false;
 }
+
+// Auto-run when Firebase scripts are loaded
+window.addEventListener('load', () => setTimeout(run, 800));
 </script>
 </body>
 </html>
