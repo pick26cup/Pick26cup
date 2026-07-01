@@ -1848,6 +1848,11 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
                 <button class="round-tab" onclick="setAdminRound(7)" id="artab7">Round 7</button>
               </div>
               <div id="adminMatchResults"></div>
+              <div id="adminBulkClearWrap" style="display:none;margin-top:16px;padding:12px;background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.3);border-radius:8px">
+                <div style="font-size:11px;color:#e74c3c;font-weight:700;margin-bottom:6px">⚠️ Borrar resultados con error</div>
+                <div id="adminBulkClearList" style="font-size:11px;color:var(--text2);margin-bottom:8px"></div>
+                <button onclick="adminBulkClear()" style="background:rgba(192,57,43,.2);border:1px solid #c0392b;color:#e74c3c;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">🗑 Borrar todos estos resultados</button>
+              </div>
             </div>
           </div>
           <!-- Sub-tab: Equipos -->
@@ -5821,6 +5826,60 @@ function setAdminRound(r){
   document.querySelectorAll('[id^="artab"]').forEach(b=>b.classList.remove('active'));
   document.getElementById('artab'+r).classList.add('active');
   renderAdminMatches();
+  // Show bulk-clear panel only on round 4 if those matches have saved results
+  _refreshBulkClearPanel();
+}
+
+// Matches saved with errors (from old double-score system)
+const _BULK_CLEAR_IDS = ['4_3','4_4','4_5','4_6','4_7'];
+
+function _refreshBulkClearPanel(){
+  const wrap = document.getElementById('adminBulkClearWrap');
+  const listEl = document.getElementById('adminBulkClearList');
+  if(!wrap || !listEl) return;
+  if(adminRound !== 4){ wrap.style.display='none'; return; }
+  const withResults = _BULK_CLEAR_IDS.filter(id => _globalResults[id] !== undefined);
+  if(withResults.length === 0){ wrap.style.display='none'; return; }
+  const names = withResults.map(id => {
+    const m = findMatch(id);
+    return m ? (m.home+' vs '+m.away+' ('+id+')') : id;
+  });
+  listEl.textContent = 'Resultados a borrar: ' + names.join(', ');
+  wrap.style.display = 'block';
+}
+
+function adminBulkClear(){
+  if(!adminLoggedIn){ showToast(t('Sin permisos de admin','Not authorized'),'error'); return; }
+  const es = currentLang==='es';
+  const msg = es
+    ? '¿Borrar los resultados de '+_BULK_CLEAR_IDS.join(', ')+'?\nEsta acción no se puede deshacer.'
+    : 'Delete results for '+_BULK_CLEAR_IDS.join(', ')+'?\nThis cannot be undone.';
+  if(!confirm(msg)) return;
+  let done = 0;
+  _BULK_CLEAR_IDS.forEach(id => {
+    localStorage.removeItem('wc2026_result_'+id);
+    delete _globalResults[id];
+    if(db){
+      db.ref('results/'+id).remove().then(()=>{
+        done++;
+        if(done === _BULK_CLEAR_IDS.length){
+          showToast(es?'✅ Resultados borrados de Firebase':'✅ Results deleted from Firebase','success');
+          recalcAllPoints();
+          renderAdminMatches();
+          _refreshBulkClearPanel();
+        }
+      }).catch(()=>{
+        showToast(t('Error al borrar — verifica sesión admin','Delete error — check admin session'),'error');
+      });
+    } else {
+      done++;
+    }
+  });
+  if(!db){
+    showToast(es?'✅ Resultados borrados (local)':'✅ Results cleared (local)','success');
+    renderAdminMatches();
+    _refreshBulkClearPanel();
+  }
 }
 
 function renderAdminMatches(){
@@ -5902,6 +5961,7 @@ function renderAdminMatches(){
     });
     _applyAdminResults(lsResults);
   }
+  _refreshBulkClearPanel();
 }
 
 function saveResult(matchId){
