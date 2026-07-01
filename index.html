@@ -1849,9 +1849,9 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
               </div>
               <div id="adminMatchResults"></div>
               <div id="adminBulkClearWrap" style="display:none;margin-top:16px;padding:12px;background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.3);border-radius:8px">
-                <div style="font-size:11px;color:#e74c3c;font-weight:700;margin-bottom:6px">⚠️ Borrar resultados con error</div>
-                <div id="adminBulkClearList" style="font-size:11px;color:var(--text2);margin-bottom:8px"></div>
-                <button onclick="adminBulkClear()" style="background:rgba(192,57,43,.2);border:1px solid #c0392b;color:#e74c3c;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">🗑 Borrar todos estos resultados</button>
+                <div style="font-size:11px;color:#e74c3c;font-weight:700;margin-bottom:8px">⚠️ Resultados guardados en esta jornada</div>
+                <div id="adminBulkClearList" style="font-size:11px;margin-bottom:10px;line-height:1.6"></div>
+                <button onclick="adminBulkClear()" style="background:rgba(192,57,43,.2);border:1px solid #c0392b;color:#e74c3c;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">🗑 Borrar TODOS los resultados de esta jornada</button>
               </div>
             </div>
           </div>
@@ -5830,56 +5830,63 @@ function setAdminRound(r){
   _refreshBulkClearPanel();
 }
 
-// Matches saved with errors (from old double-score system)
-const _BULK_CLEAR_IDS = ['4_3','4_4','4_5','4_6','4_7'];
-
 function _refreshBulkClearPanel(){
   const wrap = document.getElementById('adminBulkClearWrap');
   const listEl = document.getElementById('adminBulkClearList');
   if(!wrap || !listEl) return;
-  if(adminRound !== 4){ wrap.style.display='none'; return; }
-  const withResults = _BULK_CLEAR_IDS.filter(id => _globalResults[id] !== undefined);
+  // Show for any round that has saved results
+  const roundMatches = (MATCHES[adminRound]||[]);
+  const withResults = roundMatches.filter(m => _globalResults[m.id] !== undefined);
   if(withResults.length === 0){ wrap.style.display='none'; return; }
-  const names = withResults.map(id => {
-    const m = findMatch(id);
-    return m ? (m.home+' vs '+m.away+' ('+id+')') : id;
-  });
-  listEl.textContent = 'Resultados a borrar: ' + names.join(', ');
+  listEl.innerHTML = withResults.map(m => {
+    const res = _globalResults[m.id];
+    const scoreStr = res ? res.scoreH+'-'+res.scoreA+(res.winner?' ('+res.winner+')':'') : '';
+    return '<div style="padding:2px 0;color:var(--text2)">• <strong style="color:var(--text)">'+escapeHtml(m.home)+' vs '+escapeHtml(m.away)+'</strong>'
+      +' <span style="color:#e74c3c;font-family:monospace">'+scoreStr+'</span></div>';
+  }).join('');
   wrap.style.display = 'block';
 }
 
 function adminBulkClear(){
   if(!adminLoggedIn){ showToast(t('Sin permisos de admin','Not authorized'),'error'); return; }
   const es = currentLang==='es';
-  const msg = es
-    ? '¿Borrar los resultados de '+_BULK_CLEAR_IDS.join(', ')+'?\nEsta acción no se puede deshacer.'
-    : 'Delete results for '+_BULK_CLEAR_IDS.join(', ')+'?\nThis cannot be undone.';
-  if(!confirm(msg)) return;
-  let done = 0;
-  _BULK_CLEAR_IDS.forEach(id => {
-    localStorage.removeItem('wc2026_result_'+id);
-    delete _globalResults[id];
-    if(db){
-      db.ref('results/'+id).remove().then(()=>{
-        done++;
-        if(done === _BULK_CLEAR_IDS.length){
-          showToast(es?'✅ Resultados borrados de Firebase':'✅ Results deleted from Firebase','success');
-          recalcAllPoints();
-          renderAdminMatches();
-          _refreshBulkClearPanel();
-        }
-      }).catch(()=>{
-        showToast(t('Error al borrar — verifica sesión admin','Delete error — check admin session'),'error');
-      });
+  const roundMatches = (MATCHES[adminRound]||[]);
+  const toClear = roundMatches.filter(m => _globalResults[m.id] !== undefined);
+  if(toClear.length === 0){ showToast(es?'No hay resultados que borrar':'No results to delete','error'); return; }
+  const names = toClear.map(m=>m.home+' vs '+m.away).join('\n  ');
+  if(!confirm((es?'¿Borrar TODOS los resultados de Jornada ':'Delete ALL results for Round ')+adminRound+'?\n\n  '+names+'\n\n'+(es?'Esta acción no se puede deshacer.':'This cannot be undone.'))) return;
+
+  const listEl = document.getElementById('adminBulkClearList');
+  if(listEl) listEl.innerHTML = '<em style="color:var(--text2)">Borrando...</em>';
+
+  let ok=0, fail=0;
+  const total = toClear.length;
+  function _done(matchId, success){
+    if(success) ok++; else fail++;
+    if(ok+fail < total) return;
+    // All attempts finished
+    if(fail===0){
+      showToast((es?'✅ Todos borrados de Firebase — Jornada ':'✅ All deleted from Firebase — Round ')+adminRound,'success');
     } else {
-      done++;
+      showToast((es?'⚠️ '+ok+' borrados, '+fail+' fallaron — verifica sesión admin':'⚠️ '+ok+' deleted, '+fail+' failed — check admin session'),'error');
     }
-  });
-  if(!db){
-    showToast(es?'✅ Resultados borrados (local)':'✅ Results cleared (local)','success');
+    recalcAllPoints();
     renderAdminMatches();
     _refreshBulkClearPanel();
   }
+
+  toClear.forEach(m => {
+    const id = m.id;
+    localStorage.removeItem('wc2026_result_'+id);
+    delete _globalResults[id];
+    if(db){
+      db.ref('results/'+id).remove()
+        .then(()=>_done(id,true))
+        .catch(()=>_done(id,false));
+    } else {
+      _done(id,true);
+    }
+  });
 }
 
 function renderAdminMatches(){
@@ -9515,6 +9522,22 @@ function startSecurityMonitor(){
     var d = snap.val();
     if(!d) return;
     addEntry('#3498DB','👤', (d.name||snap.key)+' — nuevo jugador registrado', Date.now());
+  });
+
+  // Watch results changes — detect unauthorized writes
+  db.ref('results').on('child_changed', function(snap){
+    var matchId = snap.key;
+    var d = snap.val();
+    var scoreStr = d ? d.scoreH+'-'+d.scoreA+(d.winner?' ('+d.winner+')':'') : '?';
+    addEntry('#E74C3C','⚽', 'Resultado MODIFICADO: '+matchId+' → '+scoreStr, d&&d.updatedAt);
+  });
+  db.ref('results').on('child_removed', function(snap){
+    addEntry('#95A5A6','🗑', 'Resultado BORRADO: '+snap.key, Date.now());
+  });
+  db.ref('results').on('child_added', function(snap){
+    var d = snap.val();
+    var scoreStr = d ? d.scoreH+'-'+d.scoreA+(d.winner?' ('+d.winner+')':'') : '?';
+    addEntry('#F39C12','⚽', 'Resultado NUEVO: '+snap.key+' → '+scoreStr, d&&d.updatedAt);
   });
 
   addEntry('#2ECC71','🔒','Monitor activo — escuchando cambios en tiempo real', Date.now());
