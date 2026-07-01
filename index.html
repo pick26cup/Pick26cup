@@ -5674,6 +5674,52 @@ async function doAdminLogin(){
   }
 }
 
+// Resultados confirmados jornada 4 — se auto-corrigen al login de admin
+const _VERIFIED_RESULTS = {
+  '4_1':{ scoreH:0, scoreA:1 },
+  '4_2':{ scoreH:2, scoreA:1 },
+  '4_3':{ scoreH:1, scoreA:1, winner:'away' },  // Paraguay gana en penales 4-3
+  '4_4':{ scoreH:1, scoreA:1, winner:'away' },  // Marruecos gana en penales 3-2
+  '4_5':{ scoreH:1, scoreA:2 },
+  '4_6':{ scoreH:3, scoreA:0 },
+  '4_7':{ scoreH:2, scoreA:0 },
+  '4_8':{ scoreH:2, scoreA:1 },
+};
+
+function _autoRepairResults(){
+  if(!db) return;
+  db.ref('results').once('value').then(function(snap){
+    const existing = snap.val() || {};
+    const updates = {};
+    const now = Date.now();
+    Object.entries(_VERIFIED_RESULTS).forEach(function([id, correct]){
+      const cur = existing[id];
+      const scoreMatch = cur && cur.scoreH===correct.scoreH && cur.scoreA===correct.scoreA &&
+                         (correct.winner ? cur.winner===correct.winner : !cur.winner);
+      if(cur && cur.locked && scoreMatch) return; // already correct + locked
+      updates['results/'+id] = Object.assign({}, correct, { locked:true, lockedAt:now, updatedAt:now });
+    });
+    if(!Object.keys(updates).length){
+      showToast(t('✅ Jornada 4 — todos los marcadores están correctos','✅ Round 4 — all scores are correct'),'success', 3000);
+      return;
+    }
+    db.ref().update(updates)
+      .then(function(){
+        Object.entries(updates).forEach(function([path, val]){
+          const id = path.replace('results/','');
+          _globalResults[id] = val;
+        });
+        showToast(t('🔒 '+Object.keys(updates).length+' marcadores corregidos y bloqueados automáticamente',
+                    '🔒 '+Object.keys(updates).length+' scores auto-corrected and locked'),'success', 6000);
+        renderAdminMatches();
+        recalcAllPoints();
+      })
+      .catch(function(e){
+        showToast(t('Auto-repair error: '+e.message,'Auto-repair error: '+e.message),'error');
+      });
+  });
+}
+
 function grantAdminUI(){
   adminLoggedIn = true;
   document.getElementById('adminLogin').classList.add('hidden');
@@ -5686,6 +5732,7 @@ function grantAdminUI(){
         _fbAuthOk = true;
         _setFbAuthStatus('ok');
         showToast(t('🔐 Firebase Auth OK — puedes guardar resultados','🔐 Firebase Auth OK — you can save results'),'success');
+        _autoRepairResults();
       })
       .catch(function(e){
         _fbAuthOk = false;
