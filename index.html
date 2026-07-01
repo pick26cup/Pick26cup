@@ -5516,13 +5516,14 @@ function renderLeaderboard(){
       db.ref('picks').once('value'),
       db.ref('results').once('value')
     ]).then(function(snaps){
-      renderFromData(snaps[0].val()||{}, snaps[1].val()||{}, snaps[2].val()||{});
+      const _lbRes = Object.assign({}, snaps[2].val()||{}, _VERIFIED_RESULTS);
+      renderFromData(snaps[0].val()||{}, snaps[1].val()||{}, _lbRes);
     }).catch(function(){
       // Retry after 2s
       setTimeout(function(){
         if(db){
           Promise.all([db.ref('players').once('value'),db.ref('picks').once('value'),db.ref('results').once('value')])
-          .then(function(s){ renderFromData(s[0].val()||{},s[1].val()||{},s[2].val()||{}); })
+          .then(function(s){ renderFromData(s[0].val()||{},s[1].val()||{},Object.assign({},s[2].val()||{},_VERIFIED_RESULTS)); })
           .catch(function(){ renderFromLocalStorage(renderFromData); });
         } else { renderFromLocalStorage(renderFromData); }
       }, 2000);
@@ -8634,7 +8635,7 @@ function renderMyResults(){
     db.ref('results').once('value'),
     db.ref('picks/'+playerKey()).once('value')
   ]).then(([resSnap, pickSnap])=>{
-    const results = resSnap.val()||{};
+    const results = Object.assign({}, resSnap.val()||{}, _VERIFIED_RESULTS);
     const myPickData = pickSnap.val()||{};
     const myPicks = myPickData.picks||{};
     const mySubmitted = myPickData.submittedRounds||{};
