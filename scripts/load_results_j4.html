@@ -89,30 +89,41 @@ async function run() {
     return;
   }
 
-  // Write results
+  // Write results — with locked:true so nobody can change them
   log('', '');
-  log('📝 Escribiendo resultados...', 'info');
+  log('📝 Escribiendo y bloqueando resultados...', 'info');
   const now = Date.now();
-  let ok = 0, fail = 0;
+  let ok = 0, fail = 0, skipped = 0;
 
   for (const r of RESULTADOS) {
-    const data = { scoreH: r.scoreH, scoreA: r.scoreA, updatedAt: now };
+    const data = { scoreH: r.scoreH, scoreA: r.scoreA, updatedAt: now, locked: true, lockedAt: now };
     if (r.winner) data.winner = r.winner;
     const scoreStr = r.scoreH + '-' + r.scoreA + (r.winner ? ' (PEN: ' + (r.winner==='home'?r.home:r.away) + ')' : '');
     try {
+      // Check if already locked in Firebase
+      const snap = await db.ref('results/' + r.id).once('value');
+      const existing = snap.val();
+      if (existing && existing.locked) {
+        log(`🔒 ${r.id} — ${r.home} ${scoreStr} ${r.away} — ya bloqueado, no se modifica`, 'warn');
+        skipped++;
+        continue;
+      }
       await db.ref('results/' + r.id).set(data);
-      log(`✅ ${r.id} — ${r.home} ${scoreStr} ${r.away}`, 'ok');
+      log(`✅🔒 ${r.id} — ${r.home} ${scoreStr} ${r.away} — guardado y BLOQUEADO`, 'ok');
       ok++;
     } catch(e) {
       log(`❌ ${r.id} — ${r.home} vs ${r.away} — ERROR: ${e.message}`, 'err');
+      if (e.message && e.message.includes('PERMISSION_DENIED')) {
+        log('⚠️ Firebase rechazó la escritura — verifica que las reglas de seguridad permitan escritura desde password auth', 'warn');
+      }
       fail++;
     }
   }
 
   log('', '');
-  log(`🏁 Listo: ${ok} guardados, ${fail} errores`, ok > 0 && fail === 0 ? 'ok' : 'warn');
+  log(`🏁 Listo: ${ok} guardados+bloqueados, ${skipped} ya bloqueados, ${fail} errores`, fail === 0 ? 'ok' : 'warn');
   if (fail === 0) {
-    log('✅ Todos los resultados de la Jornada 4 cargados correctamente. Puedes cerrar esta página.', 'ok');
+    log('✅ Resultados cargados y bloqueados. Ya nadie puede cambiarlos. Puedes cerrar esta página.', 'ok');
   }
 
   btn.disabled = false;
