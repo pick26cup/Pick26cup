@@ -4266,6 +4266,10 @@ function syncFromFirebase(){
         }
       });
     }
+    // Always enforce verified round-4 results regardless of what Firebase has
+    Object.keys(_VERIFIED_RESULTS).forEach(function(id){
+      newResults[id] = Object.assign({}, newResults[id], _VERIFIED_RESULTS[id], {locked:true});
+    });
     _globalResults = newResults;
     _resultVoiceReady = true;
     setTimeout(function(){ refreshLeaderboardIfVisible(); }, 300);
@@ -6278,7 +6282,8 @@ function recalcAllPoints(){
   ]).then(([pSnap, pickSnap, resSnap])=>{
     const players = pSnap.val()||{};
     const allPicks = pickSnap.val()||{};
-    const results = resSnap.val()||{};
+    // Always use verified results for round 4 — override any wrong Firebase data
+    const results = Object.assign({}, resSnap.val()||{}, _VERIFIED_RESULTS);
     Object.entries(players).forEach(([key, player])=>{
       if(!player.approved) return;
       const playerPickData = allPicks[key] ? allPicks[key].picks : {};
