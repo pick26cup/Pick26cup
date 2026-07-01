@@ -5845,14 +5845,17 @@ function renderAdminMatches(){
           <option value="pen">⚡ PEN/ET</option>
         </select>` : ''}
       </div>
-      ${isKO ? `<div id="rs_pen_wrap_${m.id}" style="display:none;margin-top:6px;background:rgba(100,160,255,.08);border:1px solid rgba(100,160,255,.25);border-radius:8px;padding:8px 10px">
-        <div style="font-size:10px;color:rgba(100,160,255,.7);font-weight:700;letter-spacing:1px;margin-bottom:6px">⚡ PENALES</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:11px">
-          <span style="color:var(--text);min-width:60px;text-align:right">${escapeHtml(aHomeName)}</span>
-          <input type="number" min="0" max="30" placeholder="0" id="rs_ph_${m.id}" style="width:38px;background:#111;border:1px solid rgba(100,160,255,.4);color:#adf;border-radius:4px;padding:3px 5px;font-size:13px;font-weight:700;text-align:center"/>
-          <span style="color:rgba(100,160,255,.6);font-weight:700">–</span>
-          <input type="number" min="0" max="30" placeholder="0" id="rs_pa_${m.id}" style="width:38px;background:#111;border:1px solid rgba(100,160,255,.4);color:#adf;border-radius:4px;padding:3px 5px;font-size:13px;font-weight:700;text-align:center"/>
-          <span style="color:var(--text);min-width:60px">${escapeHtml(aAwayName)}</span>
+      ${isKO ? `<div id="rs_pen_wrap_${m.id}" style="display:none;margin-top:6px;background:rgba(100,160,255,.08);border:1px solid rgba(100,160,255,.25);border-radius:8px;padding:8px 12px">
+        <div style="font-size:10px;color:rgba(100,160,255,.7);font-weight:700;letter-spacing:1px;margin-bottom:8px">⚡ GANADOR / WINNER</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;color:var(--text)">
+            <input type="radio" name="rs_winner_${m.id}" id="rs_wh_${m.id}" value="home" style="accent-color:#adf;width:15px;height:15px"/>
+            ${getTeamVisual(aHome)} ${escapeHtml(aHomeName)}
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;color:var(--text)">
+            <input type="radio" name="rs_winner_${m.id}" id="rs_wa_${m.id}" value="away" style="accent-color:#adf;width:15px;height:15px"/>
+            ${getTeamVisual(aAway)} ${escapeHtml(aAwayName)}
+          </label>
         </div>
       </div>` : ''}
       <button class="btn-sm btn-save" id="savebtn_${m.id}" onclick="saveResult('${m.id}')">Save</button>
@@ -5874,11 +5877,11 @@ function renderAdminMatches(){
           if(r.winner){ wEl.value = 'pen'; }
           else { wEl.value = ''; }
           togglePenInputs(m.id);
+          const whEl = document.getElementById('rs_wh_'+m.id);
+          const waEl = document.getElementById('rs_wa_'+m.id);
+          if(whEl) whEl.checked = r.winner === 'home';
+          if(waEl) waEl.checked = r.winner === 'away';
         }
-        const phEl = document.getElementById('rs_ph_'+m.id);
-        const paEl = document.getElementById('rs_pa_'+m.id);
-        if(phEl) phEl.value = (r.penH != null) ? r.penH : '';
-        if(paEl) paEl.value = (r.penA != null) ? r.penA : '';
         markSaveBtnSaved(m.id);
       }
     });
@@ -5918,17 +5921,13 @@ function saveResult(matchId){
     return;
   }
   if(wEl && wEl.value === 'pen'){
-    const ph = parseInt((document.getElementById('rs_ph_'+matchId)||{}).value);
-    const pa = parseInt((document.getElementById('rs_pa_'+matchId)||{}).value);
-    if(!isNaN(ph) && !isNaN(pa) && ph !== pa){
-      result.penH = ph;
-      result.penA = pa;
-      result.winner = ph > pa ? 'home' : 'away';
-    } else if(isNaN(ph) || isNaN(pa)){
-      showToast(currentLang==='es'?'Ingresa el marcador de penales':'Enter the penalty score','error'); return;
-    } else {
-      showToast(currentLang==='es'?'El marcador de penales no puede ser empate':'Penalty score cannot be a draw','error'); return;
+    const whEl = document.getElementById('rs_wh_'+matchId);
+    const waEl = document.getElementById('rs_wa_'+matchId);
+    const winnerVal = (whEl && whEl.checked) ? 'home' : ((waEl && waEl.checked) ? 'away' : null);
+    if(!winnerVal){
+      showToast(currentLang==='es'?'⚡ Selecciona el ganador en penales':'⚡ Select the winner (penalties)','error'); return;
     }
+    result.winner = winnerVal;
   }
   localStorage.setItem('wc2026_result_'+matchId, JSON.stringify(result));
   if(db){
@@ -5977,10 +5976,10 @@ function clearResult(matchId){
   if(aEl) aEl.value = '';
   const wEl = document.getElementById('rs_w_'+matchId);
   if(wEl){ wEl.value = ''; togglePenInputs(matchId); }
-  const phEl = document.getElementById('rs_ph_'+matchId);
-  const paEl = document.getElementById('rs_pa_'+matchId);
-  if(phEl) phEl.value = '';
-  if(paEl) paEl.value = '';
+  const whEl = document.getElementById('rs_wh_'+matchId);
+  const waEl = document.getElementById('rs_wa_'+matchId);
+  if(whEl) whEl.checked = false;
+  if(waEl) waEl.checked = false;
   // Reset save button
   const btn = document.getElementById('savebtn_'+matchId);
   if(btn){
@@ -6592,8 +6591,7 @@ function renderAdminPickViewerContent(){
     let resHtml='', ptsHtml='', ptsBg='rgba(255,255,255,.04)';
     if(res){
       const _hasPen = res.winner && res.scoreH === res.scoreA;
-      const _penStr = (_hasPen && res.penH != null && res.penA != null) ? ` (${res.penH}-${res.penA})` : '';
-      var penNote = _hasPen ? ` <span style="font-size:9px;background:rgba(100,160,255,.25);color:#adf;border-radius:4px;padding:1px 4px">PEN${_penStr}</span>` : '';
+      var penNote = _hasPen ? ` <span style="font-size:9px;background:rgba(100,160,255,.25);color:#adf;border-radius:4px;padding:1px 4px">⚡ PEN</span>` : '';
       resHtml=`<span style="font-size:11px;color:var(--text2)">${res.scoreH}-${res.scoreA}${penNote}</span>`;
       const pts = scoreMatch(m, pick, res);
       runningPts += pts;
@@ -8214,14 +8212,13 @@ function renderBracket(){
       var isWin=ws===side, isLose=ws&&!isWin;
       var score=r2?(isHome?r2.scoreH:r2.scoreA):null;
       var isPen=r2&&r2.winner&&r2.scoreH===r2.scoreA;
-      var penSc=isPen?(isHome?r2.penH:r2.penA):null;
       var flag=known?getTeamVisual(name):'<span style="color:rgba(255,255,255,.2);font-size:11px">?</span>';
       var nameHtml=known?escapeHtml(displayTeamName(name)):'<em style="color:rgba(255,255,255,.25);font-size:11px">'+(es?'A definir':'TBD')+'</em>';
       var scoreHtml='';
       if(score!==null){
-        var pen=penSc!=null?'<span class="bk2-pen-sc"> ('+penSc+')</span>':'';
+        var penTag=isPen&&isWin?'<span class="bk2-pen-sc"> ⚡</span>':'';
         var arr=isWin?'<span class="bk2-arrow"> ◄</span>':'';
-        scoreHtml='<div class="bk2-score-wrap"><span class="bk2-sc">'+score+'</span>'+pen+arr+'</div>';
+        scoreHtml='<div class="bk2-score-wrap"><span class="bk2-sc">'+score+'</span>'+penTag+arr+'</div>';
       }
       return '<div class="bk2-team-row'+(isWin?' bk2-win':'')+(isLose?' bk2-lose':'')+'">'
         +'<span class="bk2-t-flag">'+flag+'</span>'
@@ -8568,9 +8565,8 @@ function renderMyResults(){
             }
 
             const hasPen = res && res.winner && res.scoreH === res.scoreA && !m.closer && !m.final;
-            const penScoreStr = (hasPen && res.penH != null && res.penA != null) ? ` (${res.penH}–${res.penA})` : '';
             const penBadge = hasPen
-              ? ` <span style="font-size:9px;background:rgba(100,160,255,.25);color:#adf;border-radius:4px;padding:1px 4px">PEN${penScoreStr}</span>` : '';
+              ? ` <span style="font-size:9px;background:rgba(100,160,255,.25);color:#adf;border-radius:4px;padding:1px 4px">⚡ PEN</span>` : '';
             const scoreChip = (res && res.scoreH!==undefined && res.scoreA!==undefined && !m.closer && !m.final)
               ? `<span style="background:rgba(212,175,55,.15);border:1px solid var(--gold3);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;color:var(--gold)">${res.scoreH}–${res.scoreA}${penBadge}</span>`
               : '';
