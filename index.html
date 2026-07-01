@@ -1847,12 +1847,13 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
                 <button class="round-tab" onclick="setAdminRound(6)" id="artab6">Round 6</button>
                 <button class="round-tab" onclick="setAdminRound(7)" id="artab7">Round 7</button>
               </div>
-              <div id="adminMatchResults"></div>
-              <div id="adminBulkClearWrap" style="display:none;margin-top:16px;padding:12px;background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.3);border-radius:8px">
-                <div style="font-size:11px;color:#e74c3c;font-weight:700;margin-bottom:8px">⚠️ Resultados guardados en esta jornada</div>
-                <div id="adminBulkClearList" style="font-size:11px;margin-bottom:10px;line-height:1.6"></div>
-                <button onclick="adminBulkClear()" style="background:rgba(192,57,43,.2);border:1px solid #c0392b;color:#e74c3c;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">🗑 Borrar TODOS los resultados de esta jornada</button>
+              <!-- Borrar jornadas 4-7 completas (limpieza de datos erróneos) -->
+              <div id="adminNukeWrap" style="display:none;margin-bottom:14px;padding:10px 12px;background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.35);border-radius:8px">
+                <div style="font-size:11px;color:#e74c3c;font-weight:700;margin-bottom:6px">⚠️ Resultados guardados en esta jornada</div>
+                <div id="adminNukeList" style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.7"></div>
+                <button onclick="adminNukeRound()" style="background:rgba(192,57,43,.2);border:1px solid #c0392b;color:#e74c3c;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer">🗑 Borrar todos</button>
               </div>
+              <div id="adminMatchResults"></div>
             </div>
           </div>
           <!-- Sub-tab: Equipos -->
@@ -5826,240 +5827,216 @@ function setAdminRound(r){
   document.querySelectorAll('[id^="artab"]').forEach(b=>b.classList.remove('active'));
   document.getElementById('artab'+r).classList.add('active');
   renderAdminMatches();
-  // Show bulk-clear panel only on round 4 if those matches have saved results
-  _refreshBulkClearPanel();
 }
 
-function _refreshBulkClearPanel(){
-  const wrap = document.getElementById('adminBulkClearWrap');
-  const listEl = document.getElementById('adminBulkClearList');
-  if(!wrap || !listEl) return;
-  // Show for any round that has saved results
-  const roundMatches = (MATCHES[adminRound]||[]);
-  const withResults = roundMatches.filter(m => _globalResults[m.id] !== undefined);
-  if(withResults.length === 0){ wrap.style.display='none'; return; }
-  listEl.innerHTML = withResults.map(m => {
-    const res = _globalResults[m.id];
-    const scoreStr = res ? res.scoreH+'-'+res.scoreA+(res.winner?' ('+res.winner+')':'') : '';
-    return '<div style="padding:2px 0;color:var(--text2)">• <strong style="color:var(--text)">'+escapeHtml(m.home)+' vs '+escapeHtml(m.away)+'</strong>'
-      +' <span style="color:#e74c3c;font-family:monospace">'+scoreStr+'</span></div>';
-  }).join('');
-  wrap.style.display = 'block';
-}
+// ══════════════════════════════════════════════════════════════
+//  RESULTADOS ADMIN — reescrito desde 0
+//  Modelo Firebase: { scoreH, scoreA, updatedAt, winner? }
+//    winner = 'home' | 'away'  — solo cuando el partido fue a penales
+//    Si scoreH !== scoreA → el marcador decide al ganador (90 min)
+//    Si scoreH === scoreA → OBLIGATORIO tener winner (penales)
+// ══════════════════════════════════════════════════════════════
 
-function adminBulkClear(){
+// ── Borrar TODOS los resultados de la jornada actual ──────────
+function adminNukeRound(){
   if(!adminLoggedIn){ showToast(t('Sin permisos de admin','Not authorized'),'error'); return; }
   const es = currentLang==='es';
-  const roundMatches = (MATCHES[adminRound]||[]);
-  const toClear = roundMatches.filter(m => _globalResults[m.id] !== undefined);
-  if(toClear.length === 0){ showToast(es?'No hay resultados que borrar':'No results to delete','error'); return; }
-  const names = toClear.map(m=>m.home+' vs '+m.away).join('\n  ');
-  if(!confirm((es?'¿Borrar TODOS los resultados de Jornada ':'Delete ALL results for Round ')+adminRound+'?\n\n  '+names+'\n\n'+(es?'Esta acción no se puede deshacer.':'This cannot be undone.'))) return;
-
-  const listEl = document.getElementById('adminBulkClearList');
-  if(listEl) listEl.innerHTML = '<em style="color:var(--text2)">Borrando...</em>';
-
-  let ok=0, fail=0;
-  const total = toClear.length;
-  function _done(matchId, success){
-    if(success) ok++; else fail++;
-    if(ok+fail < total) return;
-    // All attempts finished
-    if(fail===0){
-      showToast((es?'✅ Todos borrados de Firebase — Jornada ':'✅ All deleted from Firebase — Round ')+adminRound,'success');
-    } else {
-      showToast((es?'⚠️ '+ok+' borrados, '+fail+' fallaron — verifica sesión admin':'⚠️ '+ok+' deleted, '+fail+' failed — check admin session'),'error');
-    }
-    recalcAllPoints();
-    renderAdminMatches();
-    _refreshBulkClearPanel();
-  }
-
-  toClear.forEach(m => {
+  const matches = (MATCHES[adminRound]||[]);
+  const saved = matches.filter(m => _globalResults[m.id] != null);
+  if(!saved.length){ showToast(es?'No hay resultados que borrar':'No results to delete','error'); return; }
+  const list = saved.map(m => m.home+' vs '+m.away).join('\n  ');
+  if(!confirm((es?'¿Borrar TODOS los resultados de Jornada ':'Delete ALL results for Round ')+adminRound+'?\n\n  '+list+'\n\n'+(es?'Esta acción no se puede deshacer.':'This cannot be undone.'))) return;
+  let pending = saved.length, errors = 0;
+  saved.forEach(m => {
     const id = m.id;
     localStorage.removeItem('wc2026_result_'+id);
     delete _globalResults[id];
     if(db){
       db.ref('results/'+id).remove()
-        .then(()=>_done(id,true))
-        .catch(()=>_done(id,false));
-    } else {
-      _done(id,true);
-    }
+        .then(()=>{ if(--pending===0) _nukeRoundDone(errors); })
+        .catch(()=>{ errors++; if(--pending===0) _nukeRoundDone(errors); });
+    } else { if(--pending===0) _nukeRoundDone(0); }
   });
 }
+function _nukeRoundDone(errors){
+  const es = currentLang==='es';
+  if(errors===0) showToast((es?'✅ Jornada ':'✅ Round ')+adminRound+(es?' borrada de Firebase':' deleted from Firebase'),'success');
+  else showToast((es?'⚠️ Algunos fallos — verifica sesión admin':'⚠️ Some failures — check admin session'),'error');
+  recalcAllPoints();
+  renderAdminMatches();
+}
 
+// ── Mostrar / ocultar panel de borrado según resultados cargados ─
+function _refreshNukePanel(){
+  const wrap = document.getElementById('adminNukeWrap');
+  const list = document.getElementById('adminNukeList');
+  if(!wrap||!list) return;
+  const saved = (MATCHES[adminRound]||[]).filter(m => _globalResults[m.id] != null);
+  if(!saved.length){ wrap.style.display='none'; return; }
+  list.innerHTML = saved.map(m => {
+    const r = _globalResults[m.id];
+    const score = r.scoreH+'-'+r.scoreA+(r.winner ? ' ('+t('penales','penalties')+': '+r.winner+')' : '');
+    return '• <strong>'+escapeHtml(m.home)+' vs '+escapeHtml(m.away)+'</strong> <span style="color:#e74c3c;font-family:monospace">'+score+'</span>';
+  }).join('<br>');
+  wrap.style.display = 'block';
+}
+
+// ── Renderizar lista de partidos de la jornada activa ──────────
 function renderAdminMatches(){
   const cont = document.getElementById('adminMatchResults');
-  cont.innerHTML='';
-  MATCHES[adminRound].forEach(m=>{
-    const item = document.createElement('div');
-    item.className='admin-match-item';
-    const aHome = customTeamNames[m.id+'_home']||m.home;
-    const aAway = customTeamNames[m.id+'_away']||m.away;
-    const aHomeName = isPlaceholderTeam(aHome)?prettyTeamLabel(aHome):aHome;
-    const aAwayName = isPlaceholderTeam(aAway)?prettyTeamLabel(aAway):aAway;
-    const isKO = isKnockoutMatch(m);
-    item.innerHTML = `
-      <div class="admin-match-teams">${getTeamVisual(aHome)} ${escapeHtml(aHomeName)} <strong>vs</strong> ${escapeHtml(aAwayName)} ${getTeamVisual(aAway)}</div>
-      <div class="admin-score-inputs">
-        <input type="number" min="0" max="20" placeholder="H" id="rs_h_${m.id}" style="width:40px"/>
-        <span style="color:var(--gold);font-weight:700">—</span>
-        <input type="number" min="0" max="20" placeholder="A" id="rs_a_${m.id}" style="width:40px"/>
-        ${isKO ? `<select id="rs_w_${m.id}" onchange="togglePenInputs('${m.id}')" style="background:#1a1a1a;border:1px solid #444;color:var(--text);border-radius:6px;padding:3px 6px;font-size:11px;margin-left:8px">
-          <option value="">90 min</option>
-          <option value="pen">⚡ PEN/ET</option>
-        </select>` : ''}
-      </div>
-      ${isKO ? `<div id="rs_pen_wrap_${m.id}" style="display:none;margin-top:6px;background:rgba(100,160,255,.08);border:1px solid rgba(100,160,255,.25);border-radius:8px;padding:8px 12px">
-        <div style="font-size:11px;color:rgba(100,160,255,.9);font-weight:700;margin-bottom:8px">⚡ ¿Quién ganó en penales?</div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;color:var(--text)">
-            <input type="radio" name="rs_winner_${m.id}" id="rs_wh_${m.id}" value="home" style="accent-color:#adf;width:15px;height:15px"/>
-            ${getTeamVisual(aHome)} ${escapeHtml(aHomeName)}
-          </label>
-          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;color:var(--text)">
-            <input type="radio" name="rs_winner_${m.id}" id="rs_wa_${m.id}" value="away" style="accent-color:#adf;width:15px;height:15px"/>
-            ${getTeamVisual(aAway)} ${escapeHtml(aAwayName)}
-          </label>
-        </div>
-      </div>` : ''}
-      <button class="btn-sm btn-save" id="savebtn_${m.id}" onclick="saveResult('${m.id}')">Save</button>
-      <button class="btn-sm btn-delete" id="clearbtn_${m.id}" onclick="clearResult('${m.id}')" style="display:none">🗑 Clear</button>
-    `;
-    cont.appendChild(item);
+  cont.innerHTML = '';
+  (MATCHES[adminRound]||[]).forEach(m => {
+    const home = customTeamNames[m.id+'_home'] || m.home;
+    const away = customTeamNames[m.id+'_away'] || m.away;
+    const homeName = isPlaceholderTeam(home) ? prettyTeamLabel(home) : home;
+    const awayName = isPlaceholderTeam(away) ? prettyTeamLabel(away) : away;
+    const ko = isKnockoutMatch(m);
+    const div = document.createElement('div');
+    div.className = 'admin-match-item';
+    div.innerHTML =
+      '<div class="admin-match-teams">'+getTeamVisual(home)+' '+escapeHtml(homeName)+' <strong>vs</strong> '+escapeHtml(awayName)+' '+getTeamVisual(away)+'</div>'
+      +'<div class="admin-score-inputs">'
+        +'<input type="number" min="0" max="30" placeholder="H" id="rs_h_'+m.id+'" style="width:44px"/>'
+        +'<span style="color:var(--gold);font-weight:700;margin:0 4px">—</span>'
+        +'<input type="number" min="0" max="30" placeholder="A" id="rs_a_'+m.id+'" style="width:44px"/>'
+        +(ko
+          ? '<select id="rs_w_'+m.id+'" onchange="resTogglePen(\''+m.id+'\')" style="margin-left:10px;background:#1a1a1a;border:1px solid #444;color:var(--text);border-radius:6px;padding:3px 8px;font-size:11px">'
+            +'<option value="">90 min</option>'
+            +'<option value="pen">⚡ Penales</option>'
+            +'</select>'
+          : '')
+      +'</div>'
+      +(ko
+        ? '<div id="rs_pen_'+m.id+'" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(100,160,255,.08);border:1px solid rgba(100,160,255,.25);border-radius:8px">'
+          +'<div style="font-size:11px;font-weight:700;color:rgba(100,160,255,.9);margin-bottom:6px">⚡ ¿Quién ganó en penales?</div>'
+          +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:4px">'
+            +'<input type="radio" name="rs_win_'+m.id+'" id="rs_wh_'+m.id+'" value="home" style="accent-color:#7ab"/>'
+            +getTeamVisual(home)+' '+escapeHtml(homeName)
+          +'</label>'
+          +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer">'
+            +'<input type="radio" name="rs_win_'+m.id+'" id="rs_wa_'+m.id+'" value="away" style="accent-color:#7ab"/>'
+            +getTeamVisual(away)+' '+escapeHtml(awayName)
+          +'</label>'
+          +'</div>'
+        : '')
+      +'<div style="margin-top:8px;display:flex;gap:6px">'
+        +'<button class="btn-sm btn-save" id="rs_save_'+m.id+'" onclick="resSave(\''+m.id+'\')">'+t('Guardar','Save')+'</button>'
+        +'<button class="btn-sm btn-delete" id="rs_del_'+m.id+'" onclick="resClear(\''+m.id+'\')" style="display:none">🗑</button>'
+      +'</div>';
+    cont.appendChild(div);
   });
-  // Load existing results — use live cache first (instant, no flash), fall back to Firebase fetch
-  function _applyAdminResults(results){
-    MATCHES[adminRound].forEach(m=>{
+  // Populate saved results into the form
+  function _fill(results){
+    (MATCHES[adminRound]||[]).forEach(m => {
       const r = results[m.id];
-      if(r){
-        const hEl = document.getElementById('rs_h_'+m.id);
-        const aEl = document.getElementById('rs_a_'+m.id);
-        const wEl = document.getElementById('rs_w_'+m.id);
-        if(hEl) hEl.value = r.scoreH;
-        if(aEl) aEl.value = r.scoreA;
-        if(wEl){
-          if(r.winner){ wEl.value = 'pen'; }
-          else { wEl.value = ''; }
-          togglePenInputs(m.id);
-          const whEl = document.getElementById('rs_wh_'+m.id);
-          const waEl = document.getElementById('rs_wa_'+m.id);
-          if(whEl) whEl.checked = r.winner === 'home';
-          if(waEl) waEl.checked = r.winner === 'away';
-        }
-        markSaveBtnSaved(m.id);
+      if(!r) return;
+      const hEl = document.getElementById('rs_h_'+m.id);
+      const aEl = document.getElementById('rs_a_'+m.id);
+      const wEl = document.getElementById('rs_w_'+m.id);
+      if(hEl) hEl.value = r.scoreH;
+      if(aEl) aEl.value = r.scoreA;
+      if(wEl){
+        wEl.value = r.winner ? 'pen' : '';
+        resTogglePen(m.id);
+        const whEl = document.getElementById('rs_wh_'+m.id);
+        const waEl = document.getElementById('rs_wa_'+m.id);
+        if(whEl) whEl.checked = r.winner === 'home';
+        if(waEl) waEl.checked = r.winner === 'away';
       }
+      _resMarkSaved(m.id);
     });
+    _refreshNukePanel();
   }
   if(Object.keys(_globalResults).length > 0){
-    // Cache already populated — fill instantly with no async delay
-    _applyAdminResults(_globalResults);
+    _fill(_globalResults);
   } else if(db){
-    db.ref('results').once('value').then(snap=>{
-      _applyAdminResults(snap.val()||{});
-    });
+    db.ref('results').once('value').then(s => _fill(s.val()||{}));
   } else {
-    // Offline: load from localStorage
-    const lsResults = {};
-    MATCHES[adminRound].forEach(m=>{
-      const saved = localStorage.getItem('wc2026_result_'+m.id);
-      if(saved) try{ lsResults[m.id] = JSON.parse(saved); }catch(e){}
+    const ls = {};
+    (MATCHES[adminRound]||[]).forEach(m => {
+      try{ const v=localStorage.getItem('wc2026_result_'+m.id); if(v) ls[m.id]=JSON.parse(v); }catch(e){}
     });
-    _applyAdminResults(lsResults);
+    _fill(ls);
   }
-  _refreshBulkClearPanel();
 }
 
-function saveResult(matchId){
+// ── Mostrar/ocultar bloque de penales ─────────────────────────
+function resTogglePen(matchId){
+  const w = document.getElementById('rs_w_'+matchId);
+  const p = document.getElementById('rs_pen_'+matchId);
+  if(p) p.style.display = (w && w.value==='pen') ? 'block' : 'none';
+}
+
+// ── Marcar botón como guardado ────────────────────────────────
+function _resMarkSaved(matchId){
+  const btn = document.getElementById('rs_save_'+matchId);
+  if(btn){ btn.textContent='✅ '+t('Guardado','Saved'); btn.style.cssText+='background:rgba(46,204,113,.2);border-color:#2ECC71;color:#2ECC71'; }
+  const del = document.getElementById('rs_del_'+matchId);
+  if(del) del.style.display='';
+}
+
+// ── Guardar resultado ─────────────────────────────────────────
+function resSave(matchId){
   if(!adminLoggedIn){ showToast(t('Sin permisos de admin','Not authorized'),'error'); return; }
-  const h = parseInt(document.getElementById('rs_h_'+matchId).value);
-  const a = parseInt(document.getElementById('rs_a_'+matchId).value);
-  if(isNaN(h)||isNaN(a)){ showToast(currentLang==='es'?'Ingresa un marcador válido':'Enter valid score','error'); return; }
-  const result = {scoreH:h, scoreA:a, updatedAt:Date.now()};
+  const hEl = document.getElementById('rs_h_'+matchId);
+  const aEl = document.getElementById('rs_a_'+matchId);
+  const h = parseInt(hEl&&hEl.value);
+  const a = parseInt(aEl&&aEl.value);
+  if(isNaN(h)||isNaN(a)||h<0||a<0){ showToast(t('Ingresa un marcador válido','Enter a valid score'),'error'); return; }
+
+  const ko = isKnockoutMatch(findMatch(matchId));
   const wEl = document.getElementById('rs_w_'+matchId);
-  // Knockout match with equal score MUST have a winner (PEN/ET) — without it scoring breaks
-  const matchInfo = findMatch(matchId);
-  if(matchInfo && isKnockoutMatch(matchInfo) && h === a && (!wEl || wEl.value !== 'pen')){
-    showToast(currentLang==='es'
-      ? '⚡ Marcador empatado en partido eliminatorio — selecciona PEN/ET y elige al ganador'
-      : '⚡ Tied score in knockout match — select PEN/ET and set the winner','error');
+  const isPen = ko && wEl && wEl.value==='pen';
+
+  // Partido eliminatorio empatado DEBE tener penales seleccionados
+  if(ko && h===a && !isPen){
+    showToast(t('Marcador empatado en eliminatoria — selecciona Penales y elige ganador',
+               'Tied score in knockout — select Penalties and pick winner'),'error');
     if(wEl) wEl.focus();
     return;
   }
-  if(wEl && wEl.value === 'pen'){
+
+  const result = { scoreH:h, scoreA:a, updatedAt:Date.now() };
+
+  if(isPen){
     const whEl = document.getElementById('rs_wh_'+matchId);
     const waEl = document.getElementById('rs_wa_'+matchId);
-    const winnerVal = (whEl && whEl.checked) ? 'home' : ((waEl && waEl.checked) ? 'away' : null);
-    if(!winnerVal){
-      showToast(currentLang==='es'?'⚡ Selecciona el ganador en penales':'⚡ Select the winner (penalties)','error'); return;
-    }
-    result.winner = winnerVal;
+    const winner = whEl&&whEl.checked ? 'home' : (waEl&&waEl.checked ? 'away' : null);
+    if(!winner){ showToast(t('Selecciona quién ganó en penales','Select who won on penalties'),'error'); return; }
+    result.winner = winner;
   }
+
   localStorage.setItem('wc2026_result_'+matchId, JSON.stringify(result));
   if(db){
-    db.ref('results/'+matchId).set(result).then(function(){
-      markSaveBtnSaved(matchId);
-      showToast(currentLang==='es'?'Resultado guardado ✅':'Result saved ✅','success');
-      recalcAllPoints();
-    }).catch(function(){
-      showToast(t('Error de escritura Firebase — verifica la sesión admin','Firebase write error — check admin session'),'error');
-    });
+    db.ref('results/'+matchId).set(result)
+      .then(()=>{ _resMarkSaved(matchId); showToast(t('Resultado guardado ✅','Result saved ✅'),'success'); recalcAllPoints(); _refreshNukePanel(); })
+      .catch(()=>showToast(t('Error Firebase — verifica sesión admin','Firebase error — check admin session'),'error'));
   } else {
-    markSaveBtnSaved(matchId);
-    showToast(currentLang==='es'?'Guardado local (sin Firebase)':'Saved locally (no Firebase)','success');
+    _resMarkSaved(matchId);
+    showToast(t('Guardado local','Saved locally'),'success');
   }
 }
 
-function togglePenInputs(matchId){
-  const wEl = document.getElementById('rs_w_'+matchId);
-  const wrap = document.getElementById('rs_pen_wrap_'+matchId);
-  if(wrap) wrap.style.display = (wEl && wEl.value === 'pen') ? 'block' : 'none';
-}
-
-function markSaveBtnSaved(matchId){
-  const btn = document.getElementById('savebtn_'+matchId);
-  if(btn){
-    btn.textContent = currentLang==='es'?'✅ Guardado':'✅ Saved';
-    btn.style.background = 'rgba(46,204,113,.25)';
-    btn.style.borderColor = '#2ECC71';
-    btn.style.color = '#2ECC71';
-  }
-  const clr = document.getElementById('clearbtn_'+matchId);
-  if(clr) clr.style.display = '';
-}
-
-function clearResult(matchId){
+// ── Borrar resultado individual ───────────────────────────────
+function resClear(matchId){
   if(!adminLoggedIn){ showToast(t('Sin permisos de admin','Not authorized'),'error'); return; }
-  if(!confirm(currentLang==='es'?'¿Borrar este resultado?':'Delete this result?')) return;
+  if(!confirm(t('¿Borrar este resultado?','Delete this result?'))) return;
   localStorage.removeItem('wc2026_result_'+matchId);
-  if(db) db.ref('results/'+matchId).remove().catch(function(){
-    showToast(t('Error de escritura Firebase — verifica la sesión admin','Firebase write error — check admin session'),'error');
-  });
-  // Reset inputs including penalty section
-  const hEl = document.getElementById('rs_h_'+matchId);
-  const aEl = document.getElementById('rs_a_'+matchId);
-  if(hEl) hEl.value = '';
-  if(aEl) aEl.value = '';
+  delete _globalResults[matchId];
+  if(db) db.ref('results/'+matchId).remove()
+    .catch(()=>showToast(t('Error Firebase — verifica sesión admin','Firebase error — check admin session'),'error'));
+  // Reset form
+  ['rs_h_','rs_a_'].forEach(p=>{ const el=document.getElementById(p+matchId); if(el) el.value=''; });
   const wEl = document.getElementById('rs_w_'+matchId);
-  if(wEl){ wEl.value = ''; togglePenInputs(matchId); }
-  const whEl = document.getElementById('rs_wh_'+matchId);
-  const waEl = document.getElementById('rs_wa_'+matchId);
-  if(whEl) whEl.checked = false;
-  if(waEl) waEl.checked = false;
-  // Reset save button
-  const btn = document.getElementById('savebtn_'+matchId);
-  if(btn){
-    btn.textContent = currentLang==='es'?'Guardar':'Save';
-    btn.style.background = '';
-    btn.style.borderColor = '';
-    btn.style.color = '';
-  }
-  // Hide clear button
-  const clr = document.getElementById('clearbtn_'+matchId);
-  if(clr) clr.style.display = 'none';
-  showToast(currentLang==='es'?'Resultado borrado 🗑':'Result cleared 🗑','success');
+  if(wEl){ wEl.value=''; resTogglePen(matchId); }
+  ['rs_wh_','rs_wa_'].forEach(p=>{ const el=document.getElementById(p+matchId); if(el) el.checked=false; });
+  const btn = document.getElementById('rs_save_'+matchId);
+  if(btn){ btn.textContent=t('Guardar','Save'); btn.style.cssText=btn.style.cssText.replace(/background[^;]*;?|border-color[^;]*;?|color[^;]*;?/g,''); }
+  const del = document.getElementById('rs_del_'+matchId);
+  if(del) del.style.display='none';
+  showToast(t('Resultado borrado 🗑','Result cleared 🗑'),'success');
   recalcAllPoints();
+  _refreshNukePanel();
 }
 
 function recalcAllPoints(){
