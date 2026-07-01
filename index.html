@@ -5908,6 +5908,15 @@ function saveResult(matchId){
   if(isNaN(h)||isNaN(a)){ showToast(currentLang==='es'?'Ingresa un marcador válido':'Enter valid score','error'); return; }
   const result = {scoreH:h, scoreA:a, updatedAt:Date.now()};
   const wEl = document.getElementById('rs_w_'+matchId);
+  // Knockout match with equal score MUST have a winner (PEN/ET) — without it scoring breaks
+  const matchInfo = findMatch(matchId);
+  if(matchInfo && isKnockoutMatch(matchInfo) && h === a && (!wEl || wEl.value !== 'pen')){
+    showToast(currentLang==='es'
+      ? '⚡ Marcador empatado en partido eliminatorio — selecciona PEN/ET y elige al ganador'
+      : '⚡ Tied score in knockout match — select PEN/ET and set the winner','error');
+    if(wEl) wEl.focus();
+    return;
+  }
   if(wEl && wEl.value === 'pen'){
     const ph = parseInt((document.getElementById('rs_ph_'+matchId)||{}).value);
     const pa = parseInt((document.getElementById('rs_pa_'+matchId)||{}).value);
