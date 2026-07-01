@@ -1836,6 +1836,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
           </div>
           <!-- Sub-tab: Resultados -->
           <div id="adminSubTab-resultados">
+            <div id="adminFbAuthStatus" style="display:none;margin-bottom:12px;padding:10px 14px;border-radius:8px;background:rgba(0,0,0,.3);font-size:12px;line-height:1.5"></div>
             <div class="admin-card">
               <h3 data-en="Enter Results" data-es="Ingresar Resultados">Enter Results</h3>
               <div class="round-tabs" style="margin-bottom:16px;flex-wrap:wrap">
@@ -5666,13 +5667,26 @@ async function doAdminLogin(){
 
 function grantAdminUI(){
   adminLoggedIn = true;
-  // Sign into Firebase Auth as admin so security rules allow results/config writes
-  if(firebase && firebase.auth){
-    firebase.auth().signInWithEmailAndPassword(_FB_ADMIN_EMAIL, _FB_ADMIN_PASS)
-      .catch(function(e){ console.warn('Firebase admin auth failed:', e.code); });
-  }
   document.getElementById('adminLogin').classList.add('hidden');
   document.getElementById('adminContent').classList.remove('hidden');
+  // Firebase Auth — required for security rules to allow writes to results/
+  _setFbAuthStatus('connecting');
+  if(firebase && firebase.auth){
+    firebase.auth().signInWithEmailAndPassword(_FB_ADMIN_EMAIL, _FB_ADMIN_PASS)
+      .then(function(){
+        _setFbAuthStatus('ok');
+        showToast(t('🔐 Firebase Auth OK — puedes guardar resultados','🔐 Firebase Auth OK — you can save results'),'success');
+      })
+      .catch(function(e){
+        _setFbAuthStatus('error', e.code);
+        showToast(
+          t('⚠️ Firebase Auth falló ('+e.code+'). Crea el usuario admin en Firebase Console → Authentication → Users',
+            '⚠️ Firebase Auth failed ('+e.code+'). Create admin user in Firebase Console → Authentication → Users'),
+          'error', 8000);
+      });
+  } else {
+    _setFbAuthStatus('error', 'no-firebase');
+  }
   startSecurityMonitor();
   renderAdminMatches();
   renderAdminPlayers();
@@ -5686,6 +5700,24 @@ function grantAdminUI(){
   const fab = document.getElementById('adminPdfBtn');
   if(fab) fab.style.display = 'flex';
   showToast(t('Acceso de administrador concedido 🔓','Admin access granted 🔓'),'success');
+}
+
+function _setFbAuthStatus(status, detail){
+  const el = document.getElementById('adminFbAuthStatus');
+  if(!el) return;
+  if(status==='connecting'){
+    el.innerHTML='<span style="color:#F39C12">⏳ Conectando a Firebase Auth...</span>';
+    el.style.display='block';
+  } else if(status==='ok'){
+    el.innerHTML='<span style="color:#2ECC71">🔐 Firebase Auth: sesión activa — escritura habilitada</span>';
+    el.style.display='block';
+    setTimeout(()=>el.style.display='none', 5000);
+  } else {
+    el.innerHTML='<span style="color:#e74c3c">⛔ Firebase Auth falló'+(detail?' ('+detail+')':'')+'</span>'
+      +'<br><span style="color:var(--text2);font-size:10px">Ve a Firebase Console → Authentication → Users → Add user<br>'
+      +'Email: '+_FB_ADMIN_EMAIL+'</span>';
+    el.style.display='block';
+  }
 }
 
 function adminLogout(){
