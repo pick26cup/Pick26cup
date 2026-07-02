@@ -5454,16 +5454,22 @@ function renderLeaderboard(){
           localStorage.setItem(seenKey, '1');
           const n = myData.streak;
           const nombre = myData.name ? myData.name.trim().split(/\s+/)[0] : 'campeón';
-          const mensajes = [
-            null, null, // 0 y 1 no se usan
-            '¡Muy bien, ' + nombre + '! ¡2 aciertos hoy en el Mundial! ¡Llevas una racha de campeonato, sigue así campeón!',
-            '¡Imparable, ' + nombre + '! ¡3 partidos acertados hoy! ¡Eso es lo que hace un crack mundialista, sigue así!',
-            '¡Increíble, ' + nombre + '! ¡4 de 4 hoy! ¡Estás en racha total! ¡Nadie te para en este Mundial, campeón!',
-            '¡Brutal, ' + nombre + '! ¡5 aciertos en el día! ¡Eres una bestia pronosticando! ¡El Mundial es tuyo, crack!',
-            '¡Legendario, ' + nombre + '! ¡6 partidos acertados hoy! ¡Esto no lo hace cualquiera! ¡Eres el rey del Mundial, campeón!',
-            '¡Histórico, ' + nombre + '! ¡7 de 7 en un solo día! ¡Eres absolutamente imbatible! ¡Campeón del mundo de los pronósticos!',
+          const frases = [
+            '¡Imparable, {n}! ¡{c} aciertos hoy en el Mundial! ¡Sigue así, campeón!',
+            '¡{n}! ¡{c} partidos acertados hoy! ¡Eso es lo que hace un crack mundialista!',
+            '¡Increíble, {n}! ¡Llevas {c} de racha hoy! ¡Nadie te para en este Mundial!',
+            '¡Brutal, {n}! ¡{c} aciertos en el día! ¡Eres una bestia pronosticando, crack!',
+            '¡{n}! ¡{c} partidos y ningún fallo! ¡El Mundial es tuyo, campeón, sigue así!',
+            '¡Legendario, {n}! ¡{c} aciertos hoy! ¡Esto no lo hace cualquiera, eres el rey!',
+            '¡{n}, estás en llamas! ¡{c} aciertos seguidos! ¡Imparable en este Mundial!',
+            '¡Qué crack, {n}! ¡{c} partidos acertados! ¡Sigue así y ganas la copa de pronósticos!',
+            '¡{n}! ¡{c} de racha hoy! ¡Eres un fenómeno mundialista, campeón!',
+            '¡Histórico, {n}! ¡{c} aciertos sin fallar uno! ¡Eres imbatible en este Mundial!',
+            '¡{n}! ¡{c} partidos correctos hoy! ¡Esto es fútbol de alto nivel, crack, sigue así!',
+            '¡Campeón, {n}! ¡{c} aciertos hoy en el Mundial! ¡Nadie te quita esa racha!',
           ];
-          const msg = mensajes[n] || ('¡' + nombre + '! ¡Llevas ' + n + ' aciertos hoy en el Mundial! ¡Estás imparable, campeón, sigue así!');
+          const tpl = frases[Math.floor(Math.random() * frases.length)];
+          const msg = tpl.replace(/\{n\}/g, nombre).replace(/\{c\}/g, n);
           setTimeout(() => speakVoice(msg, {pitch:1.12, rate:0.88}), 900);
         }
       }
