@@ -5357,14 +5357,29 @@ function renderLeaderboard(){
 
       const noSubmit = !hasSubmittedActive;
       const pen = scoringRound ? ((player.penalties||{})[scoringRound] || (player.penalties||{})[String(scoringRound)] || 0) : 0;
-      // ── Racha: partidos correctos consecutivos dentro del round activo ──
+      // ── Racha: días consecutivos (desde el último) con al menos 1 acierto ──
       let streak = 0;
       if(scoringRound && hasSubmittedActive){
         const roundMs = (MATCHES[scoringRound]||[]).filter(m => results && results[m.id]);
-        for(let mi = roundMs.length - 1; mi >= 0; mi--){
-          const res = results[roundMs[mi].id];
-          const pp = playerPickData[roundMs[mi].id];
-          if(!pp || scoreMatch(roundMs[mi], pp, res) < 1) break;
+        // Group completed matches by date (dd/mm)
+        const dayMap = {};
+        roundMs.forEach(function(m){
+          const d = m.date || 'xx';
+          if(!dayMap[d]) dayMap[d] = [];
+          dayMap[d].push(m);
+        });
+        // Unique days in chronological order (matches already in order)
+        const days = [];
+        roundMs.forEach(function(m){ if(!days.includes(m.date)) days.push(m.date); });
+        // Count consecutive correct days from the most recent backwards
+        for(let di = days.length - 1; di >= 0; di--){
+          const dayMs = dayMap[days[di]] || [];
+          const anyCorrect = dayMs.some(function(m){
+            const res = results[m.id];
+            const pp = playerPickData[m.id];
+            return pp && res && scoreMatch(m, pp, res) >= 1;
+          });
+          if(!anyCorrect) break;
           streak++;
         }
       }
