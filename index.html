@@ -5456,14 +5456,14 @@ function renderLeaderboard(){
           const nombre = myData.name ? myData.name.trim().split(/\s+/)[0] : 'campeón';
           const mensajes = [
             null, null, // 0 y 1 no se usan
-            '¡Excelente, ' + nombre + '! ¡Llevas 2 partidos seguidos acertados! ¡Vas por buen camino, campeón!',
-            '¡Increíble, ' + nombre + '! ¡3 partidos consecutivos correctos! ¡Estás en racha, campeón!',
-            '¡Imparable, ' + nombre + '! ¡4 aciertos seguidos! ¡Eres una máquina!',
-            '¡Legendario, ' + nombre + '! ¡5 partidos en racha! ¡Nadie te detiene, campeón!',
-            '¡Fenomenal, ' + nombre + '! ¡6 partidos en racha! ¡Eres un genio del fútbol!',
-            '¡Histórico, ' + nombre + '! ¡7 partidos seguidos! ¡Eres imbatible, campeón!',
+            '¡Muy bien, ' + nombre + '! ¡2 aciertos hoy en el Mundial! ¡Llevas una racha de campeonato, sigue así campeón!',
+            '¡Imparable, ' + nombre + '! ¡3 partidos acertados hoy! ¡Eso es lo que hace un crack mundialista, sigue así!',
+            '¡Increíble, ' + nombre + '! ¡4 de 4 hoy! ¡Estás en racha total! ¡Nadie te para en este Mundial, campeón!',
+            '¡Brutal, ' + nombre + '! ¡5 aciertos en el día! ¡Eres una bestia pronosticando! ¡El Mundial es tuyo, crack!',
+            '¡Legendario, ' + nombre + '! ¡6 partidos acertados hoy! ¡Esto no lo hace cualquiera! ¡Eres el rey del Mundial, campeón!',
+            '¡Histórico, ' + nombre + '! ¡7 de 7 en un solo día! ¡Eres absolutamente imbatible! ¡Campeón del mundo de los pronósticos!',
           ];
-          const msg = mensajes[n] || ('¡Increíble, ' + nombre + '! ¡Llevas ' + n + ' partidos seguidos acertados! ¡Eres imparable, campeón!');
+          const msg = mensajes[n] || ('¡' + nombre + '! ¡Llevas ' + n + ' aciertos hoy en el Mundial! ¡Estás imparable, campeón, sigue así!');
           setTimeout(() => speakVoice(msg, {pitch:1.12, rate:0.88}), 900);
         }
       }
