@@ -5357,30 +5357,29 @@ function renderLeaderboard(){
 
       const noSubmit = !hasSubmittedActive;
       const pen = scoringRound ? ((player.penalties||{})[scoringRound] || (player.penalties||{})[String(scoringRound)] || 0) : 0;
-      // ── Racha: días consecutivos (desde el último) con al menos 1 acierto ──
+      // ── Racha: aciertos del día más reciente con resultados (se pierde con 1 fallo) ──
       let streak = 0;
       if(scoringRound && hasSubmittedActive){
         const roundMs = (MATCHES[scoringRound]||[]).filter(m => results && results[m.id]);
-        // Group completed matches by date (dd/mm)
+        // Group by day and find the most recent day
         const dayMap = {};
+        const days = [];
         roundMs.forEach(function(m){
           const d = m.date || 'xx';
-          if(!dayMap[d]) dayMap[d] = [];
+          if(!dayMap[d]) { dayMap[d] = []; days.push(d); }
           dayMap[d].push(m);
         });
-        // Unique days in chronological order (matches already in order)
-        const days = [];
-        roundMs.forEach(function(m){ if(!days.includes(m.date)) days.push(m.date); });
-        // Count consecutive correct days from the most recent backwards
-        for(let di = days.length - 1; di >= 0; di--){
-          const dayMs = dayMap[days[di]] || [];
-          const anyCorrect = dayMs.some(function(m){
+        const lastDay = days[days.length - 1];
+        if(lastDay){
+          let correct = 0, lost = false;
+          (dayMap[lastDay]||[]).forEach(function(m){
             const res = results[m.id];
             const pp = playerPickData[m.id];
-            return pp && res && scoreMatch(m, pp, res) >= 1;
+            if(!pp || !res) return; // sin predicción — no suma ni resta
+            if(scoreMatch(m, pp, res) >= 1) correct++;
+            else lost = true; // pick enviado pero incorrecto → se pierde racha
           });
-          if(!anyCorrect) break;
-          streak++;
+          streak = lost ? 0 : correct;
         }
       }
       ranked.push({name:player.name||key, pts, exact, close, closeOver, near, result, key, noSubmit, avatar:player.avatar||null, tb, penalty:pen, streak, country:player.country||null});
