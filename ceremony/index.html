@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#000000">
+  <title>FIFA World Cup 2026 — Champion Ceremony</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Champion data — override before scripts load -->
+  <script>
+    window.WC_CHAMPION = {
+      player:  'JOHN ALVARADO',   // ← player name
+      country: 'COLOMBIA',        // ← country
+      flag:    '🇨🇴',             // ← flag emoji
+      year:    2026,
+      lang:    'es',              // 'es' or 'en'
+      onComplete: null,           // callback when CONTINUE is clicked
+    };
+  </script>
+</head>
+<body>
+
+<!-- ── Three.js WebGL canvas ── -->
+<canvas id="glCanvas"></canvas>
+
+<!-- ── 2D FX canvases ── -->
+<canvas id="fireworksCanvas"></canvas>
+<canvas id="confettiCanvas"></canvas>
+
+<!-- ── UI overlay ── -->
+<div id="ui">
+
+  <!-- Vignette -->
+  <div id="vignette"></div>
+
+  <!-- Lens flare -->
+  <div id="lensFlare"></div>
+
+  <!-- Scene dimmer (for champion reveal) -->
+  <div id="dimmer"></div>
+
+  <!-- ── Phase: FIFA Logo ── -->
+  <div id="logoPhase">
+    <div id="logo">
+      <div id="logoFifa">FIFA</div>
+      <div id="logoWorldCup">WORLD CUP</div>
+      <div id="logoYear">2026</div>
+    </div>
+  </div>
+
+  <!-- ── Phase: Champion reveal ── -->
+  <div id="championPhase">
+    <div id="spotlight"></div>
+
+    <div id="playerName"></div>
+    <div id="champTitle"></div>
+
+    <div id="countryWrap">
+      <span id="countryFlag"></span>
+      <span id="countryName"></span>
+    </div>
+
+    <div id="cupLine">FIFA WORLD CUP 2026</div>
+
+    <div id="starsWrap">
+      <div id="starsTop">★★★★★</div>
+      <div id="legendaryTitle">LEGENDARY MANAGER</div>
+      <div id="starsBot">★★★★★</div>
+    </div>
+
+    <button id="continueBtn" onclick="WC.App.finish()">▶ CONTINUE</button>
+  </div>
+
+</div><!-- /#ui -->
+
+<!-- ── Loading screen ── -->
+<div id="loadScreen">
+  <div class="load-ring"></div>
+  <div class="load-label">LOADING CEREMONY</div>
+</div>
+
+<!-- ── Skip hint ── -->
+<div id="skipHint">Press S to skip · Triple-tap to skip</div>
+
+<!-- ── CDN: Three.js + GSAP ── -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+
+<!-- ── Our modules (order matters) ── -->
+<script src="utils.js"></script>
+<script src="assets.js"></script>
+<script src="audio.js"></script>
+<script src="confetti.js"></script>
+<script src="fireworks.js"></script>
+<script src="camera.js"></script>
+<script src="animation.js"></script>
+<script src="ui.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>

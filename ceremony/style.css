@@ -1,0 +1,339 @@
+/* ── style.css ── Pick26 World Cup Ceremony ── */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold:       #D4AF37;
+  --gold-light: #FFF176;
+  --gold-bright:#FFD700;
+  --gold-dark:  #8B6914;
+  --black:      #000000;
+  --white:      #F4F0E8;
+  --blue-fill:  #1a1a2e;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--black);
+  color: var(--white);
+  -webkit-font-smoothing: antialiased;
+  cursor: default;
+  user-select: none;
+}
+
+/* ── Canvases ── */
+#glCanvas {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+  filter: contrast(1.08) saturate(1.1);
+}
+
+#fireworksCanvas {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 2; pointer-events: none;
+}
+
+#confettiCanvas {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 3; pointer-events: none;
+}
+
+/* ── UI layer ── */
+#ui {
+  position: fixed; inset: 0;
+  z-index: 10; pointer-events: none;
+}
+
+/* ── Vignette ── */
+#vignette {
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse 70% 70% at 50% 50%, transparent 30%, rgba(0,0,0,.72) 100%);
+  z-index: 4; pointer-events: none;
+}
+
+/* ── Lens flare ── */
+#lensFlare {
+  position: fixed;
+  top: 28%; left: 50%; transform: translateX(-50%);
+  width: min(380px,65vw); height: 5px;
+  background: linear-gradient(90deg, transparent, rgba(255,248,180,.85), transparent);
+  filter: blur(4px);
+  opacity: 0; z-index: 5; pointer-events: none;
+  border-radius: 50%;
+}
+
+/* ── Scene dimmer ── */
+#dimmer {
+  position: fixed; inset: 0;
+  background: #000;
+  z-index: 8; pointer-events: none;
+  opacity: 0; display: none;
+}
+
+/* ══════════════════════════════════
+   LOGO PHASE
+═══════════════════════════════════ */
+#logoPhase {
+  position: absolute; inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 11;
+}
+
+#logo {
+  text-align: center;
+  filter: drop-shadow(0 0 40px rgba(212,175,55,.7));
+}
+
+#logoFifa {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: clamp(52px, 11vw, 108px);
+  letter-spacing: .35em;
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold-bright) 30%, var(--gold) 65%, var(--gold-dark) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+#logoWorldCup {
+  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+  font-weight: 300;
+  font-size: clamp(20px, 4.5vw, 44px);
+  letter-spacing: .55em;
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 60%, var(--gold-dark) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin: 4px 0;
+}
+
+#logoYear {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: clamp(80px, 22vw, 220px);
+  letter-spacing: .12em;
+  line-height: .88;
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold-bright) 25%, var(--gold) 60%, var(--gold-dark) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  filter: drop-shadow(0 0 28px rgba(212,175,55,.6));
+}
+
+/* ══════════════════════════════════
+   CHAMPION PHASE
+═══════════════════════════════════ */
+#championPhase {
+  position: absolute; inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  z-index: 12;
+  pointer-events: all;
+  padding: 20px;
+}
+
+/* Spotlight cone */
+#spotlight {
+  position: absolute;
+  top: -60px; left: 50%;
+  transform: translateX(-50%);
+  width: min(360px, 58vw);
+  height: 115vh;
+  background: radial-gradient(ellipse 48% 42% at 50% 0%,
+    rgba(255,245,190,.14) 0%,
+    rgba(212,175,55,.06) 35%,
+    transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Player name ── */
+#playerName {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: clamp(38px, 9vw, 96px);
+  letter-spacing: .12em;
+  text-align: center;
+  z-index: 1;
+  line-height: 1;
+  padding: 0 12px;
+  min-height: 1.1em;
+  text-wrap: balance;
+}
+
+/* ── CHAMPION OF THE WORLD ── */
+#champTitle {
+  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+  font-weight: 600;
+  font-size: clamp(16px, 3.8vw, 40px);
+  letter-spacing: .28em;
+  color: rgba(244,240,232,.92);
+  text-align: center;
+  z-index: 1;
+  text-shadow: 0 0 24px rgba(255,255,255,.45);
+  text-wrap: balance;
+  display: none;
+  min-height: 1.2em;
+}
+
+/* ── Country ── */
+#countryWrap {
+  display: none;
+  align-items: center;
+  gap: 14px;
+  z-index: 1;
+}
+
+#countryFlag {
+  font-size: clamp(36px, 7vw, 64px);
+  line-height: 1;
+  display: inline-block;
+}
+
+#countryName {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: clamp(26px, 6vw, 60px);
+  letter-spacing: .18em;
+  min-height: 1.1em;
+}
+
+/* ── Cup line ── */
+#cupLine {
+  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+  font-weight: 300;
+  font-size: clamp(11px, 2.4vw, 20px);
+  letter-spacing: .45em;
+  color: rgba(212,175,55,.65);
+  z-index: 1;
+  text-align: center;
+  display: none;
+  margin-top: 2px;
+}
+
+/* ── Stars + Legendary Manager ── */
+#starsWrap {
+  text-align: center;
+  z-index: 1;
+  margin-top: 6px;
+  display: none;
+}
+
+#starsTop, #starsBot {
+  font-size: clamp(18px, 4.2vw, 38px);
+  color: var(--gold-bright);
+  letter-spacing: .25em;
+  text-shadow: 0 0 14px var(--gold-bright), 0 0 30px var(--gold);
+  line-height: 1.3;
+}
+
+#legendaryTitle {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: clamp(18px, 4.5vw, 46px);
+  letter-spacing: .32em;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold-bright), var(--gold-light), var(--gold-bright), var(--gold-dark));
+  background-size: 200% auto;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: shimmer 3s linear infinite;
+  margin: 2px 0;
+  text-align: center;
+}
+
+@keyframes shimmer {
+  from { background-position: 200% center; }
+  to   { background-position: -200% center; }
+}
+
+/* ── Continue button ── */
+#continueBtn {
+  display: none;
+  margin-top: 18px;
+  padding: 13px 52px;
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: clamp(20px, 3.8vw, 30px);
+  letter-spacing: .28em;
+  color: #1a0d00;
+  background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-bright) 50%, var(--gold-dark) 100%);
+  border: 2px solid var(--gold-bright);
+  border-radius: 5px;
+  cursor: pointer;
+  pointer-events: all;
+  box-shadow: 0 0 18px rgba(212,175,55,.6), 0 0 40px rgba(212,175,55,.25);
+  animation: btnPulse 2.2s ease-in-out infinite;
+  transition: transform .14s, box-shadow .14s;
+  z-index: 1;
+}
+
+#continueBtn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 0 32px rgba(212,175,55,.9), 0 0 64px rgba(212,175,55,.4);
+}
+
+#continueBtn:active { transform: scale(.98); }
+
+@keyframes btnPulse {
+  0%,100% { box-shadow: 0 0 18px rgba(212,175,55,.6), 0 0 40px rgba(212,175,55,.25); }
+  50%      { box-shadow: 0 0 32px rgba(212,175,55,.9), 0 0 60px rgba(212,175,55,.4); }
+}
+
+/* ── Reveal letter spans ── */
+.rl {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(30px) scale(.7);
+  white-space: pre;
+}
+
+.rl-gold {
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold-bright) 28%, var(--gold) 58%, var(--gold-dark) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  filter: drop-shadow(0 0 7px rgba(212,175,55,.75));
+}
+
+.rl-white {
+  color: rgba(244,240,232,.93);
+  text-shadow: 0 0 18px rgba(255,255,255,.4);
+}
+
+/* ── Loading screen ── */
+#loadScreen {
+  position: fixed; inset: 0;
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 22px;
+  z-index: 9999;
+}
+
+.load-ring {
+  width: 52px; height: 52px;
+  border: 3px solid rgba(212,175,55,.2);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin .85s linear infinite;
+}
+
+.load-label {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: 14px;
+  letter-spacing: .4em;
+  color: rgba(212,175,55,.55);
+}
+
+/* ── Skip hint ── */
+#skipHint {
+  position: fixed; bottom: 20px; right: 20px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  letter-spacing: .15em;
+  color: rgba(255,255,255,.22);
+  z-index: 9998;
+  pointer-events: none;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001s !important; transition-duration: .001s !important; }
+}
