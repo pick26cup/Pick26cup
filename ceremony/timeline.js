@@ -1,129 +1,107 @@
-/* ── timeline.js ── ceremony sequence ── */
+function runTimeline() {
+  const tl = gsap.timeline();
 
-async function runTimeline(){
-  await wait(300);
-  Audio.resume();
-  Audio.playCrowd(0.4);
-  await wait(600);
+  /* ── Logo appears ── */
+  tl.to('#logo', { opacity: 1, duration: 2, ease: 'power2.out' });
+  tl.to({}, { duration: 1 });
 
-  Audio.speak('Ladies and gentlemen… welcome. Tonight, history is made.',{rate:.82,pitch:.94});
-  await wait(2200);
+  /* ── Stadium + fireworks ── */
+  tl.call(() => {
+    cameraCtrl.stadium();
+    particles.showStadium();
+    particles.spinStadium();
+    _fwLoop = setInterval(() => particles.launchRandom(), 1800);
+  });
+  tl.to({}, { duration: 3 });
 
-  /* ── Logo phase ── */
-  await _showLogo();
-  await wait(1300);
+  /* ── Flash + confetti burst ── */
+  tl.call(() => {
+    clearInterval(_fwLoop);
+    _flash();
+    Audio.resume();
+    Audio.playBoom(0.6);
+    cameraCtrl.shake(0.6, 0.8);
+    particles.showConfetti();
+    for (let i = 0; i < 5; i++) setTimeout(() => particles.launchRandom(), i * 200);
+    _fwLoop = setInterval(() => particles.launchRandom(), 1000);
+  });
+  tl.to({}, { duration: 2 });
 
-  /* ── Stadium ── */
-  await _showStadium();
-  await wait(2400);
+  /* ── Trophy camera + fanfare ── */
+  tl.call(() => {
+    clearInterval(_fwLoop);
+    cameraCtrl.trophy();
+    Audio.playFanfare();
+    Audio.playChord(0.35);
+    _fwLoop = setInterval(() => particles.launchRandom(), 2500);
+  });
+  tl.to({}, { duration: 3 });
 
-  /* ── Tunnel / approach ── */
-  await _showTunnel();
-  await wait(1700);
+  /* ── Logo fades, name types in ── */
+  tl.to('#logo', { opacity: 0, duration: 1 });
+  tl.call(() => _typeName());
+  tl.to({}, { duration: (champion.player.length * 120 + 800) / 1000 });
 
-  /* ── Flash explosion ── */
-  await _showExplosion();
-  await wait(2600);
+  /* ── Subtitle ── */
+  tl.call(() => Audio.playChord(0.18));
+  tl.to('#subtitle', { opacity: 1, duration: 0.8 });
+  tl.call(() => {
+    document.getElementById('subtitle').textContent =
+      champion.lang === 'es' ? 'CAMPEÓN DEL MUNDO' : 'CHAMPION OF THE WORLD';
+  });
+  tl.to({}, { duration: 1.2 });
 
-  /* ── Crowd surge ── */
-  await _showCrowdSurge();
-  await wait(3600);
+  /* ── Country ── */
+  tl.to('#country', { opacity: 1, duration: 0.8 });
+  tl.call(() => {
+    document.getElementById('country').textContent = champion.flag + '  ' + champion.country;
+  });
+  tl.to({}, { duration: 1 });
 
-  /* ── Trophy reveal ── */
-  await _showTrophy();
-  await wait(4000);
+  /* ── Orbit + final fanfare ── */
+  tl.call(() => {
+    cameraCtrl.stopOrbit();
+    cameraCtrl.orbit(8, 4);
+    Audio.playFanfare();
+    for (let i = 0; i < 4; i++) setTimeout(() => particles.launchRandom(), i * 300);
+  });
+  tl.to({}, { duration: 1.5 });
 
-  /* ── Orbit + rain ── */
-  await _showOrbit();
-  await wait(2000);
-
-  /* ── Champion reveal ── */
-  await UI.showChampion();
+  /* ── Continue button ── */
+  tl.to('#btn', { opacity: 1, duration: 1.2, ease: 'back.out(1.7)' });
+  tl.call(() => {
+    document.getElementById('btn').onclick = () => {
+      clearInterval(_fwLoop);
+      if (champion.onComplete) champion.onComplete();
+      gsap.to('body', {
+        opacity: 0, duration: 0.8,
+        onComplete: () => { if (history.length > 1) history.back(); }
+      });
+    };
+  });
 }
 
-/* ── Logo ── */
-async function _showLogo(){
-  const ph=document.getElementById('logoPhase');
-  ph.style.display='flex'; ph.style.opacity=0;
-  gsap.to(ph,{opacity:1,duration:1.8,ease:'power2.out'});
-  await wait(350);
-  gsap.from('#logoFifa',{y:-50,opacity:0,duration:1,ease:'back.out(1.7)'});
-  await wait(160);
-  gsap.from('#logoWC',{y:-50,opacity:0,duration:1,ease:'back.out(1.7)'});
-  await wait(160);
-  gsap.from('#logoYear',{scale:.3,opacity:0,duration:1.2,ease:'back.out(1.4)'});
-  await wait(700);
-  Audio.playChord(.14);
-  particles.launchRandom();
-}
-
-/* ── Aerial stadium ── */
-async function _showStadium(){
-  gsap.to('#logoPhase',{opacity:0,duration:1.2});
-  particles.showStadium();
-  particles.spinStadium();
-  cameraCtrl.aerial();
-  scene.fog.density=0.006;
-  _fwInterval=setInterval(()=>particles.launchRandom(),1800);
-}
-
-/* ── Tunnel ── */
-async function _showTunnel(){
-  clearInterval(_fwInterval);
-  scene.fog.density=0.04;
-  cameraCtrl.tunnel();
-  Audio.playBoom(0.28);
-  await wait(600);
-  scene.fog.density=0.003;
-}
-
-/* ── White flash explosion ── */
-async function _showExplosion(){
-  const fl=document.createElement('div');
-  fl.style.cssText='position:fixed;inset:0;background:#fff;z-index:9999;opacity:0;pointer-events:none';
+/* ── White flash overlay ── */
+function _flash() {
+  const fl = document.createElement('div');
+  fl.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:9999;pointer-events:none;opacity:0';
   document.body.appendChild(fl);
-  await new Promise(r=>gsap.to(fl,{opacity:1,duration:.1,onComplete:r}));
-  Audio.playBoom(0.65);
-  cameraCtrl.shake(0.7,.9);
-  for(let i=0;i<4;i++) particles.launchRandom();
-  particles.showConfetti();
-  gsap.to(fl,{opacity:0,duration:.5,delay:.06,onComplete:()=>fl.remove()});
-  scene.fog.density=0.004;
+  gsap.to(fl, { opacity: 1, duration: 0.08, onComplete: () =>
+    gsap.to(fl, { opacity: 0, duration: 0.4, onComplete: () => fl.remove() })
+  });
 }
 
-/* ── Crowd surge + fanfare ── */
-async function _showCrowdSurge(){
-  Audio.setCrowdVol(.55,1.5);
-  Audio.playFanfare();
-  for(let i=0;i<5;i++) setTimeout(()=>particles.launchRandom(),i*200);
-  clearInterval(_fwInterval);
-  _fwInterval=setInterval(()=>particles.launchRandom(),1000);
+/* ── Letter-by-letter name type-in ── */
+function _typeName() {
+  const el = document.getElementById('name');
+  el.innerHTML = '';
+  el.style.opacity = 1;
+  let i = 0;
+  const t = setInterval(() => {
+    el.innerHTML += champion.player[i];
+    i++;
+    if (i >= champion.player.length) clearInterval(t);
+  }, 120);
 }
 
-/* ── Trophy reveal ── */
-async function _showTrophy(){
-  clearInterval(_fwInterval);
-  _fwInterval=setInterval(()=>particles.launchRandom(),2600);
-  Audio.playChord(.42);
-  Audio.playFanfare();
-  cameraCtrl.shake(.35);
-  cameraCtrl.trophy();
-  if(trophy){
-    trophy.visible=true; trophy.scale.setScalar(0); trophy.position.y=-3;
-    gsap.to(trophy.scale,{x:.55,y:.55,z:.55,duration:2.2,ease:'back.out(1.5)'});
-    gsap.to(trophy.position,{y:.3,duration:2.2,ease:'back.out(1.4)'});
-    gsap.to(trophy.rotation,{y:Math.PI*2,duration:8,ease:'none',repeat:-1});
-    if(spotLight) gsap.to(spotLight,{intensity:10,duration:1.8});
-    if(glowLight) gsap.to(glowLight,{intensity:5,duration:2});
-  }
-  for(let i=0;i<4;i++) setTimeout(()=>particles.launchRandom(),i*300);
-  setTimeout(()=>Audio.playFanfare(),700);
-}
-
-/* ── Orbit ── */
-async function _showOrbit(){
-  cameraCtrl.stopOrbit();
-  cameraCtrl.orbit(10,5);
-}
-
-let _fwInterval=null;
+let _fwLoop = null;

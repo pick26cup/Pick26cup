@@ -64,6 +64,7 @@ const Audio = {
     }
   },
 
+  play(){ this.playCrowd(0.4); },
   playFanfare(){ this._orchestralFanfare(); },
   playChord(vol=0.28){ this._orchestralChord(vol); },
   playBoom(vol=0.5){ this._boom(vol); },
