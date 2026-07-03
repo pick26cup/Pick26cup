@@ -44,41 +44,91 @@ trophyGroup.visible = false;
 scene.add(trophyGroup);
 
 (function buildTrophy() {
+  const S = 1.1; // overall scale factor
+
   const gold = new THREE.MeshStandardMaterial({
-    color: 0xffd700, metalness: 0.96, roughness: 0.06,
-    emissive: 0xffaa00, emissiveIntensity: 0.18
+    color: 0xffd700, metalness: 0.97, roughness: 0.05,
+    emissive: 0xdd8800, emissiveIntensity: 0.12
+  });
+  const globeMat = new THREE.MeshStandardMaterial({
+    color: 0x44aaff, metalness: 0.3, roughness: 0.4,
+    emissive: 0x002244, emissiveIntensity: 0.3
+  });
+  const globeLineMat = new THREE.MeshStandardMaterial({
+    color: 0x88ddff, metalness: 0.2, roughness: 0.5
   });
 
-  // Cup profile (World Cup style silhouette)
-  const profile = [
-    [0.02, 0.00], [0.52, 0.08], [0.62, 0.18], [0.52, 0.28],
-    [0.12, 0.36], [0.10, 0.80], [0.13, 0.88],
-    [0.32, 1.05], [0.58, 1.40], [0.78, 1.82],
-    [0.74, 2.08], [0.58, 2.20], [0.46, 2.24], [0.02, 2.26]
-  ].map(([x,y]) => new THREE.Vector2(x * 1.4, y * 1.4));
+  // ── Body (LatheGeometry) ─────────────────────────────────────────
+  // Realistic WC-trophy profile: stepped base → thin stem → flared cup → open rim
+  const pts = [
+    // base platform
+    [0.02, 0.00],
+    [0.68, 0.00], [0.70, 0.04], [0.70, 0.14], [0.68, 0.18],
+    // first step
+    [0.54, 0.24], [0.54, 0.32], [0.50, 0.36],
+    // second step
+    [0.38, 0.42], [0.38, 0.48],
+    // taper to stem
+    [0.16, 0.58], [0.11, 0.68],
+    // stem
+    [0.10, 0.96], [0.11, 1.04],
+    // stem-to-cup junction
+    [0.18, 1.12], [0.28, 1.22],
+    // cup bowl — flares outward
+    [0.50, 1.48], [0.72, 1.82],
+    [0.90, 2.18], [0.96, 2.52],
+    // rim
+    [0.94, 2.68], [0.82, 2.76],
+    // inner rim / opening
+    [0.62, 2.80], [0.26, 2.82], [0.02, 2.82]
+  ].map(([x, y]) => new THREE.Vector2(x * S, y * S));
 
-  trophyGroup.add(new THREE.Mesh(new THREE.LatheGeometry(profile, 48), gold));
+  trophyGroup.add(new THREE.Mesh(new THREE.LatheGeometry(pts, 64), gold));
 
-  // Handles
-  const handleGeo = new THREE.TorusGeometry(0.30, 0.045, 8, 18, Math.PI);
+  // ── Handles ──────────────────────────────────────────────────────
+  // Positioned at the widest mid-cup area (~y=2.0)
+  const hGeo = new THREE.TorusGeometry(0.30 * S, 0.048 * S, 10, 24, Math.PI);
   [-1, 1].forEach(side => {
-    const h = new THREE.Mesh(handleGeo, gold);
-    h.position.set(side * 0.72 * 1.4, 1.58 * 1.4, 0);
-    h.rotation.z = side * Math.PI / 2;
-    h.rotation.y = Math.PI / 2;
+    const h = new THREE.Mesh(hGeo, gold);
+    h.position.set(side * 0.88 * S, 2.10 * S, 0);
+    h.rotation.z = side > 0 ? Math.PI / 2 : -Math.PI / 2;
     trophyGroup.add(h);
   });
 
-  // Pedestal base
-  const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 1.05, 0.22, 32), gold);
-  pedestal.position.y = -0.11;
-  trophyGroup.add(pedestal);
+  // ── Globe on top ─────────────────────────────────────────────────
+  const globeR = 0.38 * S;
+  const globe = new THREE.Mesh(new THREE.SphereGeometry(globeR, 32, 24), globeMat);
+  globe.position.y = (2.82 + 0.35) * S;
+  trophyGroup.add(globe);
 
-  // Trophy light (tight gold spot above it)
-  const tl = new THREE.PointLight(0xffd700, 0, 12);
-  tl.position.set(0, 6, 1);
-  scene.add(tl);
-  trophyGroup.userData.light = tl;
+  // Latitude lines on globe
+  for (let lat = -60; lat <= 60; lat += 30) {
+    const y   = Math.sin(lat * Math.PI / 180) * globeR;
+    const r   = Math.cos(lat * Math.PI / 180) * globeR;
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(r, 0.008 * S, 4, 32),
+      globeLineMat
+    );
+    ring.position.y = globe.position.y + y;
+    trophyGroup.add(ring);
+  }
+  // Two meridian lines
+  for (let i = 0; i < 2; i++) {
+    const mer = new THREE.Mesh(
+      new THREE.TorusGeometry(globeR, 0.008 * S, 4, 48),
+      globeLineMat
+    );
+    mer.position.y = globe.position.y;
+    mer.rotation.y = i * Math.PI / 2;
+    mer.rotation.x = Math.PI / 2;
+    trophyGroup.add(mer);
+  }
+
+  // ── Trophy spot light ─────────────────────────────────────────────
+  const spotLight = new THREE.PointLight(0xffd700, 0, 14);
+  spotLight.position.set(0, 7, 2);
+  scene.add(spotLight);
+  trophyGroup.userData.light = spotLight;
 })();
 
 // ─── STADIUM (ring of crowd lights) ─────────────────────────────────
