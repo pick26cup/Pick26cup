@@ -42,7 +42,7 @@
     /* ── Stadium particle bowl ── */
     _buildStadium(){
       const mobile = WC.Utils.isMobile();
-      const N = mobile ? 6000 : 18000;
+      const N = mobile ? 3500 : 14000;
       const pos=new Float32Array(N*3), col=new Float32Array(N*3);
 
       for(let i=0;i<N;i++){
@@ -137,51 +137,49 @@
        THE CINEMATIC SEQUENCE
     ═══════════════════════════════════════════*/
     async runSequence(){
-      const U = WC.Utils, W = window.innerWidth, H = window.innerHeight;
+      const U = WC.Utils;
 
-      /* ── 0s: Black, crowd fades in ── */
-      await U.wait(600);
+      /* ── Black, crowd fades in ── */
+      await U.wait(300);
       WC.Audio.resume();
-      WC.Audio.playCrowd(0.12);
+      WC.Audio.playCrowd(0.14);
+      await U.wait(700);
 
-      await U.wait(1200);
-
-      /* Narration */
       WC.Audio.speak(
         'Ladies and gentlemen… welcome. Tonight, history is made.',
-        {rate:0.80, pitch:0.94}
+        {rate:0.82, pitch:0.94}
       );
-      await U.wait(4000);
+      await U.wait(2500);
 
-      /* ── 3s: FIFA logo appears ── */
+      /* ── FIFA logo ── */
       await this._showLogo();
-      await U.wait(2200);
+      await U.wait(1400);
 
-      /* ── 5s: Aerial stadium ── */
+      /* ── Aerial stadium ── */
       await this._showStadium();
+      await U.wait(2600);
+
+      /* ── Tunnel ── */
+      await this._showTunnel();
+      await U.wait(1800);
+
+      /* ── Explosion ── */
+      await this._showExplosion();
+      await U.wait(2800);
+
+      /* ── Crowd surge ── */
+      await this._showCrowdSurge();
+      await U.wait(3800);
+
+      /* ── Trophy reveal ── */
+      await this._showTrophy();
       await U.wait(4200);
 
-      /* ── 10s: Tunnel ── */
-      await this._showTunnel();
-      await U.wait(3200);
-
-      /* ── 15s: Explosion ── */
-      await this._showExplosion();
-      await U.wait(4500);
-
-      /* ── 20s: Crowd surge ── */
-      await this._showCrowdSurge();
-      await U.wait(6500);
-
-      /* ── 28s: Trophy reveal ── */
-      await this._showTrophy();
-      await U.wait(6200);
-
-      /* ── 35s: Orbit ── */
+      /* ── Orbit ── */
       await this._showOrbit();
-      await U.wait(4500);
+      await U.wait(2200);
 
-      /* ── 40s: Champion reveal ── */
+      /* ── Champion reveal ── */
       await WC.UI.showChampion();
     },
 

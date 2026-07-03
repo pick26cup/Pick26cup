@@ -20,8 +20,24 @@ html, body {
   background: var(--black);
   color: var(--white);
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
   cursor: default;
   user-select: none;
+  touch-action: none; /* prevent scroll/zoom from blocking animation frame */
+}
+
+/* Ambient background pulse — very subtle, behind everything */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 100%,
+    rgba(100,60,0,.18) 0%, transparent 70%);
+  animation: ambientPulse 4s ease-in-out infinite alternate;
+  z-index: 0; pointer-events: none;
+}
+@keyframes ambientPulse {
+  from { opacity: .5; }
+  to   { opacity: 1; }
 }
 
 /* ── Canvases ── */
@@ -29,19 +45,22 @@ html, body {
   position: fixed; inset: 0;
   width: 100%; height: 100%;
   z-index: 1;
-  filter: contrast(1.08) saturate(1.1);
+  filter: contrast(1.1) saturate(1.2) brightness(1.05);
+  touch-action: none;
 }
 
 #fireworksCanvas {
   position: fixed; inset: 0;
   width: 100%; height: 100%;
   z-index: 2; pointer-events: none;
+  touch-action: none;
 }
 
 #confettiCanvas {
   position: fixed; inset: 0;
   width: 100%; height: 100%;
   z-index: 3; pointer-events: none;
+  touch-action: none;
 }
 
 /* ── UI layer ── */
@@ -141,14 +160,20 @@ html, body {
   position: absolute;
   top: -60px; left: 50%;
   transform: translateX(-50%);
-  width: min(360px, 58vw);
-  height: 115vh;
-  background: radial-gradient(ellipse 48% 42% at 50% 0%,
-    rgba(255,245,190,.14) 0%,
-    rgba(212,175,55,.06) 35%,
+  width: min(440px, 70vw);
+  height: 120vh;
+  background: radial-gradient(ellipse 52% 46% at 50% 0%,
+    rgba(255,245,190,.22) 0%,
+    rgba(212,175,55,.1) 30%,
+    rgba(212,175,55,.03) 65%,
     transparent 100%);
   pointer-events: none;
   z-index: 0;
+  animation: spotPulse 3s ease-in-out infinite alternate;
+}
+@keyframes spotPulse {
+  from { opacity: .75; }
+  to   { opacity: 1; }
 }
 
 /* ── Player name ── */
@@ -162,6 +187,7 @@ html, body {
   padding: 0 12px;
   min-height: 1.1em;
   text-wrap: balance;
+  filter: drop-shadow(0 0 24px rgba(212,175,55,.8)) drop-shadow(0 0 60px rgba(212,175,55,.35));
 }
 
 /* ── CHAMPION OF THE WORLD ── */
@@ -225,8 +251,13 @@ html, body {
   font-size: clamp(18px, 4.2vw, 38px);
   color: var(--gold-bright);
   letter-spacing: .25em;
-  text-shadow: 0 0 14px var(--gold-bright), 0 0 30px var(--gold);
+  text-shadow: 0 0 14px var(--gold-bright), 0 0 30px var(--gold), 0 0 60px rgba(255,215,0,.4);
   line-height: 1.3;
+  animation: starPulse 1.8s ease-in-out infinite alternate;
+}
+@keyframes starPulse {
+  from { text-shadow: 0 0 14px var(--gold-bright), 0 0 30px var(--gold); }
+  to   { text-shadow: 0 0 28px var(--gold-bright), 0 0 60px var(--gold), 0 0 100px rgba(255,215,0,.5); }
 }
 
 #legendaryTitle {

@@ -77,10 +77,11 @@
         if(e.key==='s'||e.key==='S') this._skipToChampion();
         if(e.key==='Escape') this.finish();
       });
+      /* passive:true prevents touch from blocking the animation frame */
       window.addEventListener('pointerdown',()=>{
         taps++; setTimeout(()=>taps=0,400);
         if(taps>=3) this._skipToChampion();
-      });
+      }, { passive: true });
     },
 
     _skipToChampion(){
