@@ -38,6 +38,49 @@ const floorMesh = new THREE.Mesh(
 floorMesh.rotation.x = -Math.PI / 2;
 scene.add(floorMesh);
 
+// ─── TROPHY (LatheGeometry cup + handles + pedestal) ────────────────
+const trophyGroup = new THREE.Group();
+trophyGroup.visible = false;
+scene.add(trophyGroup);
+
+(function buildTrophy() {
+  const gold = new THREE.MeshStandardMaterial({
+    color: 0xffd700, metalness: 0.96, roughness: 0.06,
+    emissive: 0xffaa00, emissiveIntensity: 0.18
+  });
+
+  // Cup profile (World Cup style silhouette)
+  const profile = [
+    [0.02, 0.00], [0.52, 0.08], [0.62, 0.18], [0.52, 0.28],
+    [0.12, 0.36], [0.10, 0.80], [0.13, 0.88],
+    [0.32, 1.05], [0.58, 1.40], [0.78, 1.82],
+    [0.74, 2.08], [0.58, 2.20], [0.46, 2.24], [0.02, 2.26]
+  ].map(([x,y]) => new THREE.Vector2(x * 1.4, y * 1.4));
+
+  trophyGroup.add(new THREE.Mesh(new THREE.LatheGeometry(profile, 48), gold));
+
+  // Handles
+  const handleGeo = new THREE.TorusGeometry(0.30, 0.045, 8, 18, Math.PI);
+  [-1, 1].forEach(side => {
+    const h = new THREE.Mesh(handleGeo, gold);
+    h.position.set(side * 0.72 * 1.4, 1.58 * 1.4, 0);
+    h.rotation.z = side * Math.PI / 2;
+    h.rotation.y = Math.PI / 2;
+    trophyGroup.add(h);
+  });
+
+  // Pedestal base
+  const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 1.05, 0.22, 32), gold);
+  pedestal.position.y = -0.11;
+  trophyGroup.add(pedestal);
+
+  // Trophy light (tight gold spot above it)
+  const tl = new THREE.PointLight(0xffd700, 0, 12);
+  tl.position.set(0, 6, 1);
+  scene.add(tl);
+  trophyGroup.userData.light = tl;
+})();
+
 // ─── STADIUM (ring of crowd lights) ─────────────────────────────────
 let stadiumMat;
 (function buildStadium() {
@@ -170,7 +213,8 @@ function fwRandom() {
 const cam = {
   intro()  { gsap.to(camera.position, { z:12, y:3, duration:4, ease:"power4.out" }); },
   wide()   { gsap.to(camera.position, { x:6, z:10, y:5, duration:5, ease:"sine.inOut" }); },
-  trophy() { gsap.to(camera.position, { y:3, z:5, x:0, duration:5, ease:"power3.inOut" }); }
+  trophy() { gsap.to(camera.position, { y:2.5, z:5.5, x:0, duration:5, ease:"power3.inOut" }); },
+  zoomTrophy() { gsap.to(camera.position, { y:2.0, z:3.5, x:0, duration:3, ease:"power2.inOut" }); }
 };
 
 // ─── WEB AUDIO ──────────────────────────────────────────────────────
@@ -362,7 +406,27 @@ function startTimeline() {
     _fwAuto = setInterval(fwRandom, 1000);
   });
   tl.to("#logo", { opacity: 0, duration: 1 });
-  tl.to({}, { duration: 2 });
+  tl.to({}, { duration: 1.5 });
+
+  // TROPHY REVEAL — rises from below with golden light
+  tl.call(() => {
+    trophyGroup.visible = true;
+    trophyGroup.scale.set(0, 0, 0);
+    trophyGroup.position.y = -3;
+    const tl2 = gsap.timeline();
+    tl2.to(trophyGroup.scale, { x:1, y:1, z:1, duration:1.2, ease:"back.out(1.4)" });
+    tl2.to(trophyGroup.position, { y:0, duration:1.2, ease:"power2.out" }, 0);
+    // Light up the trophy
+    gsap.to(trophyGroup.userData.light, { intensity: 6, duration: 1.0 });
+    // Fireworks burst on trophy reveal
+    for (let i = 0; i < 6; i++) setTimeout(fwRandom, i * 220);
+    Snd.boom(0.8);
+  });
+  tl.to({}, { duration: 1.8 });
+
+  // Zoom in close on trophy
+  tl.call(() => { cam.zoomTrophy(); });
+  tl.to({}, { duration: 1.2 });
 
   // Fanfare + player name type-in
   tl.call(() => { Snd.fanfare(); });
@@ -402,10 +466,17 @@ function startTimeline() {
 }
 
 // ─── RENDER LOOP ────────────────────────────────────────────────────
+const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
   updateFireworks();
   updateConfetti();
+  // Trophy slow spin + gentle float
+  if (trophyGroup.visible) {
+    trophyGroup.rotation.y += 0.005;
+    trophyGroup.position.y = Math.sin(t * 0.8) * 0.06;
+  }
   camera.lookAt(0, 2, 0);
   renderer.render(scene, camera);
 }
