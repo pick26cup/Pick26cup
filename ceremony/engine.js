@@ -184,8 +184,8 @@ let stadiumMat;
   });
 
   const pts = new THREE.Points(geo, stadiumMat);
+  pts.name = "stadium";
   scene.add(pts);
-  gsap.to(pts.rotation, { y: Math.PI * 2, duration: 20, ease: "none", repeat: -1 });
 })();
 
 // ─── CONFETTI ───────────────────────────────────────────────────────
@@ -358,7 +358,7 @@ const Snd = (() => {
 
     crowd() {
       if (!ctx) return;
-      const SR = ctx.sampleRate, len = SR * 25;
+      const SR = ctx.sampleRate, len = SR * 8; // 8s looped — shorter buffer avoids click freeze
       const buf = ctx.createBuffer(2, len, SR);
       for (let c = 0; c < 2; c++) {
         const d = buf.getChannelData(c);
@@ -450,8 +450,10 @@ function _flash() {
 let _fwAuto = null;
 
 function startTimeline() {
-  // Fade in stadium
+  // Fade in + spin stadium
+  const stadiumPts = scene.getObjectByName("stadium");
   gsap.to(stadiumMat, { opacity: 0.9, duration: 3 });
+  if (stadiumPts) gsap.to(stadiumPts.rotation, { y: Math.PI * 2, duration: 22, ease: "none", repeat: -1 });
 
   const tl = gsap.timeline();
 
@@ -483,16 +485,19 @@ function startTimeline() {
   // TROPHY REVEAL — rises from below with golden light
   tl.call(() => {
     trophyGroup.visible = true;
-    trophyGroup.scale.set(0, 0, 0);
+    trophyGroup.scale.set(0.001, 0.001, 0.001);
     trophyGroup.position.y = -3;
     const tl2 = gsap.timeline();
-    tl2.to(trophyGroup.scale, { x:1, y:1, z:1, duration:1.2, ease:"back.out(1.4)" });
-    tl2.to(trophyGroup.position, { y:0, duration:1.2, ease:"power2.out" }, 0);
+    // Rise + scale simultaneously
+    tl2.to(trophyGroup.position, { y: 0, duration: 1.4, ease: "power3.out" }, 0);
+    tl2.to(trophyGroup.scale,    { x: 1, y: 1, z: 1, duration: 1.4, ease: "back.out(1.3)" }, 0);
+    // After rise completes, gentle GSAP float (yoyo — no animate-loop conflict)
+    tl2.to(trophyGroup.position, { y: 0.14, duration: 2.2, ease: "sine.inOut", yoyo: true, repeat: -1 });
     // Light up the trophy
-    gsap.to(trophyGroup.userData.light, { intensity: 6, duration: 1.0 });
+    gsap.to(trophyGroup.userData.light, { intensity: 7, duration: 1.2 });
     // Fireworks burst on trophy reveal
-    for (let i = 0; i < 6; i++) setTimeout(fwRandom, i * 220);
-    Snd.boom(0.8);
+    for (let i = 0; i < 6; i++) setTimeout(fwRandom, i * 200);
+    Snd.boom(0.9);
   });
   tl.to({}, { duration: 1.8 });
 
@@ -538,16 +543,13 @@ function startTimeline() {
 }
 
 // ─── RENDER LOOP ────────────────────────────────────────────────────
-const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
-  const t = clock.getElapsedTime();
   updateFireworks();
   updateConfetti();
-  // Trophy slow spin + gentle float
+  // Spin only — float is handled by GSAP yoyo to avoid conflict with reveal tween
   if (trophyGroup.visible) {
     trophyGroup.rotation.y += 0.005;
-    trophyGroup.position.y = Math.sin(t * 0.8) * 0.06;
   }
   camera.lookAt(0, 2, 0);
   renderer.render(scene, camera);
