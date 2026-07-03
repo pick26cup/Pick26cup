@@ -22,59 +22,48 @@ body {
   color: white;
   text-align: center;
   pointer-events: none;
-  z-index: 10;
 }
 
 #logo {
   opacity: 0;
-  filter: drop-shadow(0 0 30px rgba(255,215,0,0.55));
+  filter: drop-shadow(0 0 28px rgba(255,215,0,0.5));
 }
 
 #logoImg {
-  width: min(340px, 74vw);
+  width: min(320px, 72vw);
   height: auto;
-  border-radius: 22px;
+  border-radius: 20px;
   display: block;
 }
 
-#name {
-  font-size: clamp(36px, 8vw, 72px);
+#player {
+  font-size: clamp(36px, 9vw, 72px);
   font-weight: 900;
   color: gold;
   opacity: 0;
-  text-shadow: 0 0 40px gold, 0 0 80px rgba(255,215,0,0.4);
-  margin-top: 30px;
+  text-shadow: 0 0 60px gold;
   letter-spacing: 3px;
 }
 
-#subtitle {
-  font-size: clamp(14px, 3vw, 26px);
-  opacity: 0;
-  margin-top: 12px;
-  letter-spacing: 5px;
-  color: rgba(255,255,255,0.9);
-}
-
-#country {
-  font-size: clamp(18px, 4vw, 32px);
+#title, #country {
+  font-size: clamp(14px, 3.5vw, 26px);
   opacity: 0;
   margin-top: 10px;
-  color: gold;
-  letter-spacing: 3px;
+  letter-spacing: 4px;
 }
 
 #btn {
   margin-top: 40px;
-  padding: 14px 38px;
+  padding: 14px 40px;
   font-size: 18px;
   font-weight: bold;
   letter-spacing: 3px;
-  border: none;
-  border-radius: 30px;
   background: linear-gradient(45deg, gold, #ffcc00);
   color: #000;
-  cursor: pointer;
+  border: none;
+  border-radius: 30px;
   opacity: 0;
+  cursor: pointer;
   pointer-events: all;
   transition: transform 0.15s;
 }
