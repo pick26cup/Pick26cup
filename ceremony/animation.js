@@ -11,6 +11,7 @@
 
     init(scene){
       this.scene = scene;
+      if(!scene){ WC.Utils.log('No Three.js scene — 3D disabled'); return; }
       this._buildLights();
       this._buildStadium();
       this._buildTrophy();
@@ -196,28 +197,28 @@
       await WC.Utils.wait(180);
       gsap.from('#logoYear',    {scale:0.3,opacity:0,duration:1.2,ease:'back.out(1.4)'});
       await WC.Utils.wait(800);
-      WC.Confetti.burst(W*.5, H*.45, 60);
+      WC.Confetti.burst(window.innerWidth*.5, window.innerHeight*.45, 60);
       WC.Audio.playChord(0.15);
     },
 
     /* ── Aerial stadium ── */
     async _showStadium(){
       gsap.to('#logoPhase',{opacity:0,duration:1.2});
-      gsap.to(this.stadium.material,{opacity:0.85,duration:2.5});
-      await WC.Camera.goAerial();
-      this.scene.fog.density = 0.008;
-      gsap.to(this.stadium.rotation,{y:Math.PI*2,duration:10,ease:'none',repeat:-1});
+      if(this.stadium) gsap.to(this.stadium.material,{opacity:0.85,duration:2.5});
+      if(this.scene) await WC.Camera.goAerial();
+      if(this.scene) this.scene.fog.density = 0.008;
+      if(this.stadium) gsap.to(this.stadium.rotation,{y:Math.PI*2,duration:10,ease:'none',repeat:-1});
       this._fwLoop = setInterval(()=>WC.Fireworks.launch(), 1600);
     },
 
     /* ── Tunnel ── */
     async _showTunnel(){
       clearInterval(this._fwLoop);
-      this.scene.fog.density = 0.045;
-      gsap.to(this.stadium.material,{opacity:0.4,duration:1.2});
-      await WC.Camera.goTunnel();
+      if(this.scene) this.scene.fog.density = 0.045;
+      if(this.stadium) gsap.to(this.stadium.material,{opacity:0.4,duration:1.2});
+      if(this.scene) await WC.Camera.goTunnel();
       WC.Audio.playBoom(0.25);
-      this.scene.fog.density = 0.002;
+      if(this.scene) this.scene.fog.density = 0.002;
     },
 
     /* ── Explosion ── */
@@ -229,7 +230,7 @@
       await new Promise(r=>gsap.to(fl,{opacity:1,duration:.12,onComplete:r}));
       WC.Audio.playBoom(0.6);
       WC.Camera.shake(0.6,0.84);
-      WC.Confetti.burst(W*.5,H*.4,200);
+      WC.Confetti.burst(window.innerWidth*.5, window.innerHeight*.4, 200);
       WC.Fireworks.burst(8);
       gsap.to(fl,{opacity:0,duration:.55,delay:.06,onComplete:()=>fl.remove()});
       gsap.to(this.stadium.material,{opacity:1,duration:.4});
@@ -249,7 +250,7 @@
       this._fwLoop = setInterval(()=>WC.Fireworks.launch(), 900);
       const lf=WC.Utils.el('lensFlare');
       gsap.to(lf,{opacity:1,duration:.4,yoyo:true,repeat:7,ease:'power1.inOut'});
-      await WC.Camera.moveTo(0,8,18,3,'power2.inOut');
+      if(this.scene) await WC.Camera.moveTo(0,8,18,3,'power2.inOut');
     },
 
     /* ── Trophy reveal ── */
@@ -259,30 +260,25 @@
 
       WC.Audio.playChord(0.45);
       WC.Audio.playFanfare();
-      WC.Camera.shake(0.35);
+      if(this.scene) WC.Camera.shake(0.35);
 
-      await WC.Camera.goTrophy();
+      if(this.scene) await WC.Camera.goTrophy();
 
-      this.trophy.visible = true;
-      this.trophy.scale.setScalar(0);
-      this.trophy.position.y = -3;
-
-      gsap.to(this.trophy.scale,{x:.55,y:.55,z:.55,duration:2.2,ease:'back.out(1.5)'});
-      gsap.to(this.trophy.position,{y:.3,duration:2.2,ease:'back.out(1.4)'});
-      gsap.to(this.spot,{intensity:8,duration:1.8});
-      gsap.to(this.glowLight,{intensity:4,duration:2});
-
-      if(this._glowMesh){
-        gsap.to(this._glowMesh.material,{opacity:.55,duration:1,yoyo:true,repeat:-1});
+      if(this.trophy){
+        this.trophy.visible = true;
+        this.trophy.scale.setScalar(0);
+        this.trophy.position.y = -3;
+        gsap.to(this.trophy.scale,{x:.55,y:.55,z:.55,duration:2.2,ease:'back.out(1.5)'});
+        gsap.to(this.trophy.position,{y:.3,duration:2.2,ease:'back.out(1.4)'});
+        this._trophySpinTween = gsap.to(this.trophy.rotation,{y:Math.PI*2,duration:9,ease:'none',repeat:-1});
       }
+      if(this.spot)      gsap.to(this.spot,{intensity:8,duration:1.8});
+      if(this.glowLight) gsap.to(this.glowLight,{intensity:4,duration:2});
+      if(this._glowMesh) gsap.to(this._glowMesh.material,{opacity:.55,duration:1,yoyo:true,repeat:-1});
 
-      this._trophySpinTween = gsap.to(this.trophy.rotation,{
-        y:Math.PI*2, duration:9, ease:'none', repeat:-1
-      });
-
-      WC.Confetti.burst(W*.5,H*.35,160);
-      WC.Confetti.burst(W*.2,H*.5,80);
-      WC.Confetti.burst(W*.8,H*.5,80);
+      WC.Confetti.burst(window.innerWidth*.5, window.innerHeight*.35, 160);
+      WC.Confetti.burst(window.innerWidth*.2, window.innerHeight*.5, 80);
+      WC.Confetti.burst(window.innerWidth*.8, window.innerHeight*.5, 80);
       WC.Fireworks.burst(10);
 
       setTimeout(()=>WC.Audio.playFanfare(),700);
@@ -290,7 +286,7 @@
 
     /* ── Orbit ── */
     async _showOrbit(){
-      WC.Camera.startOrbit(9,5);
+      if(this.scene) WC.Camera.startOrbit(9,5);
       clearInterval(this._rainLoop);
       this._rainLoop = setInterval(()=>WC.Confetti.rain(5), 80);
     },
