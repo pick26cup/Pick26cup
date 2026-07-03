@@ -1,103 +1,59 @@
-/* ── style.css ── Pick26 World Cup Ceremony ── */
+/* ── style.css — FIFA Ceremony 2026 ── */
 
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;600&display=swap');
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
-  --gold:       #D4AF37;
-  --gold-light: #FFF176;
-  --gold-bright:#FFD700;
-  --gold-dark:  #8B6914;
-  --black:      #000000;
-  --white:      #F4F0E8;
-  --blue-fill:  #1a1a2e;
+  --gold:        #D4AF37;
+  --gold-bright: #FFD700;
+  --gold-light:  #FFF176;
+  --gold-dark:   #8B6914;
+  --black:       #000000;
+  --white:       #F4F0E8;
 }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
   width: 100%; height: 100%;
   overflow: hidden;
-  background: var(--black);
+  background: #000;
   color: var(--white);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
-  cursor: default;
+  touch-action: none;
   user-select: none;
-  touch-action: none; /* prevent scroll/zoom from blocking animation frame */
+  cursor: default;
 }
 
-/* Ambient background pulse — very subtle, behind everything */
-body::before {
-  content: '';
+/* ── WebGL container ── */
+#webgl {
   position: fixed; inset: 0;
-  background: radial-gradient(ellipse 80% 60% at 50% 100%,
-    rgba(100,60,0,.18) 0%, transparent 70%);
-  animation: ambientPulse 4s ease-in-out infinite alternate;
-  z-index: 0; pointer-events: none;
-}
-@keyframes ambientPulse {
-  from { opacity: .5; }
-  to   { opacity: 1; }
-}
-
-/* ── Canvases ── */
-#glCanvas {
-  position: fixed; inset: 0;
-  width: 100%; height: 100%;
   z-index: 1;
-  filter: contrast(1.1) saturate(1.2) brightness(1.05);
-  touch-action: none;
+}
+#webgl canvas {
+  width: 100% !important;
+  height: 100% !important;
+  filter: contrast(1.1) saturate(1.15);
 }
 
-#fireworksCanvas {
+/* ── FX canvas (flashes, overlays) ── */
+#fxCanvas {
   position: fixed; inset: 0;
   width: 100%; height: 100%;
-  z-index: 2; pointer-events: none;
-  touch-action: none;
-}
-
-#confettiCanvas {
-  position: fixed; inset: 0;
-  width: 100%; height: 100%;
-  z-index: 3; pointer-events: none;
-  touch-action: none;
+  z-index: 2;
+  pointer-events: none;
 }
 
 /* ── UI layer ── */
 #ui {
   position: fixed; inset: 0;
-  z-index: 10; pointer-events: none;
+  z-index: 10;
+  pointer-events: none;
 }
 
-/* ── Vignette ── */
-#vignette {
-  position: fixed; inset: 0;
-  background: radial-gradient(ellipse 70% 70% at 50% 50%, transparent 30%, rgba(0,0,0,.72) 100%);
-  z-index: 4; pointer-events: none;
-}
-
-/* ── Lens flare ── */
-#lensFlare {
-  position: fixed;
-  top: 28%; left: 50%; transform: translateX(-50%);
-  width: min(380px,65vw); height: 5px;
-  background: linear-gradient(90deg, transparent, rgba(255,248,180,.85), transparent);
-  filter: blur(4px);
-  opacity: 0; z-index: 5; pointer-events: none;
-  border-radius: 50%;
-}
-
-/* ── Scene dimmer ── */
-#dimmer {
-  position: fixed; inset: 0;
-  background: #000;
-  z-index: 8; pointer-events: none;
-  opacity: 0; display: none;
-}
-
-/* ══════════════════════════════════
+/* ══════════════════════════
    LOGO PHASE
-═══════════════════════════════════ */
+══════════════════════════ */
 #logoPhase {
   position: absolute; inset: 0;
   display: none;
@@ -109,21 +65,21 @@ body::before {
 
 #logo {
   text-align: center;
-  filter: drop-shadow(0 0 40px rgba(212,175,55,.7));
+  filter: drop-shadow(0 0 40px rgba(212,175,55,.75));
 }
 
 #logoFifa {
   font-family: 'Bebas Neue', Impact, sans-serif;
-  font-size: clamp(52px, 11vw, 108px);
+  font-size: clamp(52px, 11vw, 110px);
   letter-spacing: .35em;
   background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold-bright) 30%, var(--gold) 65%, var(--gold-dark) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
 
-#logoWorldCup {
-  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+#logoWC {
+  font-family: 'Oswald', sans-serif;
   font-weight: 300;
-  font-size: clamp(20px, 4.5vw, 44px);
+  font-size: clamp(18px, 4vw, 42px);
   letter-spacing: .55em;
   background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 60%, var(--gold-dark) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
@@ -137,13 +93,12 @@ body::before {
   line-height: .88;
   background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold-bright) 25%, var(--gold) 60%, var(--gold-dark) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  filter: drop-shadow(0 0 28px rgba(212,175,55,.6));
 }
 
-/* ══════════════════════════════════
+/* ══════════════════════════
    CHAMPION PHASE
-═══════════════════════════════════ */
-#championPhase {
+══════════════════════════ */
+#champPhase {
   position: absolute; inset: 0;
   display: none;
   flex-direction: column;
@@ -155,29 +110,21 @@ body::before {
   padding: 20px;
 }
 
-/* Spotlight cone */
 #spotlight {
   position: absolute;
-  top: -60px; left: 50%;
-  transform: translateX(-50%);
+  top: -60px; left: 50%; transform: translateX(-50%);
   width: min(440px, 70vw);
   height: 120vh;
   background: radial-gradient(ellipse 52% 46% at 50% 0%,
     rgba(255,245,190,.22) 0%,
-    rgba(212,175,55,.1) 30%,
-    rgba(212,175,55,.03) 65%,
+    rgba(212,175,55,.08) 40%,
     transparent 100%);
-  pointer-events: none;
-  z-index: 0;
-  animation: spotPulse 3s ease-in-out infinite alternate;
+  pointer-events: none; z-index: 0;
+  animation: spotPulse 3.5s ease-in-out infinite alternate;
 }
-@keyframes spotPulse {
-  from { opacity: .75; }
-  to   { opacity: 1; }
-}
+@keyframes spotPulse { from { opacity:.7; } to { opacity:1; } }
 
-/* ── Player name ── */
-#playerName {
+#name {
   font-family: 'Bebas Neue', Impact, sans-serif;
   font-size: clamp(38px, 9vw, 96px);
   letter-spacing: .12em;
@@ -186,104 +133,91 @@ body::before {
   line-height: 1;
   padding: 0 12px;
   min-height: 1.1em;
-  text-wrap: balance;
-  filter: drop-shadow(0 0 24px rgba(212,175,55,.8)) drop-shadow(0 0 60px rgba(212,175,55,.35));
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold-bright) 30%, var(--gold) 65%, var(--gold-dark) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  filter: drop-shadow(0 0 24px rgba(212,175,55,.8));
 }
 
-/* ── CHAMPION OF THE WORLD ── */
-#champTitle {
-  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+#subtitle {
+  font-family: 'Oswald', sans-serif;
   font-weight: 600;
-  font-size: clamp(16px, 3.8vw, 40px);
+  font-size: clamp(14px, 3.5vw, 38px);
   letter-spacing: .28em;
   color: rgba(244,240,232,.92);
   text-align: center;
-  z-index: 1;
   text-shadow: 0 0 24px rgba(255,255,255,.45);
-  text-wrap: balance;
-  display: none;
+  z-index: 1;
+  opacity: 0;
   min-height: 1.2em;
 }
 
-/* ── Country ── */
-#countryWrap {
-  display: none;
+#country {
+  display: flex;
   align-items: center;
   gap: 14px;
   z-index: 1;
+  opacity: 0;
 }
 
-#countryFlag {
+#flag {
   font-size: clamp(36px, 7vw, 64px);
   line-height: 1;
-  display: inline-block;
 }
 
 #countryName {
   font-family: 'Bebas Neue', Impact, sans-serif;
   font-size: clamp(26px, 6vw, 60px);
   letter-spacing: .18em;
-  min-height: 1.1em;
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold-bright) 30%, var(--gold) 65%, var(--gold-dark) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
 
-/* ── Cup line ── */
 #cupLine {
-  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+  font-family: 'Oswald', sans-serif;
   font-weight: 300;
-  font-size: clamp(11px, 2.4vw, 20px);
+  font-size: clamp(10px, 2.2vw, 18px);
   letter-spacing: .45em;
   color: rgba(212,175,55,.65);
   z-index: 1;
-  text-align: center;
-  display: none;
-  margin-top: 2px;
+  opacity: 0;
 }
 
-/* ── Stars + Legendary Manager ── */
 #starsWrap {
-  text-align: center;
-  z-index: 1;
-  margin-top: 6px;
-  display: none;
+  text-align: center; z-index: 1;
+  margin-top: 6px; opacity: 0;
 }
 
 #starsTop, #starsBot {
-  font-size: clamp(18px, 4.2vw, 38px);
+  font-size: clamp(18px, 4vw, 36px);
   color: var(--gold-bright);
   letter-spacing: .25em;
-  text-shadow: 0 0 14px var(--gold-bright), 0 0 30px var(--gold), 0 0 60px rgba(255,215,0,.4);
   line-height: 1.3;
-  animation: starPulse 1.8s ease-in-out infinite alternate;
+  animation: starPulse 2s ease-in-out infinite alternate;
 }
 @keyframes starPulse {
   from { text-shadow: 0 0 14px var(--gold-bright), 0 0 30px var(--gold); }
-  to   { text-shadow: 0 0 28px var(--gold-bright), 0 0 60px var(--gold), 0 0 100px rgba(255,215,0,.5); }
+  to   { text-shadow: 0 0 32px var(--gold-bright), 0 0 70px var(--gold), 0 0 110px rgba(255,215,0,.5); }
 }
 
-#legendaryTitle {
+#legendTitle {
   font-family: 'Bebas Neue', Impact, sans-serif;
-  font-size: clamp(18px, 4.5vw, 46px);
+  font-size: clamp(16px, 4.2vw, 44px);
   letter-spacing: .32em;
   background: linear-gradient(90deg, var(--gold-dark), var(--gold-bright), var(--gold-light), var(--gold-bright), var(--gold-dark));
   background-size: 200% auto;
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   animation: shimmer 3s linear infinite;
   margin: 2px 0;
-  text-align: center;
 }
-
-@keyframes shimmer {
-  from { background-position: 200% center; }
-  to   { background-position: -200% center; }
-}
+@keyframes shimmer { from { background-position: 200% center; } to { background-position: -200% center; } }
 
 /* ── Continue button ── */
-#continueBtn {
+#btn {
   display: none;
   margin-top: 18px;
   padding: 13px 52px;
   font-family: 'Bebas Neue', Impact, sans-serif;
-  font-size: clamp(20px, 3.8vw, 30px);
+  font-size: clamp(18px, 3.5vw, 28px);
   letter-spacing: .28em;
   color: #1a0d00;
   background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-bright) 50%, var(--gold-dark) 100%);
@@ -291,19 +225,13 @@ body::before {
   border-radius: 5px;
   cursor: pointer;
   pointer-events: all;
-  box-shadow: 0 0 18px rgba(212,175,55,.6), 0 0 40px rgba(212,175,55,.25);
+  z-index: 1;
   animation: btnPulse 2.2s ease-in-out infinite;
   transition: transform .14s, box-shadow .14s;
-  z-index: 1;
+  opacity: 0;
 }
-
-#continueBtn:hover {
-  transform: scale(1.06);
-  box-shadow: 0 0 32px rgba(212,175,55,.9), 0 0 64px rgba(212,175,55,.4);
-}
-
-#continueBtn:active { transform: scale(.98); }
-
+#btn:hover { transform: scale(1.06); }
+#btn:active { transform: scale(.97); }
 @keyframes btnPulse {
   0%,100% { box-shadow: 0 0 18px rgba(212,175,55,.6), 0 0 40px rgba(212,175,55,.25); }
   50%      { box-shadow: 0 0 32px rgba(212,175,55,.9), 0 0 60px rgba(212,175,55,.4); }
@@ -317,17 +245,6 @@ body::before {
   white-space: pre;
 }
 
-.rl-gold {
-  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold-bright) 28%, var(--gold) 58%, var(--gold-dark) 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  filter: drop-shadow(0 0 7px rgba(212,175,55,.75));
-}
-
-.rl-white {
-  color: rgba(244,240,232,.93);
-  text-shadow: 0 0 18px rgba(255,255,255,.4);
-}
-
 /* ── Loading screen ── */
 #loadScreen {
   position: fixed; inset: 0;
@@ -336,35 +253,31 @@ body::before {
   flex-direction: column; gap: 22px;
   z-index: 9999;
 }
-
-.load-ring {
+.spinner {
   width: 52px; height: 52px;
   border: 3px solid rgba(212,175,55,.2);
   border-top-color: var(--gold);
   border-radius: 50%;
   animation: spin .85s linear infinite;
 }
-
-.load-label {
+.loadLabel {
   font-family: 'Bebas Neue', Impact, sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   letter-spacing: .4em;
   color: rgba(212,175,55,.55);
 }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Skip hint ── */
 #skipHint {
   position: fixed; bottom: 20px; right: 20px;
   font-family: 'Oswald', sans-serif;
-  font-size: 11px;
-  letter-spacing: .15em;
+  font-size: 11px; letter-spacing: .15em;
   color: rgba(255,255,255,.22);
-  z-index: 9998;
-  pointer-events: none;
+  z-index: 9998; pointer-events: none;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
-
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001s !important; transition-duration: .001s !important; }
 }

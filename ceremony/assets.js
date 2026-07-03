@@ -1,23 +1,10 @@
-/* ── assets.js ── asset / config loader ── */
-(function(g){
-  g.WC = g.WC || {};
-
-  /* Champion data — override from main app before load */
-  g.WC.Champion = Object.assign({
-    player:  'JOHN ALVARADO',
-    country: 'COLOMBIA',
-    flag:    '🇨🇴',
-    year:    2026,
-    lang:    'es',
-    onComplete: null,
-  }, window.WC_CHAMPION || {});
-
-  g.WC.Assets = {
-    ready: false,
-    async init(){
-      /* In production: preload audio/texture files here */
-      this.ready = true;
-      WC.Utils.log('Assets ready. Champion:', WC.Champion.player);
-    }
-  };
-})(window);
+/* ── assets.js ── champion data ── */
+const src = window.WC_CHAMPION || {};
+const champion = {
+  player:     src.player     || 'PLAYER NAME',
+  country:    src.country    || 'COUNTRY',
+  flag:       src.flag       || '🏆',
+  year:       src.year       || 2026,
+  lang:       src.lang       || 'en',
+  onComplete: src.onComplete || null,
+};
