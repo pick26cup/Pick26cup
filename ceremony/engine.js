@@ -11,7 +11,7 @@ scene.background = new THREE.Color(0x000000);
 scene.fog = new THREE.FogExp2(0x000005, 0.012);
 
 const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 1000);
-camera.position.set(0, 4, 18);
+camera.position.set(0, 4, 22);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -31,15 +31,15 @@ blueLight.position.set(-8, 6, -5);
 scene.add(blueLight);
 
 // ─── FLOOR ──────────────────────────────────────────────────────────
-scene.add(Object.assign(
-  new THREE.Mesh(
-    new THREE.CircleGeometry(40, 64),
-    new THREE.MeshStandardMaterial({ color: 0x0a1a0a, roughness: 0.9 })
-  ),
-  { rotation: { x: -Math.PI/2 } }
-));
+const floorMesh = new THREE.Mesh(
+  new THREE.CircleGeometry(40, 64),
+  new THREE.MeshStandardMaterial({ color: 0x0a1a0a, roughness: 0.9 })
+);
+floorMesh.rotation.x = -Math.PI / 2;
+scene.add(floorMesh);
 
 // ─── STADIUM (ring of crowd lights) ─────────────────────────────────
+let stadiumMat;
 (function buildStadium() {
   const N = 6000;
   const pos = new Float32Array(N * 3);
@@ -47,13 +47,13 @@ scene.add(Object.assign(
 
   for (let i = 0; i < N; i++) {
     const angle = Math.random() * Math.PI * 2;
-    const r     = 18 + Math.random() * 16;        // ring 18–34 units out
-    const h     = Math.random() * 14 - 2;         // height -2 to 12
+    const r     = 18 + Math.random() * 16;
+    const h     = Math.random() * 14 - 2;
     pos[i*3]   = Math.cos(angle) * r;
     pos[i*3+1] = h;
     pos[i*3+2] = Math.sin(angle) * r;
 
-    const warm = Math.random() > 0.5;             // warm white or cool blue
+    const warm = Math.random() > 0.5;
     col[i*3]   = warm ? 1.0 : 0.3;
     col[i*3+1] = warm ? 0.9 : 0.6;
     col[i*3+2] = warm ? 0.3 : 1.0;
@@ -63,23 +63,17 @@ scene.add(Object.assign(
   geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
   geo.setAttribute("color",    new THREE.BufferAttribute(col, 3));
 
-  const mat = new THREE.PointsMaterial({
-    size: 0.28,
-    vertexColors: true,
-    sizeAttenuation: true,
-    transparent: true,
-    opacity: 0
+  stadiumMat = new THREE.PointsMaterial({
+    size: 0.28, vertexColors: true, sizeAttenuation: true,
+    transparent: true, opacity: 0
   });
 
-  const pts = new THREE.Points(geo, mat);
+  const pts = new THREE.Points(geo, stadiumMat);
   scene.add(pts);
-
-  // animate spin + fade in
-  gsap.to(mat, { opacity: 0.9, duration: 3, delay: 2 });
   gsap.to(pts.rotation, { y: Math.PI * 2, duration: 20, ease: "none", repeat: -1 });
 })();
 
-// ─── CONFETTI (falling) ─────────────────────────────────────────────
+// ─── CONFETTI ───────────────────────────────────────────────────────
 const confN   = 1200;
 const confPos = new Float32Array(confN * 3);
 const confVel = new Float32Array(confN * 3);
@@ -104,8 +98,7 @@ const confMat = new THREE.PointsMaterial({
   size: 0.2, vertexColors: true, sizeAttenuation: true,
   transparent: true, opacity: 0
 });
-const confPts = new THREE.Points(confGeo, confMat);
-scene.add(confPts);
+scene.add(new THREE.Points(confGeo, confMat));
 
 function updateConfetti() {
   for (let i = 0; i < confN; i++) {
@@ -180,7 +173,7 @@ const cam = {
   trophy() { gsap.to(camera.position, { y:3, z:5, x:0, duration:5, ease:"power3.inOut" }); }
 };
 
-// ─── WEB AUDIO (synthesized — no CDN needed) ─────────────────────────
+// ─── WEB AUDIO ──────────────────────────────────────────────────────
 const Snd = (() => {
   let ctx, master, comp, reverb, boomCount = 0;
 
@@ -240,10 +233,12 @@ const Snd = (() => {
         master = ctx.createGain(); master.gain.value = 0.78;
         master.connect(comp); comp.connect(ctx.destination);
         reverb = buildReverb();
+        // resume immediately — called from user gesture handler
+        if (ctx.state === "suspended") ctx.resume();
       } catch(e) { ctx = null; }
     },
 
-    resume() { if (ctx?.state === "suspended") ctx.resume(); },
+    resume() { try { if (ctx && ctx.state === "suspended") ctx.resume(); } catch(e){} },
 
     crowd() {
       if (!ctx) return;
@@ -324,26 +319,39 @@ function typeName(cb) {
   }, 120);
 }
 
+// ─── FLASH ──────────────────────────────────────────────────────────
+function _flash() {
+  const fl = document.createElement("div");
+  fl.style.cssText = "position:fixed;inset:0;background:#fff;z-index:9999;pointer-events:none;opacity:0";
+  document.body.appendChild(fl);
+  gsap.to(fl, { opacity: 1, duration: 0.08,
+    onComplete: () => gsap.to(fl, { opacity: 0, duration: 0.5,
+      onComplete: () => fl.remove() })
+  });
+}
+
 // ─── TIMELINE ───────────────────────────────────────────────────────
 let _fwAuto = null;
 
 function startTimeline() {
+  // Fade in stadium
+  gsap.to(stadiumMat, { opacity: 0.9, duration: 3 });
+
   const tl = gsap.timeline();
 
-  // Pick26 logo in
+  // Logo in
   tl.to({}, { duration: 1 });
   tl.to("#logo", { opacity: 1, duration: 2 });
 
-  // Audio + stadium
+  // Crowd + wide shot + fireworks begin
   tl.call(() => {
-    Snd.resume();
     Snd.crowd();
     cam.wide();
     _fwAuto = setInterval(fwRandom, 1800);
   });
   tl.to({}, { duration: 3.5 });
 
-  // Flash + logo out + camera to trophy
+  // Big boom + confetti + trophy cam
   tl.call(() => {
     _flash();
     Snd.boom(0.7);
@@ -356,7 +364,7 @@ function startTimeline() {
   tl.to("#logo", { opacity: 0, duration: 1 });
   tl.to({}, { duration: 2 });
 
-  // Fanfare + player name
+  // Fanfare + player name type-in
   tl.call(() => { Snd.fanfare(); });
   tl.call(() => typeName());
   tl.to({}, { duration: (champion.player.length * 120 + 900) / 1000 });
@@ -374,7 +382,7 @@ function startTimeline() {
   tl.to("#country", { opacity: 1, duration: 1 });
   tl.to({}, { duration: 1 });
 
-  // Final fanfare + button
+  // Final burst + button
   tl.call(() => {
     Snd.fanfare();
     clearInterval(_fwAuto);
@@ -382,24 +390,14 @@ function startTimeline() {
   });
   tl.to("#btn", { opacity: 1, duration: 1.5, ease: "back.out(1.7)" });
   tl.call(() => {
-    document.getElementById("btn").style.pointerEvents = "all";
-    document.getElementById("btn").onclick = () => {
+    const btn = document.getElementById("btn");
+    btn.style.pointerEvents = "all";
+    btn.onclick = () => {
       clearInterval(_fwAuto);
       gsap.to("body", { opacity: 0, duration: 0.8,
         onComplete: () => { if (history.length > 1) history.back(); }
       });
     };
-  });
-}
-
-// ─── FLASH OVERLAY ──────────────────────────────────────────────────
-function _flash() {
-  const fl = document.createElement("div");
-  fl.style.cssText = "position:fixed;inset:0;background:#fff;z-index:9999;pointer-events:none;opacity:0";
-  document.body.appendChild(fl);
-  gsap.to(fl, { opacity: 1, duration: 0.08,
-    onComplete: () => gsap.to(fl, { opacity: 0, duration: 0.5,
-      onComplete: () => fl.remove() })
   });
 }
 
@@ -419,8 +417,30 @@ window.addEventListener("resize", () => {
   renderer.setSize(innerWidth, innerHeight);
 }, { passive: true });
 
-// ─── START ──────────────────────────────────────────────────────────
-Snd.init();
-cam.intro();
-startTimeline();
+// ─── START SCREEN ────────────────────────────────────────────────────
+// Show logo + tap button immediately; this also handles AudioContext autoplay policy
+// (AudioContext must be created/resumed inside a user gesture handler)
+const startOverlay = document.createElement("div");
+startOverlay.style.cssText = [
+  "position:fixed", "inset:0", "z-index:9999",
+  "display:flex", "flex-direction:column", "align-items:center", "justify-content:center",
+  "background:rgba(0,0,0,0.95)", "cursor:pointer"
+].join(";");
+startOverlay.innerHTML = `
+  <img src="logo.jpg" style="width:min(280px,65vw);border-radius:20px;margin-bottom:36px;filter:drop-shadow(0 0 32px rgba(255,215,0,0.7))"/>
+  <div style="font-size:clamp(16px,4vw,26px);letter-spacing:8px;color:gold;font-weight:900;font-family:Arial,sans-serif;text-shadow:0 0 30px gold;">▶ PLAY</div>
+  <div style="margin-top:16px;font-size:clamp(11px,2.5vw,15px);letter-spacing:3px;color:rgba(255,255,255,0.45);font-family:Arial,sans-serif;">TAP TO START</div>
+`;
+document.body.appendChild(startOverlay);
+
+startOverlay.addEventListener("click", () => {
+  startOverlay.remove();
+  // Init audio INSIDE user gesture — this is the only way to un-suspend AudioContext
+  Snd.init();
+  // Start 3D scene animations
+  cam.intro();
+  startTimeline();
+}, { once: true });
+
+// Render loop starts immediately so the WebGL canvas is alive
 animate();
