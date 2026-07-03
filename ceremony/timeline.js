@@ -43,19 +43,19 @@ function runTimeline() {
   tl.to({}, { duration: (champion.player.length * 120 + 800) / 1000 });
 
   /* ── Subtitle ── */
-  tl.call(() => Audio.playChord(0.18));
-  tl.to('#subtitle', { opacity: 1, duration: 0.8 });
   tl.call(() => {
+    Audio.playChord(0.18);
     document.getElementById('subtitle').textContent =
       champion.lang === 'es' ? 'CAMPEÓN DEL MUNDO' : 'CHAMPION OF THE WORLD';
   });
+  tl.to('#subtitle', { opacity: 1, duration: 0.8 });
   tl.to({}, { duration: 1.2 });
 
   /* ── Country ── */
-  tl.to('#country', { opacity: 1, duration: 0.8 });
   tl.call(() => {
     document.getElementById('country').textContent = champion.flag + '  ' + champion.country;
   });
+  tl.to('#country', { opacity: 1, duration: 0.8 });
   tl.to({}, { duration: 1 });
 
   /* ── Orbit + final fanfare ── */

@@ -1,6 +1,14 @@
 let scene, camera, renderer, particles, cameraCtrl;
 
 function init() {
+  try { _init(); } catch(e) {
+    document.body.innerHTML = '<div style="color:gold;font:bold 20px Arial;text-align:center;padding:40px">'
+      + 'Error loading ceremony:<br>' + e.message + '</div>';
+    console.error('[Ceremony] init failed:', e);
+  }
+}
+
+function _init() {
   /* ── Scene ── */
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x000000);
@@ -39,7 +47,7 @@ function init() {
 
   /* ── Render loop ── */
   animate();
-}
+} /* end _init */
 
 function animate() {
   requestAnimationFrame(animate);

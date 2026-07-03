@@ -26,25 +26,21 @@ const Audio = {
       this._reverb = this._buildReverb();
     } catch(e){ console.warn('[Audio] Web Audio unavailable', e); }
 
-    /* Howler crowd (tries external URL, silent on failure) */
-    this._howlCrowd = new Howl({
-      src: [
-        'https://cdn.pixabay.com/audio/2022/10/10/audio_8cb6dc5047.mp3',
-        'https://cdn.pixabay.com/audio/2021/09/13/audio_d7e0e7e8f3.mp3',
-      ],
-      loop: true,
-      volume: 0,
-      html5: true,
-      onloaderror: () => { /* fallback: synth crowd on resume */ },
-    });
-
-    /* Howler stadium ambience */
-    this._howlStadium = new Howl({
-      src: [
-        'https://cdn.pixabay.com/audio/2022/07/24/audio_2cffba9a15.mp3',
-      ],
-      loop: true, volume: 0, html5: true,
-    });
+    /* Howler crowd (optional — silent if CDN fails) */
+    try {
+      this._howlCrowd = new Howl({
+        src: [
+          'https://cdn.pixabay.com/audio/2022/10/10/audio_8cb6dc5047.mp3',
+          'https://cdn.pixabay.com/audio/2021/09/13/audio_d7e0e7e8f3.mp3',
+        ],
+        loop: true, volume: 0, html5: true,
+        onloaderror: () => {},
+      });
+      this._howlStadium = new Howl({
+        src: ['https://cdn.pixabay.com/audio/2022/07/24/audio_2cffba9a15.mp3'],
+        loop: true, volume: 0, html5: true,
+      });
+    } catch(_) { this._howlCrowd = null; this._howlStadium = null; }
   },
 
   resume(){
