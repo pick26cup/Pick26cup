@@ -44,89 +44,111 @@ trophyGroup.visible = false;
 scene.add(trophyGroup);
 
 (function buildTrophy() {
-  const S = 1.1; // overall scale factor
+  // Modeled from the real FIFA World Cup trophy photo:
+  // - Octagonal gold base + green malachite band with gold rings
+  // - VERY narrow waist above the band (key to the real trophy look)
+  // - Organic body that expands — two human figures reaching upward
+  // - Widest at shoulder/arm level, then fingers reach inward to grip the globe
+  // - Large ALL-GOLD sphere (the world) sitting on top
+
+  const S = 1.1;
 
   const gold = new THREE.MeshStandardMaterial({
-    color: 0xffd700, metalness: 0.97, roughness: 0.05,
-    emissive: 0xdd8800, emissiveIntensity: 0.12
+    color: 0xf5c000, metalness: 0.92, roughness: 0.14,
+    emissive: 0xaa7000, emissiveIntensity: 0.10
   });
-  const globeMat = new THREE.MeshStandardMaterial({
-    color: 0x44aaff, metalness: 0.3, roughness: 0.4,
-    emissive: 0x002244, emissiveIntensity: 0.3
+  const goldGlobe = new THREE.MeshStandardMaterial({
+    color: 0xffd740, metalness: 0.88, roughness: 0.20,
+    emissive: 0xcc8800, emissiveIntensity: 0.15
   });
-  const globeLineMat = new THREE.MeshStandardMaterial({
-    color: 0x88ddff, metalness: 0.2, roughness: 0.5
+  const malachite = new THREE.MeshStandardMaterial({
+    color: 0x1a6b35, metalness: 0.15, roughness: 0.75
   });
 
-  // ── Body (LatheGeometry) ─────────────────────────────────────────
-  // Realistic WC-trophy profile: stepped base → thin stem → flared cup → open rim
-  const pts = [
-    // base platform
+  // Octagonal gold base disk
+  const baseDisk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.46 * S, 0.48 * S, 0.06 * S, 8),
+    gold
+  );
+  baseDisk.position.y = 0.03 * S;
+  trophyGroup.add(baseDisk);
+
+  // Green malachite band
+  const greenBand = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.41 * S, 0.42 * S, 0.24 * S, 48),
+    malachite
+  );
+  greenBand.position.y = 0.18 * S;
+  trophyGroup.add(greenBand);
+
+  // Three gold accent rings on the green band
+  [0.06, 0.18, 0.30].forEach(yPos => {
+    const ring = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.425 * S, 0.425 * S, 0.014 * S, 48),
+      gold
+    );
+    ring.position.y = yPos * S;
+    trophyGroup.add(ring);
+  });
+
+  // Main body — matches the real trophy silhouette exactly:
+  //   wide at base (covers green band), drops to a VERY narrow waist,
+  //   then gradually expands as the human figures rise upward,
+  //   reaching widest at the torso/arm level, then tapering as
+  //   the arms angle inward to cradle the globe underneath
+  const bodyPts = [
     [0.02, 0.00],
-    [0.68, 0.00], [0.70, 0.04], [0.70, 0.14], [0.68, 0.18],
-    // first step
-    [0.54, 0.24], [0.54, 0.32], [0.50, 0.36],
-    // second step
-    [0.38, 0.42], [0.38, 0.48],
-    // taper to stem
-    [0.16, 0.58], [0.11, 0.68],
-    // stem
-    [0.10, 0.96], [0.11, 1.04],
-    // stem-to-cup junction
-    [0.18, 1.12], [0.28, 1.22],
-    // cup bowl — flares outward
-    [0.50, 1.48], [0.72, 1.82],
-    [0.90, 2.18], [0.96, 2.52],
-    // rim
-    [0.94, 2.68], [0.82, 2.76],
-    // inner rim / opening
-    [0.62, 2.80], [0.26, 2.82], [0.02, 2.82]
+    [0.43, 0.00], [0.44, 0.04],   // base edge
+    [0.44, 0.30],                  // top of green band
+    [0.36, 0.40], [0.26, 0.52],   // narrowing above band
+    [0.16, 0.66],                  // waist — narrowest (like the real trophy)
+    [0.20, 0.82], [0.30, 1.00],   // legs of figures rising
+    [0.44, 1.24], [0.57, 1.50],   // body expanding
+    [0.66, 1.74], [0.70, 1.96],   // torso — widest area
+    [0.67, 2.14], [0.61, 2.32],   // arms angling inward+upward
+    [0.53, 2.50], [0.42, 2.64],   // forearms
+    [0.28, 2.74], [0.10, 2.79],   // hands gripping globe bottom
+    [0.02, 2.80]
   ].map(([x, y]) => new THREE.Vector2(x * S, y * S));
 
-  trophyGroup.add(new THREE.Mesh(new THREE.LatheGeometry(pts, 64), gold));
+  trophyGroup.add(new THREE.Mesh(new THREE.LatheGeometry(bodyPts, 72), gold));
 
-  // ── Handles ──────────────────────────────────────────────────────
-  // Positioned at the widest mid-cup area (~y=2.0)
-  const hGeo = new THREE.TorusGeometry(0.30 * S, 0.048 * S, 10, 24, Math.PI);
-  [-1, 1].forEach(side => {
-    const h = new THREE.Mesh(hGeo, gold);
-    h.position.set(side * 0.88 * S, 2.10 * S, 0);
-    h.rotation.z = side > 0 ? Math.PI / 2 : -Math.PI / 2;
-    trophyGroup.add(h);
-  });
-
-  // ── Globe on top ─────────────────────────────────────────────────
-  const globeR = 0.38 * S;
-  const globe = new THREE.Mesh(new THREE.SphereGeometry(globeR, 32, 24), globeMat);
-  globe.position.y = (2.82 + 0.35) * S;
+  // Large GOLD globe (the world) — same gold as the body, not blue
+  const globeR = 0.56 * S;
+  const globeY  = (2.80 + 0.05 + globeR) * S;
+  const globe = new THREE.Mesh(
+    new THREE.SphereGeometry(globeR, 48, 32),
+    goldGlobe
+  );
+  globe.position.y = globeY;
   trophyGroup.add(globe);
 
-  // Latitude lines on globe
-  for (let lat = -60; lat <= 60; lat += 30) {
-    const y   = Math.sin(lat * Math.PI / 180) * globeR;
-    const r   = Math.cos(lat * Math.PI / 180) * globeR;
-    const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(r, 0.008 * S, 4, 32),
-      globeLineMat
-    );
-    ring.position.y = globe.position.y + y;
-    trophyGroup.add(ring);
-  }
-  // Two meridian lines
-  for (let i = 0; i < 2; i++) {
+  // Subtle raised-continent ridges on the globe (darker gold tone)
+  const ridgeMat = new THREE.MeshStandardMaterial({
+    color: 0x9a6000, metalness: 0.6, roughness: 0.55
+  });
+  // Equatorial band
+  const equator = new THREE.Mesh(
+    new THREE.TorusGeometry(globeR + 0.01, 0.022 * S, 6, 48),
+    ridgeMat
+  );
+  equator.position.y = globeY;
+  trophyGroup.add(equator);
+  // Meridian ridges
+  for (let i = 0; i < 4; i++) {
     const mer = new THREE.Mesh(
-      new THREE.TorusGeometry(globeR, 0.008 * S, 4, 48),
-      globeLineMat
+      new THREE.TorusGeometry(globeR + 0.01, 0.016 * S, 4, 32),
+      ridgeMat
     );
-    mer.position.y = globe.position.y;
-    mer.rotation.y = i * Math.PI / 2;
+    mer.position.y = globeY;
+    mer.rotation.y = (i / 4) * Math.PI * 2;
     mer.rotation.x = Math.PI / 2;
     trophyGroup.add(mer);
   }
 
-  // ── Trophy spot light ─────────────────────────────────────────────
-  const spotLight = new THREE.PointLight(0xffd700, 0, 14);
-  spotLight.position.set(0, 7, 2);
+  // Warm gold light that illuminates during reveal
+  const spotLight = new THREE.PointLight(0xffd060, 0, 18);
+  spotLight.position.set(0, 8, 2.5);
   scene.add(spotLight);
   trophyGroup.userData.light = spotLight;
 })();
