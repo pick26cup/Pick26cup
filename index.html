@@ -1831,11 +1831,14 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
             </select>
           </div>
           <div id="pendingPlayerList"><p style="color:var(--text2);font-size:12px">Loading...</p></div>
-          <div style="margin-top:10px;border-top:1px solid #333;padding-top:10px">
+          <div style="margin-top:10px;border-top:1px solid #333;padding-top:10px;display:flex;flex-direction:column;gap:6px">
             <button onclick="recoverSubmissions()" style="background:rgba(212,175,55,.15);border:1.5px solid var(--gold);color:var(--gold);font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;width:100%">
               🔧 Recuperar envíos desde picks guardados
             </button>
-            <p id="recoverStatus" style="font-size:11px;color:var(--text2);margin-top:6px;display:none"></p>
+            <button onclick="diagnosePicks()" style="background:rgba(52,152,219,.15);border:1.5px solid #3498DB;color:#3498DB;font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;width:100%">
+              🔍 Ver qué hay en Firebase por jugador
+            </button>
+            <div id="recoverStatus" style="font-size:11px;color:var(--text2);margin-top:2px;display:none;white-space:pre-wrap;line-height:1.6"></div>
           </div>
         </div>
 
@@ -3683,6 +3686,41 @@ function adminMarkSubmitted(key, name, round){
     setTimeout(renderPendingPlayers, 600);
   }).catch(function(e){
     showToast('Error: '+(e.message||e), 'error', 5000);
+  });
+}
+
+// Shows exactly what Firebase has per player for the selected round
+function diagnosePicks(){
+  if(!db){ showToast('Sin conexión','error'); return; }
+  const sel = document.getElementById('pendingRoundSelect');
+  const round = sel ? parseInt(sel.value) : (activeWeek || 1);
+  const status = document.getElementById('recoverStatus');
+  const roundMatchIds = (MATCHES[round]||[]).map(function(m){ return m.id; });
+  if(status){ status.style.display='block'; status.style.color='var(--text2)'; status.textContent='🔍 Leyendo Firebase...'; }
+
+  db.ref('players').once('value').then(function(pSnap){
+    const players = pSnap.val() || {};
+    const keys = Object.keys(players);
+    return Promise.all(keys.map(function(k){
+      return db.ref('picks/'+k).once('value')
+        .then(function(s){ return [k, players[k], s.val()]; })
+        .catch(function(){ return [k, players[k], null]; });
+    }));
+  }).then(function(rows){
+    let lines = ['── Firebase J'+round+' por jugador ──'];
+    rows.forEach(function(row){
+      const k = row[0], player = row[1], pd = row[2] || {};
+      const name = (player && player.name) || k;
+      const sub = (pd.submittedRounds || (player && player.submittedRounds) || {});
+      const hasSub = !!(sub[String(round)] || sub[round]);
+      const roundPicks = (pd.picks) || {};
+      const pickCount = roundMatchIds.filter(function(id){ return roundPicks[id] && (roundPicks[id].pick || roundPicks[id].scoreH !== undefined); }).length;
+      const flag = hasSub ? '✅' : (pickCount > 0 ? '⚠️' : '❌');
+      lines.push(flag+' '+name+': '+(hasSub?'ENVIADO':'no enviado')+', '+pickCount+'/'+roundMatchIds.length+' picks en Firebase');
+    });
+    if(status){ status.style.color='var(--text)'; status.textContent = lines.join('\n'); }
+  }).catch(function(e){
+    if(status){ status.style.color='var(--red)'; status.textContent='Error: '+(e.message||e); }
   });
 }
 
