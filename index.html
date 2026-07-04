@@ -3603,13 +3603,25 @@ function renderPendingPlayers(){
   ]).then(([pSnap, pickSnap])=>{
     const players = pSnap.val()||{};
     const allPicks = pickSnap.val()||{};
+    const roundMatchCount = (MATCHES[round]||[]).length;
     const pending = [], submitted = [];
     Object.entries(players).forEach(([key, player])=>{
-      const sub = (allPicks[key]&&allPicks[key].submittedRounds)||{};
-      const hasSub = sub[String(round)] || sub[round];
+      const pd = allPicks[key] || {};
+      const sub = pd.submittedRounds || {};
+      const hasSub = !!(sub[String(round)] || sub[round]);
       const totalSub = Object.values(sub).filter(Boolean).length;
-      if(hasSub) submitted.push({name:player.name||key, totalSub});
-      else        pending.push({name:player.name||key, totalSub});
+      // Count how many picks the player has made for this round (even if not submitted)
+      const roundPicks = pd.picks || {};
+      const roundMatchIds = (MATCHES[round]||[]).map(m=>m.id);
+      const picksMade = roundMatchIds.filter(id => {
+        const p = roundPicks[id];
+        return p && (p.pick || p.scoreH !== undefined);
+      }).length;
+      if(hasSub){
+        submitted.push({name:player.name||key, totalSub, picksMade, roundMatchCount});
+      } else {
+        pending.push({name:player.name||key, totalSub, picksMade, roundMatchCount});
+      }
     });
     const total = pending.length + submitted.length;
     if(total===0){
@@ -3619,15 +3631,28 @@ function renderPendingPlayers(){
     let html = `<p style="font-size:11px;color:var(--text2);margin-bottom:8px">`
       + `<strong style="color:var(--green)">${submitted.length}</strong>/${total} `
       + t('enviaron la jornada','submitted round')+' '+round+'</p>';
+    if(submitted.length > 0){
+      html += submitted.map(p=>`
+        <div class="pending-row" style="border-left:3px solid var(--green)">
+          <span class="pending-name">✅ ${escapeHtml(p.name)}</span>
+          <span class="pending-sub" style="color:var(--green)">${t('Enviado','Submitted')} · ${p.picksMade}/${p.roundMatchCount} picks</span>
+        </div>`).join('');
+    }
     if(pending.length===0){
-      html += `<p style="color:var(--green);font-size:13px;font-weight:700">✅ `+t('¡Todos enviaron!','All players submitted!')+`</p>`;
+      html += `<p style="color:var(--green);font-size:13px;font-weight:700;margin-top:6px">✅ `+t('¡Todos enviaron!','All players submitted!')+`</p>`;
     } else {
-      html += `<p style="font-size:11px;color:var(--red);font-weight:700;margin-bottom:6px">`
+      html += `<p style="font-size:11px;color:var(--red);font-weight:700;margin:8px 0 4px">`
         + `⚠️ `+pending.length+` `+t('sin enviar:','not submitted:')+`</p>`;
       html += pending.map(p=>`
-        <div class="pending-row">
+        <div class="pending-row" style="border-left:3px solid ${p.picksMade===p.roundMatchCount?'#F39C12':p.picksMade>0?'#E67E22':'var(--red)'}">
           <span class="pending-name">${escapeHtml(p.name)}</span>
-          <span class="pending-sub">${p.totalSub}/7 ${t('jornadas','rounds')}</span>
+          <span class="pending-sub" style="color:${p.picksMade===p.roundMatchCount?'#F39C12':p.picksMade>0?'#E67E22':'var(--red)'}">
+            ${p.picksMade===p.roundMatchCount
+              ? t('⚠️ Picks hechos, NO enviados','⚠️ Picks done, NOT submitted')
+              : p.picksMade > 0
+                ? `${p.picksMade}/${p.roundMatchCount} picks`
+                : t('0 picks','0 picks')}
+          </span>
         </div>`).join('');
     }
     cont.innerHTML = html;
