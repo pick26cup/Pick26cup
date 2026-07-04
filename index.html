@@ -1798,7 +1798,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
             background:rgba(212,175,55,.15);border:1px solid var(--gold3);color:var(--gold)">
             Active: —
           </span>
-          <span style="font-size:10px;color:#555;margin-left:auto">v2026.07.04d</span>
+          <span style="font-size:10px;color:#555;margin-left:auto">v2026.07.04e</span>
         </div>
 
         <!-- ══ SECURITY MONITOR ══ -->
@@ -3701,6 +3701,20 @@ var _meRound = 5;
 var _mePickState = {}; // {playerKey: {matchId: {pick} or {scoreH,scoreA}}}
 var _meResultState = {}; // {matchId: {pick} or {scoreH,scoreA}}
 
+// Extra flags not in JERSEY_TEAMS
+var _ME_EXTRA_FLAGS = {
+  'Suiza':'🇨🇭','Inglaterra':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Gales':'🏴󠁧󠁢󠁷󠁬󠁳󠁿','Eslovaquia':'🇸🇰',
+  'Estados Unidos':'🇺🇸','Corea del Sur':'🇰🇷','República Checa':'🇨🇿',
+  'Bosnia Herzegovina':'🇧🇦','Sudáfrica':'🇿🇦','Costa de Marfil':'🇨🇮',
+  'Arabia Saudí':'🇸🇦','Nueva Zelanda':'🇳🇿','Países Bajos':'🇳🇱','Congo':'🇨🇩'
+};
+function _meFlag(teamName){
+  if(!teamName) return '';
+  if(_ME_EXTRA_FLAGS[teamName]) return _ME_EXTRA_FLAGS[teamName];
+  const entry = JERSEY_TEAMS.find(function(t){ return t.name === teamName; });
+  return entry ? entry.flag : '';
+}
+
 function openManualEntry(){
   if(!db){ showToast('Sin conexión','error'); return; }
   const sel = document.getElementById('pendingRoundSelect');
@@ -3792,10 +3806,11 @@ function renderManualEntryGrid(){
         +'</td>';
     } else {
       const cur = (_meResultState[m.id]||{}).pick;
+      const fH = _meFlag(m.home)||'L', fA = _meFlag(m.away)||'V';
       html += '<td style="padding:4px;border:1px solid #333;text-align:center">'
-        +'<button id="mer_'+m.id+'_home" onclick="_meSetResult(\''+m.id+'\',\'home\')" style="background:#2ECC71;color:#000;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;font-weight:700;opacity:'+(cur==='home'?'1':'0.3')+'">L</button> '
-        +'<button id="mer_'+m.id+'_draw" onclick="_meSetResult(\''+m.id+'\',\'draw\')" style="background:#888;color:#fff;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;font-weight:700;opacity:'+(cur==='draw'?'1':'0.3')+'">E</button> '
-        +'<button id="mer_'+m.id+'_away" onclick="_meSetResult(\''+m.id+'\',\'away\')" style="background:#E74C3C;color:#fff;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;font-weight:700;opacity:'+(cur==='away'?'1':'0.3')+'">V</button>'
+        +'<button id="mer_'+m.id+'_home" onclick="_meSetResult(\''+m.id+'\',\'home\')" style="background:#2ECC71;color:#000;border:none;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:14px;opacity:'+(cur==='home'?'1':'0.3')+'">'+fH+'</button> '
+        +'<button id="mer_'+m.id+'_draw" onclick="_meSetResult(\''+m.id+'\',\'draw\')" style="background:#555;color:#fff;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;font-weight:700;opacity:'+(cur==='draw'?'1':'0.3')+'">E</button> '
+        +'<button id="mer_'+m.id+'_away" onclick="_meSetResult(\''+m.id+'\',\'away\')" style="background:#E74C3C;color:#fff;border:none;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:14px;opacity:'+(cur==='away'?'1':'0.3')+'">'+fA+'</button>'
         +'</td>';
     }
   });
@@ -3816,10 +3831,11 @@ function renderManualEntryGrid(){
           +'</td>';
       } else {
         const curPick = cur.pick;
+        const fH = _meFlag(m.home)||'L', fA = _meFlag(m.away)||'V';
         html += '<td style="padding:4px;border:1px solid #333;text-align:center">'
-          +'<button id="mep_'+p.key+'_'+m.id+'_home" onclick="_meSetPick(\''+p.key+'\',\''+m.id+'\',\'home\')" style="background:#2ECC71;color:#000;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;font-weight:'+(curPick==='home'?'900':'500')+';opacity:'+(curPick==='home'?'1':'0.3')+'">L</button> '
-          +'<button id="mep_'+p.key+'_'+m.id+'_draw" onclick="_meSetPick(\''+p.key+'\',\''+m.id+'\',\'draw\')" style="background:#888;color:#fff;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;font-weight:'+(curPick==='draw'?'900':'500')+';opacity:'+(curPick==='draw'?'1':'0.3')+'">E</button> '
-          +'<button id="mep_'+p.key+'_'+m.id+'_away" onclick="_meSetPick(\''+p.key+'\',\''+m.id+'\',\'away\')" style="background:#E74C3C;color:#fff;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;font-weight:'+(curPick==='away'?'900':'500')+';opacity:'+(curPick==='away'?'1':'0.3')+'">V</button>'
+          +'<button id="mep_'+p.key+'_'+m.id+'_home" onclick="_meSetPick(\''+p.key+'\',\''+m.id+'\',\'home\')" style="background:#2ECC71;color:#000;border:none;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:14px;opacity:'+(curPick==='home'?'1':'0.3')+'">'+fH+'</button> '
+          +'<button id="mep_'+p.key+'_'+m.id+'_draw" onclick="_meSetPick(\''+p.key+'\',\''+m.id+'\',\'draw\')" style="background:#555;color:#fff;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;font-weight:700;opacity:'+(curPick==='draw'?'1':'0.3')+'">E</button> '
+          +'<button id="mep_'+p.key+'_'+m.id+'_away" onclick="_meSetPick(\''+p.key+'\',\''+m.id+'\',\'away\')" style="background:#E74C3C;color:#fff;border:none;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:14px;opacity:'+(curPick==='away'?'1':'0.3')+'">'+fA+'</button>'
           +'</td>';
       }
     });
