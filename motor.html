@@ -261,31 +261,31 @@ const home=_E('home'),away=_E('away'),ha=_E('ha'),caut=_E('caut'),haVal=_E('haVa
   rtbody=_E('rtbody'),search=_E('search'),imp=_E('imp');
 
 const TEAMS=[
- // Elo post-J3 COMPLETA (72/72 al 28-jun-2026) · FIFA jun-11-2026 (48/48) · K=60, G=f(GD), HA=+100
- {g:"A",n:"México",c:"MX",elo:1912,fifa:1681,host:true},{g:"A",n:"Sudáfrica",c:"ZA",elo:1585,fifa:1428,host:false},
+ // Elo post-R32 (al 4-jul-2026) · FIFA jun-11-2026 (48/48) · K=60, G=f(GD), HA=+100
+ {g:"A",n:"México",c:"MX",elo:1955,fifa:1681,host:true},{g:"A",n:"Sudáfrica",c:"ZA",elo:1568,fifa:1428,host:false},
  {g:"A",n:"Corea del Sur",c:"KR",elo:1723,fifa:1592,host:false},{g:"A",n:"Chequia",c:"CZ",elo:1681,fifa:1506,host:false},
- {g:"B",n:"Canadá",c:"CA",elo:1749,fifa:1559,host:true},{g:"B",n:"Bosnia y H.",c:"BA",elo:1622,fifa:1387,host:false},
- {g:"B",n:"Catar",c:"QA",elo:1410,fifa:1450,host:false},{g:"B",n:"Suiza",c:"CH",elo:1914,fifa:1649,host:false},
- {g:"C",n:"Brasil",c:"BR",elo:2009,fifa:1761,host:false},{g:"C",n:"Marruecos",c:"MA",elo:1874,fifa:1756,host:false},
+ {g:"B",n:"Canadá",c:"CA",elo:1766,fifa:1559,host:true},{g:"B",n:"Bosnia y H.",c:"BA",elo:1596,fifa:1387,host:false},
+ {g:"B",n:"Catar",c:"QA",elo:1410,fifa:1450,host:false},{g:"B",n:"Suiza",c:"CH",elo:1942,fifa:1649,host:false},
+ {g:"C",n:"Brasil",c:"BR",elo:2031,fifa:1761,host:false},{g:"C",n:"Marruecos",c:"MA",elo:1883,fifa:1756,host:false},
  {g:"C",n:"Haití",c:"HT",elo:1517,fifa:1293,host:false},{g:"C",n:"Escocia",c:"SQ",elo:1745,fifa:1503,host:false},
- {g:"D",n:"Estados Unidos",c:"US",elo:1781,fifa:1673,host:true},{g:"D",n:"Paraguay",c:"PY",elo:1814,fifa:1505,host:false},
- {g:"D",n:"Australia",c:"AU",elo:1800,fifa:1574,host:false},{g:"D",n:"Turquía",c:"TR",elo:1852,fifa:1606,host:false},
- {g:"E",n:"Alemania",c:"DE",elo:1915,fifa:1730,host:false},{g:"E",n:"Curaçao",c:"CW",elo:1439,fifa:1295,host:false},
- {g:"E",n:"Costa de Marfil",c:"CI",elo:1743,fifa:1541,host:false},{g:"E",n:"Ecuador",c:"EC",elo:1899,fifa:1571,host:false},
- {g:"F",n:"Países Bajos",c:"NL",elo:1979,fifa:1758,host:false},{g:"F",n:"Japón",c:"JP",elo:1908,fifa:1660,host:false},
- {g:"F",n:"Suecia",c:"SE",elo:1743,fifa:1533,host:false},{g:"F",n:"Túnez",c:"TN",elo:1560,fifa:1476,host:false},
- {g:"G",n:"Bélgica",c:"BE",elo:1883,fifa:1735,host:false},{g:"G",n:"Egipto",c:"EG",elo:1742,fifa:1571,host:false},
+ {g:"D",n:"Estados Unidos",c:"US",elo:1807,fifa:1673,host:true},{g:"D",n:"Paraguay",c:"PY",elo:1822,fifa:1505,host:false},
+ {g:"D",n:"Australia",c:"AU",elo:1795,fifa:1574,host:false},{g:"D",n:"Turquía",c:"TR",elo:1852,fifa:1606,host:false},
+ {g:"E",n:"Alemania",c:"DE",elo:1907,fifa:1730,host:false},{g:"E",n:"Curaçao",c:"CW",elo:1439,fifa:1295,host:false},
+ {g:"E",n:"Costa de Marfil",c:"CI",elo:1733,fifa:1541,host:false},{g:"E",n:"Ecuador",c:"EC",elo:1856,fifa:1571,host:false},
+ {g:"F",n:"Países Bajos",c:"NL",elo:1970,fifa:1758,host:false},{g:"F",n:"Japón",c:"JP",elo:1886,fifa:1660,host:false},
+ {g:"F",n:"Suecia",c:"SE",elo:1725,fifa:1533,host:false},{g:"F",n:"Túnez",c:"TN",elo:1560,fifa:1476,host:false},
+ {g:"G",n:"Bélgica",c:"BE",elo:1910,fifa:1735,host:false},{g:"G",n:"Egipto",c:"EG",elo:1747,fifa:1571,host:false},
  {g:"G",n:"Irán",c:"IR",elo:1764,fifa:1620,host:false},{g:"G",n:"Nueva Zelanda",c:"NZ",elo:1534,fifa:1276,host:false},
- {g:"H",n:"España",c:"ES",elo:2142,fifa:1876,host:false},{g:"H",n:"Cabo Verde",c:"CV",elo:1622,fifa:1371,host:false},
+ {g:"H",n:"España",c:"ES",elo:2157,fifa:1876,host:false},{g:"H",n:"Cabo Verde",c:"CV",elo:1619,fifa:1371,host:false},
  {g:"H",n:"Arabia Saudí",c:"SA",elo:1589,fifa:1440,host:false},{g:"H",n:"Uruguay",c:"UY",elo:1841,fifa:1673,host:false},
- {g:"I",n:"Francia",c:"FR",elo:2018,fifa:1877,host:false},{g:"I",n:"Senegal",c:"SN",elo:1848,fifa:1689,host:false},
- {g:"I",n:"Irak",c:"IQ",elo:1570,fifa:1446,host:false},{g:"I",n:"Noruega",c:"NO",elo:2028,fifa:1577,host:false},
- {g:"J",n:"Argentina",c:"AR",elo:2147,fifa:1875,host:false},{g:"J",n:"Argelia",c:"DZ",elo:1776,fifa:1571,host:false},
- {g:"J",n:"Austria",c:"AT",elo:1835,fifa:1597,host:false},{g:"J",n:"Jordania",c:"JO",elo:1631,fifa:1391,host:false},
- {g:"K",n:"Portugal",c:"PT",elo:1987,fifa:1764,host:false},{g:"K",n:"RD Congo",c:"CD",elo:1720,fifa:1474,host:false},
- {g:"K",n:"Uzbekistán",c:"UZ",elo:1634,fifa:1459,host:false},{g:"K",n:"Colombia",c:"CO",elo:2001,fifa:1693,host:false},
- {g:"L",n:"Inglaterra",c:"EN",elo:2035,fifa:1826,host:false},{g:"L",n:"Croacia",c:"HR",elo:1901,fifa:1717,host:false},
- {g:"L",n:"Ghana",c:"GH",elo:1575,fifa:1347,host:false},{g:"L",n:"Panamá",c:"PA",elo:1658,fifa:1505,host:false},
+ {g:"I",n:"Francia",c:"FR",elo:2036,fifa:1877,host:false},{g:"I",n:"Senegal",c:"SN",elo:1821,fifa:1689,host:false},
+ {g:"I",n:"Irak",c:"IQ",elo:1570,fifa:1446,host:false},{g:"I",n:"Noruega",c:"NO",elo:2038,fifa:1577,host:false},
+ {g:"J",n:"Argentina",c:"AR",elo:2150,fifa:1875,host:false},{g:"J",n:"Argelia",c:"DZ",elo:1748,fifa:1571,host:false},
+ {g:"J",n:"Austria",c:"AT",elo:1820,fifa:1597,host:false},{g:"J",n:"Jordania",c:"JO",elo:1631,fifa:1391,host:false},
+ {g:"K",n:"Portugal",c:"PT",elo:2010,fifa:1764,host:false},{g:"K",n:"RD Congo",c:"CD",elo:1712,fifa:1474,host:false},
+ {g:"K",n:"Uzbekistán",c:"UZ",elo:1634,fifa:1459,host:false},{g:"K",n:"Colombia",c:"CO",elo:2006,fifa:1693,host:false},
+ {g:"L",n:"Inglaterra",c:"EN",elo:2043,fifa:1826,host:false},{g:"L",n:"Croacia",c:"HR",elo:1878,fifa:1717,host:false},
+ {g:"L",n:"Ghana",c:"GH",elo:1570,fifa:1347,host:false},{g:"L",n:"Panamá",c:"PA",elo:1658,fifa:1505,host:false},
 ];
 const IDX={};TEAMS.forEach((t,i)=>IDX[t.c]=i);
 
@@ -327,10 +327,10 @@ for(const r in KOR) koState[r]=KOR[r].slots.map(()=>({h:"",a:"",ha:"none"}));
  ["BE","SN"],["AR","CV"],["EN","CD"],["US","BA"],
  ["CH","DZ"],["PT","HR"],["AU","EG"],["CO","GH"]
 ].forEach(function(pair,i){koState[4][i].h=pair[0];koState[4][i].a=pair[1];});
-/* J5 Octavos — ganadores predichos por modelo (Elo+FIFA+forma WC2026) al 4-jul-2026
-   O1: CA vs BR · O2: DE vs NL · O3: NO vs MX · O4: FR vs ES
+/* J5 Octavos — resultados reales R32 (4-jul-2026)
+   O1: CA vs BR · O2: PY vs MA · O3: NO vs MX · O4: FR vs ES
    O5: BE vs AR · O6: EN vs US · O7: CH vs PT · O8: EG vs CO */
-[["CA","BR"],["DE","NL"],["NO","MX"],["FR","ES"],
+[["CA","BR"],["PY","MA"],["NO","MX"],["FR","ES"],
  ["BE","AR"],["EN","US"],["CH","PT"],["EG","CO"]
 ].forEach(function(pair,i){koState[5][i].h=pair[0];koState[5][i].a=pair[1];});
 
