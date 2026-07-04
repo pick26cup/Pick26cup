@@ -2372,7 +2372,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
 
     <div class="rules-block">
       <div class="rules-h" data-en="⏰ Deadlines" data-es="⏰ Cierre">⏰ Deadlines</div>
-      <p class="rules-p" data-en="Picks for each round lock automatically 5 hours before the first match of that round kicks off. A countdown timer shows how much time you have left." data-es="Las predicciones de cada jornada se bloquean automáticamente 5 horas antes del primer partido de esa jornada. Un contador muestra el tiempo restante.">Picks for each round lock automatically 5 hours before the first match of that round kicks off. A countdown timer shows how much time you have left.</p>
+      <p class="rules-p" data-en="Picks for each round lock automatically 2 hours before the first match of that round kicks off. A countdown timer shows how much time you have left." data-es="Las predicciones de cada jornada se bloquean automáticamente 2 horas antes del primer partido de esa jornada. Un contador muestra el tiempo restante.">Picks for each round lock automatically 2 hours before the first match of that round kicks off. A countdown timer shows how much time you have left.</p>
     </div>
 
     <div class="rules-block">
@@ -4763,7 +4763,7 @@ function renderRoundTabs(){
 // ══════════════════════════════════════════════════════
 function setPick(matchId, outcome, btn){
   if(isRoundLocked(currentRound)){
-    showToast(currentLang==='es'?'🔒 Predicciones cerradas (5 h antes del partido).':'🔒 Picks locked — closes 5 h before kickoff.','error');
+    showToast(currentLang==='es'?'🔒 Predicciones cerradas (2 h antes del partido).':'🔒 Picks locked — closes 2 h before kickoff.','error');
     return;
   }
   if(!picks[matchId]) picks[matchId] = {};
@@ -4778,7 +4778,7 @@ function setPick(matchId, outcome, btn){
 
 function setScore(matchId, side, val){
   if(isRoundLocked(currentRound)){
-    showToast(currentLang==='es'?'🔒 Predicciones cerradas (5 h antes del partido).':'🔒 Picks locked — closes 5 h before kickoff.','error');
+    showToast(currentLang==='es'?'🔒 Predicciones cerradas (2 h antes del partido).':'🔒 Picks locked — closes 2 h before kickoff.','error');
     renderMatches();
     return;
   }
@@ -4919,7 +4919,7 @@ function openSubmitModal(){
     return;
   }
   if(isRoundLocked(currentRound)){
-    showToast(currentLang==='es'?'🔒 Predicciones cerradas (5 h antes del partido).':'🔒 Picks locked — closes 5 h before kickoff.','error');
+    showToast(currentLang==='es'?'🔒 Predicciones cerradas (2 h antes del partido).':'🔒 Picks locked — closes 2 h before kickoff.','error');
     return;
   }
   // Scroll to top so modal is visible without user needing to scroll
@@ -5225,7 +5225,7 @@ function showPenaltyCard(playerName, penalty){
        <em style="color:#aaa;font-size:12px">El árbitro es final. No hay apelación. El VAR lo confirmó. 🖥️</em>`
     : `<strong style="color:#E74C3C">RED CARD, ${playerName.toUpperCase()}!!</strong><br><br>
        LADIES AND GENTLEMEN, THE REFEREE HAS MADE A DECISION! 📋✍️<br><br>
-       This player <strong>failed to submit their picks before the deadline</strong> (5 hours before kickoff), violating the official Pick26 tournament rules ⛔<br><br>
+       This player <strong>failed to submit their picks before the deadline</strong> (2 hours before kickoff), violating the official Pick26 tournament rules ⛔<br><br>
        For breach of fair play regulations: <strong style="color:#E74C3C">−${pts} point${pts!==1?'s':''}</strong> deducted from the total score.<br><br>
        <em style="color:#aaa;font-size:12px">The referee's decision is final. No appeal. VAR confirmed it. 🖥️</em>`;
   const modal = document.getElementById('penaltyCardModal');
@@ -7925,8 +7925,8 @@ function parseMatchDate(match){
   return new Date(utcMs);
 }
 
-// Lock threshold: 5 hours before kickoff (in ms).
-const LOCK_BEFORE_MS = 5 * 60 * 60 * 1000;
+// Lock threshold: 2 hours before kickoff (in ms).
+const LOCK_BEFORE_MS = 2 * 60 * 60 * 1000;
 
 // Is a round locked? Yes once we are within LOCK_BEFORE_MS of the first match.
 function hasMatchStarted(match){
@@ -9708,7 +9708,7 @@ function showRedCardWarning(){
   // Show every time app opens while player hasn't submitted picks for this round
   var submitted = submittedRounds[activeWeek] || submittedRounds[String(activeWeek)];
   if(submitted) return;
-  // Stop showing 5 hours before the first match of the round (deadline passed)
+  // Stop showing 2 hours before the first match of the round (deadline passed)
   var roundMatches = MATCHES[activeWeek] || [];
   if(roundMatches.length === 0) return;
   var firstKickoff = parseMatchDate(roundMatches[0]);
@@ -9733,7 +9733,7 @@ function showRedCardWarning(){
     + 'El administrador aplicará la sanción: <strong>TARJETA ROJA = −1 punto</strong> como castigo. 🟥';
 
   var msgEn = 'You have not submitted your picks for <strong>Round '+activeWeek+'</strong> yet! '
-    + 'Remember: you have until <strong>5 hours before kickoff</strong> to submit. '
+    + 'Remember: you have until <strong>2 hours before kickoff</strong> to submit. '
     + 'Players who submit on time are fine — <strong>no extra points lost or gained for this</strong>. '
     + 'If you miss the deadline, contact the administrator. '
     + 'The administrator will apply the penalty: <strong>RED CARD = −1 point</strong>. 🟥';
