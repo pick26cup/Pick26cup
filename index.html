@@ -2138,7 +2138,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
     </div>
 
   </main>
-  <footer>Pick26 · Developed by John Alvarado · Predict. Choose. Win.</footer>
+  <footer>Pick26 · Developed by John A. · Predict. Choose. Win.</footer>
 </div>
 
 <!-- SUBMIT STAMP MODAL -->
@@ -4808,7 +4808,7 @@ function printCurrentRound(){
     else if(p.pick==='away'){ pt=es?'VISITANTE':'AWAY WIN'; pc='aw'; }
     html+='<tr><td>'+(idx+1)+'</td><td>'+hn+' vs '+an+'</td><td class="'+pc+'">'+pt+'</td><td>'+m.date+' '+m.time+'</td></tr>';
   });
-  html+='</tbody></table><div class="ft">Pick26 · Developed by John Alvarado · Predict. Choose. Win.</div></body></html>';
+  html+='</tbody></table><div class="ft">Pick26 · Developed by John A. · Predict. Choose. Win.</div></body></html>';
   const w=window.open('','_blank','width=800,height=600');
   if(w){ w.document.write(html); w.document.close(); setTimeout(()=>w.print(),500); }
   else showToast(es?'Permite ventanas emergentes para imprimir':'Allow popups to print','error');
@@ -4995,7 +4995,7 @@ function printMyPicks(){
     printContent += '</tbody></table>';
   });
 
-  printContent += '<div class="footer">Pick26 · Developed by John Alvarado · Predict. Choose. Win.</div>';
+  printContent += '<div class="footer">Pick26 · Developed by John A. · Predict. Choose. Win.</div>';
   printContent += '</body></html>';
 
   const w = window.open('','_blank','width=800,height=600');
@@ -5204,7 +5204,7 @@ function generatePDF(playerName, playerPicks, round){
       doc.rect(0,282,210,15,'F');
       doc.setTextColor(180,134,11);
       doc.setFontSize(8);
-      doc.text('Pick26  ·  Developed by John Alvarado', 105, 291, {align:'center'});
+      doc.text('Pick26  ·  Developed by John A.', 105, 291, {align:'center'});
 
       doc.save('WC2026_Picks_'+playerName.replace(/\s+/g,'_')+'_R'+round+'.pdf');
       showToast(t('📄 ¡PDF generado!','📄 PDF generated!'),'success');
@@ -7197,12 +7197,11 @@ function generateAllPlayersPDF(){
     let entries = Object.entries(players).filter(function([,p]){ return p && p.name; });
     if(!entries.length){ status.textContent='No hay jugadores registrados.'; genBtn.disabled=false; return; }
 
-    // Admin (John Alvarado) always first — match by currentUser, known name, or role flag
+    // Logged-in admin always first; fall back to role flag
     const _cu = (currentUser||'').trim().toLowerCase();
-    const ADMIN_NAMES = ['john alvarado', 'john a.', 'john a'];
     let adminIdx = entries.findIndex(function([,p]){
       const nm = (p.name||'').trim().toLowerCase();
-      return (_cu && nm === _cu) || ADMIN_NAMES.indexOf(nm) >= 0 || p.role === 'admin';
+      return (_cu && nm === _cu) || p.role === 'admin';
     });
     let ordered;
     if(adminIdx>=0){
@@ -7855,7 +7854,7 @@ function generatePDFAllRounds(playerName, playerPicks, rounds, isAdminCopy=false
       doc.rect(0,282,210,15,'F');
       doc.setTextColor(180,134,11);
       doc.setFontSize(8);
-      doc.text('Pick26  ·  Developed by John Alvarado  ·  '+(isAdminCopy?'Admin Copy':'Player Copy'), 105, 291, {align:'center'});
+      doc.text('Pick26  ·  Developed by John A.  ·  '+(isAdminCopy?'Admin Copy':'Player Copy'), 105, 291, {align:'center'});
 
       const filename = 'WC2026_'+playerName.replace(/\s+/g,'_')+'_Rounds'+rounds.join('-')+'.pdf';
       doc.save(filename);
