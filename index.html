@@ -1798,7 +1798,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
             background:rgba(212,175,55,.15);border:1px solid var(--gold3);color:var(--gold)">
             Active: —
           </span>
-          <span style="font-size:10px;color:#555;margin-left:auto">v2026.07.04b</span>
+          <span style="font-size:10px;color:#555;margin-left:auto">v2026.07.04c</span>
         </div>
 
         <!-- ══ SECURITY MONITOR ══ -->
@@ -1978,6 +1978,18 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
                 font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 16px;
                 border-radius:8px;cursor:pointer;transition:.2s;letter-spacing:.5px">
                 🏆 Anunciar Ganador
+              </button>
+              <button onclick="adminUnlockRound()" style="
+                background:rgba(52,152,219,.15);border:1.5px solid #3498DB;color:#3498DB;
+                font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 16px;
+                border-radius:8px;cursor:pointer;transition:.2s;letter-spacing:.5px">
+                🔓 Desbloquear J
+              </button>
+              <button onclick="adminLockRound()" style="
+                background:rgba(127,140,141,.15);border:1.5px solid #7F8C8D;color:#7F8C8D;
+                font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 16px;
+                border-radius:8px;cursor:pointer;transition:.2s;letter-spacing:.5px">
+                🔐 Re-bloquear J
               </button>
             </div>
           </div>
@@ -2888,6 +2900,7 @@ let _adminPlayersListener = null;
 let _adminRefreshOnChange = null;
 let _avatarEditMode = false;
 let matchOverrides = {}; // {matchId: {home,away,date,time}}
+let _unlockedRounds = {}; // {round: true} — admin override to bypass time lock
 let matchEditRound = 1;
 let customTeamNames = {}; // {matchId_home: name, matchId_away: name}
 let db = null;
@@ -3173,6 +3186,11 @@ function setupFirebase(){
     initNarrator();
     console.log('Firebase ready');
     loadMatchOverrides();
+    // Admin round unlock override
+    db.ref('unlockedRounds').on('value', function(snap){
+      _unlockedRounds = snap.val() || {};
+      if(currentUser) updateSubmitArea();
+    });
     startPlayerWatcher();
     // Re-render any open sections now that Firebase is connected
     const openSection = document.querySelector('section:not(.hidden)');
@@ -6287,6 +6305,26 @@ function activateSelectedWeek(){
   }
 }
 
+function adminUnlockRound(){
+  if(!db || !_fbAuthOk){ showToast('⚠️ Firebase Auth requerido','error',4000); return; }
+  const val = parseInt(document.getElementById('activeWeekSelect').value);
+  db.ref('unlockedRounds/'+val).set(true).then(function(){
+    showToast('🔓 Jornada '+val+' desbloqueada para todos los jugadores','success',4000);
+  }).catch(function(e){
+    showToast('Error: '+(e.message||e),'error',5000);
+  });
+}
+
+function adminLockRound(){
+  if(!db || !_fbAuthOk){ showToast('⚠️ Firebase Auth requerido','error',4000); return; }
+  const val = parseInt(document.getElementById('activeWeekSelect').value);
+  db.ref('unlockedRounds/'+val).remove().then(function(){
+    showToast('🔐 Jornada '+val+' re-bloqueada','success',4000);
+  }).catch(function(e){
+    showToast('Error: '+(e.message||e),'error',5000);
+  });
+}
+
 function deactivateWeek(){
   activeWeek = 0;
   updateWeekBanner();
@@ -8311,6 +8349,8 @@ function isApprovedForRound(round){
 // A round is locked for editing once we are within 5 h of its first match.
 // Exception: if admin granted a late pick deadline that hasn't passed yet.
 function isRoundLocked(round){
+  // Admin can force-unlock a round from the admin panel
+  if(_unlockedRounds[round] || _unlockedRounds[String(round)]) return false;
   const matches = MATCHES[round] || [];
   if(matches.length === 0) return false;
   if(!hasMatchStarted(matches[0])) return false;
