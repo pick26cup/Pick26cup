@@ -17,8 +17,10 @@
 
 <!-- Referrer Policy -->
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
-<!-- Cache control — don't cache sensitive data -->
-<!-- Allow caching for faster loads -->
+<!-- Cache control: always fetch fresh HTML -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
 <style>
 :root{
@@ -9465,7 +9467,33 @@ var _savedMusicVol = 0.18;
 function appRefresh(){
   var btn = document.getElementById('refreshBtn');
   if(btn){ btn.classList.add('spinning'); btn.style.pointerEvents='none'; }
-  setTimeout(function(){ location.reload(); }, 300);
+
+  function hardReload(){
+    // Cache-busting URL → forces HTTP-level bypass on ALL browsers/devices
+    var base = location.href.split('?')[0].split('#')[0];
+    var hash = location.hash || '';
+    location.replace(base + '?_=' + Date.now() + hash);
+  }
+
+  // 1. Clear Cache API caches (PWA / service worker caches)
+  var p1 = ('caches' in window)
+    ? caches.keys().then(function(keys){
+        return Promise.all(keys.map(function(k){ return caches.delete(k); }));
+      }).catch(function(){})
+    : Promise.resolve();
+
+  // 2. Unregister service workers
+  var p2 = ('serviceWorker' in navigator)
+    ? navigator.serviceWorker.getRegistrations().then(function(regs){
+        return Promise.all(regs.map(function(r){ return r.unregister(); }));
+      }).catch(function(){})
+    : Promise.resolve();
+
+  Promise.all([p1, p2]).then(function(){
+    setTimeout(hardReload, 250);
+  }).catch(function(){
+    setTimeout(hardReload, 250);
+  });
 }
 
 function toggleMute(){
