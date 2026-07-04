@@ -3104,7 +3104,10 @@ function setupFirebase(){
       updateWeekBanner();
       updateWeekStatusBadge();
       const psel = document.getElementById('pendingRoundSelect');
-      if(psel && activeWeek > 0) psel.value = activeWeek;
+      if(psel && activeWeek > 0){
+        psel.value = activeWeek;
+        if(adminLoggedIn) renderPendingPlayers();
+      }
       if(currentUser) setupPickNotification();
       if(currentUser && activeWeek > 0) setTimeout(showRedCardWarning, 1200);
       // Sync currentRound to activeWeek and re-render picks if visible
@@ -4281,11 +4284,19 @@ function syncFromFirebase(){
   // Use once() so Firebase rollbacks (from denied writes) can't re-render and reset picks
   db.ref('picks/'+playerKey()).once('value').then(function(snap){
     const data = snap.val();
-    if(data){
-      if(data.picks) picks = data.picks;
+    if(data && data.picks){
+      picks = data.picks;
       if(data.submittedRounds) submittedRounds = data.submittedRounds;
       localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
       localStorage.setItem('wc2026_submitted_'+currentUser, JSON.stringify(submittedRounds));
+    } else if(!data && Object.keys(picks).length > 0){
+      // Firebase has no picks but localStorage does — upload everything so admin PDF is correct
+      db.ref('picks/'+playerKey()).set({
+        name: currentUser,
+        picks: picks,
+        submittedRounds: submittedRounds,
+        updatedAt: Date.now()
+      }).catch(function(){});
     }
     renderMatches();
     updateSubmitArea();
@@ -5846,6 +5857,16 @@ function grantAdminUI(){
   updateAdminBadge();
   const fab = document.getElementById('adminPdfBtn');
   if(fab) fab.style.display = 'flex';
+
+  // Real-time listener: auto-refresh pending picks when any player submits
+  if(db){
+    var _pendingRefreshTimer = null;
+    db.ref('picks').on('value', function(){
+      if(!adminLoggedIn) return;
+      clearTimeout(_pendingRefreshTimer);
+      _pendingRefreshTimer = setTimeout(renderPendingPlayers, 1200);
+    });
+  }
   showToast(t('Acceso de administrador concedido 🔓','Admin access granted 🔓'),'success');
 }
 
