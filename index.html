@@ -1003,6 +1003,26 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
 .apdf-player-avatar{width:34px;height:34px;border-radius:50%;background:rgba(212,175,55,.15);border:1.5px solid rgba(212,175,55,.3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
 .apdf-player-name{font-size:14px;font-weight:600;color:var(--text);flex:1}
 .apdf-player-rounds{font-size:11px;color:var(--gold);font-weight:600}
+/* ── ROUND PDF MODAL ── */
+#roundPdfModal{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px}
+#roundPdfModal.open{display:flex}
+.rpdf-box{background:linear-gradient(160deg,#0c0c08,#1a1400);border:1.5px solid rgba(212,175,55,.4);border-radius:16px;width:100%;max-width:400px;overflow:hidden}
+.rpdf-hdr{background:linear-gradient(135deg,#7a5500,#D4AF37,#7a5500);padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+.rpdf-hdr h3{margin:0;font-family:'Bebas Neue';font-size:20px;color:#000;letter-spacing:2px}
+.rpdf-close{background:none;border:none;font-size:20px;cursor:pointer;color:#000;opacity:.7}
+.rpdf-body{padding:20px}
+.rpdf-label{font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:var(--gold);margin-bottom:12px}
+.rpdf-rounds{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
+.rpdf-round-btn{background:transparent;border:2px solid rgba(212,175,55,.45);color:var(--text2);font-family:'Bebas Neue';font-size:16px;letter-spacing:1px;padding:10px 6px;border-radius:8px;cursor:pointer;transition:.15s;text-align:center}
+.rpdf-round-btn:hover{background:rgba(212,175,55,.14);border-color:var(--gold);color:var(--gold)}
+.rpdf-round-btn.active{background:var(--gold);border-color:var(--gold);color:#000;font-weight:700}
+.rpdf-actions{display:flex;flex-direction:column;gap:10px}
+.rpdf-gen-btn{width:100%;padding:13px;background:linear-gradient(135deg,#7a5500,#D4AF37);border:none;border-radius:10px;font-family:'Bebas Neue';font-size:16px;letter-spacing:2px;color:#000;cursor:pointer;transition:.2s}
+.rpdf-gen-btn:hover{filter:brightness(1.1)}
+.rpdf-gen-btn:disabled{opacity:.45;cursor:not-allowed}
+.rpdf-wa-btn{width:100%;padding:12px;background:rgba(37,211,102,.12);border:1.5px solid rgba(37,211,102,.4);border-radius:10px;font-family:'Bebas Neue';font-size:15px;letter-spacing:2px;color:#25D366;cursor:pointer;transition:.2s;display:none}
+.rpdf-wa-btn:hover{background:rgba(37,211,102,.22)}
+.rpdf-status{font-size:12px;color:var(--text2);text-align:center;margin-top:8px;min-height:16px}
 /* viewer modal */
 .apdf-viewer-box{max-width:540px}
 .apdf-viewer-body{padding:0;overflow-y:auto;flex:1}
@@ -2024,7 +2044,10 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
       <div class="apdf-modal-box">
         <div class="apdf-modal-hdr">
           <h3 data-en="📋 PICKS BY PLAYER" data-es="📋 PICKS POR JUGADOR">📋 PICKS POR JUGADOR</h3>
-          <button class="apdf-modal-close" onclick="closeAdminPlayerList()">✕</button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button onclick="openRoundPdfModal()" title="PDF todos los jugadores por Jornada" style="background:rgba(0,0,0,.2);border:1px solid rgba(0,0,0,.3);color:#000;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;letter-spacing:.5px;white-space:nowrap">📄 PDF JORNADA</button>
+            <button class="apdf-modal-close" onclick="closeAdminPlayerList()">✕</button>
+          </div>
         </div>
         <div class="apdf-modal-body" id="adminPlayerListBody">
           <p style="color:var(--text2);font-size:13px;text-align:center;padding:20px">Cargando...</p>
@@ -2045,6 +2068,25 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
         <div class="apdf-round-tab-bar" id="adminPickRoundTabs"></div>
         <div class="apdf-viewer-body">
           <div class="apdf-viewer-content" id="adminPickViewerContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Modal: Round PDF all players ── -->
+    <div id="roundPdfModal" onclick="if(event.target===this)closeRoundPdfModal()">
+      <div class="rpdf-box">
+        <div class="rpdf-hdr">
+          <h3>📄 PDF JORNADA · TODOS</h3>
+          <button class="rpdf-close" onclick="closeRoundPdfModal()">✕</button>
+        </div>
+        <div class="rpdf-body">
+          <div class="rpdf-label">Selecciona la Jornada (1–7)</div>
+          <div class="rpdf-rounds" id="rpdfRoundBtns"></div>
+          <div class="rpdf-actions">
+            <button class="rpdf-gen-btn" id="rpdfGenBtn" onclick="generateAllPlayersPDF()">⬇ GENERAR PDF</button>
+            <button class="rpdf-wa-btn" id="rpdfWaBtn" onclick="shareRoundPdfWhatsApp()">📲 COMPARTIR EN WHATSAPP</button>
+          </div>
+          <div class="rpdf-status" id="rpdfStatus"></div>
         </div>
       </div>
     </div>
@@ -6950,6 +6992,263 @@ function adminDownloadPlayerPDF(){
   const sr = _adminViewerPlayer.submittedRounds;
   const submitted = [1,2,3,4,5,6,7].filter(r=>sr[r]||sr[String(r)]);
   generatePDFAllRounds(_adminViewerPlayer.name, _adminViewerPlayer.picks, submitted.length?submitted:[_adminViewerRound], true);
+}
+
+// ── ROUND PDF · ALL PLAYERS ───────────────────────────────────────────────────
+let _rpdfSelectedRound = 1;
+let _rpdfLastFilename = '';
+
+function openRoundPdfModal(){
+  if(!adminLoggedIn) return;
+  _rpdfSelectedRound = 1;
+  document.getElementById('roundPdfModal').classList.add('open');
+  document.getElementById('rpdfWaBtn').style.display = 'none';
+  document.getElementById('rpdfStatus').textContent = '';
+  document.getElementById('rpdfGenBtn').disabled = false;
+  // Build round buttons
+  const container = document.getElementById('rpdfRoundBtns');
+  container.innerHTML = [1,2,3,4,5,6,7].map(r=>`
+    <button class="rpdf-round-btn${r===1?' active':''}" onclick="rpdfSelectRound(${r})" id="rpdfRBtn${r}">J${r}</button>
+  `).join('');
+}
+function closeRoundPdfModal(){
+  document.getElementById('roundPdfModal').classList.remove('open');
+}
+function rpdfSelectRound(r){
+  _rpdfSelectedRound = r;
+  document.querySelectorAll('.rpdf-round-btn').forEach(function(b){ b.classList.remove('active'); });
+  const btn = document.getElementById('rpdfRBtn'+r);
+  if(btn) btn.classList.add('active');
+  document.getElementById('rpdfWaBtn').style.display = 'none';
+  document.getElementById('rpdfStatus').textContent = '';
+}
+
+function generateAllPlayersPDF(){
+  if(!adminLoggedIn||!db){ showToast('Sin conexión Firebase','error'); return; }
+  const round = _rpdfSelectedRound;
+  const genBtn = document.getElementById('rpdfGenBtn');
+  const status = document.getElementById('rpdfStatus');
+  genBtn.disabled = true;
+  status.textContent = 'Cargando jugadores y picks…';
+
+  Promise.all([
+    db.ref('players').once('value'),
+    db.ref('picks').once('value')
+  ]).then(function([pSnap, pickSnap]){
+    const players = pSnap.val() || {};
+    const allPicks = pickSnap.val() || {};
+
+    let entries = Object.entries(players).filter(function([,p]){ return p && p.name; });
+    if(!entries.length){ status.textContent='No hay jugadores registrados.'; genBtn.disabled=false; return; }
+
+    // Admin (John Alvarado / current admin) first
+    const ADMIN_NAMES = ['john alvarado'];
+    let adminIdx = entries.findIndex(function([,p]){ return ADMIN_NAMES.indexOf((p.name||'').toLowerCase())>=0 || p.role==='admin'; });
+    let ordered;
+    if(adminIdx>=0){
+      const adminEntry = entries.splice(adminIdx,1)[0];
+      entries.sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); });
+      ordered = [adminEntry].concat(entries);
+    } else {
+      entries.sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); });
+      ordered = entries;
+    }
+
+    status.textContent = 'Generando PDF con '+ordered.length+' jugadores…';
+
+    return loadJsPDF().then(function(){
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+      const roundMatches = MATCHES[round] || [];
+      const roundName = 'Jornada ' + round;
+      const isAdminFirst = adminIdx >= 0;
+      let firstPage = true;
+
+      ordered.forEach(function([key, player], playerIdx){
+        if(!firstPage) doc.addPage();
+        firstPage = false;
+
+        const isAdmin = isAdminFirst && playerIdx === 0;
+        const pd = allPicks[key] || {};
+        const picks = pd.picks || {};
+        const sr = pd.submittedRounds || {};
+        const submitted = !!(sr[round]||sr[String(round)]);
+
+        // ── Page header ──
+        if(isAdmin){
+          // Gold header for admin
+          doc.setFillColor(180,134,11);
+          doc.rect(0,0,210,30,'F');
+          doc.setFillColor(255,215,0);
+          doc.rect(0,28,210,2,'F');
+          doc.setFontSize(20);
+          doc.setFont('helvetica','bold');
+          doc.setTextColor(0,0,0);
+          doc.text('PICK26 — WORLD CUP 2026', 105,12,{align:'center'});
+          doc.setFontSize(10);
+          doc.setTextColor(50,20,0);
+          doc.text('🏆 ADMINISTRADOR · '+roundName, 105,22,{align:'center'});
+        } else {
+          // Dark header for regular players
+          doc.setFillColor(10,10,10);
+          doc.rect(0,0,210,30,'F');
+          doc.setFillColor(180,134,11);
+          doc.rect(0,28,210,2,'F');
+          doc.setFontSize(20);
+          doc.setFont('helvetica','bold');
+          doc.setTextColor(212,175,55);
+          doc.text('PICK26 — WORLD CUP 2026', 105,12,{align:'center'});
+          doc.setFontSize(10);
+          doc.setTextColor(200,180,100);
+          doc.text(roundName+' · Official Picks Receipt', 105,22,{align:'center'});
+        }
+
+        // ── Player info bar ──
+        if(isAdmin){
+          doc.setFillColor(255,248,200);
+        } else {
+          doc.setFillColor(245,240,220);
+        }
+        doc.rect(0,30,210,20,'F');
+        doc.setFontSize(13);
+        doc.setFont('helvetica','bold');
+        doc.setTextColor(50,30,0);
+        doc.text((isAdmin?'⭐ ':'')+escapeHtmlPdf(player.name||key), 14,41);
+        doc.setFontSize(9);
+        doc.setFont('helvetica','normal');
+        doc.setTextColor(80,60,0);
+        doc.text('Generado: '+new Date().toLocaleString(), 14,48);
+        doc.text(submitted?'✓ ENVIADO':'SIN ENVÍO', 200,48,{align:'right'});
+        doc.text('Jugador '+(playerIdx+1)+' de '+ordered.length, 200,41,{align:'right'});
+
+        // ── Table header ──
+        let y = 62;
+        doc.setFillColor(180,134,11);
+        doc.rect(10,y-5,190,8,'F');
+        doc.setTextColor(255,255,255);
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(8);
+        doc.text('#', 13, y);
+        doc.text('Local', 20, y);
+        doc.text('Visitante', 88, y);
+        doc.text('H   D   A  /  Score', 132, y);
+        doc.text('Fecha/Hora', 185, y);
+        y += 7;
+
+        if(!roundMatches.length){
+          doc.setFontSize(10);
+          doc.setTextColor(180,80,0);
+          doc.text('(No hay partidos configurados para esta jornada)', 105, y+10, {align:'center'});
+        }
+
+        let rowCount = 0;
+        roundMatches.forEach(function(m, idx){
+          if(y > 272){ doc.addPage(); y = 20; }
+          const p = picks[m.id] || {};
+          const pick = p.pick;
+
+          // Row bg
+          const bg = rowCount%2===0 ? [255,255,255] : [250,247,238];
+          doc.setFillColor(...bg);
+          doc.rect(10,y-4,190,7,'F');
+
+          // Team highlights
+          if(!(m.closer||m.final)){
+            if(pick==='home'){
+              doc.setFillColor(190,245,208); doc.rect(17,y-3.5,66,5.5,'F');
+            } else if(pick==='away'){
+              doc.setFillColor(255,198,193); doc.rect(85,y-3.5,43,5.5,'F');
+            } else if(pick==='draw'){
+              doc.setFillColor(190,218,255); doc.rect(17,y-3.5,66,5.5,'F');
+              doc.rect(85,y-3.5,43,5.5,'F');
+            }
+          }
+
+          doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(60,60,60);
+          doc.text(String(idx+1), 13, y);
+
+          const pdfHome = escapeHtmlPdf((customTeamNames[m.id+'_home']||m.home||'')).substring(0,17);
+          const pdfAway = escapeHtmlPdf((customTeamNames[m.id+'_away']||m.away||'')).substring(0,17);
+
+          if(pick==='home'){ doc.setFont('helvetica','bold'); doc.setTextColor(0,105,42); }
+          else if(pick==='draw'){ doc.setFont('helvetica','bold'); doc.setTextColor(0,62,148); }
+          else { doc.setFont('helvetica','normal'); doc.setTextColor(40,40,40); }
+          doc.text(pdfHome, 20, y);
+
+          if(pick==='away'){ doc.setFont('helvetica','bold'); doc.setTextColor(155,22,12); }
+          else if(pick==='draw'){ doc.setFont('helvetica','bold'); doc.setTextColor(0,62,148); }
+          else { doc.setFont('helvetica','normal'); doc.setTextColor(40,40,40); }
+          doc.text(pdfAway, 88, y);
+
+          if(!(m.closer||m.final)){
+            [{lbl:'H',cx:136,sel:pick==='home',fill:[190,245,208],stroke:[0,115,48]},
+             {lbl:'D',cx:148,sel:pick==='draw',fill:[190,218,255],stroke:[0,68,158]},
+             {lbl:'A',cx:160,sel:pick==='away',fill:[255,198,193],stroke:[165,28,18]}
+            ].forEach(function(o){
+              if(o.sel){
+                doc.setFillColor(...o.fill); doc.setDrawColor(...o.stroke); doc.setLineWidth(0.9);
+                doc.circle(o.cx,y-0.8,3.4,'FD');
+                doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...o.stroke);
+              } else {
+                doc.setDrawColor(185,185,185); doc.setLineWidth(0.3);
+                doc.circle(o.cx,y-0.8,3.4,'S');
+                doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(185,185,185);
+              }
+              doc.text(o.lbl,o.cx,y+0.5,{align:'center'});
+            });
+          } else {
+            const sh = p.scoreH!==undefined?p.scoreH:'?';
+            const sa = p.scoreA!==undefined?p.scoreA:'?';
+            doc.setFillColor(255,242,175); doc.setDrawColor(160,110,0); doc.setLineWidth(0.9);
+            doc.roundedRect(130,y-4,36,6.5,3,3,'FD');
+            doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(110,72,0);
+            doc.text(String(sh)+' — '+String(sa), 148, y+0.3, {align:'center'});
+          }
+
+          doc.setTextColor(80,80,80); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+          doc.text((m.date||'')+' '+(m.time||''), 208, y, {align:'right'});
+
+          y += 7; rowCount++;
+        });
+
+        // Summary
+        y += 4;
+        if(isAdmin){ doc.setFillColor(255,242,160); } else { doc.setFillColor(245,240,220); }
+        doc.rect(10,y,190,14,'F');
+        doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(80,50,0);
+        const totalP = roundMatches.filter(function(m){ return picks[m.id]&&(picks[m.id].pick||(m.closer||m.final)); }).length;
+        doc.text('Picks enviados: '+totalP+' / '+roundMatches.length, 14, y+6);
+        doc.text(roundName+' — '+(submitted?'✓ LOCKED':'PENDIENTE'), 200, y+6, {align:'right'});
+        doc.setFont('helvetica','normal'); doc.setTextColor(100,80,0);
+        doc.text('Pick26Cup · FIFA World Cup 2026 · Comprobante Oficial', 14, y+11);
+      });
+
+      // Save file
+      const filename = 'Pick26Cup_J'+round+'_AllPlayers.pdf';
+      doc.save(filename);
+      _rpdfLastFilename = filename;
+      status.textContent = '✅ PDF generado: '+ordered.length+' jugadores · Jornada '+round;
+      document.getElementById('rpdfWaBtn').style.display = 'block';
+      genBtn.disabled = false;
+    });
+  }).catch(function(e){
+    status.textContent = '⚠️ Error: '+e.message;
+    genBtn.disabled = false;
+  });
+}
+
+function escapeHtmlPdf(str){
+  return String(str||'').replace(/[<>&"]/g,'');
+}
+
+function shareRoundPdfWhatsApp(){
+  const round = _rpdfSelectedRound;
+  const msg = encodeURIComponent(
+    '📋 *Pick26Cup · Jornada '+round+' — Picks Oficiales*\n'
+    +'Se adjunta el PDF con los picks de todos los jugadores para la Jornada '+round+'.\n'
+    +'⚽ FIFA World Cup 2026 · pick26cup.github.io'
+  );
+  window.open('https://api.whatsapp.com/send?text='+msg, '_blank');
 }
 
 function renderRoundPayments(){
