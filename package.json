@@ -1,5 +1,9 @@
 {
   "dependencies": {
     "playwright": "^1.61.1"
+  },
+  "devDependencies": {
+    "gsap": "^3.12.5",
+    "three": "^0.160.0"
   }
 }
