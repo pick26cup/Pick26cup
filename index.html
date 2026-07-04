@@ -3598,23 +3598,31 @@ function renderPendingPlayers(){
   const round = sel ? parseInt(sel.value) : (activeWeek || 1);
   cont.innerHTML = `<p style="color:var(--text2);font-size:12px">${currentLang==='es'?'Cargando...':'Loading...'}</p>`;
   if(!db){ cont.innerHTML=`<p style="color:var(--text2);font-size:12px">${currentLang==='es'?'Sin conexión.':'No connection.'}</p>`; return; }
-  Promise.all([
-    db.ref('players').once('value'),
-    db.ref('picks').once('value')
-  ]).then(([pSnap, pickSnap])=>{
-    const players = pSnap.val()||{};
-    const allPicks = pickSnap.val()||{};
+
+  // Read players first — always accessible.
+  // Then try to read the full picks tree for pick counts; degrade gracefully if rules deny it.
+  db.ref('players').once('value').then(function(pSnap){
+    const players = pSnap.val() || {};
+    return db.ref('picks').once('value').then(function(pickSnap){
+      return { players: players, allPicks: pickSnap.val() || {} };
+    }).catch(function(){
+      // picks tree denied → we'll rely on submittedRounds stored inside players node
+      return { players: players, allPicks: {} };
+    });
+  }).then(function(data){
+    const players = data.players, allPicks = data.allPicks;
     const roundMatchCount = (MATCHES[round]||[]).length;
     const pending = [], submitted = [];
-    Object.entries(players).forEach(([key, player])=>{
+    Object.entries(players).forEach(function([key, player]){
       const pd = allPicks[key] || {};
-      const sub = pd.submittedRounds || {};
+      // Use submittedRounds from players node (written by doSubmitPicks transaction)
+      // Fall back to picks node in case one is missing
+      const sub = player.submittedRounds || pd.submittedRounds || {};
       const hasSub = !!(sub[String(round)] || sub[round]);
       const totalSub = Object.values(sub).filter(Boolean).length;
-      // Count how many picks the player has made for this round (even if not submitted)
       const roundPicks = pd.picks || {};
-      const roundMatchIds = (MATCHES[round]||[]).map(m=>m.id);
-      const picksMade = roundMatchIds.filter(id => {
+      const roundMatchIds = (MATCHES[round]||[]).map(function(m){ return m.id; });
+      const picksMade = roundMatchIds.filter(function(id){
         const p = roundPicks[id];
         return p && (p.pick || p.scoreH !== undefined);
       }).length;
@@ -3633,32 +3641,32 @@ function renderPendingPlayers(){
       + `<strong style="color:var(--green)">${submitted.length}</strong>/${total} `
       + t('enviaron la jornada','submitted round')+' '+round+'</p>';
     if(submitted.length > 0){
-      html += submitted.map(p=>`
+      html += submitted.map(function(p){ return `
         <div class="pending-row" style="border-left:3px solid var(--green)">
           <span class="pending-name">✅ ${escapeHtml(p.name)}</span>
-          <span class="pending-sub" style="color:var(--green)">${t('Enviado','Submitted')} · ${p.picksMade}/${p.roundMatchCount} picks</span>
-        </div>`).join('');
+          <span class="pending-sub" style="color:var(--green)">${t('Enviado','Submitted')}${p.picksMade>0?' · '+p.picksMade+'/'+p.roundMatchCount+' picks':''}</span>
+        </div>`; }).join('');
     }
     if(pending.length===0){
       html += `<p style="color:var(--green);font-size:13px;font-weight:700;margin-top:6px">✅ `+t('¡Todos enviaron!','All players submitted!')+`</p>`;
     } else {
       html += `<p style="font-size:11px;color:var(--red);font-weight:700;margin:8px 0 4px">`
         + `⚠️ `+pending.length+` `+t('sin enviar:','not submitted:')+`</p>`;
-      html += pending.map(p=>`
-        <div class="pending-row" style="border-left:3px solid ${p.picksMade===p.roundMatchCount?'#F39C12':p.picksMade>0?'#E67E22':'var(--red)'}">
+      html += pending.map(function(p){ return `
+        <div class="pending-row" style="border-left:3px solid ${p.picksMade===p.roundMatchCount&&p.roundMatchCount>0?'#F39C12':p.picksMade>0?'#E67E22':'var(--red)'}">
           <span class="pending-name">${escapeHtml(p.name)}</span>
-          <span class="pending-sub" style="color:${p.picksMade===p.roundMatchCount?'#F39C12':p.picksMade>0?'#E67E22':'var(--red)'}">
-            ${p.picksMade===p.roundMatchCount
+          <span class="pending-sub" style="color:${p.picksMade===p.roundMatchCount&&p.roundMatchCount>0?'#F39C12':p.picksMade>0?'#E67E22':'var(--red)'}">
+            ${p.picksMade===p.roundMatchCount&&p.roundMatchCount>0
               ? t('⚠️ Picks hechos, NO enviados','⚠️ Picks done, NOT submitted')
               : p.picksMade > 0
-                ? `${p.picksMade}/${p.roundMatchCount} picks`
+                ? p.picksMade+'/'+p.roundMatchCount+' picks'
                 : t('0 picks','0 picks')}
           </span>
-        </div>`).join('');
+        </div>`; }).join('');
     }
     cont.innerHTML = html;
-  }).catch(()=>{
-    cont.innerHTML=`<p style="color:var(--red);font-size:12px">Error loading data.</p>`;
+  }).catch(function(){
+    cont.innerHTML=`<p style="color:var(--red);font-size:12px">${t('Error al cargar jugadores. Verifica conexión.','Error loading players. Check connection.')}</p>`;
   });
 }
 
@@ -5975,6 +5983,8 @@ function grantAdminUI(){
         _setFbAuthStatus('ok');
         showToast(t('🔐 Firebase Auth OK — puedes guardar resultados','🔐 Firebase Auth OK — you can save results'),'success');
         _autoRepairResults();
+        // Re-fetch pending picks now that auth is complete (first call may have run unauthenticated)
+        renderPendingPlayers();
       })
       .catch(function(e){
         _fbAuthOk = false;
@@ -6001,14 +6011,18 @@ function grantAdminUI(){
   const fab = document.getElementById('adminPdfBtn');
   if(fab) fab.style.display = 'flex';
 
-  // Real-time listener: auto-refresh pending picks when any player submits
+  // Real-time listener: auto-refresh pending picks when any player submits.
+  // Also listen on players node so submission status is always fresh even if
+  // the rules deny reading the full picks tree.
   if(db){
     var _pendingRefreshTimer = null;
-    db.ref('picks').on('value', function(){
+    var _refreshOnChange = function(){
       if(!adminLoggedIn) return;
       clearTimeout(_pendingRefreshTimer);
       _pendingRefreshTimer = setTimeout(renderPendingPlayers, 1200);
-    });
+    };
+    db.ref('picks').on('value', _refreshOnChange);
+    db.ref('players').on('value', _refreshOnChange);
   }
   showToast(t('Acceso de administrador concedido 🔓','Admin access granted 🔓'),'success');
 }
