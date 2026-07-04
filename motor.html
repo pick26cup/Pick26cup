@@ -173,9 +173,9 @@
             <div class="adv">
               <div><label>Ventaja local</label><input type="number" id="cHA" value="100" step="10"></div>
               <div><label>Elo por gol (C)</label><input type="number" id="cC" value="280" step="10"></div>
-              <div><label>Goles base</label><input type="number" id="cBase" value="2.45" step="0.05"></div>
+              <div><label>Goles base</label><input type="number" id="cBase" value="2.65" step="0.05"></div>
               <div><label>Crecimiento (α)</label><input type="number" id="cAlpha" value="0.35" step="0.05"></div>
-              <div><label>Dixon-Coles ρ</label><input type="number" id="cRho" value="-0.10" step="0.02"></div>
+              <div><label>Dixon-Coles ρ</label><input type="number" id="cRho" value="-0.13" step="0.02"></div>
               <div><label>Factor cautela grupos</label><input type="number" id="cCau" value="0.90" step="0.05"></div>
               <div style="display:flex;align-items:flex-end"><button class="btn" style="width:100%" onclick="resetConst()">Restaurar</button></div>
             </div>
@@ -234,8 +234,9 @@
   <footer>
     <div class="note">
       <b>Fuente:</b> Elo de eloratings.net (snapshot jun-2026). Calendario de grupos: 72 partidos confirmados. Ranking FIFA: actualizar el 11 jun.<br>
-      <b>Método:</b> ΔElo (con ventaja de local para anfitriones) → goles esperados (sup=ΔElo/C; total=base+α·|sup|) → Poisson de ambos equipos → corrección Dixon-Coles en marcadores bajos. En fase de grupos se aplica un factor de cautela (×0.90) que atenúa al favorito, porque los grupos se juegan cerrados.<br>
-      <b>Límites:</b> el Elo no ve lesiones, alineaciones ni forma. Empata al mercado en favoritos, pero falla en matices y debutantes. Son rangos, no certezas. No vence a las casas de apuestas.
+      <b>Método (grupos):</b> ΔElo blend(80% Elo/20% FIFA) → goles esperados (base=2.65, α=0.35, cautela×0.90) → Poisson → corrección Dixon-Coles ρ=−0.13 en marcadores bajos.<br>
+      <b>Método (KO):</b> igual que grupos sin cautela, más multiplicadores de forma real WC2026: λh ×= Atk_h × Def_a × KO_FACT(0.87); λa ×= Atk_a × Def_h × KO_FACT. Los multiplicadores se computan de los 72 partidos J1-J3 (media=1.465 goles/equipo/partido), con 30% blend para evitar sobreajuste. Empate en 90 min → redistribución 50/50 ET/penales para % avance.<br>
+      <b>Límites:</b> el Elo no ve lesiones ni alineaciones; la forma de 3 partidos tiene alta varianza. Son rangos probabilísticos, no certezas. No vence a las casas de apuestas.
     </div>
   </footer>
 </div>
@@ -329,7 +330,7 @@ const fc=[1];for(let i=1;i<=15;i++)fc[i]=fc[i-1]*i;
 const pois=(k,l)=>Math.exp(-l)*Math.pow(l,k)/fc[k];
 const K={};
 function readK(){K.HA=+cHA.value;K.C=+cC.value;K.base=+cBase.value;K.alpha=+cAlpha.value;K.rho=+cRho.value;K.w=+weight.value/100;K.cau=+cCau.value;}
-function predict(h,a,haSide,caution){
+function predict(h,a,haSide,caution,fm){
   readK();const w=K.w;
   const dElo=h.elo-a.elo; let dFifa=dElo;
   if(h.fifa!=null&&a.fifa!=null) dFifa=h.fifa-a.fifa;
@@ -337,7 +338,9 @@ function predict(h,a,haSide,caution){
   if(haSide==='h') dr+=K.HA; else if(haSide==='a') dr-=K.HA;
   let sup=dr/K.C; if(caution) sup*=K.cau;
   const tot=K.base+K.alpha*Math.abs(sup);
-  const lh=Math.max((tot+sup)/2,0.04), la=Math.max((tot-sup)/2,0.04);
+  let lh=Math.max((tot+sup)/2,0.04), la=Math.max((tot-sup)/2,0.04);
+  /* forma real WC2026 + factor KO: lh *= att_h × def_a × KO_FACT */
+  if(fm){lh=Math.max(lh*fm.hAtt*fm.aDef*KO_FACT,0.04);la=Math.max(la*fm.aAtt*fm.hDef*KO_FACT,0.04);}
   const N=10,M=[];
   for(let i=0;i<=N;i++){M[i]=[];for(let j=0;j<=N;j++)M[i][j]=pois(i,lh)*pois(j,la);}
   const r=K.rho;M[0][0]*=(1-lh*la*r);M[0][1]*=(1+lh*r);M[1][0]*=(1+la*r);M[1][1]*=(1-r);
@@ -365,6 +368,28 @@ function teamForm(c){
     gfor+=sc;gagst+=co;if(sc>co)wins++;else if(sc===co)draws++;else losses++;
   });});
   return {w:wins,d:draws,l:losses,gf:gfor,ga:gagst};
+}
+/* Calibración de goles WC2026: 211 goles en 72 partidos (J1-J3) → 1.465 por equipo/partido */
+const MEAN_GOAL=1.465;
+const KO_FACT=0.87; /* partidos KO son ~13% menos goles en 90 min que grupos */
+/* Multiplicadores de ataque/defensa basados en forma real WC2026 */
+function goalForm(c){
+  var scored=0,conceded=0,games=0;
+  [1,2,3].forEach(function(jj){FIX[jj].forEach(function(m,i){
+    var rs=resultsState[jj][i];if(rs.gh===""||rs.ga==="")return;
+    var isH=m[0]===c,isA=m[1]===c;if(!isH&&!isA)return;
+    var gh=+rs.gh,gaa=+rs.ga;
+    scored+=(isH?gh:gaa);conceded+=(isH?gaa:gh);games++;
+  });});
+  if(!games)return {att:1,def:1,scored:0,conceded:0,g:0};
+  const BLEND=0.30; /* 30% forma real, 70% Elo base — evita sobreajuste con 3 partidos */
+  const rawAtt=(scored/games)/MEAN_GOAL;
+  const rawDef=MEAN_GOAL/Math.max(conceded/games,0.15);
+  return {
+    att:1+BLEND*(Math.min(rawAtt,2.4)-1),
+    def:1+BLEND*(Math.min(rawDef,2.4)-1),
+    scored,conceded,g:games
+  };
 }
 
 let curJ=1;
@@ -401,6 +426,12 @@ function renderGroupJ(j){
 function renderKOGoalsTable(j){
   const def=KOR[j];
   const isKO=j>=4;
+  /* helper: indicador de ataque/defensa por forma */
+  const fmBadge=(v,lbl)=>{
+    const c=v>1.12?'var(--win)':v<0.88?'var(--loss)':'var(--muted)';
+    const a=v>1.12?'▲':v<0.88?'▼':'·';
+    return `<span style="color:${c};font-size:8.5px">${a}${lbl}</span>`;
+  };
   /* 1ª pasada: predicciones + mejor marcador global */
   const preds=[];let bestProb=0;
   def.slots.forEach(function(label,si){
@@ -408,10 +439,12 @@ function renderKOGoalsTable(j){
     if(!st.h||!st.a||st.h===st.a){preds.push(null);return;}
     const h=TEAMS[IDX[st.h]],a=TEAMS[IDX[st.a]];
     const haS=st.ha==='none'?null:st.ha;
-    const R=predict(h,a,haS);
-    const KA=isKO?koAdvance(R):null;
     const fH=teamForm(st.h),fA=teamForm(st.a);
-    preds.push({h,a,R,KA,fH,fA,haS});
+    const gfH=goalForm(st.h),gfA=goalForm(st.a);
+    const fm=isKO?{hAtt:gfH.att,hDef:gfH.def,aAtt:gfA.att,aDef:gfA.def}:null;
+    const R=predict(h,a,haS,!isKO,fm);
+    const KA=isKO?koAdvance(R):null;
+    preds.push({h,a,R,KA,fH,fA,gfH,gfA,haS});
     if(R.scores[0][2]>bestProb)bestProb=R.scores[0][2];
   });
   /* 2ª pasada: filas */
@@ -419,7 +452,7 @@ function renderKOGoalsTable(j){
   def.slots.forEach(function(label,si){
     const p=preds[si];
     if(!p){rows+=`<tr><td colspan="6" style="padding:5px 8px;color:var(--muted);font-size:11px">${label}</td></tr>`;return;}
-    const {h,a,R,KA,fH,fA}=p;
+    const {h,a,R,KA,fH,fA,gfH,gfA}=p;
     const t=R.scores[0];
     const isBest=Math.abs(t[2]-bestProb)<0.0001;
     /* % de avance (en KO: incluye redistribución 50/50 del empate) */
@@ -435,14 +468,14 @@ function renderKOGoalsTable(j){
         <div><span style="${favH?pickSt:muteSt}">${h.c}</span></div>
         <div style="font-size:9.5px;color:${favH?'var(--amber)':'var(--muted)'};margin-top:2px;font-weight:${favH?700:400}">${pct0(pHwin)}${isKO?' avanza':' gana'}</div>
         <div style="font-size:8.5px;color:var(--muted)">${formStr(fH)}</div>
-        <div style="font-size:8px;color:var(--muted)">Elo ${eloH}</div>
+        <div style="font-size:8px;color:var(--muted)">Elo ${eloH}${isKO?' · '+fmBadge(gfH.att,'Atk')+' '+fmBadge(gfH.def,'Def'):''}</div>
       </div>
       <span style="color:var(--muted);font-size:10px">vs</span>
       <div style="text-align:center">
         <div><span style="${!favH?pickSt:muteSt}">${a.c}</span></div>
         <div style="font-size:9.5px;color:${!favH?'var(--amber)':'var(--muted)'};margin-top:2px;font-weight:${!favH?700:400}">${pct0(pAwin)}${isKO?' avanza':' gana'}</div>
         <div style="font-size:8.5px;color:var(--muted)">${formStr(fA)}</div>
-        <div style="font-size:8px;color:var(--muted)">Elo ${eloA}</div>
+        <div style="font-size:8px;color:var(--muted)">Elo ${eloA}${isKO?' · '+fmBadge(gfA.att,'Atk')+' '+fmBadge(gfA.def,'Def'):''}</div>
       </div>
     </div>
     <div style="font-size:9px;color:var(--muted);margin-top:3px">ΔElo ${dElo>=0?'+':''}${dElo}${isKO?' · empate → ET/penas 50/50':''}</div>`;
@@ -521,7 +554,9 @@ function koResult(j,si){
   if(st.h===st.a) return '<span style="color:var(--loss)">Equipos distintos, por favor.</span>';
   const h=TEAMS[IDX[st.h]],a=TEAMS[IDX[st.a]];
   const haS=st.ha==='none'?null:st.ha;
-  const R=predict(h,a,haS);
+  const gfH=goalForm(st.h),gfA=goalForm(st.a);
+  const fm={hAtt:gfH.att,hDef:gfH.def,aAtt:gfA.att,aDef:gfA.def};
+  const R=predict(h,a,haS,false,fm);
   const KA=koAdvance(R);
   const favH=KA.pHadv>=KA.pAadv;
   const winner=favH?h:a, winPct=favH?KA.pHadv:KA.pAadv;
@@ -764,7 +799,7 @@ fillSelect(home);fillSelect(away);
 weight.oninput=()=>{wElo.textContent=weight.value+"%";wFifa.textContent=(100-weight.value)+"%";render();renderJornada();renderTracker();};
 [cHA,cC,cBase,cAlpha,cRho,cCau].forEach(el=>el.oninput=()=>{haVal.textContent=cHA.value;render();renderJornada();renderTracker();});
 home.onchange=()=>{ha.checked=TEAMS[+home.value].host;render();};away.onchange=render;ha.onchange=render;caut.onchange=render;
-function resetConst(){cHA.value=100;cC.value=280;cBase.value=2.45;cAlpha.value=0.35;cRho.value=-0.10;cCau.value=0.90;haVal.textContent=100;render();renderJornada();renderTracker();}
+function resetConst(){cHA.value=100;cC.value=280;cBase.value=2.65;cAlpha.value=0.35;cRho.value=-0.13;cCau.value=0.90;haVal.textContent=100;render();renderJornada();renderTracker();}
 search.oninput=e=>buildTable(e.target.value);
 function exportData(){const data={teams:TEAMS,results:resultsState,ko:koState};const b=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download="mundial2026_estado.json";a.click();URL.revokeObjectURL(u);}
 imp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);
