@@ -310,8 +310,8 @@ const KOR={
    "L9 · G1-BE vs I3-SN","L10 · J1-AR vs H2-CV","L11 · L1-EN vs K3-CD","L12 · D1-US vs B3-BA",
    "L13 · B1-CH vs J3-DZ","L14 · K2-PT vs L2-HR","L15 · D2-AU vs G2-EG","L16 · K1-CO vs L3-GH"]},
  5:{name:"Octavos de final · Ronda de 16",slots:[
-   "O1 · W-L1 vs W-L2","O2 · W-L3 vs W-L4","O3 · W-L5 vs W-L6","O4 · W-L7 vs W-L8",
-   "O5 · W-L9 vs W-L10","O6 · W-L11 vs W-L12","O7 · W-L13 vs W-L14","O8 · W-L15 vs W-L16"]},
+   "O1 · W-L1-CA vs W-L4-MA","O2 · W-L3-PY vs W-L7-FR","O3 · W-L2-BR vs W-L5-NO","O4 · W-L6-MX vs W-L11-EN",
+   "O5 · W-L14-PT vs W-L8-ES","O6 · W-L12-US vs W-L9-BE","O7 · W-L10-AR vs W-L15-EG","O8 · W-L13-CH vs W-L16-CO"]},
  6:{name:"Cuartos de final",slots:["Cuartos 1","Cuartos 2","Cuartos 3","Cuartos 4"]},
  7:{name:"Semifinales y Final",slots:["Semifinal 1","Semifinal 2","Final","Tercer puesto"]},
 };
@@ -327,11 +327,11 @@ for(const r in KOR) koState[r]=KOR[r].slots.map(()=>({h:"",a:"",ha:"none"}));
  ["BE","SN"],["AR","CV"],["EN","CD"],["US","BA"],
  ["CH","DZ"],["PT","HR"],["AU","EG"],["CO","GH"]
 ].forEach(function(pair,i){koState[4][i].h=pair[0];koState[4][i].a=pair[1];});
-/* J5 Octavos — resultados reales R32 (4-jul-2026)
-   O1: CA vs BR · O2: PY vs MA · O3: NO vs MX · O4: FR vs ES
-   O5: BE vs AR · O6: EN vs US · O7: CH vs PT · O8: EG vs CO */
-[["CA","BR"],["PY","MA"],["NO","MX"],["FR","ES"],
- ["BE","AR"],["EN","US"],["CH","PT"],["EG","CO"]
+/* J5 Octavos — bracket oficial FIFA 2026 (fuente: beIN/ESPN/Al Jazeera)
+   O1: CA vs MA · O2: PY vs FR · O3: BR vs NO · O4: MX vs EN
+   O5: PT vs ES · O6: US vs BE · O7: AR vs EG · O8: CH vs CO */
+[["CA","MA"],["PY","FR"],["BR","NO"],["MX","EN"],
+ ["PT","ES"],["US","BE"],["AR","EG"],["CH","CO"]
 ].forEach(function(pair,i){koState[5][i].h=pair[0];koState[5][i].a=pair[1];});
 
 const fc=[1];for(let i=1;i<=15;i++)fc[i]=fc[i-1]*i;
