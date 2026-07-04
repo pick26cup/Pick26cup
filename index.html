@@ -1798,7 +1798,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
             background:rgba(212,175,55,.15);border:1px solid var(--gold3);color:var(--gold)">
             Active: —
           </span>
-          <span style="font-size:10px;color:#555;margin-left:auto">v2026.07.04</span>
+          <span style="font-size:10px;color:#555;margin-left:auto">v2026.07.04b</span>
         </div>
 
         <!-- ══ SECURITY MONITOR ══ -->
@@ -2885,6 +2885,7 @@ let editRound = 4;
 let _watchedPlayerKeys = null;
 let _newPlayerCount = 0;
 let _adminPlayersListener = null;
+let _adminRefreshOnChange = null;
 let _avatarEditMode = false;
 let matchOverrides = {}; // {matchId: {home,away,date,time}}
 let matchEditRound = 1;
@@ -3170,8 +3171,6 @@ function setupFirebase(){
     // 4-7 names stay in sync across all devices in real time.
     loadCustomTeamNames();
     initNarrator();
-    // Sync user state from Firebase (overrides localStorage)
-    if(currentUser) syncFromFirebase();
     console.log('Firebase ready');
     loadMatchOverrides();
     startPlayerWatcher();
@@ -3625,7 +3624,7 @@ function renderPendingPlayers(){
     const pending = [], submitted = [];
     Object.entries(players).forEach(function([key, player]){
       const pd = allPicks[key] || {};
-      const sub = player.submittedRounds || pd.submittedRounds || {};
+      const sub = pd.submittedRounds || player.submittedRounds || {};
       const hasSub = !!(sub[String(round)] || sub[round]);
       const totalSub = Object.values(sub).filter(Boolean).length;
       const roundPicks = pd.picks || {};
@@ -3678,6 +3677,7 @@ function renderPendingPlayers(){
 // Admin manually marks a player as submitted for a round (when Firebase data is missing)
 function adminMarkSubmitted(key, name, round){
   if(!db){ showToast('Sin conexión','error'); return; }
+  if(!_fbAuthOk){ showToast('⚠️ Firebase Auth requerido — inicia sesión admin primero','error',4000); return; }
   const updates = {};
   updates['picks/'+key+'/submittedRounds/'+round] = true;
   updates['players/'+key+'/submittedRounds/'+round] = true;
@@ -3728,6 +3728,7 @@ function diagnosePicks(){
 // if they have picks stored but submittedRounds flag is missing in Firebase.
 function recoverSubmissions(){
   if(!db){ showToast('Sin conexión Firebase','error'); return; }
+  if(!_fbAuthOk){ showToast('⚠️ Firebase Auth requerido — inicia sesión admin primero','error',4000); return; }
   const sel = document.getElementById('pendingRoundSelect');
   const round = sel ? parseInt(sel.value) : (activeWeek || 1);
   const status = document.getElementById('recoverStatus');
@@ -5308,13 +5309,21 @@ function doSubmitPicks(){
 
     // 4. Register player / update submittedRounds in players node.
     // Write only the current round flag directly — never replace all submittedRounds.
-    db.ref('players/'+key+'/submittedRounds/'+currentRound).set(true).catch(function(){});
-    // Also ensure the player record exists (first-time registration safety net)
+    // Write submittedRounds flag and ensure player record exists in one atomic pass
     db.ref('players/'+key).once('value').then(function(snap){
       if(!snap.val()){
-        db.ref('players/'+key).set({name:currentUser, approved:false, pts:0, submittedRounds:{}}).catch(function(){});
+        // New player: create record with current round already flagged
+        const firstRound = {};
+        firstRound[currentRound] = true;
+        db.ref('players/'+key).set({name:currentUser, approved:false, pts:0, submittedRounds:firstRound}).catch(function(){});
+      } else {
+        // Existing player: write only the round flag, never touch other data
+        db.ref('players/'+key+'/submittedRounds/'+currentRound).set(true).catch(function(){});
       }
-    }).catch(function(){});
+    }).catch(function(){
+      // Fallback: try direct write if read failed
+      db.ref('players/'+key+'/submittedRounds/'+currentRound).set(true).catch(function(){});
+    });
   } else {
     _justSubmitted = false;
   }
@@ -6194,14 +6203,19 @@ function grantAdminUI(){
   // Also listen on players node so submission status is always fresh even if
   // the rules deny reading the full picks tree.
   if(db){
+    // Detach previous listeners if admin re-logs in without logging out first
+    if(_adminRefreshOnChange){
+      db.ref('picks').off('value', _adminRefreshOnChange);
+      db.ref('players').off('value', _adminRefreshOnChange);
+    }
     var _pendingRefreshTimer = null;
-    var _refreshOnChange = function(){
+    _adminRefreshOnChange = function(){
       if(!adminLoggedIn) return;
       clearTimeout(_pendingRefreshTimer);
       _pendingRefreshTimer = setTimeout(renderPendingPlayers, 1200);
     };
-    db.ref('picks').on('value', _refreshOnChange);
-    db.ref('players').on('value', _refreshOnChange);
+    db.ref('picks').on('value', _adminRefreshOnChange);
+    db.ref('players').on('value', _adminRefreshOnChange);
   }
   showToast(t('Acceso de administrador concedido 🔓','Admin access granted 🔓'),'success');
 }
@@ -6237,10 +6251,17 @@ function adminLogout(){
   if(fab) fab.style.display = 'none';
   closeAdminPlayerList();
   closeAdminPickViewer();
-  // Detach live player listener
-  if(_adminPlayersListener && db){
-    db.ref('players').off('value', _adminPlayersListener);
-    _adminPlayersListener = null;
+  // Detach live listeners
+  if(db){
+    if(_adminPlayersListener){
+      db.ref('players').off('value', _adminPlayersListener);
+      _adminPlayersListener = null;
+    }
+    if(_adminRefreshOnChange){
+      db.ref('picks').off('value', _adminRefreshOnChange);
+      db.ref('players').off('value', _adminRefreshOnChange);
+      _adminRefreshOnChange = null;
+    }
   }
   document.getElementById('adminLogin').classList.remove('hidden');
   document.getElementById('adminContent').classList.add('hidden');
@@ -6776,8 +6797,11 @@ function renderAdminPlayers(){
     cont.innerHTML='';
     Object.entries(merged).forEach(([key, player])=>{
       if(player._orphan){
-        // Recreate the players node for this orphan so future loads include them
-        if(db) db.ref('players/'+key).set({name:player.name, approved:false, pts:0, submittedRounds:{}}).catch(()=>{});
+        // Recreate the players node — preserve any submittedRounds from the picks node
+        if(db){
+          const orphanSR = (allPicks[key] && allPicks[key].submittedRounds) ? allPicks[key].submittedRounds : {};
+          db.ref('players/'+key).set({name:player.name, approved:false, pts:0, submittedRounds:orphanSR}).catch(()=>{});
+        }
       }
       const row = document.createElement('div');
       row.className='player-row';
