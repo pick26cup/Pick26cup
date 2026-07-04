@@ -1798,7 +1798,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
             background:rgba(212,175,55,.15);border:1px solid var(--gold3);color:var(--gold)">
             Active: —
           </span>
-          <span style="font-size:10px;color:#555;margin-left:auto">v2026.07.04c</span>
+          <span style="font-size:10px;color:#555;margin-left:auto">v2026.07.04d</span>
         </div>
 
         <!-- ══ SECURITY MONITOR ══ -->
@@ -1839,6 +1839,9 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
               🔍 Ver qué hay en Firebase por jugador
             </button>
             <div id="recoverStatus" style="font-size:11px;color:var(--text2);margin-top:2px;display:none;white-space:pre-wrap;line-height:1.6"></div>
+            <button onclick="openManualEntry()" style="background:rgba(231,76,60,.15);border:1.5px solid var(--red);color:var(--red);font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;width:100%">
+              ✏️ Ingresar picks manualmente (Jornada seleccionada)
+            </button>
           </div>
         </div>
 
@@ -3691,6 +3694,209 @@ function renderPendingPlayers(){
     cont.innerHTML=`<p style="color:var(--red);font-size:12px">${t('Error al cargar jugadores. Verifica conexión.','Error loading players. Check connection.')}</p>`;
   });
 }
+
+// ── Manual Pick Entry ──────────────────────────────────────────────────────
+var _mePlayers = []; // [{key, name}]
+var _meRound = 5;
+var _mePickState = {}; // {playerKey: {matchId: {pick} or {scoreH,scoreA}}}
+var _meResultState = {}; // {matchId: {pick} or {scoreH,scoreA}}
+
+function openManualEntry(){
+  if(!db){ showToast('Sin conexión','error'); return; }
+  const sel = document.getElementById('pendingRoundSelect');
+  _meRound = sel ? parseInt(sel.value) : 5;
+  _mePickState = {};
+  _meResultState = {};
+  document.getElementById('meRoundLabel').textContent = 'J'+_meRound;
+  document.getElementById('meSaveStatus').textContent = 'Cargando jugadores...';
+  document.getElementById('meGrid').innerHTML = '';
+  document.getElementById('manualEntryModal').style.display = 'block';
+  db.ref('players').once('value').then(function(snap){
+    const players = snap.val() || {};
+    _mePlayers = Object.entries(players)
+      .filter(function(e){ return e[1] && e[1].name; })
+      .map(function(e){ return {key: e[0], name: e[1].name}; })
+      .sort(function(a,b){ return a.name.localeCompare(b.name); });
+    // Pre-load existing picks from Firebase
+    return Promise.all(_mePlayers.map(function(p){
+      return db.ref('picks/'+p.key+'/picks').once('value')
+        .then(function(s){ return {key:p.key, picks:s.val()||{}}; })
+        .catch(function(){ return {key:p.key, picks:{}}; });
+    }));
+  }).then(function(data){
+    data.forEach(function(d){
+      _mePickState[d.key] = {};
+      const matches = MATCHES[_meRound] || [];
+      matches.forEach(function(m){
+        if(d.picks[m.id]) _mePickState[d.key][m.id] = Object.assign({}, d.picks[m.id]);
+      });
+    });
+    renderManualEntryGrid();
+    document.getElementById('meSaveStatus').textContent = '';
+  }).catch(function(e){
+    document.getElementById('meSaveStatus').textContent = 'Error: '+(e.message||e);
+  });
+}
+
+function closeManualEntry(){
+  document.getElementById('manualEntryModal').style.display = 'none';
+}
+
+function _meSetPick(playerKey, matchId, value){
+  if(!_mePickState[playerKey]) _mePickState[playerKey] = {};
+  _mePickState[playerKey][matchId] = {pick: value};
+  // Update button styles
+  ['home','draw','away'].forEach(function(v){
+    const btn = document.getElementById('mep_'+playerKey+'_'+matchId+'_'+v);
+    if(btn) btn.style.opacity = (v===value) ? '1' : '0.3';
+    if(btn && v===value) btn.style.fontWeight = '900';
+    else if(btn) btn.style.fontWeight = '500';
+  });
+}
+
+function _meSetResult(matchId, value){
+  _meResultState[matchId] = {pick: value};
+  ['home','draw','away'].forEach(function(v){
+    const btn = document.getElementById('mer_'+matchId+'_'+v);
+    if(btn) btn.style.opacity = (v===value) ? '1' : '0.3';
+    if(btn && v===value) btn.style.fontWeight = '900';
+    else if(btn) btn.style.fontWeight = '500';
+  });
+}
+
+function renderManualEntryGrid(){
+  const matches = MATCHES[_meRound] || [];
+  const container = document.getElementById('meGrid');
+
+  let html = '<table style="border-collapse:collapse;font-size:11px;min-width:100%">';
+
+  // Header row — match names
+  html += '<tr><th style="padding:6px 8px;border:1px solid #333;color:#D4AF37;white-space:nowrap;background:#1a1a1a;position:sticky;left:0;z-index:2">Jugador</th>';
+  matches.forEach(function(m){
+    const isCloser = !!(m.closer || m.final);
+    const label = m.home.split(' ')[0]+'<br>vs<br>'+m.away.split(' ')[0];
+    html += '<th style="padding:4px 6px;border:1px solid #333;color:'+(isCloser?'#D4AF37':'#aaa')+';text-align:center;background:#1a1a1a;min-width:72px">'+label+(isCloser?' ⭐':'')+'</th>';
+  });
+  html += '</tr>';
+
+  // Resultado real row
+  html += '<tr style="background:#0d0d0d"><td style="padding:6px 8px;border:1px solid #333;color:#F39C12;font-weight:700;white-space:nowrap;position:sticky;left:0;background:#0d0d0d">📊 Resultado Real</td>';
+  matches.forEach(function(m){
+    const isCloser = !!(m.closer || m.final);
+    if(isCloser){
+      const cur = _meResultState[m.id] || {};
+      html += '<td style="padding:4px;border:1px solid #333;text-align:center">'
+        +'<input id="merH_'+m.id+'" type="number" min="0" max="20" value="'+(cur.scoreH!==undefined?cur.scoreH:'')+'" style="width:28px;background:#222;border:1px solid #555;color:#fff;border-radius:4px;text-align:center;padding:2px">'
+        +' - '
+        +'<input id="merA_'+m.id+'" type="number" min="0" max="20" value="'+(cur.scoreA!==undefined?cur.scoreA:'')+'" style="width:28px;background:#222;border:1px solid #555;color:#fff;border-radius:4px;text-align:center;padding:2px">'
+        +'</td>';
+    } else {
+      const cur = (_meResultState[m.id]||{}).pick;
+      html += '<td style="padding:4px;border:1px solid #333;text-align:center">'
+        +'<button id="mer_'+m.id+'_home" onclick="_meSetResult(\''+m.id+'\',\'home\')" style="background:#2ECC71;color:#000;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;font-weight:700;opacity:'+(cur==='home'?'1':'0.3')+'">L</button> '
+        +'<button id="mer_'+m.id+'_draw" onclick="_meSetResult(\''+m.id+'\',\'draw\')" style="background:#888;color:#fff;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;font-weight:700;opacity:'+(cur==='draw'?'1':'0.3')+'">E</button> '
+        +'<button id="mer_'+m.id+'_away" onclick="_meSetResult(\''+m.id+'\',\'away\')" style="background:#E74C3C;color:#fff;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;font-weight:700;opacity:'+(cur==='away'?'1':'0.3')+'">V</button>'
+        +'</td>';
+    }
+  });
+  html += '</tr>';
+
+  // Player rows
+  _mePlayers.forEach(function(p, idx){
+    const rowBg = idx%2===0 ? '#111' : '#141414';
+    html += '<tr style="background:'+rowBg+'"><td style="padding:6px 8px;border:1px solid #333;color:#fff;font-weight:600;white-space:nowrap;position:sticky;left:0;background:'+rowBg+'">'+p.name+'</td>';
+    matches.forEach(function(m){
+      const isCloser = !!(m.closer || m.final);
+      const cur = (_mePickState[p.key]||{})[m.id] || {};
+      if(isCloser){
+        html += '<td style="padding:4px;border:1px solid #333;text-align:center">'
+          +'<input id="mep_'+p.key+'_'+m.id+'_H" type="number" min="0" max="20" value="'+(cur.scoreH!==undefined?cur.scoreH:'')+'" style="width:28px;background:#222;border:1px solid #555;color:#fff;border-radius:4px;text-align:center;padding:2px">'
+          +' - '
+          +'<input id="mep_'+p.key+'_'+m.id+'_A" type="number" min="0" max="20" value="'+(cur.scoreA!==undefined?cur.scoreA:'')+'" style="width:28px;background:#222;border:1px solid #555;color:#fff;border-radius:4px;text-align:center;padding:2px">'
+          +'</td>';
+      } else {
+        const curPick = cur.pick;
+        html += '<td style="padding:4px;border:1px solid #333;text-align:center">'
+          +'<button id="mep_'+p.key+'_'+m.id+'_home" onclick="_meSetPick(\''+p.key+'\',\''+m.id+'\',\'home\')" style="background:#2ECC71;color:#000;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;font-weight:'+(curPick==='home'?'900':'500')+';opacity:'+(curPick==='home'?'1':'0.3')+'">L</button> '
+          +'<button id="mep_'+p.key+'_'+m.id+'_draw" onclick="_meSetPick(\''+p.key+'\',\''+m.id+'\',\'draw\')" style="background:#888;color:#fff;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;font-weight:'+(curPick==='draw'?'900':'500')+';opacity:'+(curPick==='draw'?'1':'0.3')+'">E</button> '
+          +'<button id="mep_'+p.key+'_'+m.id+'_away" onclick="_meSetPick(\''+p.key+'\',\''+m.id+'\',\'away\')" style="background:#E74C3C;color:#fff;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;font-weight:'+(curPick==='away'?'900':'500')+';opacity:'+(curPick==='away'?'1':'0.3')+'">V</button>'
+          +'</td>';
+      }
+    });
+    html += '</tr>';
+  });
+  html += '</table>';
+  container.innerHTML = html;
+}
+
+function saveManualEntry(){
+  if(!db){ showToast('Sin conexión','error'); return; }
+  if(!_fbAuthOk){ showToast('⚠️ Firebase Auth requerido','error',4000); return; }
+  const status = document.getElementById('meSaveStatus');
+  const matches = MATCHES[_meRound] || [];
+  status.textContent = '💾 Guardando...';
+
+  // Collect closer scores from inputs before building updates
+  matches.forEach(function(m){
+    const isCloser = !!(m.closer || m.final);
+    if(isCloser){
+      // Result
+      const rH = document.getElementById('merH_'+m.id);
+      const rA = document.getElementById('merA_'+m.id);
+      if(rH && rA && rH.value!=='' && rA.value!==''){
+        _meResultState[m.id] = {scoreH: parseInt(rH.value), scoreA: parseInt(rA.value)};
+      }
+      // Per-player picks
+      _mePlayers.forEach(function(p){
+        const pH = document.getElementById('mep_'+p.key+'_'+m.id+'_H');
+        const pA = document.getElementById('mep_'+p.key+'_'+m.id+'_A');
+        if(pH && pA && pH.value!=='' && pA.value!==''){
+          if(!_mePickState[p.key]) _mePickState[p.key] = {};
+          _mePickState[p.key][m.id] = {scoreH: parseInt(pH.value), scoreA: parseInt(pA.value)};
+        }
+      });
+    }
+  });
+
+  const updates = {};
+
+  // Write results
+  Object.keys(_meResultState).forEach(function(mid){
+    const r = _meResultState[mid];
+    if(r.pick){
+      // Determine numeric score from pick direction for simple matches
+      updates['results/'+mid] = {pick: r.pick};
+    } else if(r.scoreH!==undefined && r.scoreA!==undefined){
+      updates['results/'+mid] = {home: r.scoreH, away: r.scoreA,
+        pick: r.scoreH > r.scoreA ? 'home' : r.scoreH < r.scoreA ? 'away' : 'draw'};
+    }
+  });
+
+  // Write picks + mark submitted for each player
+  _mePlayers.forEach(function(p){
+    const playerPicks = _mePickState[p.key] || {};
+    const matchIds = Object.keys(playerPicks);
+    if(matchIds.length === 0) return;
+    matchIds.forEach(function(mid){
+      updates['picks/'+p.key+'/picks/'+mid] = playerPicks[mid];
+    });
+    updates['picks/'+p.key+'/submittedRounds/'+_meRound] = true;
+    updates['picks/'+p.key+'/name'] = p.name;
+    updates['players/'+p.key+'/submittedRounds/'+_meRound] = true;
+  });
+
+  db.ref().update(updates).then(function(){
+    const playerCount = _mePlayers.filter(function(p){
+      return Object.keys(_mePickState[p.key]||{}).length > 0;
+    }).length;
+    status.textContent = '✅ Guardado — '+playerCount+' jugadores, '+matches.length+' partidos J'+_meRound;
+    showToast('✅ Picks J'+_meRound+' guardados en Firebase','success',5000);
+  }).catch(function(e){
+    status.textContent = '❌ Error: '+(e.message||e);
+    showToast('Error guardando: '+(e.message||e),'error',6000);
+  });
+}
+// ── End Manual Pick Entry ──────────────────────────────────────────────────
 
 // Admin manually marks a player as submitted for a round (when Firebase data is missing)
 function adminMarkSubmitted(key, name, round){
@@ -11036,6 +11242,27 @@ document.addEventListener('keydown', function(e){
     </div>
     <div class="pod-stage" id="podStage"></div>
     <div class="pod-floor"></div>
+  </div>
+</div>
+
+<!-- Manual Pick Entry Modal -->
+<div id="manualEntryModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;overflow-y:auto;padding:16px">
+  <div style="max-width:1100px;margin:0 auto;background:#111;border:1.5px solid #D4AF37;border-radius:14px;padding:20px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <h2 style="color:#D4AF37;font-family:'DM Sans';margin:0;font-size:18px">✏️ Entrada Manual de Picks — <span id="meRoundLabel">J5</span></h2>
+      <button onclick="closeManualEntry()" style="margin-left:auto;background:none;border:1px solid #555;color:#aaa;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:13px">✕ Cerrar</button>
+    </div>
+    <p style="color:#aaa;font-size:12px;margin:0 0 12px">
+      Para cada jugador selecciona: <strong style="color:#2ECC71">L</strong>=Local gana, <strong style="color:#aaa">E</strong>=Empate, <strong style="color:#E74C3C">V</strong>=Visitante gana.<br>
+      Último partido (Suiza-Colombia ⭐) requiere marcador exacto. Cuando termines haz clic en <strong style="color:#D4AF37">Guardar en Firebase</strong>.
+    </p>
+    <div id="meGrid" style="overflow-x:auto"></div>
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button onclick="saveManualEntry()" style="background:rgba(212,175,55,.2);border:2px solid #D4AF37;color:#D4AF37;font-family:'DM Sans';font-size:13px;font-weight:700;padding:8px 22px;border-radius:9px;cursor:pointer">
+        💾 Guardar en Firebase
+      </button>
+      <div id="meSaveStatus" style="font-size:12px;color:#aaa"></div>
+    </div>
   </div>
 </div>
 </body>
