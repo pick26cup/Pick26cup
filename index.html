@@ -2882,6 +2882,7 @@ let customTeamNames = {}; // {matchId_home: name, matchId_away: name}
 let db = null;
 let picks = {}; // {matchId: {pick:'home'|'draw'|'away', scoreH:n, scoreA:n}}
 let submittedRounds = {}; // {1:true, 2:true, 3:true}
+var _justSubmitted = false; // guard against race condition in submittedRounds listener
 let _globalResults = {}; // live cache updated by Firebase listener
 let activeWeek = 1;
 let avatarConfig = {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro', jerseyNum:10, hat:0, hatColor:0, glasses:0, earrings:0};
@@ -4401,6 +4402,7 @@ function syncFromFirebase(){
   });
   // Live listener: detect when admin clears picks for this player so they can re-submit
   db.ref('picks/'+playerKey()+'/submittedRounds').on('value', function(snap){
+    if(_justSubmitted) return; // own submit in progress — ignore to prevent race condition
     const fbSubmitted = snap.val() || {};
     let cleared = false;
     Object.keys(submittedRounds).forEach(function(r){
@@ -5014,6 +5016,10 @@ function doSubmitPicks(){
   closeSubmitModal();
   submittedRounds[currentRound] = true;
   localStorage.setItem('wc2026_submitted_'+currentUser, JSON.stringify(submittedRounds));
+  // Guard: suppress the submittedRounds listener for 4 s so it doesn't
+  // falsely detect "admin cleared" during our own async Firebase write
+  _justSubmitted = true;
+  setTimeout(function(){ _justSubmitted = false; }, 4000);
   // Save to Firebase
   if(db){
     const key = playerKey();
