@@ -13,8 +13,8 @@
 html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
   font-family:'Oswald',sans-serif}
 
-/* bg canvas */
-#bg{position:fixed;inset:0;z-index:0}
+/* Three.js canvas replaces bg canvas */
+#three-canvas{position:fixed;inset:0;z-index:0;display:block}
 
 /* vignette */
 .vig{position:fixed;inset:0;z-index:1;pointer-events:none;
@@ -23,7 +23,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
 /* ── START SCREEN ──────────────────────────────────────────────────────────── */
 #start{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;
   align-items:center;justify-content:center;cursor:pointer;
-  background:linear-gradient(180deg,#00000f 0%,#00000a 60%,#000014 100%)}
+  background:linear-gradient(180deg,rgba(0,0,15,.85) 0%,rgba(0,0,10,.7) 60%,rgba(0,0,20,.85) 100%)}
 #start .eyebrow{font-family:'Montserrat',sans-serif;font-weight:300;
   font-size:clamp(.55rem,1.3vw,.78rem);letter-spacing:.6em;color:#3a4a7a;
   text-transform:uppercase;margin-bottom:32px}
@@ -58,7 +58,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
 #ceremony{position:fixed;inset:0;z-index:20;display:none;
   flex-direction:column;align-items:center;justify-content:center}
 
-/* canvas fireworks */
+/* canvas fireworks — above Three.js */
 #fw{position:fixed;inset:0;z-index:21;pointer-events:none}
 
 /* ── GENERIC CARD ─────────────────────────────────────────────────────────── */
@@ -144,14 +144,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
 </head>
 <body>
 
-<!-- background starfield canvas -->
-<canvas id="bg"></canvas>
+<!-- THREE.JS 3D background -->
+<canvas id="three-canvas"></canvas>
 <div class="vig"></div>
 <div id="r1" class="ray"></div>
 <div id="r2" class="ray"></div>
 <div id="r3" class="ray"></div>
 
-<!-- fireworks canvas -->
+<!-- fireworks canvas (Canvas 2D overlay) -->
 <canvas id="fw"></canvas>
 <!-- confetti canvas -->
 <canvas id="conf"></canvas>
@@ -169,25 +169,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
 
 <!-- CEREMONY -->
 <div id="ceremony">
-  <!-- Round label -->
   <div class="card" id="card-round">
     <div class="sub">Pick26Cup · 2026</div>
     <div class="rt" id="round-text">ROUND 1</div>
   </div>
-
-  <!-- Stat card -->
   <div class="card" id="card-stat">
     <div class="sl" id="stat-label">TOTAL JUGADORES</div>
     <div class="sv" id="stat-value">12,542</div>
   </div>
-
-  <!-- Top 10 -->
   <div class="card" id="card-top10">
     <div class="hd">Top 10 Clasificados · Pick26Cup</div>
     <div id="top10-list"></div>
   </div>
-
-  <!-- Champion -->
   <div class="card" id="card-champ">
     <div class="champ-eyebrow" id="cong">Congratulations</div>
     <div id="champ-trophy">🏆</div>
@@ -202,10 +195,30 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
 
 <button id="skip">Skip</button>
 
+<!-- GSAP UMD (must load before the module) -->
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-<script>
+
+<!-- Three.js importmap -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass }     from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { OutputPass }     from 'three/examples/jsm/postprocessing/OutputPass.js';
+
 'use strict';
-// ─── DATA ────────────────────────────────────────────────────────────────────
+const gsap = window.gsap;
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
 const CHAMPION = { name:'JOHN ALVARADO', country:'COLOMBIA', flag:'🇨🇴' };
 const TOP10 = [
   {r:10,n:'CARLOS MÉNDEZ',   p:2840},{r:9,n:'LAURA JIMÉNEZ',    p:2910},
@@ -217,82 +230,156 @@ const TOP10 = [
 const STATS  = [{l:'TOTAL JUGADORES',v:'12,542'},{l:'PICKS REALIZADOS',v:'93,412'},{l:'RONDAS PERFECTAS',v:'847'}];
 const ROUNDS = ['ROUND 1','ROUND 2','ROUND 3','ROUND 4','ROUND 5','ROUND 6','FINAL'];
 
-// ─── BACKGROUND STARFIELD ────────────────────────────────────────────────────
-const bgC  = document.getElementById('bg');
-const bgCx = bgC.getContext('2d');
-let   W = innerWidth, H = innerHeight;
-function resizeBg(){ W=innerWidth; H=innerHeight; bgC.width=W; bgC.height=H; }
-resizeBg();
-window.addEventListener('resize', resizeBg);
+// ─── THREE.JS SETUP ───────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000008);
+scene.fog = new THREE.FogExp2(0x000010, 0.003);
 
-const STARS = Array.from({length: 280}, () => ({
-  x: Math.random()*W, y: Math.random()*H,
-  r: Math.random()*1.2 + .2,
-  a: Math.random(), speed: .0003+Math.random()*.0006,
-  twinkleOffset: Math.random()*Math.PI*2,
-}));
+const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 2000);
+camera.position.set(0, 35, 120);
 
-// stadium silhouette segments
-const BLEACHERS = [
-  {x:.03,w:.12,h:.26},{x:.16,w:.08,h:.22},{x:.25,w:.06,h:.18},
-  {x:.69,w:.06,h:.18},{x:.76,w:.08,h:.22},{x:.85,w:.12,h:.26},
-];
+const threeCanvas = document.getElementById('three-canvas');
+const threeRenderer = new THREE.WebGLRenderer({ canvas: threeCanvas, antialias: true });
+threeRenderer.setSize(innerWidth, innerHeight);
+threeRenderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+threeRenderer.toneMappingExposure = 1.0;
 
-let bgT = 0;
-function drawBg(dt) {
-  bgT += dt;
-  bgCx.fillStyle = 'rgba(0,0,8,1)';
-  bgCx.fillRect(0,0,W,H);
+// Post-processing: bloom (cranks up during champion reveal for gold glow)
+const composer = new EffectComposer(threeRenderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.6, 0.5, 0.85);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
 
-  // gradient horizon
-  const grd = bgCx.createLinearGradient(0, H*.35, 0, H);
-  grd.addColorStop(0, 'rgba(6,10,30,0)');
-  grd.addColorStop(.5, 'rgba(3,5,18,.6)');
-  grd.addColorStop(1, 'rgba(0,0,6,1)');
-  bgCx.fillStyle = grd;
-  bgCx.fillRect(0, H*.35, W, H*.65);
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  threeRenderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+});
 
-  // stars
-  for (const s of STARS) {
-    const a = s.a * (.5 + .5*Math.sin(bgT*s.speed*200 + s.twinkleOffset));
-    bgCx.beginPath();
-    bgCx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-    bgCx.fillStyle = `rgba(200,210,255,${a})`;
-    bgCx.fill();
+// ─── LIGHTS ───────────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+dirLight.position.set(10, 25, 10);
+scene.add(dirLight);
+
+// ─── STADIUM 3D ───────────────────────────────────────────────────────────────
+(function buildStadium() {
+  // Pitch
+  const pitch = new THREE.Mesh(
+    new THREE.PlaneGeometry(105, 68),
+    new THREE.MeshLambertMaterial({ color: 0x1e7a1e, emissive: 0x0a3a0a, emissiveIntensity: 0.3 })
+  );
+  pitch.rotation.x = -Math.PI / 2;
+  scene.add(pitch);
+
+  // Alternating grass stripes
+  const stripeMat = new THREE.MeshLambertMaterial({ color: 0x196919, transparent: true, opacity: 0.5 });
+  for (let i = -5; i <= 5; i += 2) {
+    const s = new THREE.Mesh(new THREE.PlaneGeometry(9, 68), stripeMat);
+    s.rotation.x = -Math.PI / 2;
+    s.position.set(i * 5, 0.01, 0);
+    scene.add(s);
   }
 
-  // stadium bleachers at bottom
-  bgCx.fillStyle = 'rgba(8,10,22,1)';
-  for (const b of BLEACHERS) {
-    bgCx.fillRect(b.x*W, H*(1-b.h), b.w*W, H*b.h);
+  // Center circle
+  const cc = new THREE.Mesh(
+    new THREE.RingGeometry(9, 9.4, 64),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
+  );
+  cc.rotation.x = -Math.PI / 2;
+  cc.position.y = 0.02;
+  scene.add(cc);
+
+  // Stands: 3 cylindrical tiers
+  const standColors = [0x1a1a2e, 0x16213e, 0x0f3460];
+  for (let tier = 0; tier < 3; tier++) {
+    const r = 58 + tier * 10;
+    const h = 6 + tier * 4;
+    const stand = new THREE.Mesh(
+      new THREE.CylinderGeometry(r, r, h, 80, 1, true),
+      new THREE.MeshLambertMaterial({ color: standColors[tier], side: THREE.BackSide, emissive: standColors[tier], emissiveIntensity: 0.1 })
+    );
+    stand.position.y = 3 + tier * 5;
+    stand.scale.z = 0.72;
+    scene.add(stand);
   }
 
-  // crowd glow from bleachers
-  const cGrd = bgCx.createLinearGradient(0, H*.72, 0, H);
-  cGrd.addColorStop(0, `rgba(180,160,100,${.06+.03*Math.sin(bgT*.3)})`);
-  cGrd.addColorStop(.4, 'rgba(60,80,180,.04)');
-  cGrd.addColorStop(1, 'rgba(0,0,0,0)');
-  bgCx.fillStyle = cGrd;
-  bgCx.fillRect(0, H*.72, W, H*.28);
-
-  // crowd dots
-  bgCx.save();
-  for (let i = 0; i < 120; i++) {
-    const x = (i/120)*W + Math.sin(bgT*.15+i*.8)*8;
-    const y = H*.75 + Math.sin(i*1.7)*(H*.08) + Math.sin(bgT*.4+i*.3)*3;
-    const t = (i%3)/2;
-    const a = .18 + .12*Math.sin(bgT*.5+i*1.1);
-    if(t<.5) bgCx.fillStyle = `rgba(240,224,180,${a})`;
-    else if(t<.75) bgCx.fillStyle = `rgba(120,160,255,${a})`;
-    else bgCx.fillStyle = `rgba(255,200,50,${a})`;
-    bgCx.beginPath();
-    bgCx.arc(x, y, 1.5+Math.sin(i)*0.5, 0, Math.PI*2);
-    bgCx.fill();
+  // Crowd particles (3000 colored dots)
+  const count = 3000;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3);
+  const col = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const r = 54 + Math.random() * 28;
+    const tier = Math.floor(Math.random() * 3);
+    pos[i*3]   = Math.cos(angle) * r;
+    pos[i*3+1] = 2 + tier * 5 + Math.random() * 3;
+    pos[i*3+2] = Math.sin(angle) * r * 0.72;
+    const c = Math.random();
+    if      (c < 0.28) { col[i*3]=1;   col[i*3+1]=0.87; col[i*3+2]=0.1; }
+    else if (c < 0.55) { col[i*3]=1;   col[i*3+1]=1;    col[i*3+2]=1;   }
+    else if (c < 0.75) { col[i*3]=0.1; col[i*3+1]=0.3;  col[i*3+2]=1;   }
+    else if (c < 0.88) { col[i*3]=1;   col[i*3+1]=0.1;  col[i*3+2]=0.1; }
+    else               { col[i*3]=0.1; col[i*3+1]=0.7;  col[i*3+2]=0.2; }
   }
-  bgCx.restore();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.85, vertexColors: true, sizeAttenuation: true })));
+
+  // Corner stadium lights (4 towers)
+  [[-70,28,-42],[70,28,-42],[-70,28,42],[70,28,42]].forEach(([lx,ly,lz]) => {
+    const ptLight = new THREE.PointLight(0xfff8e0, 3, 280);
+    ptLight.position.set(lx, ly, lz);
+    scene.add(ptLight);
+
+    const tower = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.5, 0.9, ly, 8),
+      new THREE.MeshLambertMaterial({ color: 0x252535 })
+    );
+    tower.position.set(lx, ly / 2, lz);
+    scene.add(tower);
+
+    const orb = new THREE.Mesh(
+      new THREE.SphereGeometry(1.4, 8, 8),
+      new THREE.MeshBasicMaterial({ color: 0xfff9dd })
+    );
+    orb.position.set(lx, ly + 1.5, lz);
+    scene.add(orb);
+  });
+})();
+
+// ─── STARFIELD 3D ─────────────────────────────────────────────────────────────
+(function buildStarfield() {
+  const count = 4000;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const r = 700 + Math.random() * 300;
+    const theta = Math.random() * Math.PI * 2;
+    const phi   = Math.acos(2 * Math.random() - 1);
+    pos[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+    pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+    pos[i*3+2] = r * Math.cos(phi);
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({
+    color: 0xccddff, size: 0.9, sizeAttenuation: true, transparent: true, opacity: 0.8
+  })));
+})();
+
+// ─── CAMERA HELPERS ───────────────────────────────────────────────────────────
+function camDolly(x, y, z, dur, ease) {
+  gsap.to(camera.position, { x, y, z, duration: dur, ease: ease || 'power2.inOut' });
+}
+function bloomTo(strength, dur) {
+  gsap.to(bloom, { strength, duration: dur, ease: 'power2.inOut' });
 }
 
-// ─── FIREWORKS (canvas 2D) ────────────────────────────────────────────────────
+// ─── FIREWORKS (Canvas 2D) ────────────────────────────────────────────────────
 const fwC  = document.getElementById('fw');
 const fwCx = fwC.getContext('2d');
 function resizeFw(){ fwC.width=innerWidth; fwC.height=innerHeight; }
@@ -306,16 +393,16 @@ class Particle {
     this.vx=Math.cos(a)*s; this.vy=Math.sin(a)*s;
     this.life=1; this.decay=.012+Math.random()*.02;
     const r=Math.random();
-    if(r<.45) this.color=[255,Math.round(200+Math.random()*55),30];      // gold
-    else if(r<.7) this.color=[255,255,Math.round(220+Math.random()*35)]; // white
-    else if(r<.85) this.color=[100,180,255];                              // blue
-    else this.color=[255,100,100];                                        // red
+    if(r<.45) this.color=[255,Math.round(200+Math.random()*55),30];
+    else if(r<.7) this.color=[255,255,Math.round(220+Math.random()*35)];
+    else if(r<.85) this.color=[100,180,255];
+    else this.color=[255,100,100];
   }
   update(){ this.x+=this.vx; this.y+=this.vy; this.vy+=.09; this.vx*=.97; this.life-=this.decay; }
   dead(){ return this.life<=0; }
   draw(cx){
     cx.beginPath();
-    cx.arc(this.x, this.y, 2.2*this.life, 0, Math.PI*2);
+    cx.arc(this.x,this.y,2.2*this.life,0,Math.PI*2);
     cx.fillStyle=`rgba(${this.color.join(',')},${this.life})`;
     cx.fill();
   }
@@ -324,33 +411,21 @@ class Particle {
 const particles = [];
 let burstTimer = null;
 
-function burst(x,y){
-  const n = 80 + Math.floor(Math.random()*40);
-  for(let i=0;i<n;i++) particles.push(new Particle(x,y));
-}
-function randomBurst(){
-  burst(W*(.2+Math.random()*.6), H*(.1+Math.random()*.4));
-}
-function startBursts(rate=1200){
-  clearInterval(burstTimer);
-  randomBurst();
-  burstTimer=setInterval(randomBurst, rate);
-}
+function burst(x,y){ const n=80+Math.floor(Math.random()*40); for(let i=0;i<n;i++) particles.push(new Particle(x,y)); }
+function randomBurst(){ burst(innerWidth*(.2+Math.random()*.6), innerHeight*(.1+Math.random()*.4)); }
+function startBursts(rate=1200){ clearInterval(burstTimer); randomBurst(); burstTimer=setInterval(randomBurst,rate); }
 function stopBursts(){ clearInterval(burstTimer); burstTimer=null; }
-function megaBurst(){
-  for(let i=0;i<8;i++) setTimeout(()=>randomBurst(), i*100);
-}
+function megaBurst(){ for(let i=0;i<8;i++) setTimeout(()=>randomBurst(),i*100); }
 
 function drawFw(){
   fwCx.clearRect(0,0,fwC.width,fwC.height);
   for(let i=particles.length-1;i>=0;i--){
-    particles[i].update();
-    particles[i].draw(fwCx);
+    particles[i].update(); particles[i].draw(fwCx);
     if(particles[i].dead()) particles.splice(i,1);
   }
 }
 
-// ─── CONFETTI ────────────────────────────────────────────────────────────────
+// ─── CONFETTI (Canvas 2D) ─────────────────────────────────────────────────────
 const confC  = document.getElementById('conf');
 const confCx = confC.getContext('2d');
 function resizeConf(){ confC.width=innerWidth; confC.height=innerHeight; }
@@ -380,11 +455,11 @@ function drawConf(){
 }
 
 // ─── MAIN LOOP ────────────────────────────────────────────────────────────────
-let lastT = performance.now(), showConf = false, showFw = false;
+let showConf = false, showFw = false;
 function loop(){
   requestAnimationFrame(loop);
-  const now=performance.now(), dt=(now-lastT)/1000; lastT=now;
-  drawBg(dt);
+  camera.lookAt(0, 5, 0);   // continuous lookAt stadium center
+  composer.render();          // Three.js replaces Canvas 2D background
   if(showFw) drawFw();
   if(showConf) drawConf();
 }
@@ -465,20 +540,17 @@ function showCard(id, cb){
     el.style.pointerEvents='none'; if(cb) cb();
   }});
 }
-
 function showRound(text, cb){
   $('round-text').textContent = text;
   const hide = showCard('card-round');
   gsap.delayedCall(2, ()=>{ hide(cb); });
 }
-
 function showStat(label, value, cb){
   $('stat-label').textContent=label;
   $('stat-value').textContent=value;
   const hide = showCard('card-stat');
   gsap.delayedCall(2.8, ()=>{ hide(cb); });
 }
-
 function showTop10(cb){
   const list = $('top10-list'); list.innerHTML='';
   [...TOP10].sort((a,b)=>a.r-b.r).forEach(e=>{
@@ -494,7 +566,6 @@ function showTop10(cb){
     .to($('card-top10'),{opacity:0,duration:.8,ease:'power2.in',delay:3.8},
       ()=>$('card-top10').style.pointerEvents='none');
 }
-
 function buildLetters(){
   const nm = $('champ-name'); nm.innerHTML='';
   for(const ch of CHAMPION.name){
@@ -502,11 +573,14 @@ function buildLetters(){
     else{const s=document.createElement('span');s.className='cl';s.textContent=ch;nm.appendChild(s);}
   }
 }
-
 function revealChampion(){
   buildLetters();
   const cc=$('card-champ'); cc.style.opacity='1'; cc.style.pointerEvents='auto';
   const letters=$('champ-name').querySelectorAll('.cl');
+  // Camera: dramatic close-up on the champion
+  camDolly(0, 3, 14, 3, 'power3.inOut');
+  // Bloom: crank up for gold glow
+  bloomTo(2.2, 2.5);
   gsap.timeline()
     .to($('cong'),{opacity:1,y:0,duration:1.0,ease:'power2.out'})
     .to($('champ-trophy'),{opacity:1,scale:1,y:0,duration:.9,ease:'back.out(1.8)'},'+=.1')
@@ -515,8 +589,8 @@ function revealChampion(){
         playOrchHit(); swellCrowd(.9,1.5);
         showConf=true; showFw=true; startBursts(700);
         megaBurst(); megaBurst();
-        // spotlight rays
         gsap.to('.ray',{opacity:1,duration:1.2,stagger:.1});
+        gsap.to(confC,{opacity:1,duration:1.5});
       }
     },'+=.55')
     .to($('champ-title'),{opacity:1,y:0,duration:.8,ease:'power2.out'},'+=.3')
@@ -525,27 +599,28 @@ function revealChampion(){
 
 // ─── MASTER TIMELINE ──────────────────────────────────────────────────────────
 function startCeremony(){
-  const cer = $('ceremony'); cer.style.display='flex';
+  $('ceremony').style.display='flex';
   $('skip').style.display='block';
   startCrowd(.2);
 
+  // Camera: wide opening shot, slow cinematic dolly throughout
+  camDolly(0, 18, 75, 30, 'power1.inOut');
+
   const tl = gsap.timeline();
 
-  // Stats (starts immediately)
+  // Stats (0s)
   tl.call(()=>{
     let idx=0;
     function nextStat(){
-      if(idx<STATS.length){
-        const s=STATS[idx++];
-        showStat(s.l,s.v,()=>setTimeout(nextStat,400));
-      }
+      if(idx<STATS.length){ const s=STATS[idx++]; showStat(s.l,s.v,()=>setTimeout(nextStat,400)); }
     }
     nextStat();
   })
 
-  // Rounds (11s)
+  // Rounds (11s) — dolly closer
   .call(()=>{
     swellCrowd(.42,2);
+    camDolly(0, 12, 55, 8, 'power2.inOut');
     let i=0;
     function nextRound(){
       if(i<ROUNDS.length) showRound(ROUNDS[i++],()=>setTimeout(nextRound,200));
@@ -553,30 +628,35 @@ function startCeremony(){
     nextRound();
   },[],11)
 
-  // Top 10 (26s)
+  // Top 10 (26s) — tighter
   .call(()=>{
     swellCrowd(.58,2);
+    camDolly(0, 8, 38, 6, 'power2.inOut');
     showTop10(null);
   },[],26)
 
-  // Silence (40s)
-  .call(()=>{ quietCrowd(.03,2.5); },[],40)
+  // Silence (40s) — very close, tension
+  .call(()=>{
+    quietCrowd(.03,2.5);
+    camDolly(0, 5, 24, 4, 'power2.inOut');
+  },[],40)
 
-  // Fanfare (43s)
+  // Fanfare (43s) — bloom starts rising
   .call(()=>{
     playFanfare(); playBoom();
     swellCrowd(.5,1.5);
     setTimeout(()=>playBoom(),600);
     showFw=true; startBursts(1400);
+    bloomTo(1.2, 1.5);
   },[],43)
 
-  // Trophy + shimmer (47s)
+  // Shimmer (47s) — pull back slightly for reveal
   .call(()=>{
     swellCrowd(.28,2);
     quietCrowd(.05,3);
-    stopBursts();
-    showFw=false;
+    stopBursts(); showFw=false;
     playShimmer();
+    bloomTo(0.8, 2);
   },[],47)
 
   // Champion reveal (52s)
@@ -602,7 +682,7 @@ function go(){
   if(!actx) initAudio();
   $('start').style.pointerEvents='none';
   gsap.to($('start'),{opacity:0,duration:1.2,ease:'power2.in',
-    onComplete(){$('start').style.display='none'; startCeremony();}
+    onComplete(){ $('start').style.display='none'; startCeremony(); }
   });
 }
 </script>
