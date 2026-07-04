@@ -1,0 +1,36 @@
+{
+  "scene": "world_cup_intro",
+  "duration": 12,
+  "camera": {
+    "start": [0, 2, 10],
+    "end": [0, 1.5, 3],
+    "fov": 60
+  },
+  "lights": [
+    { "type": "ambient", "intensity": 0.4 },
+    { "type": "directional", "intensity": 1.2 }
+  ],
+  "objects": [
+    {
+      "type": "stadium",
+      "model": "assets/stadium.glb",
+      "position": [0, 0, 0],
+      "scale": 1
+    },
+    {
+      "type": "text",
+      "value": "WORLD CUP 2026",
+      "position": [0, 3, 0],
+      "style": "gold_glow"
+    }
+  ],
+  "animations": [
+    {
+      "target": "camera",
+      "property": "position",
+      "to": [0, 1.5, 3],
+      "duration": 6,
+      "ease": "power2.out"
+    }
+  ]
+}
