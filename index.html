@@ -2138,7 +2138,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
     </div>
 
   </main>
-  <footer>Pick26 · Developed by John Alvarado · Predict. Choose. Win.</footer>
+  <footer>Pick26 · Developed by John A. · Predict. Choose. Win.</footer>
 </div>
 
 <!-- SUBMIT STAMP MODAL -->
@@ -2882,6 +2882,7 @@ let customTeamNames = {}; // {matchId_home: name, matchId_away: name}
 let db = null;
 let picks = {}; // {matchId: {pick:'home'|'draw'|'away', scoreH:n, scoreA:n}}
 let submittedRounds = {}; // {1:true, 2:true, 3:true}
+var _justSubmitted = false; // guard against race condition in submittedRounds listener
 let _globalResults = {}; // live cache updated by Firebase listener
 let activeWeek = 1;
 let avatarConfig = {skin:0, hair:0, hairColor:0, beard:0, jersey:'neutro', jerseyNum:10, hat:0, hatColor:0, glasses:0, earrings:0};
@@ -3597,23 +3598,31 @@ function renderPendingPlayers(){
   const round = sel ? parseInt(sel.value) : (activeWeek || 1);
   cont.innerHTML = `<p style="color:var(--text2);font-size:12px">${currentLang==='es'?'Cargando...':'Loading...'}</p>`;
   if(!db){ cont.innerHTML=`<p style="color:var(--text2);font-size:12px">${currentLang==='es'?'Sin conexión.':'No connection.'}</p>`; return; }
-  Promise.all([
-    db.ref('players').once('value'),
-    db.ref('picks').once('value')
-  ]).then(([pSnap, pickSnap])=>{
-    const players = pSnap.val()||{};
-    const allPicks = pickSnap.val()||{};
+
+  // Read players first — always accessible.
+  // Then try to read the full picks tree for pick counts; degrade gracefully if rules deny it.
+  db.ref('players').once('value').then(function(pSnap){
+    const players = pSnap.val() || {};
+    return db.ref('picks').once('value').then(function(pickSnap){
+      return { players: players, allPicks: pickSnap.val() || {} };
+    }).catch(function(){
+      // picks tree denied → we'll rely on submittedRounds stored inside players node
+      return { players: players, allPicks: {} };
+    });
+  }).then(function(data){
+    const players = data.players, allPicks = data.allPicks;
     const roundMatchCount = (MATCHES[round]||[]).length;
     const pending = [], submitted = [];
-    Object.entries(players).forEach(([key, player])=>{
+    Object.entries(players).forEach(function([key, player]){
       const pd = allPicks[key] || {};
-      const sub = pd.submittedRounds || {};
+      // Use submittedRounds from players node (written by doSubmitPicks transaction)
+      // Fall back to picks node in case one is missing
+      const sub = player.submittedRounds || pd.submittedRounds || {};
       const hasSub = !!(sub[String(round)] || sub[round]);
       const totalSub = Object.values(sub).filter(Boolean).length;
-      // Count how many picks the player has made for this round (even if not submitted)
       const roundPicks = pd.picks || {};
-      const roundMatchIds = (MATCHES[round]||[]).map(m=>m.id);
-      const picksMade = roundMatchIds.filter(id => {
+      const roundMatchIds = (MATCHES[round]||[]).map(function(m){ return m.id; });
+      const picksMade = roundMatchIds.filter(function(id){
         const p = roundPicks[id];
         return p && (p.pick || p.scoreH !== undefined);
       }).length;
@@ -3632,32 +3641,32 @@ function renderPendingPlayers(){
       + `<strong style="color:var(--green)">${submitted.length}</strong>/${total} `
       + t('enviaron la jornada','submitted round')+' '+round+'</p>';
     if(submitted.length > 0){
-      html += submitted.map(p=>`
+      html += submitted.map(function(p){ return `
         <div class="pending-row" style="border-left:3px solid var(--green)">
           <span class="pending-name">✅ ${escapeHtml(p.name)}</span>
-          <span class="pending-sub" style="color:var(--green)">${t('Enviado','Submitted')} · ${p.picksMade}/${p.roundMatchCount} picks</span>
-        </div>`).join('');
+          <span class="pending-sub" style="color:var(--green)">${t('Enviado','Submitted')}${p.picksMade>0?' · '+p.picksMade+'/'+p.roundMatchCount+' picks':''}</span>
+        </div>`; }).join('');
     }
     if(pending.length===0){
       html += `<p style="color:var(--green);font-size:13px;font-weight:700;margin-top:6px">✅ `+t('¡Todos enviaron!','All players submitted!')+`</p>`;
     } else {
       html += `<p style="font-size:11px;color:var(--red);font-weight:700;margin:8px 0 4px">`
         + `⚠️ `+pending.length+` `+t('sin enviar:','not submitted:')+`</p>`;
-      html += pending.map(p=>`
-        <div class="pending-row" style="border-left:3px solid ${p.picksMade===p.roundMatchCount?'#F39C12':p.picksMade>0?'#E67E22':'var(--red)'}">
+      html += pending.map(function(p){ return `
+        <div class="pending-row" style="border-left:3px solid ${p.picksMade===p.roundMatchCount&&p.roundMatchCount>0?'#F39C12':p.picksMade>0?'#E67E22':'var(--red)'}">
           <span class="pending-name">${escapeHtml(p.name)}</span>
-          <span class="pending-sub" style="color:${p.picksMade===p.roundMatchCount?'#F39C12':p.picksMade>0?'#E67E22':'var(--red)'}">
-            ${p.picksMade===p.roundMatchCount
+          <span class="pending-sub" style="color:${p.picksMade===p.roundMatchCount&&p.roundMatchCount>0?'#F39C12':p.picksMade>0?'#E67E22':'var(--red)'}">
+            ${p.picksMade===p.roundMatchCount&&p.roundMatchCount>0
               ? t('⚠️ Picks hechos, NO enviados','⚠️ Picks done, NOT submitted')
               : p.picksMade > 0
-                ? `${p.picksMade}/${p.roundMatchCount} picks`
+                ? p.picksMade+'/'+p.roundMatchCount+' picks'
                 : t('0 picks','0 picks')}
           </span>
-        </div>`).join('');
+        </div>`; }).join('');
     }
     cont.innerHTML = html;
-  }).catch(()=>{
-    cont.innerHTML=`<p style="color:var(--red);font-size:12px">Error loading data.</p>`;
+  }).catch(function(){
+    cont.innerHTML=`<p style="color:var(--red);font-size:12px">${t('Error al cargar jugadores. Verifica conexión.','Error loading players. Check connection.')}</p>`;
   });
 }
 
@@ -4399,9 +4408,12 @@ function syncFromFirebase(){
     renderMatches();
     updateSubmitArea();
   });
-  // Live listener: detect when admin clears picks for this player so they can re-submit
+  // Live listener: sync submittedRounds with Firebase (handles admin clear AND state restoration)
   db.ref('picks/'+playerKey()+'/submittedRounds').on('value', function(snap){
+    if(_justSubmitted) return; // own submit in progress — ignore to prevent race condition
     const fbSubmitted = snap.val() || {};
+
+    // Detect admin clearing a round (Firebase removed a round local still has)
     let cleared = false;
     Object.keys(submittedRounds).forEach(function(r){
       if(submittedRounds[r] && !fbSubmitted[r] && !fbSubmitted[String(r)]){
@@ -4409,9 +4421,18 @@ function syncFromFirebase(){
         cleared = true;
       }
     });
+
+    // Detect Firebase having rounds that local is missing (race-condition recovery)
+    let restored = false;
+    Object.keys(fbSubmitted).forEach(function(r){
+      if(fbSubmitted[r] && !submittedRounds[r] && !submittedRounds[Number(r)]){
+        submittedRounds[r] = true;
+        restored = true;
+      }
+    });
+
     if(cleared){
       localStorage.setItem('wc2026_submitted_'+currentUser, JSON.stringify(submittedRounds));
-      // Re-sync picks from Firebase so player sees clean fields after admin clear
       db.ref('picks/'+playerKey()+'/picks').once('value').then(function(psnap){
         picks = psnap.val() || {};
         localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
@@ -4427,6 +4448,27 @@ function syncFromFirebase(){
           : '🔓 Admin unlocked your picks — you can re-submit',
         'info'
       );
+    } else if(restored){
+      // Restore missing submittedRounds — also sync picks from Firebase if local is empty
+      localStorage.setItem('wc2026_submitted_'+currentUser, JSON.stringify(submittedRounds));
+      var hasPicks = picks && Object.keys(picks).length > 0;
+      if(!hasPicks){
+        db.ref('picks/'+playerKey()+'/picks').once('value').then(function(psnap){
+          var fbPicks = psnap.val();
+          if(fbPicks && Object.keys(fbPicks).length > 0){
+            picks = fbPicks;
+            localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
+          }
+          renderMatches();
+          updateSubmitArea();
+        }).catch(function(){
+          renderMatches();
+          updateSubmitArea();
+        });
+      } else {
+        renderMatches();
+        updateSubmitArea();
+      }
     }
   });
 }
@@ -4497,7 +4539,8 @@ function renderMatches(){
   renderWelcomeBanner();
   const container = document.getElementById('matchesContainer');
   const roundMatches = MATCHES[currentRound];
-  const isSubmitted = submittedRounds[currentRound];
+  // Check both number key (set locally) and string key (returned by Firebase)
+  const isSubmitted = !!(submittedRounds[currentRound] || submittedRounds[String(currentRound)]);
 
   container.innerHTML = '';
   if(isSubmitted){ updateSubmitArea(); return; }
@@ -4615,11 +4658,27 @@ function renderMatches(){
 }
 
 function updateSubmitArea(){
-  const isSubmitted = submittedRounds[currentRound];
+  // Check both number key (set locally) and string key (returned by Firebase)
+  const isSubmitted = !!(submittedRounds[currentRound] || submittedRounds[String(currentRound)]);
   const btn = document.getElementById('submitBtn');
   const banner = document.getElementById('submittedBanner');
   const note = document.getElementById('submitNote');
-  // Hide submit area entirely if not approved for this round
+
+  // Update settings menu PDF button for any submitted round
+  const anySubmitted = Object.values(submittedRounds).some(Boolean);
+  const pdfSettBtn = document.getElementById('settingsPdfBtn');
+  if(pdfSettBtn) pdfSettBtn.style.display = anySubmitted ? 'flex' : 'none';
+
+  // If already submitted: always show banner + PDF — approval gate does NOT apply
+  if(isSubmitted){
+    btn.classList.add('hidden');
+    if(note) note.classList.add('hidden');
+    banner.classList.remove('hidden');
+    renderPDFPreview(currentRound);
+    return;
+  }
+
+  // Not yet submitted — hide everything if not approved for this round (payment gate)
   if(!isApprovedForRound(currentRound)){
     btn.classList.add('hidden');
     if(note) note.classList.add('hidden');
@@ -4628,23 +4687,13 @@ function updateSubmitArea(){
     if(card) card.style.display='none';
     return;
   }
-  // Show/hide "Download PDF" in settings menu based on whether any round is submitted
-  const anySubmitted = Object.values(submittedRounds).some(Boolean);
-  const pdfSettBtn = document.getElementById('settingsPdfBtn');
-  if(pdfSettBtn) pdfSettBtn.style.display = anySubmitted ? 'flex' : 'none';
 
-  if(isSubmitted){
-    btn.classList.add('hidden');
-    if(note) note.classList.add('hidden');
-    banner.classList.remove('hidden');
-    renderPDFPreview(currentRound);
-  } else {
-    btn.classList.remove('hidden');
-    if(note) note.classList.remove('hidden');
-    banner.classList.add('hidden');
-    const card = document.getElementById('pdfPreviewCard');
-    if(card) card.style.display='none';
-  }
+  // Not submitted + approved — show submit button
+  btn.classList.remove('hidden');
+  if(note) note.classList.remove('hidden');
+  banner.classList.add('hidden');
+  const card = document.getElementById('pdfPreviewCard');
+  if(card) card.style.display='none';
 }
 
 function renderPDFPreview(round){
@@ -4729,11 +4778,39 @@ function renderPDFPreview(round){
     </div>`;
   }
 
+  // If local picks is empty for this round, fetch from Firebase before rendering preview
+  var hasLocalPicks = roundMatches.some(function(m){ return picks[m.id]; });
+  if(!hasLocalPicks && db){
+    db.ref('picks/'+playerKey()+'/picks').once('value').then(function(psnap){
+      var fbPicks = psnap.val();
+      if(fbPicks && Object.keys(fbPicks).length > 0){
+        picks = fbPicks;
+        localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
+      }
+      buildHTML();
+    }).catch(function(){ buildHTML(); });
+    return;
+  }
   buildHTML();
 }
 
 function downloadCurrentRoundPDF(){
   if(!currentUser) return;
+  var hasPicks = picks && Object.keys(picks).length > 0;
+  // If local picks is empty but round is submitted, fetch from Firebase first
+  if(!hasPicks && db && submittedRounds[currentRound]){
+    db.ref('picks/'+playerKey()+'/picks').once('value').then(function(psnap){
+      var fbPicks = psnap.val();
+      if(fbPicks && Object.keys(fbPicks).length > 0){
+        picks = fbPicks;
+        localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
+      }
+      generatePDFAllRounds(currentUser, picks, [currentRound], false);
+    }).catch(function(){
+      generatePDFAllRounds(currentUser, picks, [currentRound], false);
+    });
+    return;
+  }
   generatePDFAllRounds(currentUser, picks, [currentRound], false);
 }
 
@@ -4759,7 +4836,7 @@ function printCurrentRound(){
     else if(p.pick==='away'){ pt=es?'VISITANTE':'AWAY WIN'; pc='aw'; }
     html+='<tr><td>'+(idx+1)+'</td><td>'+hn+' vs '+an+'</td><td class="'+pc+'">'+pt+'</td><td>'+m.date+' '+m.time+'</td></tr>';
   });
-  html+='</tbody></table><div class="ft">Pick26 · Developed by John Alvarado · Predict. Choose. Win.</div></body></html>';
+  html+='</tbody></table><div class="ft">Pick26 · Developed by John A. · Predict. Choose. Win.</div></body></html>';
   const w=window.open('','_blank','width=800,height=600');
   if(w){ w.document.write(html); w.document.close(); setTimeout(()=>w.print(),500); }
   else showToast(es?'Permite ventanas emergentes para imprimir':'Allow popups to print','error');
@@ -4946,7 +5023,7 @@ function printMyPicks(){
     printContent += '</tbody></table>';
   });
 
-  printContent += '<div class="footer">Pick26 · Developed by John Alvarado · Predict. Choose. Win.</div>';
+  printContent += '<div class="footer">Pick26 · Developed by John A. · Predict. Choose. Win.</div>';
   printContent += '</body></html>';
 
   const w = window.open('','_blank','width=800,height=600');
@@ -5014,35 +5091,62 @@ function doSubmitPicks(){
   closeSubmitModal();
   submittedRounds[currentRound] = true;
   localStorage.setItem('wc2026_submitted_'+currentUser, JSON.stringify(submittedRounds));
+  // Guard: suppress the submittedRounds listener while Firebase write is in flight
+  _justSubmitted = true;
+
+  // Capture picks snapshot NOW (before any async operation can change the variable)
+  const picksSnapshot = JSON.parse(JSON.stringify(picks));
+
   // Save to Firebase
   if(db){
     const key = playerKey();
-    db.ref('picks/'+key).set({
-      name: currentUser,
-      picks,
-      submittedRounds,
-      updatedAt: Date.now()
-    }).catch(()=>{});
-    // Security log
+
+    // 1. Write current-round picks using UPDATE (merge) so other rounds are never overwritten.
+    //    savePicks() already wrote them incrementally — this is a safety guarantee.
+    const currentRoundMatchIds = (MATCHES[currentRound]||[]).map(function(m){ return m.id; });
+    const roundPicks = {};
+    currentRoundMatchIds.forEach(function(id){ if(picksSnapshot[id]) roundPicks[id] = picksSnapshot[id]; });
+    if(Object.keys(roundPicks).length > 0){
+      db.ref('picks/'+key+'/picks').update(roundPicks).catch(function(){});
+    }
+
+    // 2. Mark round as submitted using UPDATE — only touches submittedRounds/{round}, nothing else.
+    const meta = { name: currentUser, updatedAt: Date.now() };
+    meta['submittedRounds/'+currentRound] = true;
+    db.ref('picks/'+key).update(meta).then(function(){
+      _justSubmitted = false; // Firebase confirmed — release guard immediately
+    }).catch(function(){
+      _justSubmitted = false;
+      showToast(currentLang==='es'
+        ? '⚠️ Error al guardar en la nube. Tus picks están guardados en este dispositivo. Recarga la app si el problema persiste.'
+        : '⚠️ Cloud save failed. Your picks are saved on this device. Reload the app if the problem persists.',
+        'error');
+    });
+
+    // 3. Security log
     db.ref('_seclog').push({
       user: currentUser, key,
       action: 'submit_picks',
       ts: Date.now(),
       ua: navigator.userAgent.slice(0,120)
-    }).catch(()=>{});
-    // Register player if not exists
-    db.ref('players/'+key).transaction(cur=>{
+    }).catch(function(){});
+
+    // 4. Register player / update submittedRounds in players node
+    db.ref('players/'+key).transaction(function(cur){
       if(!cur) return {name:currentUser, approved:false, pts:0, submittedRounds};
       return Object.assign(cur, {submittedRounds});
     });
+  } else {
+    _justSubmitted = false;
   }
+
   renderMatches();
   updateSubmitArea();
-  showToast('✅ '+(currentLang==='es'?'Predicciones enviadas!':'Picks submitted!'),'success');
+  showToast('✅ '+(currentLang==='es'?'¡Predicciones enviadas!':'Picks submitted!'),'success');
   launchConfetti();
   showSubmitStamp();
-  // Generate PDF for submitted round
-  setTimeout(()=> generatePDFAllRounds(currentUser, picks, [currentRound]), 500);
+  // Generate PDF using the snapshot captured before any async operation
+  setTimeout(function(){ generatePDFAllRounds(currentUser, picksSnapshot, [currentRound]); }, 500);
 }
 
 // ══════════════════════════════════════════════════════
@@ -5128,7 +5232,7 @@ function generatePDF(playerName, playerPicks, round){
       doc.rect(0,282,210,15,'F');
       doc.setTextColor(180,134,11);
       doc.setFontSize(8);
-      doc.text('Pick26  ·  Developed by John Alvarado', 105, 291, {align:'center'});
+      doc.text('Pick26  ·  Developed by John A.', 105, 291, {align:'center'});
 
       doc.save('WC2026_Picks_'+playerName.replace(/\s+/g,'_')+'_R'+round+'.pdf');
       showToast(t('📄 ¡PDF generado!','📄 PDF generated!'),'success');
@@ -5879,6 +5983,8 @@ function grantAdminUI(){
         _setFbAuthStatus('ok');
         showToast(t('🔐 Firebase Auth OK — puedes guardar resultados','🔐 Firebase Auth OK — you can save results'),'success');
         _autoRepairResults();
+        // Re-fetch pending picks now that auth is complete (first call may have run unauthenticated)
+        renderPendingPlayers();
       })
       .catch(function(e){
         _fbAuthOk = false;
@@ -5905,14 +6011,18 @@ function grantAdminUI(){
   const fab = document.getElementById('adminPdfBtn');
   if(fab) fab.style.display = 'flex';
 
-  // Real-time listener: auto-refresh pending picks when any player submits
+  // Real-time listener: auto-refresh pending picks when any player submits.
+  // Also listen on players node so submission status is always fresh even if
+  // the rules deny reading the full picks tree.
   if(db){
     var _pendingRefreshTimer = null;
-    db.ref('picks').on('value', function(){
+    var _refreshOnChange = function(){
       if(!adminLoggedIn) return;
       clearTimeout(_pendingRefreshTimer);
       _pendingRefreshTimer = setTimeout(renderPendingPlayers, 1200);
-    });
+    };
+    db.ref('picks').on('value', _refreshOnChange);
+    db.ref('players').on('value', _refreshOnChange);
   }
   showToast(t('Acceso de administrador concedido 🔓','Admin access granted 🔓'),'success');
 }
@@ -6501,7 +6611,9 @@ function renderAdminPlayers(){
         ? `<button class="btn-sm btn-revoke" onclick="setPlayerApproval('${key}',false)">Revoke</button>`
         : `<button class="btn-sm btn-approve" onclick="setPlayerApproval('${key}',true)">Approve</button>`;
       const playerPicksData = allPicks[key] || {};
-      const submittedRounds = playerPicksData.submittedRounds ? Object.keys(playerPicksData.submittedRounds) : [];
+      // Use picks node as primary; fall back to players node (written by doSubmitPicks transaction)
+      const srData = playerPicksData.submittedRounds || player.submittedRounds || {};
+      const submittedRounds = Object.keys(srData).filter(function(k){ return srData[k]; });
       // Badges J1-J7
       const roundBadges = [1,2,3,4,5,6,7].map(r=>{
         const done = submittedRounds.includes(String(r));
@@ -6728,8 +6840,11 @@ function renderPickDist(round){
   const body = document.getElementById('pickDistBody');
   const allKeys = Object.keys(picks);
 
-  // How many players submitted this round
-  const submitted = allKeys.filter(function(k){ return picks[k] && picks[k].submittedRounds && picks[k].submittedRounds[round]; });
+  // How many players submitted this round (check both string and number key)
+  const submitted = allKeys.filter(function(k){
+    const sr = (picks[k] && picks[k].submittedRounds) || (players[k] && players[k].submittedRounds) || {};
+    return !!(sr[String(round)] || sr[round]);
+  });
   const submittedCount = submitted.length;
 
   // Overall accuracy (exact score only)
@@ -6766,7 +6881,8 @@ function renderPickDist(round){
     allKeys.forEach(function(k){
       const pd = picks[k] || {};
       const pName = pd.name || (players[k] && players[k].name) || k;
-      const didSubmit = !!(pd.submittedRounds && pd.submittedRounds[round]);
+      const sr2 = pd.submittedRounds || (players[k] && players[k].submittedRounds) || {};
+      const didSubmit = !!(sr2[String(round)] || sr2[round]);
       if(!didSubmit){ noPick.push({name:pName, submitted:false}); return; }
       const pick = (pd.picks||{})[m.id];
       // Regular matches store pick.pick ('home'/'draw'/'away'); closer/final also store scoreH/scoreA
@@ -7121,12 +7237,11 @@ function generateAllPlayersPDF(){
     let entries = Object.entries(players).filter(function([,p]){ return p && p.name; });
     if(!entries.length){ status.textContent='No hay jugadores registrados.'; genBtn.disabled=false; return; }
 
-    // Admin (John Alvarado) always first — match by currentUser, known name, or role flag
+    // Logged-in admin always first; fall back to role flag
     const _cu = (currentUser||'').trim().toLowerCase();
-    const ADMIN_NAMES = ['john alvarado', 'john a.', 'john a'];
     let adminIdx = entries.findIndex(function([,p]){
       const nm = (p.name||'').trim().toLowerCase();
-      return (_cu && nm === _cu) || ADMIN_NAMES.indexOf(nm) >= 0 || p.role === 'admin';
+      return (_cu && nm === _cu) || p.role === 'admin';
     });
     let ordered;
     if(adminIdx>=0){
@@ -7779,7 +7894,7 @@ function generatePDFAllRounds(playerName, playerPicks, rounds, isAdminCopy=false
       doc.rect(0,282,210,15,'F');
       doc.setTextColor(180,134,11);
       doc.setFontSize(8);
-      doc.text('Pick26  ·  Developed by John Alvarado  ·  '+(isAdminCopy?'Admin Copy':'Player Copy'), 105, 291, {align:'center'});
+      doc.text('Pick26  ·  Developed by John A.  ·  '+(isAdminCopy?'Admin Copy':'Player Copy'), 105, 291, {align:'center'});
 
       const filename = 'WC2026_'+playerName.replace(/\s+/g,'_')+'_Rounds'+rounds.join('-')+'.pdf';
       doc.save(filename);
