@@ -3692,49 +3692,74 @@ function recoverSubmissions(){
     return;
   }
 
-  Promise.all([
-    db.ref('players').once('value'),
-    db.ref('picks').once('value')
-  ]).then(function(results){
-    const players = results[0].val() || {};
-    const allPicks = results[1].val() || {};
-    const updates = {};
-    let recovered = 0;
-
-    Object.keys(allPicks).forEach(function(key){
-      const pd = allPicks[key] || {};
-      // Check if already marked as submitted
-      const sub = pd.submittedRounds || (players[key] && players[key].submittedRounds) || {};
-      if(sub[String(round)] || sub[round]) return; // already submitted
-
-      // Count picks for this round
-      const playerPicks = pd.picks || {};
-      const madeCount = roundMatchIds.filter(function(id){
-        const p = playerPicks[id];
-        return p && (p.pick || p.scoreH !== undefined || p.scoreA !== undefined);
-      }).length;
-
-      if(madeCount > 0){
-        // Has picks → mark as submitted in both nodes
-        updates['picks/'+key+'/submittedRounds/'+round] = true;
-        updates['players/'+key+'/submittedRounds/'+round] = true;
-        recovered++;
-      }
-    });
-
-    if(recovered === 0){
-      if(status){ status.textContent = t('No se encontraron picks sin marcar para J','No unmarked picks found for J')+round; }
+  // Read players first (always accessible), then try picks tree with fallback per-player reads
+  db.ref('players').once('value').then(function(pSnap){
+    const players = pSnap.val() || {};
+    const playerKeys = Object.keys(players);
+    if(playerKeys.length === 0){
+      if(status){ status.textContent = t('Sin jugadores registrados.','No players registered.'); }
       return;
     }
+    if(status){ status.textContent = t('Leyendo picks de ','Reading picks for ')+playerKeys.length+t(' jugadores...', ' players...'); }
 
-    db.ref().update(updates).then(function(){
-      if(status){ status.style.color='#2ECC71'; status.textContent = '✅ '+recovered+t(' jugador(es) recuperados para J',' player(s) recovered for J')+round; }
-      setTimeout(function(){ renderPendingPlayers(); if(adminLoggedIn) renderAdminPlayers(); }, 800);
-    }).catch(function(e){
-      if(status){ status.style.color='#e74c3c'; status.textContent = 'Error: '+e.message; }
+    // Try whole picks tree first; fall back to per-player reads if denied
+    db.ref('picks').once('value').then(function(pickSnap){
+      return pickSnap.val() || {};
+    }).catch(function(){
+      // Whole tree denied — read each player individually
+      return Promise.all(playerKeys.map(function(k){
+        return db.ref('picks/'+k).once('value').then(function(s){ return [k, s.val()]; }).catch(function(){ return [k, null]; });
+      })).then(function(entries){
+        var obj = {};
+        entries.forEach(function(e){ if(e[1]) obj[e[0]] = e[1]; });
+        return obj;
+      });
+    }).then(function(allPicks){
+      const updates = {};
+      let recovered = 0, alreadyDone = 0, noPicks = 0;
+
+      playerKeys.forEach(function(key){
+        const pd = allPicks[key] || {};
+        const player = players[key] || {};
+        const sub = pd.submittedRounds || player.submittedRounds || {};
+        if(sub[String(round)] || sub[round]){ alreadyDone++; return; }
+
+        const playerPicks = pd.picks || {};
+        const madeCount = roundMatchIds.filter(function(id){
+          const p = playerPicks[id];
+          return p && (p.pick || p.scoreH !== undefined || p.scoreA !== undefined);
+        }).length;
+
+        if(madeCount > 0){
+          updates['picks/'+key+'/submittedRounds/'+round] = true;
+          updates['players/'+key+'/submittedRounds/'+round] = true;
+          recovered++;
+        } else {
+          noPicks++;
+        }
+      });
+
+      const summary = t('J','J')+round+': '+alreadyDone+t(' ya enviados, ',' already submitted, ')+recovered+t(' a recuperar, ',' to recover, ')+noPicks+t(' sin picks.', ' with no picks.');
+      if(status){ status.textContent = summary; }
+      showToast(summary, recovered > 0 ? 'info' : 'error', 5000);
+
+      if(recovered === 0) return;
+
+      db.ref().update(updates).then(function(){
+        const msg = '✅ '+recovered+t(' jugador(es) marcados como enviados para J',' player(s) marked as submitted for J')+round;
+        if(status){ status.style.color='#2ECC71'; status.textContent = msg; }
+        showToast(msg, 'success', 5000);
+        setTimeout(function(){ renderPendingPlayers(); if(adminLoggedIn) renderAdminPlayers(); }, 800);
+      }).catch(function(e){
+        const msg = 'Error al guardar: '+(e.message||e);
+        if(status){ status.style.color='#e74c3c'; status.textContent = msg; }
+        showToast(msg, 'error', 5000);
+      });
     });
-  }).catch(function(){
-    if(status){ status.style.color='#e74c3c'; status.textContent = t('Error al leer Firebase. Verifica permisos.','Error reading Firebase. Check permissions.'); }
+  }).catch(function(e){
+    const msg = t('Error al leer jugadores: ','Error reading players: ')+(e.message||'');
+    if(status){ status.style.color='#e74c3c'; status.textContent = msg; }
+    showToast(msg, 'error', 5000);
   });
 }
 
@@ -4404,8 +4429,43 @@ function syncFromFirebase(){
   db.ref('picks/'+playerKey()).once('value').then(function(snap){
     const data = snap.val();
     if(data && data.picks){
-      picks = data.picks;
-      if(data.submittedRounds) submittedRounds = data.submittedRounds;
+      const fbPicks = data.picks;
+      const fbSubmitted = data.submittedRounds || {};
+
+      // Detect rounds submitted locally but missing from Firebase (failed write recovery)
+      const localSubmitted = Object.assign({}, submittedRounds);
+      const localPicks = Object.assign({}, picks);
+      const missedRounds = [];
+      Object.keys(localSubmitted).forEach(function(r){
+        if(localSubmitted[r] && !fbSubmitted[String(r)] && !fbSubmitted[Number(r)]){
+          missedRounds.push(Number(r));
+        }
+      });
+
+      if(missedRounds.length > 0){
+        // Re-upload picks and submittedRounds flags for rounds Firebase is missing
+        var picksUpdates = {};
+        missedRounds.forEach(function(r){
+          (MATCHES[r]||[]).forEach(function(m){
+            if(localPicks[m.id]) picksUpdates[m.id] = localPicks[m.id];
+          });
+        });
+        if(Object.keys(picksUpdates).length > 0){
+          db.ref('picks/'+playerKey()+'/picks').update(picksUpdates).catch(function(){});
+        }
+        missedRounds.forEach(function(r){
+          db.ref('picks/'+playerKey()+'/submittedRounds/'+r).set(true).catch(function(){});
+          db.ref('players/'+playerKey()+'/submittedRounds/'+r).set(true).catch(function(){});
+        });
+        // Merge Firebase picks with local picks (local has the missed-round picks)
+        picks = Object.assign({}, localPicks, fbPicks);
+        submittedRounds = Object.assign({}, localSubmitted, fbSubmitted);
+        // Write to firebase the merged submittedRounds
+        missedRounds.forEach(function(r){ submittedRounds[r] = true; });
+      } else {
+        picks = fbPicks;
+        if(data.submittedRounds) submittedRounds = data.submittedRounds;
+      }
       localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
       localStorage.setItem('wc2026_submitted_'+currentUser, JSON.stringify(submittedRounds));
     } else if(!data && Object.keys(picks).length > 0){
