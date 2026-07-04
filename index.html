@@ -4531,7 +4531,8 @@ function renderMatches(){
   renderWelcomeBanner();
   const container = document.getElementById('matchesContainer');
   const roundMatches = MATCHES[currentRound];
-  const isSubmitted = submittedRounds[currentRound];
+  // Check both number key (set locally) and string key (returned by Firebase)
+  const isSubmitted = !!(submittedRounds[currentRound] || submittedRounds[String(currentRound)]);
 
   container.innerHTML = '';
   if(isSubmitted){ updateSubmitArea(); return; }
@@ -4649,11 +4650,27 @@ function renderMatches(){
 }
 
 function updateSubmitArea(){
-  const isSubmitted = submittedRounds[currentRound];
+  // Check both number key (set locally) and string key (returned by Firebase)
+  const isSubmitted = !!(submittedRounds[currentRound] || submittedRounds[String(currentRound)]);
   const btn = document.getElementById('submitBtn');
   const banner = document.getElementById('submittedBanner');
   const note = document.getElementById('submitNote');
-  // Hide submit area entirely if not approved for this round
+
+  // Update settings menu PDF button for any submitted round
+  const anySubmitted = Object.values(submittedRounds).some(Boolean);
+  const pdfSettBtn = document.getElementById('settingsPdfBtn');
+  if(pdfSettBtn) pdfSettBtn.style.display = anySubmitted ? 'flex' : 'none';
+
+  // If already submitted: always show banner + PDF — approval gate does NOT apply
+  if(isSubmitted){
+    btn.classList.add('hidden');
+    if(note) note.classList.add('hidden');
+    banner.classList.remove('hidden');
+    renderPDFPreview(currentRound);
+    return;
+  }
+
+  // Not yet submitted — hide everything if not approved for this round (payment gate)
   if(!isApprovedForRound(currentRound)){
     btn.classList.add('hidden');
     if(note) note.classList.add('hidden');
@@ -4662,23 +4679,13 @@ function updateSubmitArea(){
     if(card) card.style.display='none';
     return;
   }
-  // Show/hide "Download PDF" in settings menu based on whether any round is submitted
-  const anySubmitted = Object.values(submittedRounds).some(Boolean);
-  const pdfSettBtn = document.getElementById('settingsPdfBtn');
-  if(pdfSettBtn) pdfSettBtn.style.display = anySubmitted ? 'flex' : 'none';
 
-  if(isSubmitted){
-    btn.classList.add('hidden');
-    if(note) note.classList.add('hidden');
-    banner.classList.remove('hidden');
-    renderPDFPreview(currentRound);
-  } else {
-    btn.classList.remove('hidden');
-    if(note) note.classList.remove('hidden');
-    banner.classList.add('hidden');
-    const card = document.getElementById('pdfPreviewCard');
-    if(card) card.style.display='none';
-  }
+  // Not submitted + approved — show submit button
+  btn.classList.remove('hidden');
+  if(note) note.classList.remove('hidden');
+  banner.classList.add('hidden');
+  const card = document.getElementById('pdfPreviewCard');
+  if(card) card.style.display='none';
 }
 
 function renderPDFPreview(round){
@@ -4763,6 +4770,19 @@ function renderPDFPreview(round){
     </div>`;
   }
 
+  // If local picks is empty for this round, fetch from Firebase before rendering preview
+  var hasLocalPicks = roundMatches.some(function(m){ return picks[m.id]; });
+  if(!hasLocalPicks && db){
+    db.ref('picks/'+playerKey()+'/picks').once('value').then(function(psnap){
+      var fbPicks = psnap.val();
+      if(fbPicks && Object.keys(fbPicks).length > 0){
+        picks = fbPicks;
+        localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
+      }
+      buildHTML();
+    }).catch(function(){ buildHTML(); });
+    return;
+  }
   buildHTML();
 }
 
