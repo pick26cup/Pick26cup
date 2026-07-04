@@ -7053,7 +7053,7 @@ function generateAllPlayersPDF(){
 
     // Admin (John Alvarado) always first — match by currentUser, known name, or role flag
     const _cu = (currentUser||'').trim().toLowerCase();
-    const ADMIN_NAMES = ['john alvarado'];
+    const ADMIN_NAMES = ['john alvarado', 'john a.', 'john a'];
     let adminIdx = entries.findIndex(function([,p]){
       const nm = (p.name||'').trim().toLowerCase();
       return (_cu && nm === _cu) || ADMIN_NAMES.indexOf(nm) >= 0 || p.role === 'admin';
