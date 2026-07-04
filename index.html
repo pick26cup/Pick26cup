@@ -1830,6 +1830,12 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
             </select>
           </div>
           <div id="pendingPlayerList"><p style="color:var(--text2);font-size:12px">Loading...</p></div>
+          <div style="margin-top:10px;border-top:1px solid #333;padding-top:10px">
+            <button onclick="recoverSubmissions()" style="background:rgba(212,175,55,.15);border:1.5px solid var(--gold);color:var(--gold);font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;width:100%">
+              🔧 Recuperar envíos desde picks guardados
+            </button>
+            <p id="recoverStatus" style="font-size:11px;color:var(--text2);margin-top:6px;display:none"></p>
+          </div>
         </div>
 
         <!-- Dashboard Menu -->
@@ -3670,6 +3676,67 @@ function renderPendingPlayers(){
   });
 }
 
+// Scans all players' saved picks for a round and marks them as submitted
+// if they have picks stored but submittedRounds flag is missing in Firebase.
+function recoverSubmissions(){
+  if(!db){ showToast('Sin conexión Firebase','error'); return; }
+  const sel = document.getElementById('pendingRoundSelect');
+  const round = sel ? parseInt(sel.value) : (activeWeek || 1);
+  const status = document.getElementById('recoverStatus');
+  if(status){ status.style.display='block'; status.textContent = t('Buscando picks guardados...','Scanning saved picks...'); }
+
+  const roundMatchIds = (MATCHES[round]||[]).map(function(m){ return m.id; });
+  if(roundMatchIds.length === 0){
+    if(status){ status.textContent = 'No hay partidos definidos para J'+round; }
+    return;
+  }
+
+  Promise.all([
+    db.ref('players').once('value'),
+    db.ref('picks').once('value')
+  ]).then(function(results){
+    const players = results[0].val() || {};
+    const allPicks = results[1].val() || {};
+    const updates = {};
+    let recovered = 0;
+
+    Object.keys(allPicks).forEach(function(key){
+      const pd = allPicks[key] || {};
+      // Check if already marked as submitted
+      const sub = pd.submittedRounds || (players[key] && players[key].submittedRounds) || {};
+      if(sub[String(round)] || sub[round]) return; // already submitted
+
+      // Count picks for this round
+      const playerPicks = pd.picks || {};
+      const madeCount = roundMatchIds.filter(function(id){
+        const p = playerPicks[id];
+        return p && (p.pick || p.scoreH !== undefined || p.scoreA !== undefined);
+      }).length;
+
+      if(madeCount > 0){
+        // Has picks → mark as submitted in both nodes
+        updates['picks/'+key+'/submittedRounds/'+round] = true;
+        updates['players/'+key+'/submittedRounds/'+round] = true;
+        recovered++;
+      }
+    });
+
+    if(recovered === 0){
+      if(status){ status.textContent = t('No se encontraron picks sin marcar para J','No unmarked picks found for J')+round; }
+      return;
+    }
+
+    db.ref().update(updates).then(function(){
+      if(status){ status.style.color='#2ECC71'; status.textContent = '✅ '+recovered+t(' jugador(es) recuperados para J',' player(s) recovered for J')+round; }
+      setTimeout(function(){ renderPendingPlayers(); if(adminLoggedIn) renderAdminPlayers(); }, 800);
+    }).catch(function(e){
+      if(status){ status.style.color='#e74c3c'; status.textContent = 'Error: '+e.message; }
+    });
+  }).catch(function(){
+    if(status){ status.style.color='#e74c3c'; status.textContent = t('Error al leer Firebase. Verifica permisos.','Error reading Firebase. Check permissions.'); }
+  });
+}
+
 // ══════════════════════════════════════════════════════
 //  LOGIN (name-based, no OAuth)
 // ══════════════════════════════════════════════════════
@@ -5131,11 +5198,15 @@ function doSubmitPicks(){
       ua: navigator.userAgent.slice(0,120)
     }).catch(function(){});
 
-    // 4. Register player / update submittedRounds in players node
-    db.ref('players/'+key).transaction(function(cur){
-      if(!cur) return {name:currentUser, approved:false, pts:0, submittedRounds};
-      return Object.assign(cur, {submittedRounds});
-    });
+    // 4. Register player / update submittedRounds in players node.
+    // Write only the current round flag directly — never replace all submittedRounds.
+    db.ref('players/'+key+'/submittedRounds/'+currentRound).set(true).catch(function(){});
+    // Also ensure the player record exists (first-time registration safety net)
+    db.ref('players/'+key).once('value').then(function(snap){
+      if(!snap.val()){
+        db.ref('players/'+key).set({name:currentUser, approved:false, pts:0, submittedRounds:{}}).catch(function(){});
+      }
+    }).catch(function(){});
   } else {
     _justSubmitted = false;
   }
