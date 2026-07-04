@@ -8,37 +8,62 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;700;900&display=swap" rel="stylesheet"/>
 <style>
-/* ── BASE ──────────────────────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
-  font-family:'Oswald',sans-serif}
-
-/* Three.js canvas replaces bg canvas */
+html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:'Oswald',sans-serif}
 #three-canvas{position:fixed;inset:0;z-index:0;display:block}
-
-/* vignette */
 .vig{position:fixed;inset:0;z-index:1;pointer-events:none;
-  background:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 30%,rgba(0,0,6,.7) 100%)}
+  background:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 30%,rgba(0,0,6,.65) 100%)}
 
-/* ── START SCREEN ──────────────────────────────────────────────────────────── */
+/* ── BROADCAST HUD ── */
+#hud{position:fixed;inset:0;z-index:10;pointer-events:none;display:none}
+#live-bug{position:absolute;top:18px;left:20px;display:flex;align-items:center;gap:8px;
+  background:rgba(0,8,30,.9);border-left:3px solid #d4af37;padding:6px 14px 6px 10px;
+  backdrop-filter:blur(8px)}
+#live-dot{width:8px;height:8px;border-radius:50%;background:#e53935;
+  animation:blink 1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+#live-text{font-family:'Oswald',sans-serif;font-size:.58rem;font-weight:500;
+  letter-spacing:.25em;color:#fff;text-transform:uppercase}
+#score-bug{position:absolute;top:18px;right:20px;display:flex;align-items:stretch;
+  overflow:hidden;backdrop-filter:blur(8px)}
+.sb-team{background:rgba(0,8,30,.92);padding:5px 13px;font-family:'Oswald',sans-serif;
+  font-size:.62rem;font-weight:600;letter-spacing:.15em;color:#fff;text-transform:uppercase;
+  display:flex;align-items:center}
+.sb-score{background:#d4af37;color:#000;padding:5px 10px;font-family:'Oswald',sans-serif;
+  font-size:.62rem;font-weight:700;letter-spacing:.1em;display:flex;align-items:center}
+.sb-sep{background:rgba(255,255,255,.18);width:1px}
+#cam-label{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.55);padding:4px 14px;font-family:'Oswald',sans-serif;
+  font-size:.52rem;font-weight:400;letter-spacing:.3em;color:rgba(255,255,255,.4);
+  text-transform:uppercase;backdrop-filter:blur(4px);opacity:0;transition:opacity .4s}
+#lower-third{position:absolute;bottom:62px;left:0;
+  transform:translateX(-110%);transition:transform .55s cubic-bezier(.22,1,.36,1)}
+#lower-third.show{transform:translateX(0)}
+.lt-eyebrow{background:#d4af37;padding:3px 18px;font-family:'Oswald',sans-serif;
+  font-size:.5rem;font-weight:500;letter-spacing:.3em;color:#000;text-transform:uppercase}
+.lt-name{background:rgba(0,8,30,.96);padding:8px 18px;font-family:'Oswald',sans-serif;
+  font-size:1.05rem;font-weight:600;letter-spacing:.12em;color:#fff;text-transform:uppercase}
+.lt-sub{background:rgba(0,8,30,.82);padding:4px 18px;font-family:'Montserrat',sans-serif;
+  font-size:.58rem;font-weight:300;letter-spacing:.18em;color:rgba(255,255,255,.6);
+  text-transform:uppercase}
+
+/* ── START ── */
 #start{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;
   align-items:center;justify-content:center;cursor:pointer;
-  background:linear-gradient(180deg,rgba(0,0,15,.85) 0%,rgba(0,0,10,.7) 60%,rgba(0,0,20,.85) 100%)}
+  background:linear-gradient(180deg,rgba(0,0,15,.92) 0%,rgba(0,0,10,.78) 60%,rgba(0,0,20,.92) 100%)}
 #start .eyebrow{font-family:'Montserrat',sans-serif;font-weight:300;
   font-size:clamp(.55rem,1.3vw,.78rem);letter-spacing:.6em;color:#3a4a7a;
   text-transform:uppercase;margin-bottom:32px}
-#start .logo-ring{width:clamp(90px,15vw,130px);height:clamp(90px,15vw,130px);
-  border-radius:50%;border:1px solid rgba(212,175,55,.3);
-  display:flex;align-items:center;justify-content:center;margin-bottom:32px;
-  box-shadow:0 0 40px rgba(212,175,55,.12),inset 0 0 40px rgba(212,175,55,.05);
+#start .logo-ring{width:clamp(90px,15vw,130px);height:clamp(90px,15vw,130px);border-radius:50%;
+  border:1px solid rgba(212,175,55,.3);display:flex;align-items:center;justify-content:center;
+  margin-bottom:32px;box-shadow:0 0 40px rgba(212,175,55,.12),inset 0 0 40px rgba(212,175,55,.05);
   animation:ring-pulse 3s ease-in-out infinite}
 @keyframes ring-pulse{0%,100%{box-shadow:0 0 40px rgba(212,175,55,.12),inset 0 0 40px rgba(212,175,55,.05)}
   50%{box-shadow:0 0 70px rgba(212,175,55,.22),inset 0 0 60px rgba(212,175,55,.1)}}
 #start .logo-ring img{width:65%;height:65%;border-radius:50%;object-fit:cover}
 #start .logo-ring .fallback{font-size:clamp(1.8rem,4vw,3rem);line-height:1}
 #start h1{font-size:clamp(1.8rem,5.5vw,4rem);font-weight:700;letter-spacing:.12em;
-  text-align:center;text-transform:uppercase;color:#fff;
-  text-shadow:0 0 60px rgba(212,175,55,.3)}
+  text-align:center;text-transform:uppercase;color:#fff;text-shadow:0 0 60px rgba(212,175,55,.3)}
 #start h1 em{display:block;font-style:normal;font-size:.38em;font-weight:300;
   letter-spacing:.45em;color:#d4af37;font-family:'Montserrat',sans-serif;margin-top:6px}
 #start .year{font-size:clamp(5rem,16vw,12rem);font-weight:700;line-height:1;
@@ -49,31 +74,22 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
   padding:14px 52px;font-family:'Oswald',sans-serif;font-size:clamp(.8rem,1.8vw,1rem);
   font-weight:500;letter-spacing:.28em;text-transform:uppercase;cursor:pointer;
   transition:all .3s;position:relative;overflow:hidden}
-#start .cta::after{content:'';position:absolute;inset:0;
-  background:rgba(212,175,55,0);transition:background .3s}
+#start .cta::after{content:'';position:absolute;inset:0;background:rgba(212,175,55,0);transition:background .3s}
 #start .cta:hover::after{background:rgba(212,175,55,.08)}
 #start .cta span{position:relative;z-index:1}
 
-/* ── CEREMONY SCREEN ───────────────────────────────────────────────────────── */
-#ceremony{position:fixed;inset:0;z-index:20;display:none;
-  flex-direction:column;align-items:center;justify-content:center}
-
-/* canvas fireworks — above Three.js */
+/* ── CEREMONY ── */
+#ceremony{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;
+  align-items:center;justify-content:center}
 #fw{position:fixed;inset:0;z-index:21;pointer-events:none}
-
-/* ── GENERIC CARD ─────────────────────────────────────────────────────────── */
 .card{position:absolute;inset:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;opacity:0;pointer-events:none;padding:24px}
-
-/* ── ROUND CARD ──────────────────────────────────────────────────────────── */
 #card-round .sub{font-family:'Montserrat',sans-serif;font-weight:300;
   font-size:clamp(.55rem,1.3vw,.78rem);letter-spacing:.55em;color:#3a4a88;
   text-transform:uppercase;margin-bottom:10px}
 #card-round .rt{font-size:clamp(2.8rem,9vw,7rem);font-weight:700;letter-spacing:.18em;
   text-align:center;text-transform:uppercase;color:#fff;
   text-shadow:0 0 60px rgba(180,200,255,.4),0 0 120px rgba(80,110,220,.3)}
-
-/* ── STAT CARD ──────────────────────────────────────────────────────────── */
 #card-stat .sl{font-family:'Montserrat',sans-serif;font-weight:300;
   font-size:clamp(.55rem,1.4vw,.82rem);letter-spacing:.45em;color:#4455aa;
   text-transform:uppercase;margin-bottom:10px}
@@ -81,23 +97,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
   background:linear-gradient(160deg,#ffe066 0%,#f5c518 28%,#d4af37 55%,#b8860b 85%,#ffe066 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   filter:drop-shadow(0 0 50px rgba(245,197,24,.7))}
-
-/* ── TOP10 CARD ─────────────────────────────────────────────────────────── */
 #card-top10{gap:0;padding:20px}
 #card-top10 .hd{font-family:'Montserrat',sans-serif;font-weight:300;
   font-size:clamp(.5rem,1.2vw,.72rem);letter-spacing:.55em;color:#3a4488;
   text-transform:uppercase;margin-bottom:18px}
 .t10r{display:flex;align-items:center;gap:14px;width:min(560px,92vw);
-  padding:7px 0;border-bottom:1px solid rgba(80,100,160,.1);
-  opacity:0;transform:translateX(-30px)}
+  padding:7px 0;border-bottom:1px solid rgba(80,100,160,.1);opacity:0;transform:translateX(-30px)}
 .t10r:last-child{border-bottom:none}
 .t10r .rk{font-size:clamp(.7rem,1.8vw,1.05rem);font-weight:500;color:#d4af37;
   width:2.2em;text-align:right;flex-shrink:0;letter-spacing:.05em}
 .t10r .nm{font-size:clamp(.85rem,2.2vw,1.3rem);font-weight:600;letter-spacing:.07em;flex:1;color:#e8eef8}
 .t10r .pt{font-size:clamp(.62rem,1.5vw,.88rem);color:#4455aa;
   font-family:'Montserrat',sans-serif;font-weight:300;letter-spacing:.03em}
-
-/* ── CHAMPION CARD ───────────────────────────────────────────────────────── */
 #card-champ{gap:14px;text-align:center}
 .champ-eyebrow{font-family:'Montserrat',sans-serif;font-weight:300;
   font-size:clamp(.55rem,1.4vw,.82rem);letter-spacing:.55em;color:#7788bb;
@@ -105,8 +116,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
 #champ-trophy{font-size:clamp(3rem,7vw,5.5rem);line-height:1;
   filter:drop-shadow(0 0 30px rgba(212,175,55,.8)) drop-shadow(0 0 80px rgba(212,175,55,.4));
   opacity:0;transform:scale(.6) translateY(20px);margin-bottom:4px}
-#champ-name{display:flex;flex-wrap:wrap;justify-content:center;gap:0;
-  min-height:1.1em;margin:4px 0}
+#champ-name{display:flex;flex-wrap:wrap;justify-content:center;gap:0;min-height:1.1em;margin:4px 0}
 .cl{display:inline-block;opacity:0;transform:translateY(28px) scale(.7);
   font-size:clamp(2.8rem,10vw,8rem);font-weight:700;letter-spacing:.02em;
   background:linear-gradient(160deg,#ffe88a 0%,#f5c518 22%,#d4af37 48%,#b8860b 72%,#ffe088 100%);
@@ -116,25 +126,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
 #champ-title{font-size:clamp(.65rem,2vw,1.2rem);font-weight:500;letter-spacing:.38em;
   color:#fff;text-shadow:0 0 30px rgba(255,255,255,.3);
   opacity:0;transform:translateY(10px);text-transform:uppercase}
-#champ-country-wrap{display:flex;align-items:center;gap:16px;
-  opacity:0;transform:translateY(10px)}
-#champ-flag{font-size:clamp(1.8rem,4.5vw,3.5rem);
-  filter:drop-shadow(0 0 15px rgba(255,255,255,.3))}
+#champ-country-wrap{display:flex;align-items:center;gap:16px;opacity:0;transform:translateY(10px)}
+#champ-flag{font-size:clamp(1.8rem,4.5vw,3.5rem);filter:drop-shadow(0 0 15px rgba(255,255,255,.3))}
 #champ-country{font-size:clamp(1rem,3.2vw,2.4rem);font-weight:700;letter-spacing:.14em;
   color:#d4af37;text-shadow:0 0 40px rgba(212,175,55,.6);text-transform:uppercase}
-
-/* ── CONFETTI CANVAS ─────────────────────────────────────────────────────── */
 #conf{position:fixed;inset:0;z-index:25;pointer-events:none;opacity:0}
-
-/* ── SKIP ────────────────────────────────────────────────────────────────── */
 #skip{position:fixed;bottom:22px;right:24px;z-index:60;
-  border:1px solid rgba(212,175,55,.2);color:rgba(212,175,55,.4);
-  background:none;padding:6px 16px;font-size:.65rem;letter-spacing:.2em;
-  text-transform:uppercase;cursor:pointer;font-family:'Oswald',sans-serif;
-  transition:all .25s;display:none}
+  border:1px solid rgba(212,175,55,.2);color:rgba(212,175,55,.4);background:none;
+  padding:6px 16px;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;
+  cursor:pointer;font-family:'Oswald',sans-serif;transition:all .25s;display:none}
 #skip:hover{color:#d4af37;border-color:rgba(212,175,55,.55)}
-
-/* spotlight rays */
 .ray{position:fixed;top:0;width:2px;height:100%;z-index:2;pointer-events:none;
   transform-origin:top center;opacity:0}
 #r1{left:30%;background:linear-gradient(180deg,rgba(255,255,255,.08) 0%,transparent 70%);transform:rotate(-8deg)}
@@ -144,19 +145,34 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
 </head>
 <body>
 
-<!-- THREE.JS 3D background -->
 <canvas id="three-canvas"></canvas>
 <div class="vig"></div>
-<div id="r1" class="ray"></div>
-<div id="r2" class="ray"></div>
-<div id="r3" class="ray"></div>
-
-<!-- fireworks canvas (Canvas 2D overlay) -->
+<div id="r1" class="ray"></div><div id="r2" class="ray"></div><div id="r3" class="ray"></div>
 <canvas id="fw"></canvas>
-<!-- confetti canvas -->
 <canvas id="conf"></canvas>
 
-<!-- START SCREEN -->
+<!-- BROADCAST HUD -->
+<div id="hud">
+  <div id="live-bug">
+    <div id="live-dot"></div>
+    <div id="live-text">LIVE &nbsp;·&nbsp; FIFA+ &nbsp;·&nbsp; PICK26CUP 2026</div>
+  </div>
+  <div id="score-bug">
+    <div class="sb-team">🇨🇴 COL</div>
+    <div class="sb-score">CEREMONIA</div>
+    <div class="sb-sep"></div>
+    <div class="sb-score">2026</div>
+    <div class="sb-team">FT &nbsp;3590</div>
+  </div>
+  <div id="cam-label">CAM A · AERIAL</div>
+  <div id="lower-third">
+    <div class="lt-eyebrow">Pick26Cup World Cup 2026</div>
+    <div class="lt-name" id="lt-name-text">PICK26CUP CHAMPION CEREMONY</div>
+    <div class="lt-sub" id="lt-sub-text">Estadio Azteca · Ciudad de México</div>
+  </div>
+</div>
+
+<!-- START -->
 <div id="start">
   <div class="eyebrow">FIFA World Cup 2026 &nbsp;·&nbsp; Ceremonia Oficial</div>
   <div class="logo-ring">
@@ -192,13 +208,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
     </div>
   </div>
 </div>
-
 <button id="skip">Skip</button>
 
-<!-- GSAP UMD (must load before the module) -->
+<!-- GSAP UMD must load before importmap -->
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 
-<!-- Three.js importmap -->
 <script type="importmap">
 {
   "imports": {
@@ -213,353 +227,394 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass }     from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { ShaderPass }     from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { OutputPass }     from 'three/examples/jsm/postprocessing/OutputPass.js';
-
 'use strict';
 const gsap = window.gsap;
 
-// ─── DATA ─────────────────────────────────────────────────────────────────────
+// ── DATA ──────────────────────────────────────────────────────────────────────
 const CHAMPION = { name:'JOHN ALVARADO', country:'COLOMBIA', flag:'🇨🇴' };
 const TOP10 = [
-  {r:10,n:'CARLOS MÉNDEZ',   p:2840},{r:9,n:'LAURA JIMÉNEZ',    p:2910},
-  {r:8, n:'ANDRÉS TORRES',   p:2975},{r:7,n:'SOFÍA RAMOS',      p:3040},
-  {r:6, n:'DIEGO HERRERA',   p:3120},{r:5,n:'VALENTINA CRUZ',   p:3210},
-  {r:4, n:'MIGUEL SANTOS',   p:3290},{r:3,n:'ISABELLA MORA',    p:3380},
-  {r:2, n:'SEBASTIÁN RUIZ',  p:3460},{r:1,n:'JOHN ALVARADO',    p:3590},
+  {r:10,n:'CARLOS MÉNDEZ',  p:2840},{r:9,n:'LAURA JIMÉNEZ',   p:2910},
+  {r:8, n:'ANDRÉS TORRES',  p:2975},{r:7,n:'SOFÍA RAMOS',     p:3040},
+  {r:6, n:'DIEGO HERRERA',  p:3120},{r:5,n:'VALENTINA CRUZ',  p:3210},
+  {r:4, n:'MIGUEL SANTOS',  p:3290},{r:3,n:'ISABELLA MORA',   p:3380},
+  {r:2, n:'SEBASTIÁN RUIZ', p:3460},{r:1,n:'JOHN ALVARADO',   p:3590},
 ];
 const STATS  = [{l:'TOTAL JUGADORES',v:'12,542'},{l:'PICKS REALIZADOS',v:'93,412'},{l:'RONDAS PERFECTAS',v:'847'}];
 const ROUNDS = ['ROUND 1','ROUND 2','ROUND 3','ROUND 4','ROUND 5','ROUND 6','FINAL'];
 
-// ─── THREE.JS SETUP ───────────────────────────────────────────────────────────
+// ── TV CAMERAS ────────────────────────────────────────────────────────────────
+const CAMERAS = [
+  { name:'CAM A · AERIAL',      pos:[0,75,15],   look:[0,0,0],  fov:55 },
+  { name:'CAM B · SIDELINE',    pos:[-90,12,0],  look:[0,3,0],  fov:50 },
+  { name:'CAM C · CORNER',      pos:[65,10,55],  look:[0,4,0],  fov:60 },
+  { name:'CAM D · BEHIND GOAL', pos:[0,6,-95],   look:[0,5,10], fov:65 },
+  { name:'CAM E · BROADCAST',   pos:[0,22,105],  look:[0,5,0],  fov:50 },
+];
+let currentCam=0, camSwitchTimer=null;
+const camLook = new THREE.Vector3(0,0,0);
+
+// ── RENDERER ──────────────────────────────────────────────────────────────────
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000008);
-scene.fog = new THREE.FogExp2(0x000010, 0.003);
+scene.fog = new THREE.FogExp2(0x000010, 0.0022);
 
-const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 2000);
-camera.position.set(0, 35, 120);
+const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 2000);
+camera.position.set(0,75,15);
 
-const threeCanvas = document.getElementById('three-canvas');
-const threeRenderer = new THREE.WebGLRenderer({ canvas: threeCanvas, antialias: true });
-threeRenderer.setSize(innerWidth, innerHeight);
-threeRenderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-threeRenderer.toneMappingExposure = 1.0;
+const renderer = new THREE.WebGLRenderer({ canvas:document.getElementById('three-canvas'), antialias:true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
 
-// Post-processing: bloom (cranks up during champion reveal for gold glow)
-const composer = new EffectComposer(threeRenderer);
+// ── POST-PROCESSING ───────────────────────────────────────────────────────────
+const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.6, 0.5, 0.85);
+
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight), 0.7, 0.4, 0.85);
 composer.addPass(bloom);
+
+const TVShader = {
+  uniforms: { tDiffuse:{value:null}, time:{value:0} },
+  vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;uniform float time;varying vec2 vUv;
+    void main(){
+      vec2 uv=vUv,d=uv-0.5;
+      uv+=d*dot(d,d)*0.04;
+      float ca=0.0022;
+      float r=texture2D(tDiffuse,clamp(uv+vec2(ca,0.),0.,1.)).r;
+      float g=texture2D(tDiffuse,clamp(uv,0.,1.)).g;
+      float b=texture2D(tDiffuse,clamp(uv-vec2(ca,0.),0.,1.)).b;
+      vec3 col=vec3(r,g,b);
+      col.r*=0.91;col.g*=1.05;col.b*=1.08;
+      col=(col-0.5)*1.1+0.5;
+      vec2 v=vUv-0.5;col*=1.0-dot(v,v)*1.4;
+      col*=0.93+0.07*sin(vUv.y*720.0*3.14159);
+      gl_FragColor=vec4(clamp(col,0.,1.),1.0);
+    }`
+};
+const tvPass = new ShaderPass(TVShader);
+composer.addPass(tvPass);
 composer.addPass(new OutputPass());
 
-window.addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  threeRenderer.setSize(innerWidth, innerHeight);
-  composer.setSize(innerWidth, innerHeight);
+window.addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight); composer.setSize(innerWidth,innerHeight);
 });
 
-// ─── LIGHTS ───────────────────────────────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-dirLight.position.set(10, 25, 10);
-scene.add(dirLight);
+// ── LIGHTS ────────────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0x8899cc,0.5));
+const dL=new THREE.DirectionalLight(0xffffff,1.4); dL.position.set(10,40,20); scene.add(dL);
 
-// ─── STADIUM 3D ───────────────────────────────────────────────────────────────
-(function buildStadium() {
-  // Pitch
-  const pitch = new THREE.Mesh(
-    new THREE.PlaneGeometry(105, 68),
-    new THREE.MeshLambertMaterial({ color: 0x1e7a1e, emissive: 0x0a3a0a, emissiveIntensity: 0.3 })
-  );
-  pitch.rotation.x = -Math.PI / 2;
-  scene.add(pitch);
+// ── WET FLOOR RIPPLE NORMAL MAP ───────────────────────────────────────────────
+const ripC=document.createElement('canvas'); ripC.width=ripC.height=128;
+const ripCtx=ripC.getContext('2d');
+const ripTex=new THREE.CanvasTexture(ripC);
+const ripples=[
+  {x:32,y:32,r:0,s:1},{x:96,y:64,r:14,s:.8},{x:64,y:96,r:28,s:.9},{x:20,y:80,r:42,s:.7}
+];
+let ripFrame=0;
+function updateRipples(){
+  if(++ripFrame%2!==0) return;
+  ripCtx.fillStyle='#8080ff'; ripCtx.fillRect(0,0,128,128);
+  for(const rp of ripples){
+    rp.r+=0.85; if(rp.r>60){rp.r=0;rp.x=Math.random()*128;rp.y=Math.random()*128;}
+    const fade=1-rp.r/60;
+    const g=ripCtx.createRadialGradient(rp.x,rp.y,0,rp.x,rp.y,rp.r*1.3);
+    g.addColorStop(0,'rgba(128,128,255,0)');
+    g.addColorStop(.4,`rgba(185,185,255,${fade*.55*rp.s})`);
+    g.addColorStop(.75,`rgba(70,70,200,${fade*.38*rp.s})`);
+    g.addColorStop(1,'rgba(128,128,255,0)');
+    ripCtx.fillStyle=g; ripCtx.beginPath(); ripCtx.arc(rp.x,rp.y,rp.r*1.3,0,Math.PI*2); ripCtx.fill();
+  }
+  ripTex.needsUpdate=true;
+}
 
-  // Alternating grass stripes
-  const stripeMat = new THREE.MeshLambertMaterial({ color: 0x196919, transparent: true, opacity: 0.5 });
-  for (let i = -5; i <= 5; i += 2) {
-    const s = new THREE.Mesh(new THREE.PlaneGeometry(9, 68), stripeMat);
-    s.rotation.x = -Math.PI / 2;
-    s.position.set(i * 5, 0.01, 0);
-    scene.add(s);
+// ── STADIUM ───────────────────────────────────────────────────────────────────
+(function buildStadium(){
+  const pitch=new THREE.Mesh(new THREE.PlaneGeometry(105,68), new THREE.MeshStandardMaterial({
+    color:0x1b6b1b,roughness:.06,metalness:.72,
+    normalMap:ripTex,normalScale:new THREE.Vector2(.2,.2),
+    emissive:0x0a2a0a,emissiveIntensity:.22
+  }));
+  pitch.rotation.x=-Math.PI/2; scene.add(pitch);
+
+  const smat=new THREE.MeshStandardMaterial({color:0x165816,roughness:.06,metalness:.6,transparent:true,opacity:.45});
+  for(let i=-5;i<=5;i+=2){
+    const s=new THREE.Mesh(new THREE.PlaneGeometry(9,68),smat);
+    s.rotation.x=-Math.PI/2; s.position.set(i*5,.01,0); scene.add(s);
   }
 
-  // Center circle
-  const cc = new THREE.Mesh(
-    new THREE.RingGeometry(9, 9.4, 64),
-    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
-  );
-  cc.rotation.x = -Math.PI / 2;
-  cc.position.y = 0.02;
-  scene.add(cc);
+  const cc=new THREE.Mesh(new THREE.RingGeometry(9,9.4,64),
+    new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.35}));
+  cc.rotation.x=-Math.PI/2; cc.position.y=.02; scene.add(cc);
 
-  // Stands: 3 cylindrical tiers
-  const standColors = [0x1a1a2e, 0x16213e, 0x0f3460];
-  for (let tier = 0; tier < 3; tier++) {
-    const r = 58 + tier * 10;
-    const h = 6 + tier * 4;
-    const stand = new THREE.Mesh(
-      new THREE.CylinderGeometry(r, r, h, 80, 1, true),
-      new THREE.MeshLambertMaterial({ color: standColors[tier], side: THREE.BackSide, emissive: standColors[tier], emissiveIntensity: 0.1 })
-    );
-    stand.position.y = 3 + tier * 5;
-    stand.scale.z = 0.72;
-    scene.add(stand);
+  [[0,-34],[0,34]].forEach(([cx,cz])=>{
+    const b=new THREE.Mesh(new THREE.PlaneGeometry(40.3,16.5),
+      new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.2,wireframe:true}));
+    b.rotation.x=-Math.PI/2; b.position.set(cx,.03,cz); scene.add(b);
+  });
+
+  [0x1a1a2e,0x16213e,0x0f3460].forEach((col,tier)=>{
+    const r=58+tier*10,h=6+tier*4;
+    const st=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,80,1,true),
+      new THREE.MeshLambertMaterial({color:col,side:THREE.BackSide,emissive:col,emissiveIntensity:.12}));
+    st.position.y=3+tier*5; st.scale.z=.72; scene.add(st);
+  });
+
+  const N=5000,cg=new THREE.BufferGeometry(),cp=new Float32Array(N*3),cc2=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    const a=Math.random()*Math.PI*2,r=54+Math.random()*28,t=Math.floor(Math.random()*3);
+    cp[i*3]=Math.cos(a)*r; cp[i*3+1]=2+t*5+Math.random()*3; cp[i*3+2]=Math.sin(a)*r*.72;
+    const c=Math.random();
+    if(c<.28){cc2[i*3]=1;cc2[i*3+1]=.87;cc2[i*3+2]=.1;}
+    else if(c<.55){cc2[i*3]=1;cc2[i*3+1]=1;cc2[i*3+2]=1;}
+    else if(c<.75){cc2[i*3]=.1;cc2[i*3+1]=.3;cc2[i*3+2]=1;}
+    else if(c<.88){cc2[i*3]=1;cc2[i*3+1]=.1;cc2[i*3+2]=.1;}
+    else{cc2[i*3]=.1;cc2[i*3+1]=.7;cc2[i*3+2]=.2;}
   }
+  cg.setAttribute('position',new THREE.BufferAttribute(cp,3));
+  cg.setAttribute('color',new THREE.BufferAttribute(cc2,3));
+  scene.add(new THREE.Points(cg,new THREE.PointsMaterial({size:.9,vertexColors:true,sizeAttenuation:true})));
 
-  // Crowd particles (3000 colored dots)
-  const count = 3000;
-  const geo = new THREE.BufferGeometry();
-  const pos = new Float32Array(count * 3);
-  const col = new Float32Array(count * 3);
-  for (let i = 0; i < count; i++) {
-    const angle = Math.random() * Math.PI * 2;
-    const r = 54 + Math.random() * 28;
-    const tier = Math.floor(Math.random() * 3);
-    pos[i*3]   = Math.cos(angle) * r;
-    pos[i*3+1] = 2 + tier * 5 + Math.random() * 3;
-    pos[i*3+2] = Math.sin(angle) * r * 0.72;
-    const c = Math.random();
-    if      (c < 0.28) { col[i*3]=1;   col[i*3+1]=0.87; col[i*3+2]=0.1; }
-    else if (c < 0.55) { col[i*3]=1;   col[i*3+1]=1;    col[i*3+2]=1;   }
-    else if (c < 0.75) { col[i*3]=0.1; col[i*3+1]=0.3;  col[i*3+2]=1;   }
-    else if (c < 0.88) { col[i*3]=1;   col[i*3+1]=0.1;  col[i*3+2]=0.1; }
-    else               { col[i*3]=0.1; col[i*3+1]=0.7;  col[i*3+2]=0.2; }
-  }
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
-  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.85, vertexColors: true, sizeAttenuation: true })));
-
-  // Corner stadium lights (4 towers)
-  [[-70,28,-42],[70,28,-42],[-70,28,42],[70,28,42]].forEach(([lx,ly,lz]) => {
-    const ptLight = new THREE.PointLight(0xfff8e0, 3, 280);
-    ptLight.position.set(lx, ly, lz);
-    scene.add(ptLight);
-
-    const tower = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.5, 0.9, ly, 8),
-      new THREE.MeshLambertMaterial({ color: 0x252535 })
-    );
-    tower.position.set(lx, ly / 2, lz);
-    scene.add(tower);
-
-    const orb = new THREE.Mesh(
-      new THREE.SphereGeometry(1.4, 8, 8),
-      new THREE.MeshBasicMaterial({ color: 0xfff9dd })
-    );
-    orb.position.set(lx, ly + 1.5, lz);
-    scene.add(orb);
+  [[-70,28,-42],[70,28,-42],[-70,28,42],[70,28,42]].forEach(([lx,ly,lz])=>{
+    const pl=new THREE.PointLight(0xfff8e0,4,300); pl.position.set(lx,ly,lz); scene.add(pl);
+    const tower=new THREE.Mesh(new THREE.CylinderGeometry(.5,.9,ly,8),
+      new THREE.MeshLambertMaterial({color:0x252535}));
+    tower.position.set(lx,ly/2,lz); scene.add(tower);
+    const orb=new THREE.Mesh(new THREE.SphereGeometry(1.6,8,8),
+      new THREE.MeshBasicMaterial({color:0xfff9dd}));
+    orb.position.set(lx,ly+1.5,lz); scene.add(orb);
+    // Volumetric god ray
+    const ray=new THREE.Mesh(new THREE.ConeGeometry(22,ly+6,6,1,true),
+      new THREE.MeshBasicMaterial({color:0xfff5d0,transparent:true,opacity:.022,
+        side:THREE.BackSide,blending:THREE.AdditiveBlending,depthWrite:false}));
+    ray.position.set(lx,(ly/2)-3,lz); scene.add(ray);
   });
 })();
 
-// ─── STARFIELD 3D ─────────────────────────────────────────────────────────────
-(function buildStarfield() {
-  const count = 4000;
-  const geo = new THREE.BufferGeometry();
-  const pos = new Float32Array(count * 3);
-  for (let i = 0; i < count; i++) {
-    const r = 700 + Math.random() * 300;
-    const theta = Math.random() * Math.PI * 2;
-    const phi   = Math.acos(2 * Math.random() - 1);
-    pos[i*3]   = r * Math.sin(phi) * Math.cos(theta);
-    pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
-    pos[i*3+2] = r * Math.cos(phi);
+// ── RAIN ──────────────────────────────────────────────────────────────────────
+const RAIN_N=1800, rainGeo=new THREE.BufferGeometry();
+const rainPos=new Float32Array(RAIN_N*3), rainVel=new Float32Array(RAIN_N);
+for(let i=0;i<RAIN_N;i++){
+  rainPos[i*3]=(Math.random()-.5)*240; rainPos[i*3+1]=Math.random()*120;
+  rainPos[i*3+2]=(Math.random()-.5)*200; rainVel[i]=1.8+Math.random()*1.4;
+}
+rainGeo.setAttribute('position',new THREE.BufferAttribute(rainPos,3));
+scene.add(new THREE.Points(rainGeo,new THREE.PointsMaterial({
+  color:0xaaccff,size:.18,transparent:true,opacity:.45,
+  blending:THREE.AdditiveBlending,depthWrite:false,sizeAttenuation:true
+})));
+function updateRain(){
+  const p=rainGeo.attributes.position.array;
+  for(let i=0;i<RAIN_N;i++){
+    p[i*3+1]-=rainVel[i]; p[i*3]+=.08;
+    if(p[i*3+1]<-5){p[i*3]=(Math.random()-.5)*240;p[i*3+1]=110+Math.random()*20;p[i*3+2]=(Math.random()-.5)*200;}
   }
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({
-    color: 0xccddff, size: 0.9, sizeAttenuation: true, transparent: true, opacity: 0.8
-  })));
+  rainGeo.attributes.position.needsUpdate=true;
+}
+
+// ── STARFIELD ─────────────────────────────────────────────────────────────────
+(function(){
+  const N=4000,g=new THREE.BufferGeometry(),p=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    const r=700+Math.random()*300,th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1);
+    p[i*3]=r*Math.sin(ph)*Math.cos(th); p[i*3+1]=r*Math.sin(ph)*Math.sin(th); p[i*3+2]=r*Math.cos(ph);
+  }
+  g.setAttribute('position',new THREE.BufferAttribute(p,3));
+  scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0xaabbdd,size:.8,sizeAttenuation:true,transparent:true,opacity:.7})));
 })();
 
-// ─── CAMERA HELPERS ───────────────────────────────────────────────────────────
-function camDolly(x, y, z, dur, ease) {
-  gsap.to(camera.position, { x, y, z, duration: dur, ease: ease || 'power2.inOut' });
+// ── CAMERA SYSTEM ─────────────────────────────────────────────────────────────
+function applyCamera(idx,dur){
+  const c=CAMERAS[idx];
+  const lbl=document.getElementById('cam-label');
+  lbl.textContent=c.name; lbl.style.opacity='1';
+  setTimeout(()=>{lbl.style.opacity='0';},2800);
+  if(dur){
+    gsap.to(camera.position,{x:c.pos[0],y:c.pos[1],z:c.pos[2],duration:dur,ease:'power2.inOut'});
+    gsap.to(camLook,{x:c.look[0],y:c.look[1],z:c.look[2],duration:dur,ease:'power2.inOut'});
+    gsap.to(camera,{fov:c.fov,duration:dur,ease:'power2.inOut',onUpdate:()=>camera.updateProjectionMatrix()});
+  } else {
+    camera.position.set(...c.pos); camLook.set(...c.look);
+    camera.fov=c.fov; camera.updateProjectionMatrix();
+  }
 }
-function bloomTo(strength, dur) {
-  gsap.to(bloom, { strength, duration: dur, ease: 'power2.inOut' });
+function startAutoCam(){
+  applyCamera(currentCam,2.2);
+  camSwitchTimer=setInterval(()=>{currentCam=(currentCam+1)%CAMERAS.length;applyCamera(currentCam,2.2);},5500);
+}
+function stopAutoCam(){if(camSwitchTimer){clearInterval(camSwitchTimer);camSwitchTimer=null;}}
+function camCut(idx,dur){stopAutoCam();applyCamera(idx,dur);}
+function bloomTo(s,d){gsap.to(bloom,{strength:s,duration:d,ease:'power2.inOut'});}
+
+// ── LOWER THIRD ───────────────────────────────────────────────────────────────
+function showLowerThird(name,sub,ms){
+  const lt=document.getElementById('lower-third');
+  document.getElementById('lt-name-text').textContent=name;
+  document.getElementById('lt-sub-text').textContent=sub;
+  lt.classList.add('show');
+  setTimeout(()=>lt.classList.remove('show'),ms||4000);
 }
 
-// ─── FIREWORKS (Canvas 2D) ────────────────────────────────────────────────────
-const fwC  = document.getElementById('fw');
-const fwCx = fwC.getContext('2d');
-function resizeFw(){ fwC.width=innerWidth; fwC.height=innerHeight; }
-resizeFw();
-window.addEventListener('resize', resizeFw);
-
-class Particle {
+// ── FIREWORKS ─────────────────────────────────────────────────────────────────
+const fwC=document.getElementById('fw'),fwCx=fwC.getContext('2d');
+function rsz(){fwC.width=innerWidth;fwC.height=innerHeight;}
+rsz(); window.addEventListener('resize',rsz);
+class Particle{
   constructor(x,y){
-    this.x=x; this.y=y;
-    const a=Math.random()*Math.PI*2, s=3+Math.random()*5;
-    this.vx=Math.cos(a)*s; this.vy=Math.sin(a)*s;
-    this.life=1; this.decay=.012+Math.random()*.02;
+    this.x=x;this.y=y;
+    const a=Math.random()*Math.PI*2,s=3+Math.random()*5;
+    this.vx=Math.cos(a)*s;this.vy=Math.sin(a)*s;this.life=1;this.decay=.012+Math.random()*.02;
     const r=Math.random();
-    if(r<.45) this.color=[255,Math.round(200+Math.random()*55),30];
-    else if(r<.7) this.color=[255,255,Math.round(220+Math.random()*35)];
-    else if(r<.85) this.color=[100,180,255];
-    else this.color=[255,100,100];
+    if(r<.45)this.c=[255,Math.round(200+Math.random()*55),30];
+    else if(r<.7)this.c=[255,255,Math.round(220+Math.random()*35)];
+    else if(r<.85)this.c=[100,180,255];
+    else this.c=[255,100,100];
   }
-  update(){ this.x+=this.vx; this.y+=this.vy; this.vy+=.09; this.vx*=.97; this.life-=this.decay; }
-  dead(){ return this.life<=0; }
-  draw(cx){
-    cx.beginPath();
-    cx.arc(this.x,this.y,2.2*this.life,0,Math.PI*2);
-    cx.fillStyle=`rgba(${this.color.join(',')},${this.life})`;
-    cx.fill();
-  }
+  update(){this.x+=this.vx;this.y+=this.vy;this.vy+=.09;this.vx*=.97;this.life-=this.decay;}
+  dead(){return this.life<=0;}
+  draw(cx){cx.beginPath();cx.arc(this.x,this.y,2.2*this.life,0,Math.PI*2);
+    cx.fillStyle=`rgba(${this.c.join(',')},${this.life})`;cx.fill();}
 }
-
-const particles = [];
-let burstTimer = null;
-
-function burst(x,y){ const n=80+Math.floor(Math.random()*40); for(let i=0;i<n;i++) particles.push(new Particle(x,y)); }
-function randomBurst(){ burst(innerWidth*(.2+Math.random()*.6), innerHeight*(.1+Math.random()*.4)); }
-function startBursts(rate=1200){ clearInterval(burstTimer); randomBurst(); burstTimer=setInterval(randomBurst,rate); }
-function stopBursts(){ clearInterval(burstTimer); burstTimer=null; }
-function megaBurst(){ for(let i=0;i<8;i++) setTimeout(()=>randomBurst(),i*100); }
-
+const parts=[];let burstT=null;
+function burst(x,y){const n=80+Math.floor(Math.random()*40);for(let i=0;i<n;i++)parts.push(new Particle(x,y));}
+function rndBurst(){burst(innerWidth*(.2+Math.random()*.6),innerHeight*(.1+Math.random()*.4));}
+function startBursts(rate){clearInterval(burstT);rndBurst();burstT=setInterval(rndBurst,rate||1200);}
+function stopBursts(){clearInterval(burstT);burstT=null;}
+function megaBurst(){for(let i=0;i<8;i++)setTimeout(()=>rndBurst(),i*100);}
 function drawFw(){
   fwCx.clearRect(0,0,fwC.width,fwC.height);
-  for(let i=particles.length-1;i>=0;i--){
-    particles[i].update(); particles[i].draw(fwCx);
-    if(particles[i].dead()) particles.splice(i,1);
-  }
+  for(let i=parts.length-1;i>=0;i--){parts[i].update();parts[i].draw(fwCx);if(parts[i].dead())parts.splice(i,1);}
 }
 
-// ─── CONFETTI (Canvas 2D) ─────────────────────────────────────────────────────
-const confC  = document.getElementById('conf');
-const confCx = confC.getContext('2d');
-function resizeConf(){ confC.width=innerWidth; confC.height=innerHeight; }
-resizeConf();
-window.addEventListener('resize', resizeConf);
-
-const CONF_COLS = ['#d4af37','#f5c518','#ffffff','#ff4444','#4488ff','#44ff88','#ff88cc'];
-const confPieces = Array.from({length:160}, ()=>({
-  x:Math.random()*innerWidth, y:-Math.random()*innerHeight,
-  vx:(Math.random()-.5)*2.5, vy:1.5+Math.random()*2.5,
-  rot:Math.random()*360, rotV:(Math.random()-.5)*6,
-  w:8+Math.random()*10, h:4+Math.random()*5,
-  col:CONF_COLS[Math.floor(Math.random()*CONF_COLS.length)],
+// ── CONFETTI ──────────────────────────────────────────────────────────────────
+const confC=document.getElementById('conf'),confCx=confC.getContext('2d');
+function rsz2(){confC.width=innerWidth;confC.height=innerHeight;}
+rsz2(); window.addEventListener('resize',rsz2);
+const COLS=['#d4af37','#f5c518','#fff','#f44','#48f','#4f8','#f8c'];
+const confPs=Array.from({length:160},()=>({
+  x:Math.random()*innerWidth,y:-Math.random()*innerHeight,
+  vx:(Math.random()-.5)*2.5,vy:1.5+Math.random()*2.5,
+  rot:Math.random()*360,rotV:(Math.random()-.5)*6,
+  w:8+Math.random()*10,h:4+Math.random()*5,
+  col:COLS[Math.floor(Math.random()*COLS.length)]
 }));
-
 function drawConf(){
   confCx.clearRect(0,0,confC.width,confC.height);
-  for(const p of confPieces){
-    p.x+=p.vx; p.y+=p.vy; p.rot+=p.rotV;
+  for(const p of confPs){
+    p.x+=p.vx;p.y+=p.vy;p.rot+=p.rotV;
     if(p.y>confC.height+20){p.y=-20;p.x=Math.random()*confC.width;}
-    confCx.save();
-    confCx.translate(p.x,p.y); confCx.rotate(p.rot*Math.PI/180);
-    confCx.fillStyle=p.col; confCx.globalAlpha=.85;
-    confCx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
-    confCx.restore();
+    confCx.save();confCx.translate(p.x,p.y);confCx.rotate(p.rot*Math.PI/180);
+    confCx.fillStyle=p.col;confCx.globalAlpha=.85;
+    confCx.fillRect(-p.w/2,-p.h/2,p.w,p.h);confCx.restore();
   }
 }
 
-// ─── MAIN LOOP ────────────────────────────────────────────────────────────────
-let showConf = false, showFw = false;
+// ── MAIN LOOP ─────────────────────────────────────────────────────────────────
+let showConf=false,showFw=false,fc=0;
 function loop(){
   requestAnimationFrame(loop);
-  camera.lookAt(0, 5, 0);   // continuous lookAt stadium center
-  composer.render();          // Three.js replaces Canvas 2D background
+  tvPass.uniforms.time.value=(++fc)*.016;
+  camera.lookAt(camLook);
+  updateRipples(); updateRain();
+  composer.render();
   if(showFw) drawFw();
   if(showConf) drawConf();
 }
 loop();
 
-// ─── AUDIO ───────────────────────────────────────────────────────────────────
-let actx, masterGain, crowdGain;
+// ── AUDIO ─────────────────────────────────────────────────────────────────────
+let actx,masterGain,crowdGain;
 function initAudio(){
-  actx = new (window.AudioContext||window.webkitAudioContext)();
-  masterGain = actx.createGain(); masterGain.gain.value=.75;
-  const comp = actx.createDynamicsCompressor();
-  comp.threshold.value=-18; comp.ratio.value=4;
-  masterGain.connect(comp); comp.connect(actx.destination);
+  actx=new(window.AudioContext||window.webkitAudioContext)();
+  masterGain=actx.createGain();masterGain.gain.value=.75;
+  const comp=actx.createDynamicsCompressor();comp.threshold.value=-18;comp.ratio.value=4;
+  masterGain.connect(comp);comp.connect(actx.destination);
 }
 function _osc(f,t,g,dur,at){
   const o=actx.createOscillator(),gn=actx.createGain();
-  o.type=t; o.frequency.value=f;
-  gn.gain.setValueAtTime(g,at); gn.gain.exponentialRampToValueAtTime(.0001,at+dur);
-  o.connect(gn); gn.connect(masterGain); o.start(at); o.stop(at+dur+.05);
+  o.type=t;o.frequency.value=f;
+  gn.gain.setValueAtTime(g,at);gn.gain.exponentialRampToValueAtTime(.0001,at+dur);
+  o.connect(gn);gn.connect(masterGain);o.start(at);o.stop(at+dur+.05);
 }
 function _pink(buf){
-  const d=buf.getChannelData(0); let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  const d=buf.getChannelData(0);let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
   for(let i=0;i<buf.length;i++){
     const w=Math.random()*2-1;
-    b0=.99886*b0+w*.0555179;b1=.99332*b1+w*.0750759;b2=.969*b2+w*.1538520;
+    b0=.99886*b0+w*.0555179;b1=.99332*b1+w*.0750759;b2=.969*b2+w*.153852;
     b3=.8665*b3+w*.3104856;b4=.55*b4+w*.5329522;b5=-.7616*b5-w*.016898;
-    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*.5362)*.11; b6=w*.115926;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*.5362)*.11;b6=w*.115926;
   }
 }
-function startCrowd(vol=.22){
+function startCrowd(vol){
   if(!actx)return;
-  const buf=actx.createBuffer(1,actx.sampleRate*8,actx.sampleRate); _pink(buf);
-  const src=actx.createBufferSource(); src.buffer=buf; src.loop=true;
-  const lp=actx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1600;
-  crowdGain=actx.createGain(); crowdGain.gain.setValueAtTime(0,actx.currentTime);
-  crowdGain.gain.linearRampToValueAtTime(vol,actx.currentTime+3);
-  src.connect(lp); lp.connect(crowdGain); crowdGain.connect(masterGain); src.start();
+  const buf=actx.createBuffer(1,actx.sampleRate*8,actx.sampleRate);_pink(buf);
+  const src=actx.createBufferSource();src.buffer=buf;src.loop=true;
+  const lp=actx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1600;
+  crowdGain=actx.createGain();crowdGain.gain.setValueAtTime(0,actx.currentTime);
+  crowdGain.gain.linearRampToValueAtTime(vol||.22,actx.currentTime+3);
+  src.connect(lp);lp.connect(crowdGain);crowdGain.connect(masterGain);src.start();
 }
-function swellCrowd(v,d=2){ if(crowdGain) crowdGain.gain.linearRampToValueAtTime(v,actx.currentTime+d); }
-function quietCrowd(v,d=2){ if(crowdGain) crowdGain.gain.linearRampToValueAtTime(v,actx.currentTime+d); }
+function swellCrowd(v,d){if(crowdGain)crowdGain.gain.linearRampToValueAtTime(v,actx.currentTime+(d||2));}
+function quietCrowd(v,d){if(crowdGain)crowdGain.gain.linearRampToValueAtTime(v,actx.currentTime+(d||2));}
 function playFanfare(){
-  if(!actx)return; const t=actx.currentTime+.05;
+  if(!actx)return;const t=actx.currentTime+.05;
   [220,261.63,329.63,440,523.25,659.25].forEach(f=>_osc(f,'sawtooth',.06,2.8,t));
-  [[392,0],[466.16,.3],[587.33,.58],[698.46,.86],[880,1.1],[880,1.45]]
-    .forEach(([f,dt])=>_osc(f,'sine',.11,.42,t+dt));
+  [[392,0],[466.16,.3],[587.33,.58],[698.46,.86],[880,1.1],[880,1.45]].forEach(([f,dt])=>_osc(f,'sine',.11,.42,t+dt));
 }
 function playBoom(){
-  if(!actx)return; const t=actx.currentTime;
+  if(!actx)return;const t=actx.currentTime;
   const o=actx.createOscillator(),g=actx.createGain();
-  o.type='sine'; o.frequency.setValueAtTime(80,t); o.frequency.exponentialRampToValueAtTime(24,t+.4);
-  g.gain.setValueAtTime(.7,t); g.gain.exponentialRampToValueAtTime(.0001,t+.55);
-  o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+.6);
+  o.type='sine';o.frequency.setValueAtTime(80,t);o.frequency.exponentialRampToValueAtTime(24,t+.4);
+  g.gain.setValueAtTime(.7,t);g.gain.exponentialRampToValueAtTime(.0001,t+.55);
+  o.connect(g);g.connect(masterGain);o.start(t);o.stop(t+.6);
 }
 function playShimmer(){
-  if(!actx)return; const t=actx.currentTime;
+  if(!actx)return;const t=actx.currentTime;
   [1046.5,1318.51,1568,2093,2637].forEach((f,i)=>{
-    const o=actx.createOscillator(),g=actx.createGain(); o.type='sine'; o.frequency.value=f;
-    g.gain.setValueAtTime(0,t+i*.06); g.gain.linearRampToValueAtTime(.03,t+i*.06+.1);
+    const o=actx.createOscillator(),g=actx.createGain();o.type='sine';o.frequency.value=f;
+    g.gain.setValueAtTime(0,t+i*.06);g.gain.linearRampToValueAtTime(.03,t+i*.06+.1);
     g.gain.exponentialRampToValueAtTime(.0001,t+i*.06+1.1);
-    o.connect(g); g.connect(masterGain); o.start(t+i*.06); o.stop(t+i*.06+1.2);
+    o.connect(g);g.connect(masterGain);o.start(t+i*.06);o.stop(t+i*.06+1.2);
   });
 }
 function playOrchHit(){
-  if(!actx)return; const t=actx.currentTime;
+  if(!actx)return;const t=actx.currentTime;
   [146.83,185,220,293.66,370,440,587.33].forEach(f=>{
-    _osc(f,'sawtooth',.09,3.8,t); _osc(f*2,'sine',.04,3.2,t);
+    _osc(f,'sawtooth',.09,3.8,t);_osc(f*2,'sine',.04,3.2,t);
   });
 }
 
-// ─── UI HELPERS ───────────────────────────────────────────────────────────────
+// ── UI HELPERS ────────────────────────────────────────────────────────────────
 const $=id=>document.getElementById(id);
-
-function showCard(id, cb){
-  const el=$(id);
-  el.style.pointerEvents='auto';
+function showCard(id,cb){
+  const el=$(id);el.style.pointerEvents='auto';
   gsap.to(el,{opacity:1,duration:.6,ease:'power2.out'});
-  return () => gsap.to(el,{opacity:0,duration:.6,ease:'power2.in',onComplete:()=>{
-    el.style.pointerEvents='none'; if(cb) cb();
-  }});
+  return ()=>gsap.to(el,{opacity:0,duration:.6,ease:'power2.in',onComplete:()=>{el.style.pointerEvents='none';if(cb)cb();}});
 }
-function showRound(text, cb){
-  $('round-text').textContent = text;
-  const hide = showCard('card-round');
-  gsap.delayedCall(2, ()=>{ hide(cb); });
+function showRound(text,cb){
+  $('round-text').textContent=text;
+  const hide=showCard('card-round');
+  gsap.delayedCall(2,()=>hide(cb));
 }
-function showStat(label, value, cb){
-  $('stat-label').textContent=label;
-  $('stat-value').textContent=value;
-  const hide = showCard('card-stat');
-  gsap.delayedCall(2.8, ()=>{ hide(cb); });
+function showStat(label,value,cb){
+  $('stat-label').textContent=label;$('stat-value').textContent=value;
+  const hide=showCard('card-stat');
+  gsap.delayedCall(2.8,()=>hide(cb));
 }
 function showTop10(cb){
-  const list = $('top10-list'); list.innerHTML='';
+  const list=$('top10-list');list.innerHTML='';
   [...TOP10].sort((a,b)=>a.r-b.r).forEach(e=>{
-    const row=document.createElement('div'); row.className='t10r';
+    const row=document.createElement('div');row.className='t10r';
     row.innerHTML=`<span class="rk">#${e.r}</span><span class="nm">${e.n}</span><span class="pt">${e.p.toLocaleString()} pts</span>`;
     list.appendChild(row);
   });
   $('card-top10').style.pointerEvents='auto';
-  const rows = list.querySelectorAll('.t10r');
+  const rows=list.querySelectorAll('.t10r');
   gsap.timeline({onComplete:cb})
     .to($('card-top10'),{opacity:1,duration:.5})
     .to(rows,{opacity:1,x:0,duration:.4,stagger:.06,ease:'power2.out'},'-=.05')
@@ -567,7 +622,7 @@ function showTop10(cb){
       ()=>$('card-top10').style.pointerEvents='none');
 }
 function buildLetters(){
-  const nm = $('champ-name'); nm.innerHTML='';
+  const nm=$('champ-name');nm.innerHTML='';
   for(const ch of CHAMPION.name){
     if(ch===' '){const s=document.createElement('span');s.className='cl-sp';nm.appendChild(s);}
     else{const s=document.createElement('span');s.className='cl';s.textContent=ch;nm.appendChild(s);}
@@ -575,20 +630,19 @@ function buildLetters(){
 }
 function revealChampion(){
   buildLetters();
-  const cc=$('card-champ'); cc.style.opacity='1'; cc.style.pointerEvents='auto';
+  $('champ-flag').textContent=CHAMPION.flag;
+  $('champ-country').textContent=CHAMPION.country;
+  const cc=$('card-champ');cc.style.opacity='1';cc.style.pointerEvents='auto';
   const letters=$('champ-name').querySelectorAll('.cl');
-  // Camera: dramatic close-up on the champion
-  camDolly(0, 3, 14, 3, 'power3.inOut');
-  // Bloom: crank up for gold glow
-  bloomTo(2.2, 2.5);
+  stopAutoCam(); camCut(4,3); bloomTo(2.5,2.5);
+  showLowerThird('JOHN ALVARADO','CAMPEÓN · PICK26CUP 2026 · 3590 PTS',9000);
   gsap.timeline()
     .to($('cong'),{opacity:1,y:0,duration:1.0,ease:'power2.out'})
     .to($('champ-trophy'),{opacity:1,scale:1,y:0,duration:.9,ease:'back.out(1.8)'},'+=.1')
     .to(letters,{opacity:1,y:0,scale:1,duration:.38,stagger:.07,ease:'back.out(1.7)',
       onComplete:()=>{
-        playOrchHit(); swellCrowd(.9,1.5);
-        showConf=true; showFw=true; startBursts(700);
-        megaBurst(); megaBurst();
+        playOrchHit();swellCrowd(.9,1.5);
+        showConf=true;showFw=true;startBursts(700);megaBurst();megaBurst();
         gsap.to('.ray',{opacity:1,duration:1.2,stagger:.1});
         gsap.to(confC,{opacity:1,duration:1.5});
       }
@@ -597,92 +651,61 @@ function revealChampion(){
     .to($('champ-country-wrap'),{opacity:1,y:0,duration:.7,ease:'power2.out'},'+=.15');
 }
 
-// ─── MASTER TIMELINE ──────────────────────────────────────────────────────────
+// ── CEREMONY TIMELINE ─────────────────────────────────────────────────────────
 function startCeremony(){
   $('ceremony').style.display='flex';
   $('skip').style.display='block';
-  startCrowd(.2);
+  $('hud').style.display='block';
+  startCrowd(.2); startAutoCam();
+  showLowerThird('PICK26CUP · MUNDIAL FIFA 2026','Estadio Azteca · Ciudad de México',5000);
 
-  // Camera: wide opening shot, slow cinematic dolly throughout
-  camDolly(0, 18, 75, 30, 'power1.inOut');
-
-  const tl = gsap.timeline();
-
-  // Stats (0s)
+  const tl=gsap.timeline();
   tl.call(()=>{
     let idx=0;
-    function nextStat(){
-      if(idx<STATS.length){ const s=STATS[idx++]; showStat(s.l,s.v,()=>setTimeout(nextStat,400)); }
-    }
+    function nextStat(){if(idx<STATS.length){const s=STATS[idx++];showStat(s.l,s.v,()=>setTimeout(nextStat,400));}}
     nextStat();
   })
-
-  // Rounds (11s) — dolly closer
   .call(()=>{
     swellCrowd(.42,2);
-    camDolly(0, 12, 55, 8, 'power2.inOut');
     let i=0;
-    function nextRound(){
-      if(i<ROUNDS.length) showRound(ROUNDS[i++],()=>setTimeout(nextRound,200));
-    }
+    function nextRound(){if(i<ROUNDS.length)showRound(ROUNDS[i++],()=>setTimeout(nextRound,200));}
     nextRound();
   },[],11)
-
-  // Top 10 (26s) — tighter
   .call(()=>{
     swellCrowd(.58,2);
-    camDolly(0, 8, 38, 6, 'power2.inOut');
     showTop10(null);
+    showLowerThird('TOP 10 CLASIFICADOS','Pick26Cup World Cup 2026',6000);
   },[],26)
-
-  // Silence (40s) — very close, tension
+  .call(()=>{quietCrowd(.03,2.5);stopAutoCam();camCut(0,3);bloomTo(1.0,2);},[],40)
   .call(()=>{
-    quietCrowd(.03,2.5);
-    camDolly(0, 5, 24, 4, 'power2.inOut');
-  },[],40)
-
-  // Fanfare (43s) — bloom starts rising
-  .call(()=>{
-    playFanfare(); playBoom();
-    swellCrowd(.5,1.5);
+    playFanfare();playBoom();swellCrowd(.5,1.5);
     setTimeout(()=>playBoom(),600);
-    showFw=true; startBursts(1400);
-    bloomTo(1.2, 1.5);
+    showFw=true;startBursts(1400);bloomTo(1.4,1.5);camCut(1,2);
   },[],43)
-
-  // Shimmer (47s) — pull back slightly for reveal
   .call(()=>{
-    swellCrowd(.28,2);
-    quietCrowd(.05,3);
-    stopBursts(); showFw=false;
-    playShimmer();
-    bloomTo(0.8, 2);
+    swellCrowd(.28,2);quietCrowd(.05,3);
+    stopBursts();showFw=false;playShimmer();bloomTo(.9,2);camCut(2,2);
   },[],47)
-
-  // Champion reveal (52s)
   .call(()=>revealChampion(),[],52);
 }
 
-// ─── SKIP ─────────────────────────────────────────────────────────────────────
+// ── SKIP ──────────────────────────────────────────────────────────────────────
 $('skip').addEventListener('click',()=>{
-  gsap.globalTimeline.clear();
-  stopBursts();
+  gsap.globalTimeline.clear();stopBursts();stopAutoCam();
   ['card-round','card-stat','card-top10'].forEach(id=>{
-    const el=$(id); gsap.killTweensOf(el); gsap.set(el,{opacity:0});
-    el.style.pointerEvents='none';
+    const el=$(id);gsap.killTweensOf(el);gsap.set(el,{opacity:0});el.style.pointerEvents='none';
   });
   revealChampion();
 });
 
-// ─── LAUNCH ──────────────────────────────────────────────────────────────────
-$('start-btn').addEventListener('click', go);
-$('start').addEventListener('click', e=>{ if(e.target===$('start')) go(); });
-
+// ── LAUNCH ────────────────────────────────────────────────────────────────────
+$('start-btn').addEventListener('click',go);
+$('start').addEventListener('click',e=>{if(e.target===$('start'))go();});
 function go(){
-  if(!actx) initAudio();
+  if(!actx)initAudio();
   $('start').style.pointerEvents='none';
   gsap.to($('start'),{opacity:0,duration:1.2,ease:'power2.in',
-    onComplete(){ $('start').style.display='none'; startCeremony(); }
+    onComplete(){$('start').style.display='none';startCeremony();}
   });
 }
 </script>
