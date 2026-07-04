@@ -3622,8 +3622,6 @@ function renderPendingPlayers(){
     const pending = [], submitted = [];
     Object.entries(players).forEach(function([key, player]){
       const pd = allPicks[key] || {};
-      // Use submittedRounds from players node (written by doSubmitPicks transaction)
-      // Fall back to picks node in case one is missing
       const sub = player.submittedRounds || pd.submittedRounds || {};
       const hasSub = !!(sub[String(round)] || sub[round]);
       const totalSub = Object.values(sub).filter(Boolean).length;
@@ -3634,9 +3632,9 @@ function renderPendingPlayers(){
         return p && (p.pick || p.scoreH !== undefined);
       }).length;
       if(hasSub){
-        submitted.push({name:player.name||key, totalSub, picksMade, roundMatchCount});
+        submitted.push({key, name:player.name||key, totalSub, picksMade, roundMatchCount});
       } else {
-        pending.push({name:player.name||key, totalSub, picksMade, roundMatchCount});
+        pending.push({key, name:player.name||key, totalSub, picksMade, roundMatchCount});
       }
     });
     const total = pending.length + submitted.length;
@@ -3660,20 +3658,31 @@ function renderPendingPlayers(){
       html += `<p style="font-size:11px;color:var(--red);font-weight:700;margin:8px 0 4px">`
         + `⚠️ `+pending.length+` `+t('sin enviar:','not submitted:')+`</p>`;
       html += pending.map(function(p){ return `
-        <div class="pending-row" style="border-left:3px solid ${p.picksMade===p.roundMatchCount&&p.roundMatchCount>0?'#F39C12':p.picksMade>0?'#E67E22':'var(--red)'}">
-          <span class="pending-name">${escapeHtml(p.name)}</span>
-          <span class="pending-sub" style="color:${p.picksMade===p.roundMatchCount&&p.roundMatchCount>0?'#F39C12':p.picksMade>0?'#E67E22':'var(--red)'}">
-            ${p.picksMade===p.roundMatchCount&&p.roundMatchCount>0
-              ? t('⚠️ Picks hechos, NO enviados','⚠️ Picks done, NOT submitted')
-              : p.picksMade > 0
-                ? p.picksMade+'/'+p.roundMatchCount+' picks'
-                : t('0 picks','0 picks')}
-          </span>
+        <div class="pending-row" style="border-left:3px solid #E67E22;align-items:center;gap:6px">
+          <span class="pending-name" style="flex:1">${escapeHtml(p.name)}</span>
+          <button onclick="adminMarkSubmitted('${p.key}','${escapeHtml(p.name).replace(/'/g,"\\'")}',${round})"
+            style="font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid #2ECC71;background:rgba(46,204,113,.15);color:#2ECC71;cursor:pointer;white-space:nowrap;flex-shrink:0">
+            ✓ Marcar J${round}
+          </button>
         </div>`; }).join('');
     }
     cont.innerHTML = html;
   }).catch(function(){
     cont.innerHTML=`<p style="color:var(--red);font-size:12px">${t('Error al cargar jugadores. Verifica conexión.','Error loading players. Check connection.')}</p>`;
+  });
+}
+
+// Admin manually marks a player as submitted for a round (when Firebase data is missing)
+function adminMarkSubmitted(key, name, round){
+  if(!db){ showToast('Sin conexión','error'); return; }
+  const updates = {};
+  updates['picks/'+key+'/submittedRounds/'+round] = true;
+  updates['players/'+key+'/submittedRounds/'+round] = true;
+  db.ref().update(updates).then(function(){
+    showToast('✅ '+name+' marcado como enviado J'+round, 'success', 4000);
+    setTimeout(renderPendingPlayers, 600);
+  }).catch(function(e){
+    showToast('Error: '+(e.message||e), 'error', 5000);
   });
 }
 
