@@ -4400,10 +4400,12 @@ function syncFromFirebase(){
     renderMatches();
     updateSubmitArea();
   });
-  // Live listener: detect when admin clears picks for this player so they can re-submit
+  // Live listener: sync submittedRounds with Firebase (handles admin clear AND state restoration)
   db.ref('picks/'+playerKey()+'/submittedRounds').on('value', function(snap){
     if(_justSubmitted) return; // own submit in progress — ignore to prevent race condition
     const fbSubmitted = snap.val() || {};
+
+    // Detect admin clearing a round (Firebase removed a round local still has)
     let cleared = false;
     Object.keys(submittedRounds).forEach(function(r){
       if(submittedRounds[r] && !fbSubmitted[r] && !fbSubmitted[String(r)]){
@@ -4411,9 +4413,18 @@ function syncFromFirebase(){
         cleared = true;
       }
     });
+
+    // Detect Firebase having rounds that local is missing (race-condition recovery)
+    let restored = false;
+    Object.keys(fbSubmitted).forEach(function(r){
+      if(fbSubmitted[r] && !submittedRounds[r] && !submittedRounds[Number(r)]){
+        submittedRounds[r] = true;
+        restored = true;
+      }
+    });
+
     if(cleared){
       localStorage.setItem('wc2026_submitted_'+currentUser, JSON.stringify(submittedRounds));
-      // Re-sync picks from Firebase so player sees clean fields after admin clear
       db.ref('picks/'+playerKey()+'/picks').once('value').then(function(psnap){
         picks = psnap.val() || {};
         localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
@@ -4429,6 +4440,27 @@ function syncFromFirebase(){
           : '🔓 Admin unlocked your picks — you can re-submit',
         'info'
       );
+    } else if(restored){
+      // Restore missing submittedRounds — also sync picks from Firebase if local is empty
+      localStorage.setItem('wc2026_submitted_'+currentUser, JSON.stringify(submittedRounds));
+      var hasPicks = picks && Object.keys(picks).length > 0;
+      if(!hasPicks){
+        db.ref('picks/'+playerKey()+'/picks').once('value').then(function(psnap){
+          var fbPicks = psnap.val();
+          if(fbPicks && Object.keys(fbPicks).length > 0){
+            picks = fbPicks;
+            localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
+          }
+          renderMatches();
+          updateSubmitArea();
+        }).catch(function(){
+          renderMatches();
+          updateSubmitArea();
+        });
+      } else {
+        renderMatches();
+        updateSubmitArea();
+      }
     }
   });
 }
@@ -4736,6 +4768,21 @@ function renderPDFPreview(round){
 
 function downloadCurrentRoundPDF(){
   if(!currentUser) return;
+  var hasPicks = picks && Object.keys(picks).length > 0;
+  // If local picks is empty but round is submitted, fetch from Firebase first
+  if(!hasPicks && db && submittedRounds[currentRound]){
+    db.ref('picks/'+playerKey()+'/picks').once('value').then(function(psnap){
+      var fbPicks = psnap.val();
+      if(fbPicks && Object.keys(fbPicks).length > 0){
+        picks = fbPicks;
+        localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
+      }
+      generatePDFAllRounds(currentUser, picks, [currentRound], false);
+    }).catch(function(){
+      generatePDFAllRounds(currentUser, picks, [currentRound], false);
+    });
+    return;
+  }
   generatePDFAllRounds(currentUser, picks, [currentRound], false);
 }
 
