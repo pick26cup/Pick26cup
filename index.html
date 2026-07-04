@@ -5063,39 +5063,62 @@ function doSubmitPicks(){
   closeSubmitModal();
   submittedRounds[currentRound] = true;
   localStorage.setItem('wc2026_submitted_'+currentUser, JSON.stringify(submittedRounds));
-  // Guard: suppress the submittedRounds listener for 4 s so it doesn't
-  // falsely detect "admin cleared" during our own async Firebase write
+  // Guard: suppress the submittedRounds listener while Firebase write is in flight
   _justSubmitted = true;
-  setTimeout(function(){ _justSubmitted = false; }, 4000);
+
+  // Capture picks snapshot NOW (before any async operation can change the variable)
+  const picksSnapshot = JSON.parse(JSON.stringify(picks));
+
   // Save to Firebase
   if(db){
     const key = playerKey();
-    db.ref('picks/'+key).set({
-      name: currentUser,
-      picks,
-      submittedRounds,
-      updatedAt: Date.now()
-    }).catch(()=>{});
-    // Security log
+
+    // 1. Write current-round picks using UPDATE (merge) so other rounds are never overwritten.
+    //    savePicks() already wrote them incrementally — this is a safety guarantee.
+    const currentRoundMatchIds = (MATCHES[currentRound]||[]).map(function(m){ return m.id; });
+    const roundPicks = {};
+    currentRoundMatchIds.forEach(function(id){ if(picksSnapshot[id]) roundPicks[id] = picksSnapshot[id]; });
+    if(Object.keys(roundPicks).length > 0){
+      db.ref('picks/'+key+'/picks').update(roundPicks).catch(function(){});
+    }
+
+    // 2. Mark round as submitted using UPDATE — only touches submittedRounds/{round}, nothing else.
+    const meta = { name: currentUser, updatedAt: Date.now() };
+    meta['submittedRounds/'+currentRound] = true;
+    db.ref('picks/'+key).update(meta).then(function(){
+      _justSubmitted = false; // Firebase confirmed — release guard immediately
+    }).catch(function(){
+      _justSubmitted = false;
+      showToast(currentLang==='es'
+        ? '⚠️ Error al guardar en la nube. Tus picks están guardados en este dispositivo. Recarga la app si el problema persiste.'
+        : '⚠️ Cloud save failed. Your picks are saved on this device. Reload the app if the problem persists.',
+        'error');
+    });
+
+    // 3. Security log
     db.ref('_seclog').push({
       user: currentUser, key,
       action: 'submit_picks',
       ts: Date.now(),
       ua: navigator.userAgent.slice(0,120)
-    }).catch(()=>{});
-    // Register player if not exists
-    db.ref('players/'+key).transaction(cur=>{
+    }).catch(function(){});
+
+    // 4. Register player / update submittedRounds in players node
+    db.ref('players/'+key).transaction(function(cur){
       if(!cur) return {name:currentUser, approved:false, pts:0, submittedRounds};
       return Object.assign(cur, {submittedRounds});
     });
+  } else {
+    _justSubmitted = false;
   }
+
   renderMatches();
   updateSubmitArea();
-  showToast('✅ '+(currentLang==='es'?'Predicciones enviadas!':'Picks submitted!'),'success');
+  showToast('✅ '+(currentLang==='es'?'¡Predicciones enviadas!':'Picks submitted!'),'success');
   launchConfetti();
   showSubmitStamp();
-  // Generate PDF for submitted round
-  setTimeout(()=> generatePDFAllRounds(currentUser, picks, [currentRound]), 500);
+  // Generate PDF using the snapshot captured before any async operation
+  setTimeout(function(){ generatePDFAllRounds(currentUser, picksSnapshot, [currentRound]); }, 500);
 }
 
 // ══════════════════════════════════════════════════════
