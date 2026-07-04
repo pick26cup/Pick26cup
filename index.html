@@ -7051,9 +7051,13 @@ function generateAllPlayersPDF(){
     let entries = Object.entries(players).filter(function([,p]){ return p && p.name; });
     if(!entries.length){ status.textContent='No hay jugadores registrados.'; genBtn.disabled=false; return; }
 
-    // Admin (John Alvarado / current admin) first
+    // Admin (John Alvarado) always first — match by currentUser, known name, or role flag
+    const _cu = (currentUser||'').trim().toLowerCase();
     const ADMIN_NAMES = ['john alvarado'];
-    let adminIdx = entries.findIndex(function([,p]){ return ADMIN_NAMES.indexOf((p.name||'').toLowerCase())>=0 || p.role==='admin'; });
+    let adminIdx = entries.findIndex(function([,p]){
+      const nm = (p.name||'').trim().toLowerCase();
+      return (_cu && nm === _cu) || ADMIN_NAMES.indexOf(nm) >= 0 || p.role === 'admin';
+    });
     let ordered;
     if(adminIdx>=0){
       const adminEntry = entries.splice(adminIdx,1)[0];
