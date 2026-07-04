@@ -6611,7 +6611,9 @@ function renderAdminPlayers(){
         ? `<button class="btn-sm btn-revoke" onclick="setPlayerApproval('${key}',false)">Revoke</button>`
         : `<button class="btn-sm btn-approve" onclick="setPlayerApproval('${key}',true)">Approve</button>`;
       const playerPicksData = allPicks[key] || {};
-      const submittedRounds = playerPicksData.submittedRounds ? Object.keys(playerPicksData.submittedRounds) : [];
+      // Use picks node as primary; fall back to players node (written by doSubmitPicks transaction)
+      const srData = playerPicksData.submittedRounds || player.submittedRounds || {};
+      const submittedRounds = Object.keys(srData).filter(function(k){ return srData[k]; });
       // Badges J1-J7
       const roundBadges = [1,2,3,4,5,6,7].map(r=>{
         const done = submittedRounds.includes(String(r));
@@ -6838,8 +6840,11 @@ function renderPickDist(round){
   const body = document.getElementById('pickDistBody');
   const allKeys = Object.keys(picks);
 
-  // How many players submitted this round
-  const submitted = allKeys.filter(function(k){ return picks[k] && picks[k].submittedRounds && picks[k].submittedRounds[round]; });
+  // How many players submitted this round (check both string and number key)
+  const submitted = allKeys.filter(function(k){
+    const sr = (picks[k] && picks[k].submittedRounds) || (players[k] && players[k].submittedRounds) || {};
+    return !!(sr[String(round)] || sr[round]);
+  });
   const submittedCount = submitted.length;
 
   // Overall accuracy (exact score only)
@@ -6876,7 +6881,8 @@ function renderPickDist(round){
     allKeys.forEach(function(k){
       const pd = picks[k] || {};
       const pName = pd.name || (players[k] && players[k].name) || k;
-      const didSubmit = !!(pd.submittedRounds && pd.submittedRounds[round]);
+      const sr2 = pd.submittedRounds || (players[k] && players[k].submittedRounds) || {};
+      const didSubmit = !!(sr2[String(round)] || sr2[round]);
       if(!didSubmit){ noPick.push({name:pName, submitted:false}); return; }
       const pick = (pd.picks||{})[m.id];
       // Regular matches store pick.pick ('home'/'draw'/'away'); closer/final also store scoreH/scoreA
