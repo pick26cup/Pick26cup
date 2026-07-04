@@ -309,7 +309,9 @@ const KOR={
    "L5 · E2-CI vs I1-NO","L6 · E3-EC vs A1-MX","L7 · I2-FR vs F3-SE","L8 · H1-ES vs J2-AT",
    "L9 · G1-BE vs I3-SN","L10 · J1-AR vs H2-CV","L11 · L1-EN vs K3-CD","L12 · D1-US vs B3-BA",
    "L13 · B1-CH vs J3-DZ","L14 · K2-PT vs L2-HR","L15 · D2-AU vs G2-EG","L16 · K1-CO vs L3-GH"]},
- 5:{name:"Octavos de final · Ronda de 16",slots:Array.from({length:8},(_,i)=>"Llave "+(i+1))},
+ 5:{name:"Octavos de final · Ronda de 16",slots:[
+   "O1 · W-L1 vs W-L2","O2 · W-L3 vs W-L4","O3 · W-L5 vs W-L6","O4 · W-L7 vs W-L8",
+   "O5 · W-L9 vs W-L10","O6 · W-L11 vs W-L12","O7 · W-L13 vs W-L14","O8 · W-L15 vs W-L16"]},
  6:{name:"Cuartos de final",slots:["Cuartos 1","Cuartos 2","Cuartos 3","Cuartos 4"]},
  7:{name:"Semifinales y Final",slots:["Semifinal 1","Semifinal 2","Final","Tercer puesto"]},
 };
@@ -325,6 +327,12 @@ for(const r in KOR) koState[r]=KOR[r].slots.map(()=>({h:"",a:"",ha:"none"}));
  ["BE","SN"],["AR","CV"],["EN","CD"],["US","BA"],
  ["CH","DZ"],["PT","HR"],["AU","EG"],["CO","GH"]
 ].forEach(function(pair,i){koState[4][i].h=pair[0];koState[4][i].a=pair[1];});
+/* J5 Octavos — ganadores predichos por modelo (Elo+FIFA+forma WC2026) al 4-jul-2026
+   O1: CA vs BR · O2: DE vs NL · O3: NO vs MX · O4: FR vs ES
+   O5: BE vs AR · O6: EN vs US · O7: CH vs PT · O8: EG vs CO */
+[["CA","BR"],["DE","NL"],["NO","MX"],["FR","ES"],
+ ["BE","AR"],["EN","US"],["CH","PT"],["EG","CO"]
+].forEach(function(pair,i){koState[5][i].h=pair[0];koState[5][i].a=pair[1];});
 
 const fc=[1];for(let i=1;i<=15;i++)fc[i]=fc[i-1]*i;
 const pois=(k,l)=>Math.exp(-l)*Math.pow(l,k)/fc[k];
@@ -384,10 +392,11 @@ function goalForm(c){
   if(!games)return {att:1,def:1,scored:0,conceded:0,g:0};
   const BLEND=0.30; /* 30% forma real, 70% Elo base — evita sobreajuste con 3 partidos */
   const rawAtt=(scored/games)/MEAN_GOAL;
-  const rawDef=MEAN_GOAL/Math.max(conceded/games,0.15);
+  /* def = vulnerabilidad: >1 = fácil de marcarle (mala defensa) · <1 = difícil (buena defensa) */
+  const rawDef=Math.min(Math.max(conceded/games,0.05)/MEAN_GOAL,2.4);
   return {
     att:1+BLEND*(Math.min(rawAtt,2.4)-1),
-    def:1+BLEND*(Math.min(rawDef,2.4)-1),
+    def:1+BLEND*(rawDef-1),
     scored,conceded,g:games
   };
 }
@@ -426,10 +435,11 @@ function renderGroupJ(j){
 function renderKOGoalsTable(j){
   const def=KOR[j];
   const isKO=j>=4;
-  /* helper: indicador de ataque/defensa por forma */
-  const fmBadge=(v,lbl)=>{
-    const c=v>1.12?'var(--win)':v<0.88?'var(--loss)':'var(--muted)';
-    const a=v>1.12?'▲':v<0.88?'▼':'·';
+  /* helper: indicador de ataque/defensa por forma (invert=true para Def: bajo=bueno) */
+  const fmBadge=(v,lbl,inv)=>{
+    const good=inv?v<0.88:v>1.12; const bad=inv?v>1.12:v<0.88;
+    const c=good?'var(--win)':bad?'var(--loss)':'var(--muted)';
+    const a=good?'▲':bad?'▼':'·';
     return `<span style="color:${c};font-size:8.5px">${a}${lbl}</span>`;
   };
   /* 1ª pasada: predicciones + mejor marcador global */
@@ -468,14 +478,14 @@ function renderKOGoalsTable(j){
         <div><span style="${favH?pickSt:muteSt}">${h.c}</span></div>
         <div style="font-size:9.5px;color:${favH?'var(--amber)':'var(--muted)'};margin-top:2px;font-weight:${favH?700:400}">${pct0(pHwin)}${isKO?' avanza':' gana'}</div>
         <div style="font-size:8.5px;color:var(--muted)">${formStr(fH)}</div>
-        <div style="font-size:8px;color:var(--muted)">Elo ${eloH}${isKO?' · '+fmBadge(gfH.att,'Atk')+' '+fmBadge(gfH.def,'Def'):''}</div>
+        <div style="font-size:8px;color:var(--muted)">Elo ${eloH}${isKO?' · '+fmBadge(gfH.att,'Atk',false)+' '+fmBadge(gfH.def,'Def',true):''}</div>
       </div>
       <span style="color:var(--muted);font-size:10px">vs</span>
       <div style="text-align:center">
         <div><span style="${!favH?pickSt:muteSt}">${a.c}</span></div>
         <div style="font-size:9.5px;color:${!favH?'var(--amber)':'var(--muted)'};margin-top:2px;font-weight:${!favH?700:400}">${pct0(pAwin)}${isKO?' avanza':' gana'}</div>
         <div style="font-size:8.5px;color:var(--muted)">${formStr(fA)}</div>
-        <div style="font-size:8px;color:var(--muted)">Elo ${eloA}${isKO?' · '+fmBadge(gfA.att,'Atk')+' '+fmBadge(gfA.def,'Def'):''}</div>
+        <div style="font-size:8px;color:var(--muted)">Elo ${eloA}${isKO?' · '+fmBadge(gfA.att,'Atk',false)+' '+fmBadge(gfA.def,'Def',true):''}</div>
       </div>
     </div>
     <div style="font-size:9px;color:var(--muted);margin-top:3px">ΔElo ${dElo>=0?'+':''}${dElo}${isKO?' · empate → ET/penas 50/50':''}</div>`;
@@ -527,7 +537,11 @@ function renderKO(j){
   if(j===4){
     jnote.innerHTML=`<b style="color:var(--amber)">R32 pre-poblada · bracket oficial FIFA 2026</b> (72/72 partidos verificados al 28-jun-2026). <span style="color:var(--muted)">% avanza = prob. de clasificar a cuartos; el empate en 90 min se redistribuye 50/50 entre prórr. y penales. Ajusta sede si algún equipo juega en casa.</span>`;
   } else {
-    jnote.innerHTML=`Estas llaves se definen <b style="color:var(--amber)">conforme avanza el Mundial</b>. Elige los equipos que clasifican y el modelo predice cada cruce. (Sede neutral por defecto.)`;
+    if(j===5){
+      jnote.innerHTML=`<b style="color:var(--amber)">Octavos pre-poblados · ganadores predichos por modelo</b> (Elo+FIFA+forma WC2026 J1-J3 · 4-jul-2026). <span style="color:var(--muted)">Actualiza los equipos si los resultados reales difieren. Sede neutral por defecto.</span>`;
+    } else {
+      jnote.innerHTML=`Estas llaves se definen <b style="color:var(--amber)">conforme avanza el Mundial</b>. Elige los equipos que clasifican y el modelo predice cada cruce. (Sede neutral por defecto.)`;
+    }
   }
   const opts=`<option value="">— equipo —</option>`+TEAMS.map(t=>`<option value="${t.c}">${t.n}</option>`).join("");
   const selOf=v=> v ? opts.replace(`value="${v}"`,`value="${v}" selected`) : opts;
