@@ -86,6 +86,15 @@ nav button:active{transform:scale(0.97)}
 }
 #soundBtn:hover{background:rgba(212,175,55,.45)}
 #soundBtn.muted{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.25);color:var(--text2)}
+/* ── REFRESH ─────────────────────────────────────────── */
+#refreshBtn{
+  background:rgba(212,175,55,.25);border:1px solid var(--gold);color:var(--gold);
+  font-size:15px;width:30px;height:30px;border-radius:50%;
+  cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;
+}
+#refreshBtn:hover{background:rgba(212,175,55,.45)}
+@keyframes spin-refresh{to{transform:rotate(360deg)}}
+#refreshBtn.spinning{animation:spin-refresh .6s linear}
 /* ── SETTINGS GEAR ───────────────────────────────────── */
 #settingsWrap{position:relative}
 #settingsBtn{
@@ -1633,6 +1642,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
       <div class="header-right">
         <button id="helpBtn" onclick="openRulesModal()" title="Cómo funciona / How it works" aria-label="Reglas">❓</button>
         <button id="soundBtn" onclick="toggleMute()" title="Silenciar / Activar música" aria-label="Mute">🔊</button>
+        <button id="refreshBtn" onclick="appRefresh()" title="Actualizar / Refresh" aria-label="Refresh">🔄</button>
         <div id="settingsWrap">
           <button id="settingsBtn" onclick="toggleSettingsMenu()" title="Settings / Configuración">⚙️</button>
           <div class="settings-dropdown" id="settingsMenu" style="display:none">
@@ -9430,6 +9440,12 @@ var stadiumAudio = (function(){
 
 // ── MUTE TOGGLE ────────────────────────────────────────────────
 var _savedMusicVol = 0.18;
+function appRefresh(){
+  var btn = document.getElementById('refreshBtn');
+  if(btn){ btn.classList.add('spinning'); btn.style.pointerEvents='none'; }
+  setTimeout(function(){ location.reload(); }, 300);
+}
+
 function toggleMute(){
   var m = document.getElementById('bgMusic');
   var btn = document.getElementById('soundBtn');
