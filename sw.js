@@ -1,4 +1,4 @@
-// v5 — network-only, no caching, instant activation on all clients
+// v6 — network-only, no caching, instant activation on all clients
 self.addEventListener('install', e => {
   self.skipWaiting();
 });
