@@ -1657,6 +1657,10 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
               <span class="si">👤</span>
               <span data-en="Edit Avatar" data-es="Editar Avatar">Edit Avatar</span>
             </button>
+            <button class="settings-item" id="settingsPdfBtn" onclick="downloadMyPDF();closeSettingsMenu()" style="display:none">
+              <span class="si">📄</span>
+              <span data-en="Download My PDF" data-es="Descargar mi PDF">Descargar mi PDF</span>
+            </button>
           </div>
         </div>
       </div>
@@ -1714,7 +1718,10 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
         <p id="submitNote" data-en="Once submitted, your picks cannot be modified." data-es="Una vez enviadas, tus predicciones no se pueden modificar.">Once submitted, your picks cannot be modified.</p>
         <button class="btn-submit" id="submitBtn" onclick="openSubmitModal()">✅ Submit Picks</button>
         <div id="submittedBanner" class="hidden">
-          <div class="submitted-badge">✅ <span data-en="Picks Submitted!" data-es="¡Predicciones Enviadas!">Picks Submitted!</span></div>
+          <div class="submitted-badge" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+            <span>✅ <span data-en="Picks Submitted!" data-es="¡Predicciones Enviadas!">Picks Submitted!</span></span>
+            <button onclick="downloadCurrentRoundPDF()" style="background:rgba(212,175,55,.2);border:1px solid var(--gold);color:var(--gold);font-family:'Bebas Neue';font-size:13px;letter-spacing:1px;padding:5px 14px;border-radius:8px;cursor:pointer;white-space:nowrap">📄 <span data-en="Download PDF" data-es="Descargar PDF">Descargar PDF</span></button>
+          </div>
         </div>
         <div id="pdfPreviewCard" class="pdf-preview-wrap" style="display:none"></div>
       </div>
@@ -4596,6 +4603,11 @@ function updateSubmitArea(){
     if(card) card.style.display='none';
     return;
   }
+  // Show/hide "Download PDF" in settings menu based on whether any round is submitted
+  const anySubmitted = Object.values(submittedRounds).some(Boolean);
+  const pdfSettBtn = document.getElementById('settingsPdfBtn');
+  if(pdfSettBtn) pdfSettBtn.style.display = anySubmitted ? 'flex' : 'none';
+
   if(isSubmitted){
     btn.classList.add('hidden');
     if(note) note.classList.add('hidden');
