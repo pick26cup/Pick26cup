@@ -560,43 +560,13 @@ scene.add(new THREE.Mesh(
 ));
 
 // ─────────────────────────────────────────────────────────────
-//  ATMÓSFERA CINEMATOGRÁFICA — cámara broadcast
+//  CÁMARA — ángulo fijo de transmisión oficial
+//  Lado largo, línea de medio campo, ligeramente elevada
 // ─────────────────────────────────────────────────────────────
-const ANGLES = [
-  { pos:[0,30,-(PW*.5+56)],   look:[0,3,0],   fov:46, dur:10 },  // main wide
-  { pos:[0,54,-(PW*.5+38)],   look:[0,0,0],   fov:58, dur:8  },  // high crane
-  { pos:[PL*.38,22,-(PW*.5+52)],look:[0,2,0], fov:40, dur:9  },  // 3/4 right
-  { pos:[-PL*.3,15,-(PW*.5+44)],look:[0,1,0], fov:34, dur:9  },  // tight left
-  { pos:[0,90,5],              look:[0,0,0],  fov:68, dur:7  },  // blimp overhead
-  { pos:[PL*.5+10,13,0],       look:[0,8,0],  fov:65, dur:8  },  // goal line east
-  { pos:[-PL*.5-10,13,0],      look:[0,8,0],  fov:65, dur:8  },  // goal line west
-  { pos:[0,30, (PW*.5+56)],    look:[0,3,0],  fov:46, dur:10 },  // opposite main
-  { pos:[PL*.2,18,-(PW*.5+50)],look:[0,2,0],  fov:36, dur:7  },  // beauty close
-];
-
-let aidx=0, camTimer=0, transT=0;
-const prevPos=new THREE.Vector3(), prevLook=new THREE.Vector3();
-const targPos=new THREE.Vector3(), targLook=new THREE.Vector3();
-const curPos =new THREE.Vector3(), curLook =new THREE.Vector3();
-
-function setAngle(i){
-  const a=ANGLES[i];
-  prevPos.copy(curPos); prevLook.copy(curLook);
-  targPos.set(...a.pos); targLook.set(...a.look);
-  camera.fov=a.fov; camera.updateProjectionMatrix();
-  transT=0;
-}
-
-// init
-{const a=ANGLES[0];
- curPos.set(...a.pos); curLook.set(...a.look);
- prevPos.copy(curPos); prevLook.copy(curLook);
- targPos.copy(curPos); targLook.copy(curLook);
- camera.position.copy(curPos); camera.fov=a.fov;
- camera.updateProjectionMatrix(); camera.lookAt(curLook);}
-
-const eio = t => t<.5 ? 2*t*t : -1+(4-2*t)*t;
-const TRANS_DUR = 2.8;
+camera.position.set(0, 28, -(PW * .5 + 55));
+camera.fov = 46;
+camera.updateProjectionMatrix();
+camera.lookAt(0, 2, 0);
 
 // ─────────────────────────────────────────────────────────────
 //  LOOP
@@ -612,23 +582,6 @@ let elapsed = 0;
   filmPass.uniforms.time.value = elapsed * .25;
   drawScreens(elapsed);
   tickSmoke();
-
-  // camera
-  camTimer += dt;
-  if(camTimer > ANGLES[aidx].dur){
-    camTimer=0;
-    aidx=(aidx+1)%ANGLES.length;
-    setAngle(aidx);
-  }
-  transT = Math.min(transT+dt, TRANS_DUR);
-  const p = eio(transT/TRANS_DUR);
-  curPos.lerpVectors(prevPos,targPos,p);
-  curLook.lerpVectors(prevLook,targLook,p);
-  camera.position.copy(curPos);
-  // micro-shake for live broadcast feel
-  camera.position.x += (Math.random()-.5)*.005;
-  camera.position.y += (Math.random()-.5)*.005;
-  camera.lookAt(curLook);
 
   composer.render();
 })();
