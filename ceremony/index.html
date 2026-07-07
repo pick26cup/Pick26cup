@@ -7,28 +7,11 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;background:#000;overflow:hidden}
-#c{display:block;width:100%;height:100%}
-#hud{
-  position:fixed;top:18px;left:50%;transform:translateX(-50%);
-  text-align:center;pointer-events:none;user-select:none;
-  font-family:'Arial Black','Arial',sans-serif;
-}
-#hud .eyebrow{
-  font-size:11px;letter-spacing:5px;color:rgba(212,175,55,.75);
-  text-shadow:0 0 18px rgba(212,175,55,.9);margin-bottom:3px;
-}
-#hud .title{
-  font-size:24px;letter-spacing:8px;font-weight:900;color:#fff;
-  text-shadow:0 0 30px rgba(255,255,255,.5),0 2px 4px rgba(0,0,0,.9);
-}
+canvas{display:block;width:100%;height:100%}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-<div id="hud">
-  <div class="eyebrow">FIFA WORLD CUP 2026™</div>
-  <div class="title">THE FINAL</div>
-</div>
 
 <script type="importmap">
 {
@@ -42,188 +25,238 @@ html,body{width:100%;height:100%;background:#000;overflow:hidden}
 <script type="module">
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass }     from 'three/addons/postprocessing/RenderPass.js';
+import { RenderPass }      from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { ShaderPass }     from 'three/addons/postprocessing/ShaderPass.js';
+import { ShaderPass }      from 'three/addons/postprocessing/ShaderPass.js';
 
-// ── RENDERER ──────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+//  RENDERER
+// ─────────────────────────────────────────────────────────────
 const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-renderer.setSize(window.innerWidth,window.innerHeight);
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.25;
+renderer.toneMappingExposure = 1.3;
 
-// ── SCENE ─────────────────────────────────────────────────────────────────────
-const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x020410,0.007);
+const scene  = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x01030e, 0.006);
 
-// ── CAMERA ────────────────────────────────────────────────────────────────────
-const camera = new THREE.PerspectiveCamera(50,window.innerWidth/window.innerHeight,0.5,2000);
+const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.5, 2000);
 
-// ── POST-PROCESSING ───────────────────────────────────────────────────────────
+// POST-PROCESSING
 const composer = new EffectComposer(renderer);
-composer.addPass(new RenderPass(scene,camera));
-
-const bloom = new UnrealBloomPass(
-  new THREE.Vector2(window.innerWidth,window.innerHeight),
-  0.75, 0.45, 0.18
-);
-composer.addPass(bloom);
-
-const FilmShader = {
-  uniforms:{tDiffuse:{value:null},time:{value:0},grain:{value:0.032},vignette:{value:0.42},aber:{value:0.0025}},
-  vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-  fragmentShader:`
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  0.85, 0.5, 0.15
+));
+const filmPass = new ShaderPass({
+  uniforms: {
+    tDiffuse:  { value: null },
+    time:      { value: 0 },
+    grain:     { value: 0.028 },
+    vignette:  { value: 0.40 },
+    aber:      { value: 0.002 },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }
+  `,
+  fragmentShader: `
     uniform sampler2D tDiffuse;
     uniform float time,grain,vignette,aber;
     varying vec2 vUv;
-    float rnd(vec2 co){return fract(sin(dot(co,vec2(12.9898,78.233)))*43758.5453+time);}
+    float rnd(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453+time); }
     void main(){
-      float r=texture2D(tDiffuse,vUv+vec2(aber,0.)).r;
-      float g=texture2D(tDiffuse,vUv).g;
-      float b=texture2D(tDiffuse,vUv-vec2(aber,0.)).b;
-      vec4 c=vec4(r,g,b,1.);
-      c.rgb+=(rnd(vUv*1337.)-0.5)*grain;
-      vec2 d=(vUv-.5)*2.;
-      c.rgb*=clamp(1.-dot(d,d)*vignette,0.,1.);
-      gl_FragColor=c;
+      float r = texture2D(tDiffuse, vUv+vec2(aber,0.)).r;
+      float g = texture2D(tDiffuse, vUv).g;
+      float b = texture2D(tDiffuse, vUv-vec2(aber,0.)).b;
+      vec4 col = vec4(r,g,b,1.);
+      col.rgb += (rnd(vUv*997.)-0.5)*grain;
+      vec2 d = (vUv-.5)*2.; col.rgb *= clamp(1.-dot(d,d)*vignette,0.,1.);
+      gl_FragColor = col;
     }
   `
-};
-const filmPass = new ShaderPass(FilmShader);
+});
 composer.addPass(filmPass);
 
-window.addEventListener('resize',()=>{
-  camera.aspect=window.innerWidth/window.innerHeight;
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth,window.innerHeight);
-  composer.setSize(window.innerWidth,window.innerHeight);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// ── FIELD DIMENSIONS (metres) ─────────────────────────────────────────────────
-const PL=105, PW=68; // pitch length X, width Z
+// ─────────────────────────────────────────────────────────────
+//  FIELD DIMENSIONS  (FIFA standard: 105 × 68 m)
+// ─────────────────────────────────────────────────────────────
+const PL = 105, PW = 68;
 
-// ── GRASS + MARKINGS SHADER ───────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+//  CÉSPED REALISTA  — custom ShaderMaterial
+// ─────────────────────────────────────────────────────────────
 const grassMat = new THREE.ShaderMaterial({
-  uniforms:{pl:{value:PL},pw:{value:PW},stripe:{value:10.}},
-  vertexShader:`
+  uniforms: { pl:{value:PL}, pw:{value:PW}, sw:{value:10.} },
+  vertexShader: `
     varying vec2 vW;
     void main(){
-      vec4 wp=modelMatrix*vec4(position,1.);
-      vW=wp.xz;
-      gl_Position=projectionMatrix*viewMatrix*wp;
+      vec4 wp = modelMatrix * vec4(position,1.);
+      vW = wp.xz;
+      gl_Position = projectionMatrix * viewMatrix * wp;
     }
   `,
-  fragmentShader:`
-    uniform float pl,pw,stripe;
+  fragmentShader: `
+    uniform float pl, pw, sw;
     varying vec2 vW;
-    float ln(float v,float w){return smoothstep(w*.5+.015,w*.5,abs(v));}
+    float L(float v, float w){ return smoothstep(w*.5+.015, w*.5, abs(v)); }
+
     void main(){
-      vec2 p=vW;
-      // mowing stripes
-      float si=floor((p.x+pl*.5)/stripe);
-      float dark=mod(si,2.);
-      vec3 gL=vec3(.18,.52,.12);
-      vec3 gD=vec3(.12,.39,.08);
-      vec3 col=mix(gD,gL,dark);
-      // out-of-pitch surround
-      float inP=step(abs(p.x),pl*.5+.6)*step(abs(p.y),pw*.5+.6);
-      col=mix(vec3(.06,.18,.04),col,inP);
-      float L=0.;
-      float LW=.13;
-      // touchlines + goal lines
-      L=max(L,ln(abs(p.x)-pl*.5,LW));
-      L=max(L,ln(abs(p.y)-pw*.5,LW));
+      vec2 p = vW;
+
+      // mowing stripes — alternating light/dark along X
+      float stripe = mod(floor((p.x + pl*.5) / sw), 2.);
+      vec3 gA = vec3(.175, .530, .115);   // light stripe
+      vec3 gB = vec3(.115, .400, .080);   // dark stripe
+      vec3 col = mix(gB, gA, stripe);
+
+      // out-of-pitch apron (darker grass)
+      float inP = step(abs(p.x), pl*.5+.5) * step(abs(p.y), pw*.5+.5);
+      col = mix(vec3(.055,.165,.035), col, inP);
+
+      // ── white markings ────────────────────────────────────
+      float M = 0., LW = .13;
+
+      // boundary lines
+      M = max(M, L(abs(p.x)-pl*.5, LW));
+      M = max(M, L(abs(p.y)-pw*.5, LW));
       // halfway line
-      L=max(L,ln(p.x,LW));
-      // centre circle r=9.15
-      float cr=length(p);
-      L=max(L,ln(cr-9.15,LW));
+      M = max(M, L(p.x, LW));
+
+      // centre circle  r = 9.15
+      float cr = length(p);
+      M = max(M, L(cr - 9.15, LW));
       // centre spot
-      L=max(L,step(.95,1.-step(.3,cr)));
-      // penalty areas (16.5m from goal, 40.32m wide=+-20.16)
-      float paLx=step(p.x,-pl*.5+16.5)*step(-pl*.5,p.x)*step(-20.16,p.y)*step(p.y,20.16);
-      L=max(L,paLx*(ln(p.x-(-pl*.5+16.5),LW)+ln(abs(p.y)-20.16,LW)));
-      float paRx=step(pl*.5-16.5,p.x)*step(p.x,pl*.5)*step(-20.16,p.y)*step(p.y,20.16);
-      L=max(L,paRx*(ln(p.x-(pl*.5-16.5),LW)+ln(abs(p.y)-20.16,LW)));
-      // 6-yard boxes (5.5m, +-9.16)
-      float sbLx=step(p.x,-pl*.5+5.5)*step(-pl*.5,p.x)*step(-9.16,p.y)*step(p.y,9.16);
-      L=max(L,sbLx*(ln(p.x-(-pl*.5+5.5),LW)+ln(abs(p.y)-9.16,LW)));
-      float sbRx=step(pl*.5-5.5,p.x)*step(p.x,pl*.5)*step(-9.16,p.y)*step(p.y,9.16);
-      L=max(L,sbRx*(ln(p.x-(pl*.5-5.5),LW)+ln(abs(p.y)-9.16,LW)));
-      // penalty spots (11m)
-      float psL=length(p-vec2(-pl*.5+11.,0.));
-      L=max(L,step(.9,1.-step(.28,psL)));
-      float psR=length(p-vec2(pl*.5-11.,0.));
-      L=max(L,step(.9,1.-step(.28,psR)));
-      // penalty arcs (r=9.15 from spot, outside penalty area)
-      float arcL=abs(length(p-vec2(-pl*.5+11.,0.))-9.15);
-      L=max(L,step(-pl*.5+16.5,p.x)*ln(arcL,LW));
-      float arcR=abs(length(p-vec2(pl*.5-11.,0.))-9.15);
-      L=max(L,step(p.x,pl*.5-16.5)*ln(arcR,LW));
-      // corner arcs (r=1m)
-      vec2 c1=vec2(-pl*.5,-pw*.5);vec2 c2=vec2(pl*.5,-pw*.5);
-      vec2 c3=vec2(pl*.5,pw*.5);vec2 c4=vec2(-pl*.5,pw*.5);
-      L=max(L,ln(length(p-c1)-1.,LW)*step(c1.x,p.x)*step(c1.y,p.y));
-      L=max(L,ln(length(p-c2)-1.,LW)*step(p.x,c2.x)*step(c2.y,p.y));
-      L=max(L,ln(length(p-c3)-1.,LW)*step(p.x,c3.x)*step(p.y,c3.y));
-      L=max(L,ln(length(p-c4)-1.,LW)*step(c4.x,p.x)*step(p.y,c4.y));
-      col=mix(col,vec3(.96,.98,.96),clamp(L,0.,1.));
-      gl_FragColor=vec4(col,1.);
+      M = max(M, step(.92, 1.-step(.28, cr)));
+
+      // penalty areas  16.5 m × 40.32 m (±20.16)
+      float pL = step(p.x,-pl*.5+16.5)*step(-pl*.5,p.x)*step(-20.16,p.y)*step(p.y,20.16);
+      M = max(M, pL*(L(p.x-(-pl*.5+16.5),LW)+L(abs(p.y)-20.16,LW)));
+      float pR = step(pl*.5-16.5,p.x)*step(p.x,pl*.5)*step(-20.16,p.y)*step(p.y,20.16);
+      M = max(M, pR*(L(p.x-(pl*.5-16.5),LW)+L(abs(p.y)-20.16,LW)));
+
+      // 6-yard boxes  5.5 m × 18.32 m (±9.16)
+      float sL = step(p.x,-pl*.5+5.5)*step(-pl*.5,p.x)*step(-9.16,p.y)*step(p.y,9.16);
+      M = max(M, sL*(L(p.x-(-pl*.5+5.5),LW)+L(abs(p.y)-9.16,LW)));
+      float sR = step(pl*.5-5.5,p.x)*step(p.x,pl*.5)*step(-9.16,p.y)*step(p.y,9.16);
+      M = max(M, sR*(L(p.x-(pl*.5-5.5),LW)+L(abs(p.y)-9.16,LW)));
+
+      // penalty spots  11 m
+      float dL = length(p-vec2(-pl*.5+11.,0.)); M = max(M, step(.9,1.-step(.26,dL)));
+      float dR = length(p-vec2( pl*.5-11.,0.)); M = max(M, step(.9,1.-step(.26,dR)));
+
+      // penalty arcs  r = 9.15 (outside penalty area)
+      float aL = abs(length(p-vec2(-pl*.5+11.,0.))-9.15);
+      M = max(M, step(-pl*.5+16.5,p.x) * L(aL,LW));
+      float aR = abs(length(p-vec2(pl*.5-11.,0.))-9.15);
+      M = max(M, step(p.x,pl*.5-16.5) * L(aR,LW));
+
+      // corner arcs  r = 1 m
+      vec2 c1=vec2(-pl*.5,-pw*.5), c2=vec2(pl*.5,-pw*.5);
+      vec2 c3=vec2( pl*.5, pw*.5), c4=vec2(-pl*.5,pw*.5);
+      M = max(M, L(length(p-c1)-1.,LW)*step(c1.x,p.x)*step(c1.y,p.y));
+      M = max(M, L(length(p-c2)-1.,LW)*step(p.x,c2.x)*step(c2.y,p.y));
+      M = max(M, L(length(p-c3)-1.,LW)*step(p.x,c3.x)*step(p.y,c3.y));
+      M = max(M, L(length(p-c4)-1.,LW)*step(c4.x,p.x)*step(p.y,c4.y));
+
+      col = mix(col, vec3(.97,.99,.97), clamp(M,0.,1.));
+      gl_FragColor = vec4(col, 1.);
     }
   `
 });
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(320,320,128,128),grassMat);
-ground.rotation.x=-Math.PI/2;
-ground.receiveShadow=true;
-scene.add(ground);
 
-// ── STADIUM STANDS — 3 elliptical tiers ──────────────────────────────────────
-function buildStandTier(irx,irz,orx,orz,yBot,yTop,seg=120){
-  const pos=[], idx=[];
-  for(let i=0;i<=seg;i++){
-    const t=(i/seg)*Math.PI*2,c=Math.cos(t),s=Math.sin(t);
-    pos.push(irx*c,yBot,irz*s);
-    pos.push(irx*c,yTop,irz*s);
-    pos.push(orx*c,yTop,orz*s);
-    pos.push(orx*c,yBot,orz*s);
+scene.add(Object.assign(
+  new THREE.Mesh(new THREE.PlaneGeometry(340, 340, 128, 128), grassMat),
+  { rotation: new THREE.Euler(-Math.PI/2, 0, 0), receiveShadow: true }
+));
+
+// ─────────────────────────────────────────────────────────────
+//  GRADERÍAS  — 3 niveles elípticos con filas visibles
+// ─────────────────────────────────────────────────────────────
+function standTier(irx, irz, orx, orz, yb, yt, seg = 128) {
+  const pos = [], uv = [], idx = [];
+  for (let i = 0; i <= seg; i++) {
+    const t  = (i / seg) * Math.PI * 2;
+    const c  = Math.cos(t), s = Math.sin(t);
+    const u  = i / seg;
+    // inner-bottom, inner-top, outer-top, outer-bottom
+    pos.push(irx*c,yb,irz*s,  irx*c,yt,irz*s,  orx*c,yt,orz*s,  orx*c,yb,orz*s);
+    uv.push( u,0,  u,1,  u,1,  u,0 );
   }
-  for(let i=0;i<seg;i++){
-    const b=i*4,n=(i+1)*4;
+  for (let i = 0; i < seg; i++) {
+    const b = i*4, n = (i+1)*4;
+    // inner wall
     idx.push(b,n,b+1, b+1,n,n+1);
+    // seating surface (top) — UVs go 0→1 radially
     idx.push(b+1,n+1,b+2, b+2,n+1,n+2);
+    // outer back wall
     idx.push(b+2,n+2,b+3, b+3,n+2,n+3);
   }
-  const geo=new THREE.BufferGeometry();
-  geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('uv',       new THREE.Float32BufferAttribute(uv,  2));
   geo.setIndex(idx);
   geo.computeVertexNormals();
   return geo;
 }
 
-const tiers=[
-  {irx:PL*.5+9, irz:PW*.5+9,  orx:PL*.5+24, orz:PW*.5+20, yb:0,  yt:9,  col:0x1a1a30},
-  {irx:PL*.5+24,irz:PW*.5+20, orx:PL*.5+42, orz:PW*.5+34, yb:9,  yt:18, col:0x141428},
-  {irx:PL*.5+42,irz:PW*.5+34, orx:PL*.5+64, orz:PW*.5+52, yb:18, yt:30, col:0x0e0e22},
-];
-tiers.forEach(t=>{
-  const geo=buildStandTier(t.irx,t.irz,t.orx,t.orz,t.yb,t.yt);
-  const mat=new THREE.MeshStandardMaterial({color:t.col,roughness:.9,metalness:.1});
-  scene.add(new THREE.Mesh(geo,mat));
+// Stand shader — visible seat rows + tonal depth
+const standShader = (baseColor, rowBright) => new THREE.ShaderMaterial({
+  uniforms: { base: { value: new THREE.Color(baseColor) }, rb: { value: rowBright } },
+  side: THREE.DoubleSide,
+  vertexShader: `
+    attribute vec2 uv; varying vec2 vUv; varying vec3 vN; varying vec3 vWP;
+    void main(){
+      vUv = uv; vN = normalMatrix * normal;
+      vec4 wp = modelMatrix*vec4(position,1.); vWP = wp.xyz;
+      gl_Position = projectionMatrix*viewMatrix*wp;
+    }
+  `,
+  fragmentShader: `
+    uniform vec3 base; uniform float rb;
+    varying vec2 vUv; varying vec3 vN; varying vec3 vWP;
+    void main(){
+      // seat rows: stripe in Y world space
+      float row  = mod(vWP.y * 2.2, 1.);
+      float seat = smoothstep(.82,.88,row);
+      vec3 col = mix(base, base * rb, seat);
+      // diffuse shading
+      vec3 N = normalize(vN);
+      float d = clamp(dot(N, normalize(vec3(.2,1.,.3))), .0, 1.);
+      col *= (.45 + d * .55);
+      gl_FragColor = vec4(col, 1.);
+    }
+  `
 });
 
-// Roof ring
+const tiers = [
+  { irx:PL*.5+9,  irz:PW*.5+9,  orx:PL*.5+25, orz:PW*.5+21, yb:0,  yt:10, col:0x1c1c35, rb:1.35 },
+  { irx:PL*.5+25, irz:PW*.5+21, orx:PL*.5+44, orz:PW*.5+36, yb:10, yt:20, col:0x16162c, rb:1.30 },
+  { irx:PL*.5+44, irz:PW*.5+36, orx:PL*.5+66, orz:PW*.5+54, yb:20, yt:32, col:0x0f0f22, rb:1.25 },
+];
+tiers.forEach(t => {
+  scene.add(new THREE.Mesh(standTier(t.irx,t.irz,t.orx,t.orz,t.yb,t.yt), standShader(t.col, t.rb)));
+});
+
+// roof visor ring
 {
-  const seg=120,yRoof=32;
-  const irx=PL*.5+42,irz=PW*.5+34,orx=PL*.5+70,orz=PW*.5+58;
-  const pos=[],idx=[];
+  const seg=120, yr=33.5, irx=PL*.5+44, irz=PW*.5+36, orx=PL*.5+72, orz=PW*.5+60;
+  const pos=[], idx=[];
   for(let i=0;i<=seg;i++){
-    const t=(i/seg)*Math.PI*2,c=Math.cos(t),s=Math.sin(t);
-    pos.push(irx*c,yRoof,irz*s);
-    pos.push(orx*c,yRoof+1.5,orz*s);
+    const t=(i/seg)*Math.PI*2, c=Math.cos(t), s=Math.sin(t);
+    pos.push(irx*c,yr,irz*s, orx*c,yr+2,orz*s);
   }
   for(let i=0;i<seg;i++){
     const b=i*2,n=(i+1)*2;
@@ -231,309 +264,374 @@ tiers.forEach(t=>{
   }
   const geo=new THREE.BufferGeometry();
   geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
-  geo.setIndex(idx);
-  geo.computeVertexNormals();
-  scene.add(new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:0x2a2a3a,roughness:.7,metalness:.5,side:THREE.DoubleSide})));
+  geo.setIndex(idx); geo.computeVertexNormals();
+  scene.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:0x252535,roughness:.6,metalness:.6,side:THREE.DoubleSide})));
 }
 
-// ── CROWD PARTICLES 85 000 ────────────────────────────────────────────────────
-const N=85000;
-const cPos=new Float32Array(N*3);
-const cCol=new Float32Array(N*3);
-const pal=[
-  [.85,.10,.10],[.10,.18,.80],[.90,.90,.90],[.95,.75,.10],
-  [.12,.58,.18],[.90,.42,.10],[.55,.10,.70],[.20,.20,.20],
-];
-let pi=0;
-tiers.forEach((t,ti)=>{
-  const count=Math.round(N*(ti===0?.30:ti===1?.35:.35));
-  for(let i=0;i<count&&pi<N;i++,pi++){
-    const ang=Math.random()*Math.PI*2;
-    const lr=Math.random();
-    const rx=t.irx+(t.orx-t.irx)*lr;
-    const rz=t.irz+(t.orz-t.irz)*lr;
-    const jit=(Math.random()-.5)*.8;
-    cPos[pi*3]  =Math.cos(ang)*rx+jit;
-    cPos[pi*3+1]=t.yb+(t.yt-t.yb)*lr+Math.random()*.4;
-    cPos[pi*3+2]=Math.sin(ang)*rz+jit;
-    const c=pal[Math.floor(Math.random()*pal.length)];
-    const br=.55+Math.random()*.45;
-    cCol[pi*3]=c[0]*br; cCol[pi*3+1]=c[1]*br; cCol[pi*3+2]=c[2]*br;
+// ─────────────────────────────────────────────────────────────
+//  80 000+ ESPECTADORES  — partículas con secciones de color
+// ─────────────────────────────────────────────────────────────
+const CROWD = 88000;
+const cpx = new Float32Array(CROWD * 3);
+const cpc = new Float32Array(CROWD * 3);
+
+// Team A section (0°–160°):  blue / white
+// Team B section (180°–340°): red / yellow
+// Neutrals (160–180, 340–360): mixed
+function sectionColor(ang, tier) {
+  const a = ((ang % (Math.PI*2)) + Math.PI*2) % (Math.PI*2);
+  const bright = 0.5 + Math.random() * 0.5;
+  let r, g, b;
+  if (a < Math.PI * 0.88) {           // Team A — blue/white
+    const t = Math.random();
+    if (t < .55)      { r=.10; g=.20; b=.85; }  // blue
+    else if (t < .80) { r=.90; g=.90; b=.90; }  // white
+    else              { r=.10; g=.50; b=.90; }  // sky blue
+  } else if (a > Math.PI * 1.0 && a < Math.PI * 1.88) { // Team B — red/yellow
+    const t = Math.random();
+    if (t < .55)      { r=.90; g=.10; b=.10; }  // red
+    else if (t < .78) { r=.95; g=.78; b=.10; }  // yellow
+    else              { r=.80; g=.05; b=.05; }  // dark red
+  } else {                              // neutral / mixed
+    const t = Math.random();
+    r = [.85,.10,.90,.55,.20][Math.floor(t*5)];
+    g = [.10,.20,.90,.10,.20][Math.floor(t*5)];
+    b = [.10,.85,.10,.75,.20][Math.floor(t*5)];
+  }
+  return [r*bright, g*bright, b*bright];
+}
+
+let pi = 0;
+tiers.forEach((t, ti) => {
+  const count = Math.round(CROWD * (ti===0?.28 : ti===1?.36 : .36));
+  for (let i = 0; i < count && pi < CROWD; i++, pi++) {
+    const ang = Math.random() * Math.PI * 2;
+    const lr  = Math.random();
+    const rx  = t.irx + (t.orx - t.irx) * lr;
+    const rz  = t.irz + (t.orz - t.irz) * lr;
+    const jit = (Math.random()-.5) * .7;
+    cpx[pi*3]   = Math.cos(ang)*rx + jit;
+    cpx[pi*3+1] = t.yb + (t.yt-t.yb)*lr + Math.random()*.35;
+    cpx[pi*3+2] = Math.sin(ang)*rz + jit;
+    const [r,g,b] = sectionColor(ang, ti);
+    cpc[pi*3]=r; cpc[pi*3+1]=g; cpc[pi*3+2]=b;
   }
 });
-const crowdGeo=new THREE.BufferGeometry();
-crowdGeo.setAttribute('position',new THREE.BufferAttribute(cPos,3));
-crowdGeo.setAttribute('color',  new THREE.BufferAttribute(cCol,3));
-scene.add(new THREE.Points(crowdGeo,new THREE.PointsMaterial({size:.65,vertexColors:true,sizeAttenuation:true,transparent:true,opacity:.93})));
+const cGeo = new THREE.BufferGeometry();
+cGeo.setAttribute('position', new THREE.BufferAttribute(cpx,3));
+cGeo.setAttribute('color',    new THREE.BufferAttribute(cpc,3));
+scene.add(new THREE.Points(cGeo,
+  new THREE.PointsMaterial({size:.7,vertexColors:true,sizeAttenuation:true,transparent:true,opacity:.95})));
 
-// ── FLOODLIGHT TOWERS × 8 ─────────────────────────────────────────────────────
-const TH=62;
-const TOWERS=[
-  [-PL*.5-32,-PW*.5-26],[ PL*.5+32,-PW*.5-26],
-  [ PL*.5+32, PW*.5+26],[-PL*.5-32, PW*.5+26],
-  [0,-PW*.5-32],[0,PW*.5+32],
-  [-PL*.5-36,0],[PL*.5+36,0],
+// ─────────────────────────────────────────────────────────────
+//  REFLECTORES  — 8 torres + haces volumétricos
+// ─────────────────────────────────────────────────────────────
+const TH = 65;
+const TOWERS = [
+  [-PL*.5-33, -PW*.5-27],[ PL*.5+33, -PW*.5-27],
+  [ PL*.5+33,  PW*.5+27],[-PL*.5-33,  PW*.5+27],
+  [0, -PW*.5-34], [0,  PW*.5+34],
+  [-PL*.5-38, 0],  [ PL*.5+38, 0],
 ];
-const poleGeo=new THREE.CylinderGeometry(.5,1.3,TH,8);
-const poleMat=new THREE.MeshStandardMaterial({color:0x778899,roughness:.5,metalness:.7});
-const fixGeo =new THREE.CylinderGeometry(2.8,2.2,.5,16);
-const fixMat =new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xffeedd,emissiveIntensity:4});
-const beamMat=new THREE.MeshBasicMaterial({color:0xfff4dd,transparent:true,opacity:.028,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending});
 
-TOWERS.forEach(([tx,tz])=>{
-  const pole=new THREE.Mesh(poleGeo,poleMat);
-  pole.position.set(tx,TH/2,tz);
-  pole.castShadow=true;
+const poleGeo = new THREE.CylinderGeometry(.45, 1.4, TH, 8);
+const poleMat = new THREE.MeshStandardMaterial({color:0x6e8090,roughness:.4,metalness:.8});
+const headGeo = new THREE.BoxGeometry(6, .8, 3);
+const headMat = new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xfff0cc,emissiveIntensity:5});
+
+const beamMat1 = new THREE.MeshBasicMaterial({
+  color:0xfff8e8, transparent:true, opacity:.04,
+  side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending
+});
+const beamMat2 = new THREE.MeshBasicMaterial({
+  color:0xffeebb, transparent:true, opacity:.018,
+  side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending
+});
+
+TOWERS.forEach(([tx,tz]) => {
+  // pole
+  const pole = new THREE.Mesh(poleGeo, poleMat);
+  pole.position.set(tx, TH/2, tz); pole.castShadow=true;
   scene.add(pole);
+  // light head
+  const head = new THREE.Mesh(headGeo, headMat);
+  head.position.set(tx, TH+.6, tz);
+  scene.add(head);
 
-  const fix=new THREE.Mesh(fixGeo,fixMat);
-  fix.position.set(tx,TH+.4,tz);
-  scene.add(fix);
+  // SpotLight
+  const spot = new THREE.SpotLight(0xfff5e0, 3.0, 280, Math.PI/4.5, .3, 1.0);
+  spot.position.set(tx, TH, tz);
+  spot.target.position.set(0, 0, 0);
+  spot.castShadow=true; spot.shadow.mapSize.set(512,512);
+  scene.add(spot); scene.add(spot.target);
 
-  const spot=new THREE.SpotLight(0xfff2d8,2.5,250,Math.PI/5,.35,1.2);
-  spot.position.set(tx,TH,tz);
-  spot.target.position.set(0,0,0);
-  spot.castShadow=true;
-  spot.shadow.mapSize.set(512,512);
-  scene.add(spot);
-  scene.add(spot.target);
+  // volumetric beam — inner tight cone
+  const bLen = TH + 15;
+  const bGeo1 = new THREE.ConeGeometry(bLen*Math.tan(.12), bLen, 10, 1, true);
+  const beam1 = new THREE.Mesh(bGeo1, beamMat1);
+  beam1.position.set((0+tx)*.5, TH*.5+2, (0+tz)*.5);
+  beam1.lookAt(0,0,0); beam1.rotateX(-Math.PI/2);
+  scene.add(beam1);
 
-  const bLen=TH+10;
-  const bGeo=new THREE.ConeGeometry(bLen*Math.tan(.16),bLen,12,1,true);
-  const beam=new THREE.Mesh(bGeo,beamMat);
-  beam.position.set((0+tx)*.5, TH*.5+3,(0+tz)*.5);
-  beam.lookAt(new THREE.Vector3(0,0,0));
-  beam.rotateX(-Math.PI/2);
-  scene.add(beam);
+  // volumetric beam — outer soft halo
+  const bGeo2 = new THREE.ConeGeometry(bLen*Math.tan(.22), bLen, 10, 1, true);
+  const beam2 = new THREE.Mesh(bGeo2, beamMat2);
+  beam2.position.copy(beam1.position);
+  beam2.quaternion.copy(beam1.quaternion);
+  scene.add(beam2);
 
-  const pt=new THREE.PointLight(0xfff4e0,1.2,160);
-  pt.position.set(tx,TH,tz);
+  // point light near head
+  const pt = new THREE.PointLight(0xfff5e0, 1.5, 180);
+  pt.position.set(tx, TH, tz);
   scene.add(pt);
 });
 
-// ── AMBIENT + HEMISPHERE ──────────────────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0x101820,.35));
-scene.add(new THREE.HemisphereLight(0x1a2040,0x040408,.45));
+// ─────────────────────────────────────────────────────────────
+//  LUCES
+// ─────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0x0d1525, .40));
+scene.add(new THREE.HemisphereLight(0x1a2044, 0x040408, .50));
 
-// ── LED SCREENS × 4 ──────────────────────────────────────────────────────────
-const SCR_H=16;
-const screenDefs=[
-  {x:0,   y:20, z:-(PW*.5+13), ry:0,           sw:42},
-  {x:0,   y:20, z:  PW*.5+13,  ry:Math.PI,      sw:42},
-  {x:-(PL*.5+13),y:20,z:0,     ry:Math.PI/2,    sw:24},
-  {x:  PL*.5+13, y:20,z:0,     ry:-Math.PI/2,   sw:24},
+// ─────────────────────────────────────────────────────────────
+//  PANTALLAS LED  ×4  — Canvas animado
+// ─────────────────────────────────────────────────────────────
+const SCREENS = [
+  { x:0,           y:21, z:-(PW*.5+14), ry:0,           w:44, h:16 },
+  { x:0,           y:21, z:  PW*.5+14,  ry:Math.PI,      w:44, h:16 },
+  { x:-(PL*.5+14), y:21, z:0,           ry: Math.PI/2,   w:26, h:16 },
+  { x:  PL*.5+14,  y:21, z:0,           ry:-Math.PI/2,   w:26, h:16 },
 ];
-const scrCtxs=[];
-screenDefs.forEach(({x,y,z,ry,sw})=>{
-  const cnv=document.createElement('canvas');
-  cnv.width=512; cnv.height=192;
-  const ctx=cnv.getContext('2d');
-  const tex=new THREE.CanvasTexture(cnv);
-  const mesh=new THREE.Mesh(new THREE.PlaneGeometry(sw,SCR_H),new THREE.MeshBasicMaterial({map:tex,side:THREE.FrontSide}));
-  mesh.position.set(x,y,z);
-  mesh.rotation.y=ry;
+
+const scrData = SCREENS.map(({ x,y,z,ry,w,h }) => {
+  const cnv = document.createElement('canvas');
+  cnv.width=512; cnv.height=Math.round(512*h/w);
+  const ctx = cnv.getContext('2d');
+  const tex = new THREE.CanvasTexture(cnv);
+  const mesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(w, h),
+    new THREE.MeshBasicMaterial({ map:tex, side:THREE.FrontSide })
+  );
+  mesh.position.set(x,y,z); mesh.rotation.y=ry;
   scene.add(mesh);
-  const gl=new THREE.PointLight(0x3366ff,1.8,80);
-  gl.position.set(x,y,z);
-  scene.add(gl);
-  scrCtxs.push({ctx,tex,W:512,H:192,glow:gl});
+  const gl = new THREE.PointLight(0x2255cc, 2.0, 90);
+  gl.position.set(x,y,z); scene.add(gl);
+  return { ctx, tex, W:cnv.width, H:cnv.height, glow:gl };
 });
 
-function drawScreens(t){
-  const mins=Math.floor(t/60);
-  const secs=Math.floor(t%60);
-  const ts=String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0');
-  scrCtxs.forEach(({ctx,tex,W,H,glow})=>{
-    ctx.fillStyle='#000c1a';
-    ctx.fillRect(0,0,W,H);
-    const g=ctx.createLinearGradient(0,0,W,0);
-    g.addColorStop(0,'#cc0000');g.addColorStop(.5,'#0055bb');g.addColorStop(1,'#cc0000');
-    ctx.fillStyle=g;
-    ctx.fillRect(0,0,W,30);
+function drawScreens(t) {
+  const mm = String(Math.floor(t/60)).padStart(2,'0');
+  const ss = String(Math.floor(t%60)).padStart(2,'0');
+  const ts = mm+':'+ss;
+  scrData.forEach(({ ctx, tex, W, H, glow }) => {
+    // background
+    ctx.fillStyle = '#00091a'; ctx.fillRect(0,0,W,H);
+    // top colour bar
+    const g = ctx.createLinearGradient(0,0,W,0);
+    g.addColorStop(0,'#b30000'); g.addColorStop(.5,'#003fa3'); g.addColorStop(1,'#b30000');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H*.18);
     ctx.fillStyle='#fff';
-    ctx.font='bold 19px "Arial Black",Arial';
+    ctx.font=`bold ${H*.14}px "Arial Black",Arial`;
     ctx.textAlign='center';
-    ctx.fillText('FIFA WORLD CUP 2026™',W/2,22);
+    ctx.fillText('FIFA WORLD CUP 2026™', W/2, H*.155);
+    // FINAL
     ctx.fillStyle='#ffffff';
-    ctx.font='bold 52px "Arial Black",Arial';
-    ctx.fillText('FINAL',W/2,H/2+12);
+    ctx.font=`bold ${H*.30}px "Arial Black",Arial`;
+    ctx.fillText('FINAL', W/2, H*.56);
+    // clock
     ctx.fillStyle='#ffd700';
-    ctx.font='bold 28px monospace';
-    ctx.fillText(ts,W/2,H/2+52);
-    ctx.fillStyle='#d4af37';
-    ctx.fillRect(0,H-32,W,32);
+    ctx.font=`bold ${H*.18}px monospace`;
+    ctx.fillText(ts, W/2, H*.78);
+    // bottom bar
+    ctx.fillStyle='#c8950a'; ctx.fillRect(0,H*.84,W,H*.16);
     ctx.fillStyle='#000';
-    ctx.font='bold 20px "Arial Black",Arial';
-    ctx.fillText('METRO CITY STADIUM · MEXICO CITY',W/2,H-9);
-    const text='◆ ATTENDANCE: 85,000+ ◆ JULY 19 2026 ◆ FIFA WORLD CUP 2026 FINAL ◆ ';
-    const tw=text.length*8;
-    const tx2=W-(t*50%(W+tw));
-    ctx.fillStyle='rgba(0,30,80,.6)';
-    ctx.fillRect(0,H-58,W,18);
-    ctx.fillStyle='#aaddff';
-    ctx.font='12px Arial';
+    ctx.font=`bold ${H*.11}px "Arial Black",Arial`;
+    ctx.fillText('METRO CITY STADIUM', W/2, H*.965);
+    // LED scan-line overlay
+    for(let y=0;y<H;y+=3){
+      ctx.fillStyle='rgba(0,0,0,.06)';
+      ctx.fillRect(0,y,W,1);
+    }
+    // ticker
+    const tkText='◆ ATTENDANCE 88,000 ◆ JULY 19 2026 ◆ FIFA WORLD CUP 2026 FINAL ◆ ';
+    const xOff = W - (t*45 % (W+tkText.length*7.5));
+    ctx.fillStyle='rgba(0,20,60,.7)'; ctx.fillRect(0,H*.82,W,H*.035);
+    ctx.fillStyle='#88ccff';
+    ctx.font=`${H*.065}px Arial`;
     ctx.textAlign='left';
-    ctx.fillText(text+text,tx2,H-44);
-    glow.intensity=1.6+Math.sin(t*2)*.4;
+    ctx.fillText(tkText+tkText, xOff, H*.85);
+    glow.intensity = 1.8 + Math.sin(t*1.8)*.5;
     tex.needsUpdate=true;
   });
 }
 
-// ── SMOKE PARTICLES ───────────────────────────────────────────────────────────
-const SNP=3500;
-const smPos=new Float32Array(SNP*3);
-const smVel=new Float32Array(SNP*3);
-const smAge=new Float32Array(SNP);
-const smEmit=[
-  [-PL*.5-6,2,-PW*.5-6],[PL*.5+6,2,-PW*.5-6],
-  [ PL*.5+6,2, PW*.5+6],[-PL*.5-6,2, PW*.5+6],
-  [-18,33,-PW*.5-4],[18,33,PW*.5+4],
+// ─────────────────────────────────────────────────────────────
+//  HUMO  — partículas volumétricas
+// ─────────────────────────────────────────────────────────────
+const NSMK = 4000;
+const sPos = new Float32Array(NSMK*3);
+const sVel = new Float32Array(NSMK*3);
+const sAge = new Float32Array(NSMK);
+
+const EMITTERS = [
+  [-PL*.5-7, 1.5,-PW*.5-7],[ PL*.5+7,1.5,-PW*.5-7],
+  [ PL*.5+7, 1.5, PW*.5+7],[-PL*.5-7,1.5, PW*.5+7],
+  [-20, 34,-PW*.5-5],[20, 34,PW*.5+5],
+  [0,34,-PW*.5-5],[0,34,PW*.5+5],
 ];
-for(let i=0;i<SNP;i++){
-  const e=smEmit[Math.floor(Math.random()*smEmit.length)];
-  smPos[i*3]=e[0]+(Math.random()-.5)*5;
-  smPos[i*3+1]=e[1]+Math.random()*10;
-  smPos[i*3+2]=e[2]+(Math.random()-.5)*5;
-  smVel[i*3]=(Math.random()-.5)*.025;
-  smVel[i*3+1]=.04+Math.random()*.07;
-  smVel[i*3+2]=(Math.random()-.5)*.025;
-  smAge[i]=Math.random();
+
+for(let i=0;i<NSMK;i++){
+  const e=EMITTERS[i%EMITTERS.length];
+  sPos[i*3]=e[0]+(Math.random()-.5)*6;
+  sPos[i*3+1]=e[1]+Math.random()*12;
+  sPos[i*3+2]=e[2]+(Math.random()-.5)*6;
+  sVel[i*3]=(Math.random()-.5)*.022;
+  sVel[i*3+1]=.035+Math.random()*.06;
+  sVel[i*3+2]=(Math.random()-.5)*.022;
+  sAge[i]=Math.random();
 }
-const smGeo=new THREE.BufferGeometry();
-smGeo.setAttribute('position',new THREE.BufferAttribute(smPos,3));
-const smMat=new THREE.PointsMaterial({size:5,color:0x99aabb,transparent:true,opacity:.10,sizeAttenuation:true,depthWrite:false,blending:THREE.AdditiveBlending});
-scene.add(new THREE.Points(smGeo,smMat));
+const smkGeo=new THREE.BufferGeometry();
+smkGeo.setAttribute('position',new THREE.BufferAttribute(sPos,3));
+scene.add(new THREE.Points(smkGeo,
+  new THREE.PointsMaterial({size:6,color:0x8899aa,transparent:true,opacity:.09,
+    sizeAttenuation:true,depthWrite:false,blending:THREE.AdditiveBlending})));
 
 function tickSmoke(){
-  for(let i=0;i<SNP;i++){
-    smAge[i]+=.0025;
-    if(smAge[i]>1){
-      const e=smEmit[Math.floor(Math.random()*smEmit.length)];
-      smPos[i*3]=e[0]+(Math.random()-.5)*5;
-      smPos[i*3+1]=e[1];
-      smPos[i*3+2]=e[2]+(Math.random()-.5)*5;
-      smAge[i]=0;
+  for(let i=0;i<NSMK;i++){
+    sAge[i]+=.002;
+    if(sAge[i]>1){
+      const e=EMITTERS[i%EMITTERS.length];
+      sPos[i*3]=e[0]+(Math.random()-.5)*6;
+      sPos[i*3+1]=e[1];
+      sPos[i*3+2]=e[2]+(Math.random()-.5)*6;
+      sAge[i]=0;
     } else {
-      smPos[i*3]  +=smVel[i*3];
-      smPos[i*3+1]+=smVel[i*3+1];
-      smPos[i*3+2]+=smVel[i*3+2];
+      sPos[i*3]  +=sVel[i*3];
+      sPos[i*3+1]+=sVel[i*3+1];
+      sPos[i*3+2]+=sVel[i*3+2];
     }
   }
-  smGeo.attributes.position.needsUpdate=true;
+  smkGeo.attributes.position.needsUpdate=true;
 }
 
-// ── NIGHT SKY ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+//  CIELO NOCTURNO
+// ─────────────────────────────────────────────────────────────
+// sky dome
 scene.add(new THREE.Mesh(
-  new THREE.SphereGeometry(900,32,16),
+  new THREE.SphereGeometry(920, 32, 16),
   new THREE.ShaderMaterial({
-    side:THREE.BackSide,
-    vertexShader:`varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-    fragmentShader:`
+    side: THREE.BackSide,
+    vertexShader: `varying vec3 vP; void main(){ vP=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `
       varying vec3 vP;
       void main(){
-        float h=normalize(vP).y;
-        vec3 top=vec3(.008,.015,.06);
-        vec3 bot=vec3(.03,.02,.08);
-        gl_FragColor=vec4(mix(bot,top,clamp(h*1.5,0.,1.)),1.);
+        float h = clamp(normalize(vP).y, 0., 1.);
+        vec3 zenith  = vec3(.005,.010,.050);
+        vec3 horizon = vec3(.025,.015,.065);
+        gl_FragColor = vec4(mix(horizon, zenith, h*h), 1.);
       }
     `
   })
 ));
 
-// Stars
-const SN=12000;
-const stP=new Float32Array(SN*3);
-for(let i=0;i<SN;i++){
+// 14 000 estrellas — upper hemisphere only
+const NS=14000;
+const stP=new Float32Array(NS*3), stC=new Float32Array(NS*3);
+for(let i=0;i<NS;i++){
   const th=Math.random()*Math.PI*2;
-  const ph=Math.random()*Math.PI*.48;
-  const r=820+Math.random()*60;
+  const ph=Math.random()*Math.PI*.46;
+  const r=850+Math.random()*50;
   stP[i*3]  =r*Math.sin(ph)*Math.cos(th);
-  stP[i*3+1]=r*Math.cos(ph)+10;
+  stP[i*3+1]=r*Math.cos(ph)+15;
   stP[i*3+2]=r*Math.sin(ph)*Math.sin(th);
+  const t=Math.random();
+  stC[i*3]=.8+t*.2; stC[i*3+1]=.8+t*.2; stC[i*3+2]=.9+t*.1; // warm-to-cool white
 }
 const stGeo=new THREE.BufferGeometry();
 stGeo.setAttribute('position',new THREE.BufferAttribute(stP,3));
-scene.add(new THREE.Points(stGeo,new THREE.PointsMaterial({size:1.3,color:0xffffff,transparent:true,opacity:.85})));
+stGeo.setAttribute('color',  new THREE.BufferAttribute(stC,3));
+scene.add(new THREE.Points(stGeo,
+  new THREE.PointsMaterial({size:1.4,vertexColors:true,transparent:true,opacity:.9,sizeAttenuation:true})));
 
-// Moon
-const moon=new THREE.Mesh(
-  new THREE.SphereGeometry(14,16,16),
-  new THREE.MeshStandardMaterial({color:0xeeeedd,emissive:0xbbbbaa,emissiveIntensity:.7,roughness:.95})
-);
-moon.position.set(-280,340,-580);
-scene.add(moon);
-const moonLight=new THREE.DirectionalLight(0x8899bb,.25);
-moonLight.position.set(-280,340,-580);
-scene.add(moonLight);
-
-// City glow at horizon
+// city glow band at horizon
 scene.add(new THREE.Mesh(
-  new THREE.SphereGeometry(760,32,8,0,Math.PI*2,Math.PI*.45,Math.PI*.12),
-  new THREE.MeshBasicMaterial({color:0xff5500,transparent:true,opacity:.038,side:THREE.BackSide,depthWrite:false})
+  new THREE.SphereGeometry(780,32,8,0,Math.PI*2,Math.PI*.44,Math.PI*.13),
+  new THREE.MeshBasicMaterial({color:0xff4400,transparent:true,opacity:.042,side:THREE.BackSide,depthWrite:false})
 ));
 
-// ── BROADCAST CAMERA SYSTEM ───────────────────────────────────────────────────
-const camAngles=[
-  {pos:[0,28,-(PW*.5+52)],      look:[0,2,0],  fov:48},
-  {pos:[0,50,-(PW*.5+35)],      look:[0,0,0],  fov:58},
-  {pos:[PL*.35,20,-(PW*.5+48)], look:[0,2,0],  fov:42},
-  {pos:[-PL*.3,14,-(PW*.5+42)], look:[0,1,0],  fov:36},
-  {pos:[0,80,0],                look:[0,0,0],  fov:72},
-  {pos:[PL*.5+8,12,0],          look:[0,7,0],  fov:68},
-  {pos:[-PL*.5-8,12,0],         look:[0,7,0],  fov:68},
-  {pos:[0,22,(PW*.5+48)],       look:[0,2,0],  fov:48},
+// ─────────────────────────────────────────────────────────────
+//  ATMÓSFERA CINEMATOGRÁFICA — cámara broadcast
+// ─────────────────────────────────────────────────────────────
+const ANGLES = [
+  { pos:[0,30,-(PW*.5+56)],   look:[0,3,0],   fov:46, dur:10 },  // main wide
+  { pos:[0,54,-(PW*.5+38)],   look:[0,0,0],   fov:58, dur:8  },  // high crane
+  { pos:[PL*.38,22,-(PW*.5+52)],look:[0,2,0], fov:40, dur:9  },  // 3/4 right
+  { pos:[-PL*.3,15,-(PW*.5+44)],look:[0,1,0], fov:34, dur:9  },  // tight left
+  { pos:[0,90,5],              look:[0,0,0],  fov:68, dur:7  },  // blimp overhead
+  { pos:[PL*.5+10,13,0],       look:[0,8,0],  fov:65, dur:8  },  // goal line east
+  { pos:[-PL*.5-10,13,0],      look:[0,8,0],  fov:65, dur:8  },  // goal line west
+  { pos:[0,30, (PW*.5+56)],    look:[0,3,0],  fov:46, dur:10 },  // opposite main
+  { pos:[PL*.2,18,-(PW*.5+50)],look:[0,2,0],  fov:36, dur:7  },  // beauty close
 ];
 
-let camIdx=0;
-const CAM_DUR=9,TRANS=2.5;
-let camTimer=0,transTimer=0;
-const prevP=new THREE.Vector3(),prevL=new THREE.Vector3();
-const targP=new THREE.Vector3(),targL=new THREE.Vector3();
-const curP =new THREE.Vector3(),curL =new THREE.Vector3();
+let aidx=0, camTimer=0, transT=0;
+const prevPos=new THREE.Vector3(), prevLook=new THREE.Vector3();
+const targPos=new THREE.Vector3(), targLook=new THREE.Vector3();
+const curPos =new THREE.Vector3(), curLook =new THREE.Vector3();
 
-function applyAngle(idx){
-  const a=camAngles[idx];
-  prevP.copy(curP);prevL.copy(curL);
-  targP.set(...a.pos);targL.set(...a.look);
-  camera.fov=a.fov;camera.updateProjectionMatrix();
-  transTimer=0;
+function setAngle(i){
+  const a=ANGLES[i];
+  prevPos.copy(curPos); prevLook.copy(curLook);
+  targPos.set(...a.pos); targLook.set(...a.look);
+  camera.fov=a.fov; camera.updateProjectionMatrix();
+  transT=0;
 }
-{const a=camAngles[0];camera.position.set(...a.pos);camera.fov=a.fov;camera.updateProjectionMatrix();
- curP.set(...a.pos);curL.set(...a.look);prevP.copy(curP);prevL.copy(curL);targP.copy(curP);targL.copy(curL);}
 
-function eio(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+// init
+{const a=ANGLES[0];
+ curPos.set(...a.pos); curLook.set(...a.look);
+ prevPos.copy(curPos); prevLook.copy(curLook);
+ targPos.copy(curPos); targLook.copy(curLook);
+ camera.position.copy(curPos); camera.fov=a.fov;
+ camera.updateProjectionMatrix(); camera.lookAt(curLook);}
 
-// ── ANIMATION LOOP ────────────────────────────────────────────────────────────
-const clock=new THREE.Clock();
-let elapsed=0;
+const eio = t => t<.5 ? 2*t*t : -1+(4-2*t)*t;
+const TRANS_DUR = 2.8;
 
-function animate(){
+// ─────────────────────────────────────────────────────────────
+//  LOOP
+// ─────────────────────────────────────────────────────────────
+const clock = new THREE.Clock();
+let elapsed = 0;
+
+(function animate(){
   requestAnimationFrame(animate);
-  const dt=clock.getDelta();
-  elapsed+=dt;
+  const dt = clock.getDelta();
+  elapsed += dt;
 
-  filmPass.uniforms.time.value=elapsed*.3;
+  filmPass.uniforms.time.value = elapsed * .25;
   drawScreens(elapsed);
   tickSmoke();
 
-  camTimer+=dt;
-  if(camTimer>CAM_DUR){
+  // camera
+  camTimer += dt;
+  if(camTimer > ANGLES[aidx].dur){
     camTimer=0;
-    camIdx=(camIdx+1)%camAngles.length;
-    applyAngle(camIdx);
+    aidx=(aidx+1)%ANGLES.length;
+    setAngle(aidx);
   }
-  transTimer=Math.min(transTimer+dt,TRANS);
-  const prog=eio(transTimer/TRANS);
-  curP.lerpVectors(prevP,targP,prog);
-  curL.lerpVectors(prevL,targL,prog);
-  camera.position.copy(curP);
-  camera.position.x+=(Math.random()-.5)*.006;
-  camera.position.y+=(Math.random()-.5)*.006;
-  camera.lookAt(curL);
+  transT = Math.min(transT+dt, TRANS_DUR);
+  const p = eio(transT/TRANS_DUR);
+  curPos.lerpVectors(prevPos,targPos,p);
+  curLook.lerpVectors(prevLook,targLook,p);
+  camera.position.copy(curPos);
+  // micro-shake for live broadcast feel
+  camera.position.x += (Math.random()-.5)*.005;
+  camera.position.y += (Math.random()-.5)*.005;
+  camera.lookAt(curLook);
 
   composer.render();
-}
-animate();
+})();
 </script>
 </body>
 </html>
