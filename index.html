@@ -5800,10 +5800,8 @@ function renderHallOfFame(players, allPicks, results){
       return tbCompare(a.tb, b.tb);
     });
     const maxPts = scores[0].pts;
-    // Check if tiebreaker was needed (multiple players had same pts before tiebreaker)
-    const tiedCount = scores.filter(s=>s.pts===maxPts).length;
-    const tiebroken = tiedCount > 1;
-    roundData.push({round, winners:[scores[0]], pts:maxPts, hasResults:true, tiebroken});
+    const winners = scores.filter(s => s.pts === maxPts);
+    roundData.push({round, winners, pts:maxPts, hasResults:true});
   });
 
   const anyActive = roundData.some(r=>r.hasResults);
@@ -5824,15 +5822,19 @@ function renderHallOfFame(players, allPicks, results){
         <div class="hof-pending">${currentLang==='es'?'Sin picks':'No picks'}</div>
       </div>`;
 
-    const tiebrokenBadge = rd.tiebroken
-      ? `<div class="hof-tied-badge" style="background:rgba(212,175,55,.15);border-color:var(--gold3);color:var(--gold)">🔬 ${currentLang==='es'?'DESEMPATE':'TIEBREAKER'}</div>`
+    const multiLabel = rd.winners.length > 1
+      ? `<div class="hof-tied-badge" style="background:rgba(212,175,55,.15);border-color:var(--gold3);color:var(--gold)">🤝 ${currentLang==='es'?'EMPATE':'TIED'}</div>`
       : '';
+
+    const winnerNames = rd.winners.map(w =>
+      `<div class="hof-winner-name">${escapeHtml(w.name)}</div>`
+    ).join('');
 
     return `
       <div class="hof-card active">
         <div class="hof-round-label">🏆 ${rl(rd.round)}</div>
-        ${tiebrokenBadge}
-        <div class="hof-winner-name">${escapeHtml(rd.winners[0].name)}</div>
+        ${multiLabel}
+        ${winnerNames}
         <div class="hof-pts-label">${Number.isInteger(rd.pts)?rd.pts:rd.pts.toFixed(1)} pts</div>
       </div>`;
   }).join('');
