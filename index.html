@@ -3162,16 +3162,27 @@ function setupFirebase(){
       if(!data || !currentUser) return;
       Object.keys(data).forEach(function(round){
         const ann = data[round];
-        if(!ann || !ann.winnerKey) return;
+        if(!ann) return;
         const seenKey = 'wc2026_winner_seen2_' + currentUser + '_R' + round;
         if(localStorage.getItem(seenKey)) return;
-        showWinnerCelebration({
-          key: ann.winnerKey,
-          name: ann.winnerName,
-          pts: ann.winnerPts,
-          avatar: ann.winnerAvatar || null
-        }, parseInt(round));
+
+        // Support array of co-winners (new) and single winner (legacy)
+        let winners = [];
+        if(ann.winners && Array.isArray(ann.winners)){
+          winners = ann.winners;
+        } else if(ann.winnerKey){
+          winners = [{key:ann.winnerKey, name:ann.winnerName, pts:ann.winnerPts, avatar:ann.winnerAvatar||null}];
+        }
+        if(winners.length === 0) return;
+
+        localStorage.setItem(seenKey, '1');
+        winners.forEach(function(w){
+          _pendingWinnerQueue.push({winner:w, round:parseInt(round)});
+        });
       });
+      if(_pendingWinnerQueue.length > 0 && !document.getElementById('fifaWinnerSplash')){
+        setTimeout(_showNextPendingWinner, 600);
+      }
     });
     // Attach the live team-names listener now that Firebase is ready, so rounds
     // 4-7 names stay in sync across all devices in real time.
@@ -9122,6 +9133,15 @@ function launchConfetti(){
 // ══════════════════════════════════════════════════════════════
 //  FEATURE: FIFA WINNER CELEBRATION INTRO
 // ══════════════════════════════════════════════════════════════
+var _pendingWinnerQueue = [];
+
+function _showNextPendingWinner(){
+  if(_pendingWinnerQueue.length === 0) return;
+  if(document.getElementById('fifaWinnerSplash')) return;
+  const next = _pendingWinnerQueue.shift();
+  _showFifaWinnerIntro(next.winner, next.round);
+}
+
 function showWinnerCelebration(winner, round){
   const seenKey = 'wc2026_winner_seen2_' + currentUser + '_R' + round;
   if(localStorage.getItem(seenKey)) return;
@@ -9484,7 +9504,7 @@ function closeWinnerModal(){
   if(!s) return;
   s.style.transition='opacity .5s';
   s.style.opacity='0';
-  setTimeout(()=>s.remove(), 500);
+  setTimeout(()=>{ s.remove(); setTimeout(_showNextPendingWinner, 400); }, 500);
 }
 
 // ══════════════════════════════════════════════════════════════
