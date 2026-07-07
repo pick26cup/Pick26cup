@@ -186,27 +186,20 @@ scene.add(Object.assign(
 //  GRADERÍAS  — 3 niveles elípticos con filas visibles
 // ─────────────────────────────────────────────────────────────
 function standTier(irx, irz, orx, orz, yb, yt, seg = 128) {
-  const pos = [], uv = [], idx = [];
+  const pos = [], idx = [];
   for (let i = 0; i <= seg; i++) {
-    const t  = (i / seg) * Math.PI * 2;
-    const c  = Math.cos(t), s = Math.sin(t);
-    const u  = i / seg;
-    // inner-bottom, inner-top, outer-top, outer-bottom
+    const t = (i / seg) * Math.PI * 2;
+    const c = Math.cos(t), s = Math.sin(t);
     pos.push(irx*c,yb,irz*s,  irx*c,yt,irz*s,  orx*c,yt,orz*s,  orx*c,yb,orz*s);
-    uv.push( u,0,  u,1,  u,1,  u,0 );
   }
   for (let i = 0; i < seg; i++) {
     const b = i*4, n = (i+1)*4;
-    // inner wall
     idx.push(b,n,b+1, b+1,n,n+1);
-    // seating surface (top) — UVs go 0→1 radially
     idx.push(b+1,n+1,b+2, b+2,n+1,n+2);
-    // outer back wall
     idx.push(b+2,n+2,b+3, b+3,n+2,n+3);
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  geo.setAttribute('uv',       new THREE.Float32BufferAttribute(uv,  2));
   geo.setIndex(idx);
   geo.computeVertexNormals();
   return geo;
@@ -217,22 +210,20 @@ const standShader = (baseColor, rowBright) => new THREE.ShaderMaterial({
   uniforms: { base: { value: new THREE.Color(baseColor) }, rb: { value: rowBright } },
   side: THREE.DoubleSide,
   vertexShader: `
-    attribute vec2 uv; varying vec2 vUv; varying vec3 vN; varying vec3 vWP;
+    varying vec3 vN; varying vec3 vWP;
     void main(){
-      vUv = uv; vN = normalMatrix * normal;
-      vec4 wp = modelMatrix*vec4(position,1.); vWP = wp.xyz;
-      gl_Position = projectionMatrix*viewMatrix*wp;
+      vN = normalMatrix * normal;
+      vec4 wp = modelMatrix * vec4(position, 1.); vWP = wp.xyz;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
     }
   `,
   fragmentShader: `
     uniform vec3 base; uniform float rb;
-    varying vec2 vUv; varying vec3 vN; varying vec3 vWP;
+    varying vec3 vN; varying vec3 vWP;
     void main(){
-      // seat rows: stripe in Y world space
       float row  = mod(vWP.y * 2.2, 1.);
-      float seat = smoothstep(.82,.88,row);
+      float seat = smoothstep(.82, .88, row);
       vec3 col = mix(base, base * rb, seat);
-      // diffuse shading
       vec3 N = normalize(vN);
       float d = clamp(dot(N, normalize(vec3(.2,1.,.3))), .0, 1.);
       col *= (.45 + d * .55);
