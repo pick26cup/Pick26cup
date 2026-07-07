@@ -4796,6 +4796,7 @@ function syncFromFirebase(){
       newResults[id] = Object.assign({}, newResults[id], _VERIFIED_RESULTS[id], {locked:true});
     });
     _globalResults = newResults;
+    _repropagateAllBrackets();
     _resultVoiceReady = true;
     setTimeout(function(){ refreshLeaderboardIfVisible(); }, 300);
     // Sync lock state in admin UI when Firebase data changes
@@ -6448,6 +6449,66 @@ function findMatch(mid){
   return null;
 }
 
+// ── Bracket propagation: match result → next round team slot ──────────────
+// Maps each knockout match to the slot it feeds in the next round.
+const BRACKET_NEXT = {
+  '5_7':{ next:'6_4', side:'home' },
+  '5_8':{ next:'6_4', side:'away' },
+  '6_1':{ next:'7_1', side:'home' },
+  '6_2':{ next:'7_1', side:'away' },
+  '6_3':{ next:'7_2', side:'home' },
+  '6_4':{ next:'7_2', side:'away' },
+};
+
+function _propagateBracket(matchId, result){
+  const slot = BRACKET_NEXT[matchId];
+  if(!slot) return;
+  const matchObj = findMatch(matchId);
+  if(!matchObj) return;
+  const rH = Number(result.scoreH), rA = Number(result.scoreA);
+  const nameH = customTeamNames[matchId+'_home'] || matchObj.home;
+  const nameA = customTeamNames[matchId+'_away'] || matchObj.away;
+  let winner;
+  if(rH > rA) winner = nameH;
+  else if(rA > rH) winner = nameA;
+  else if(result.winner === 'home') winner = nameH;
+  else if(result.winner === 'away') winner = nameA;
+  if(!winner) return;
+  customTeamNames[slot.next+'_'+slot.side] = winner;
+  localStorage.setItem('wc2026_teamNames', JSON.stringify(customTeamNames));
+  if(db) db.ref('teamNames').set(customTeamNames);
+  renderMatches();
+}
+
+// Re-run propagation for all saved results on load (handles past results).
+function _repropagateAllBrackets(){
+  let changed = false;
+  Object.keys(BRACKET_NEXT).forEach(mid => {
+    const res = _globalResults[mid];
+    if(!res) return;
+    const slot = BRACKET_NEXT[mid];
+    const matchObj = findMatch(mid);
+    if(!matchObj) return;
+    const rH = Number(res.scoreH), rA = Number(res.scoreA);
+    const nameH = customTeamNames[mid+'_home'] || matchObj.home;
+    const nameA = customTeamNames[mid+'_away'] || matchObj.away;
+    let winner;
+    if(rH > rA) winner = nameH;
+    else if(rA > rH) winner = nameA;
+    else if(res.winner === 'home') winner = nameH;
+    else if(res.winner === 'away') winner = nameA;
+    if(!winner) return;
+    if(customTeamNames[slot.next+'_'+slot.side] !== winner){
+      customTeamNames[slot.next+'_'+slot.side] = winner;
+      changed = true;
+    }
+  });
+  if(changed){
+    localStorage.setItem('wc2026_teamNames', JSON.stringify(customTeamNames));
+    if(db) db.ref('teamNames').set(customTeamNames);
+  }
+}
+
 // ══════════════════════════════════════════════════════
 //  ADMIN
 // ══════════════════════════════════════════════════════
@@ -7129,6 +7190,7 @@ function resSave(matchId){
       .then(()=>{
         _globalResults[matchId] = result;
         _resMarkSaved(matchId);
+        _propagateBracket(matchId, result);
         showToast(t('Resultado guardado ✅  — presiona 🔒 Bloquear para protegerlo','Result saved ✅ — press 🔒 Lock to protect it'),'success', 5000);
         recalcAllPoints();
         _refreshNukePanel();
@@ -7144,6 +7206,7 @@ function resSave(matchId){
   } else {
     _globalResults[matchId] = result;
     _resMarkSaved(matchId);
+    _propagateBracket(matchId, result);
     showToast(t('Guardado local','Saved locally'),'success');
   }
 }
