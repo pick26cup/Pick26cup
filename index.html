@@ -9865,7 +9865,7 @@ function renderMyResults(){
     tabsEl.innerHTML = submittedRoundNums.map(r=>`
       <button class="history-round-btn ${r===resultsRound?'active':''}"
         onclick="resultsRound=${r};renderMyResults()">
-        J${r}
+        ${currentLang==='es'?'J':'R'}${r}
       </button>`).join('');
 
     // ── ALL-ROUND TOTALS ──────────────────────────────
