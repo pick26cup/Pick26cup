@@ -5488,7 +5488,7 @@ function printMyPicks(){
         const sh = p.scoreH!==undefined ? p.scoreH : '?';
         const sa = p.scoreA!==undefined ? p.scoreA : '?';
         pickText = sh+' — '+sa;
-        if(p.pick) pickText += ' → '+(p.pick==='home'?'LOCAL':'VISITANTE');
+        if(p.pick) pickText += ' → '+(p.pick==='home'?(currentLang==='es'?'LOCAL':'HOME'):(currentLang==='es'?'VISITANTE':'AWAY'));
         if(p.penalties===true) pickText += ' (Pen)';
         else if(p.penalties===false) pickText += ' (ET)';
         pickClass = 'score';
@@ -5546,6 +5546,10 @@ function openSubmitModal(){
       if(!picks[m.id]) picks[m.id] = {};
       if(picks[m.id].scoreH===undefined) picks[m.id].scoreH = 0;
       if(picks[m.id].scoreA===undefined) picks[m.id].scoreA = 0;
+      // Semi: if predicted draw, must also pick who advances
+      if(m.semi && Number(picks[m.id].scoreH) === Number(picks[m.id].scoreA) && !picks[m.id].pick) {
+        missing.push(m.home+' vs '+m.away);
+      }
     }
   });
   if(missing.length > 0){
@@ -5923,8 +5927,10 @@ function renderCloserResultCard(players, allPicks, results){
   if(!availableRounds.length){ card.innerHTML=''; return; }
 
   // Default to activeWeek on first render, otherwise keep current tab
+  // If activeWeek has no closer/final (e.g., J7 semi), fall back to last available round
   if(!_closerRound || !availableRounds.includes(_closerRound)){
-    _closerRound = activeWeek && activeWeek > 0 ? activeWeek : availableRounds[0];
+    const fallback = activeWeek && availableRounds.includes(activeWeek) ? activeWeek : availableRounds[availableRounds.length-1];
+    _closerRound = fallback || availableRounds[0];
   }
   const round = _closerRound;
 
@@ -6059,7 +6065,7 @@ function renderLeaderboard(){
           if(!res || !p) return;
           const mp = scoreMatch(match, p, res);
           pts += mp;
-          if(mp===3) exact++;
+          if(mp>=3) exact++;
           else if(mp===2) close++;
           else if(mp===1.5) closeOver++;
           else if(mp===0.5) near++;
@@ -6340,8 +6346,8 @@ function scoreMatch(match, pick, res){
     const realWinner = rH > rA ? 'home' : (rA > rH ? 'away' : res.winner);
     const predWinner = pH > pA ? 'home' : (pA > pH ? 'away' : pick.pick);
     if(realWinner && predWinner && predWinner === realWinner) pts += 1;
-    // +1 correct ¿penalties? (only when player predicted a draw)
-    if(pick.penalties !== undefined && res.penalties !== undefined && pick.penalties === res.penalties) pts += 1;
+    // +1 correct ¿penalties? — only counts when BOTH real and predicted 90' score are draws
+    if(rH === rA && pH === pA && pick.penalties !== undefined && res.penalties !== undefined && pick.penalties === res.penalties) pts += 1;
     return pts;
   }
   const requiresScore = match && (match.closer || match.final);
@@ -7561,7 +7567,7 @@ function renderPickDist(round){
     const totalVoted = homeWins + draws + awayWins;
     const correctCount = resStr && dist[resStr] ? dist[resStr].length : 0;
     const pctCorrect = submittedCount > 0 && resStr ? Math.round(correctCount/submittedCount*100) : null;
-    const isCloserMatch = !!(m.closer || m.final);
+    const isCloserMatch = !!(m.closer || m.final || m.semi);
 
     html += '<div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;margin-bottom:14px">';
 
@@ -8002,7 +8008,7 @@ function generateAllPlayersPDF(){
           doc.rect(10,y-4,190,7,'F');
 
           // Team highlights
-          if(!(m.closer||m.final)){
+          if(!(m.closer||m.final||m.semi)){
             if(pick==='home'){
               doc.setFillColor(190,245,208); doc.rect(17,y-3.5,66,5.5,'F');
             } else if(pick==='away'){
@@ -8029,7 +8035,7 @@ function generateAllPlayersPDF(){
           else { doc.setFont('helvetica','normal'); doc.setTextColor(40,40,40); }
           doc.text(pdfAway, 88, y);
 
-          if(!(m.closer||m.final)){
+          if(!(m.closer||m.final||m.semi)){
             [{lbl:'H',cx:136,sel:pick==='home',fill:[190,245,208],stroke:[0,115,48]},
              {lbl:'D',cx:148,sel:pick==='draw',fill:[190,218,255],stroke:[0,68,158]},
              {lbl:'A',cx:160,sel:pick==='away',fill:[255,198,193],stroke:[165,28,18]}
@@ -8065,7 +8071,7 @@ function generateAllPlayersPDF(){
         if(isAdmin){ doc.setFillColor(255,242,160); } else { doc.setFillColor(245,240,220); }
         doc.rect(10,y,190,14,'F');
         doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(80,50,0);
-        const totalP = roundMatches.filter(function(m){ return picks[m.id]&&(picks[m.id].pick||(m.closer||m.final)); }).length;
+        const totalP = roundMatches.filter(function(m){ return picks[m.id]&&(picks[m.id].pick||(m.closer||m.final||m.semi)); }).length;
         doc.text('Picks enviados: '+totalP+' / '+roundMatches.length, 14, y+6);
         doc.text(roundName+' — '+(submitted?'✓ LOCKED':'PENDIENTE'), 200, y+6, {align:'right'});
         doc.setFont('helvetica','normal'); doc.setTextColor(100,80,0);
@@ -9879,7 +9885,7 @@ function renderMyResults(){
         allPlayed++;
         const s=scoreMatch(m,p,res);
         rPts+=s; allPts+=s;
-        if(s===3){allExact++;rExact++;}
+        if(s>=3){allExact++;rExact++;}
         else if(s>=1) allCorrect++;
         else allWrong++;
       });
@@ -9992,7 +9998,7 @@ function renderMyResults(){
       }
 
       const statusLabels = {
-        exact:      currentLang==='es'?'⭐ EXACTO (+3)':'⭐ EXACT (+3)',
+        exact:      currentLang==='es'?`⭐ EXACTO (+${pts})`:`⭐ EXACT (+${pts})`,
         close:      currentLang==='es'?'▼ APROX (+2)':'▼ CLOSE (+2)',
         'close-over': currentLang==='es'?'▲ APROX (+1.5)':'▲ CLOSE (+1.5)',
         near:       currentLang==='es'?'≈ CERCA (+0.5)':'≈ NEAR (+0.5)',
@@ -10065,7 +10071,7 @@ function renderMyResults(){
               }
             }
 
-            const scoreChip = (res && res.scoreH!==undefined && res.scoreA!==undefined && !m.closer && !m.final)
+            const scoreChip = (res && res.scoreH!==undefined && res.scoreA!==undefined && !m.closer && !m.final && !m.semi)
               ? `<span style="background:rgba(212,175,55,.15);border:1px solid var(--gold3);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;color:var(--gold)">${res.scoreH}–${res.scoreA}</span>`
               : '';
 
