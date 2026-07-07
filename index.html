@@ -1798,7 +1798,7 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
             background:rgba(212,175,55,.15);border:1px solid var(--gold3);color:var(--gold)">
             Active: —
           </span>
-          <span style="font-size:10px;color:#555;margin-left:auto">v2026.07.07b</span>
+          <span style="font-size:10px;color:#555;margin-left:auto">v2026.07.07c</span>
         </div>
 
         <!-- ══ SECURITY MONITOR ══ -->
@@ -2754,8 +2754,8 @@ const MATCHES = {
     {id:"6_4",home:"R16 W7",away:"R16 W8",date:"11/07",time:"20:00",closer:true}
   ],
   7:[
-    {id:"7_1",home:"QF W1",away:"QF W2",date:"14/07",time:"15:00"},
-    {id:"7_2",home:"QF W3",away:"QF W4",date:"15/07",time:"15:00",final:true}
+    {id:"7_1",home:"QF W1",away:"QF W2",date:"14/07",time:"15:00",semi:true},
+    {id:"7_2",home:"QF W3",away:"QF W4",date:"15/07",time:"15:00",semi:true}
   ]
 };
 
@@ -4966,6 +4966,7 @@ function renderMatches(){
   roundMatches.forEach((m, idx)=>{
     const isFinal = m.final;
     const isCloser = m.closer;
+    const isSemi = m.semi;
     const isKnockout = isKnockoutMatch(m);
     const userPick = picks[m.id] || {};
     const card = document.createElement('div');
@@ -4986,13 +4987,65 @@ function renderMatches(){
     const pickA = userPick.pick==='away'?'selected-away':'';
 
     let specialBadge = '';
-    if(isFinal) specialBadge = `<span class="badge-final">${currentLang==='es'?'PARTIDO FINAL':'FINAL MATCH'}</span>`;
+    if(isSemi) specialBadge = `<span class="badge-final">SEMIFINAL</span>`;
+    else if(isFinal) specialBadge = `<span class="badge-final">${currentLang==='es'?'PARTIDO FINAL':'FINAL MATCH'}</span>`;
     else if(isCloser) specialBadge = `<span class="badge-closer">${currentLang==='es'?'MARCADOR EXACTO':'EXACT SCORE'}</span>`;
 
     const disabledPick = isSubmitted?'disabled':'';
 
     let scoreSection = '';
-    if(isCloser || isFinal){
+    if(isSemi){
+      const sh = userPick.scoreH!==undefined ? userPick.scoreH : 0;
+      const sa = userPick.scoreA!==undefined ? userPick.scoreA : 0;
+      const isDraw = Number(sh) === Number(sa);
+      const advPick = userPick.pick || '';
+      const penPick = userPick.penalties;
+      const disS = isSubmitted ? 'disabled' : '';
+      const es = currentLang==='es';
+      const pickHClass = advPick==='home' ? 'selected-home' : '';
+      const pickAClass = advPick==='away' ? 'selected-away' : '';
+      const penYesClass = penPick===true ? 'selected-home' : '';
+      const penNoClass = penPick===false ? 'selected-away' : '';
+      scoreSection = `
+        <div class="score-board">
+          <div class="score-team">
+            <span class="score-team-lbl"><span class="sf">${homeFlag}</span>${homeName}</span>
+            <input class="score-input" type="number" min="0" max="20" value="${sh}"
+              ${disS}
+              onfocus="if(this.value==='0')this.value=''"
+              onblur="if(this.value==='')this.value='0';setScore('${m.id}','home',this.value);_semiUpdateUI('${m.id}')"
+              onchange="setScore('${m.id}','home',this.value);_semiUpdateUI('${m.id}')"/>
+          </div>
+          <span class="score-dash">—</span>
+          <div class="score-team">
+            <span class="score-team-lbl"><span class="sf">${awayFlag}</span>${awayName}</span>
+            <input class="score-input" type="number" min="0" max="20" value="${sa}"
+              ${disS}
+              onfocus="if(this.value==='0')this.value=''"
+              onblur="if(this.value==='')this.value='0';setScore('${m.id}','away',this.value);_semiUpdateUI('${m.id}')"
+              onchange="setScore('${m.id}','away',this.value);_semiUpdateUI('${m.id}')"/>
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--gold);text-align:center;margin-top:5px;font-style:italic">⭐ ${es?'Marcador al 90 min':'Score at 90 min'}</p>
+        <div id="semi_extra_${m.id}" style="display:${isDraw?'block':'none'};margin-top:10px;padding:12px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(212,175,55,.25)">
+          <p style="font-size:12px;color:var(--gold3);text-align:center;margin-bottom:8px;font-weight:700">⚽ ${es?'Empate al 90\' — ¿Quién avanza?':'Draw at 90\' — Who advances?'}</p>
+          <div class="pick-btns">
+            <button class="pick-btn ${pickHClass}" ${disS} onclick="setSemiAdvance('${m.id}','home',this)">
+              ${getPickBadge(rawHome)}${es?'Local':'Home'}
+            </button>
+            <button class="pick-btn ${pickAClass}" ${disS} onclick="setSemiAdvance('${m.id}','away',this)">
+              ${getPickBadge(rawAway)}${es?'Visitante':'Away'}
+            </button>
+          </div>
+          <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:12px;color:var(--text2)">${es?'¿Llegó a penales?':'Went to penalties?'}</span>
+            <button id="semi_pen_yes_${m.id}" class="pick-btn ${penYesClass}" style="font-size:11px;padding:5px 14px;min-width:auto" ${disS}
+              onclick="setSemiPenalties('${m.id}',true)">✅ ${es?'Sí':'Yes'}</button>
+            <button id="semi_pen_no_${m.id}" class="pick-btn ${penNoClass}" style="font-size:11px;padding:5px 14px;min-width:auto" ${disS}
+              onclick="setSemiPenalties('${m.id}',false)">❌ No</button>
+          </div>
+        </div>`;
+    } else if(isCloser || isFinal){
       // Default to 0 if not set — blank input means 0 goals
       const sh = userPick.scoreH!==undefined ? userPick.scoreH : 0;
       const sa = userPick.scoreA!==undefined ? userPick.scoreA : 0;
@@ -5040,7 +5093,7 @@ function renderMatches(){
           </div>
         </div>
       </div>
-      ${(isFinal || isCloser) ? '' : `<div class="pick-btns">
+      ${(isFinal || isCloser || isSemi) ? '' : `<div class="pick-btns">
         <button class="pick-btn ${pickH}" ${disabledPick}
           onclick="setPick('${m.id}','home',this)">
           ${getPickBadge(rawHome)}${currentLang==='es'?'Local':'Home'}
@@ -5118,7 +5171,20 @@ function renderPDFPreview(round){
 
       // Build match cell
       let matchHtml;
-      if(m.closer||m.final){
+      if(m.semi){
+        const sh = p.scoreH!==undefined ? p.scoreH : '?';
+        const sa = p.scoreA!==undefined ? p.scoreA : '?';
+        const es = currentLang==='es';
+        let extra = '';
+        if(p.pick) extra += ' → '+(p.pick==='home' ? homeName : awayName);
+        if(p.penalties===true) extra += ' ('+( es?'Penales':'Pen')+')';
+        else if(p.penalties===false) extra += ' (ET)';
+        matchHtml = `<div class="prev-match-row">
+          <span class="prev-team">${homeName}</span>
+          <span class="prev-score-box" style="font-size:11px">${sh} - ${sa}${extra}</span>
+          <span class="prev-team">${awayName}</span>
+        </div>`;
+      } else if(m.closer||m.final){
         const sh = p.scoreH!==undefined ? p.scoreH : '?';
         const sa = p.scoreA!==undefined ? p.scoreA : '?';
         matchHtml = `<div class="prev-match-row">
@@ -5236,7 +5302,14 @@ function printCurrentRound(){
     const hn=customTeamNames[m.id+'_home']||m.home;
     const an=customTeamNames[m.id+'_away']||m.away;
     let pt='—',pc='';
-    if(m.closer||m.final){ pt=(p.scoreH??'?')+' — '+(p.scoreA??'?'); pc='sc'; }
+    if(m.semi){
+      pt=(p.scoreH??'?')+' — '+(p.scoreA??'?');
+      if(p.pick) pt+=' → '+(p.pick==='home'?hn:an);
+      if(p.penalties===true) pt+=' (Pen)';
+      else if(p.penalties===false) pt+=' (ET)';
+      pc='sc';
+    }
+    else if(m.closer||m.final){ pt=(p.scoreH??'?')+' — '+(p.scoreA??'?'); pc='sc'; }
     else if(p.pick==='home'){ pt=es?'LOCAL':'HOME WIN'; pc='hw'; }
     else if(p.pick==='draw'){ pt=es?'EMPATE':'DRAW'; pc='dr'; }
     else if(p.pick==='away'){ pt=es?'VISITANTE':'AWAY WIN'; pc='aw'; }
@@ -6237,11 +6310,32 @@ function hasSubmittedRound(pickNode, playerNode, round){
 //                     diff=1 over  (more goals pred.)  -> 1.5 pts
 //                     diff≥2 correct winner            -> 1 pt
 //                     wrong winner                     -> 0 pts
-//   Closer/Final J2–J7 : exact score                  -> 3 pts
+//   Closer/Final J2–J6 : exact score                  -> 3 pts
 //                        correct winner (not exact)    -> 1 pt
 //                        wrong winner                  -> 0 pts
+//   Semi (J7)       : exact 90' score                 -> 2 pts
+//                     correct advancing team           -> 1 pt
+//                     correct ¿penalties? (yes/no)     -> 1 pt
+//                     max per match                    -> 4 pts
 function scoreMatch(match, pick, res){
   if(!pick || !res) return 0;
+  // J7 Semifinal scoring
+  if(match && match.semi){
+    if(pick.scoreH == null || pick.scoreA == null) return 0;
+    const pH = Number(pick.scoreH), pA = Number(pick.scoreA);
+    const rH = Number(res.scoreH), rA = Number(res.scoreA);
+    if(isNaN(pH)||isNaN(pA)||isNaN(rH)||isNaN(rA)) return 0;
+    let pts = 0;
+    // +2 exact 90' score
+    if(pH === rH && pA === rA) pts += 2;
+    // +1 correct advancing team
+    const realWinner = rH > rA ? 'home' : (rA > rH ? 'away' : res.winner);
+    const predWinner = pH > pA ? 'home' : (pA > pH ? 'away' : pick.pick);
+    if(realWinner && predWinner && predWinner === realWinner) pts += 1;
+    // +1 correct ¿penalties? (only when player predicted a draw)
+    if(pick.penalties !== undefined && res.penalties !== undefined && pick.penalties === res.penalties) pts += 1;
+    return pts;
+  }
   const requiresScore = match && (match.closer || match.final);
   if(requiresScore){
     const sH = pick.scoreH, sA = pick.scoreA;
@@ -6260,6 +6354,51 @@ function scoreMatch(match, pick, res){
     return predWinner === realWinner ? 1 : 0;
   }
   return pickMatchesResult(pick.pick, res) ? 1 : 0;
+}
+
+// ── J7 Semi pick helpers ─────────────────────────────────────────────────────
+function _semiUpdateUI(matchId){
+  const p = picks[matchId] || {};
+  const sh = Number(p.scoreH), sa = Number(p.scoreA);
+  const isDraw = !isNaN(sh) && !isNaN(sa) && sh === sa;
+  const extra = document.getElementById('semi_extra_'+matchId);
+  if(extra) extra.style.display = isDraw ? 'block' : 'none';
+  if(!isDraw && (p.pick || p.penalties !== undefined)){
+    delete picks[matchId].pick;
+    delete picks[matchId].penalties;
+    savePicks();
+  }
+}
+
+function setSemiAdvance(matchId, outcome, btn){
+  if(isRoundLocked(currentRound)){
+    showToast(currentLang==='es'?'🔒 Predicciones cerradas.':'🔒 Picks locked.','error');
+    return;
+  }
+  if(!picks[matchId]) picks[matchId] = {};
+  picks[matchId].pick = outcome;
+  savePicks();
+  const extra = document.getElementById('semi_extra_'+matchId);
+  if(extra){
+    extra.querySelectorAll('.pick-btn').forEach(b=>{
+      b.classList.remove('selected-home','selected-away','selected-draw');
+    });
+  }
+  btn.classList.add(outcome==='home'?'selected-home':'selected-away');
+}
+
+function setSemiPenalties(matchId, value){
+  if(isRoundLocked(currentRound)){
+    showToast(currentLang==='es'?'🔒 Predicciones cerradas.':'🔒 Picks locked.','error');
+    return;
+  }
+  if(!picks[matchId]) picks[matchId] = {};
+  picks[matchId].penalties = value;
+  savePicks();
+  const yesBtn = document.getElementById('semi_pen_yes_'+matchId);
+  const noBtn = document.getElementById('semi_pen_no_'+matchId);
+  if(yesBtn){ yesBtn.classList.toggle('selected-home', value===true); yesBtn.classList.toggle('selected-away', false); }
+  if(noBtn){ noBtn.classList.toggle('selected-away', value===false); noBtn.classList.toggle('selected-home', false); }
 }
 
 // Returns tiebreaker data for a player's closer match in a given round.
@@ -6706,23 +6845,25 @@ function renderAdminMatches(){
     const homeName = isPlaceholderTeam(home) ? prettyTeamLabel(home) : home;
     const awayName = isPlaceholderTeam(away) ? prettyTeamLabel(away) : away;
     const ko = isKnockoutMatch(m);
+    const isSemiM = m.semi;
     const div = document.createElement('div');
     div.className = 'admin-match-item';
     div.id = 'rrow_'+m.id;
     div.innerHTML =
-      '<div class="admin-match-teams">'+getTeamVisual(home)+' '+escapeHtml(homeName)+' <strong>vs</strong> '+escapeHtml(awayName)+' '+getTeamVisual(away)+'</div>'
+      '<div class="admin-match-teams">'+getTeamVisual(home)+' '+escapeHtml(homeName)+' <strong>vs</strong> '+escapeHtml(awayName)+' '+getTeamVisual(away)
+        +(isSemiM ? ' <span style="font-size:10px;color:rgba(212,175,55,.7);margin-left:4px">SEMIFINAL</span>' : '')+'</div>'
       +'<div class="admin-score-inputs">'
         +'<input type="number" min="0" max="30" placeholder="H" id="rs_h_'+m.id+'" style="width:44px"/>'
         +'<span style="color:var(--gold);font-weight:700;margin:0 4px">—</span>'
         +'<input type="number" min="0" max="30" placeholder="A" id="rs_a_'+m.id+'" style="width:44px"/>'
-        +(ko
+        +(ko && !isSemiM
           ? '<select id="rs_w_'+m.id+'" onchange="resTogglePen(\''+m.id+'\')" style="margin-left:10px;background:#1a1a1a;border:1px solid #444;color:var(--text);border-radius:6px;padding:3px 8px;font-size:11px">'
             +'<option value="">90 min</option>'
             +'<option value="pen">⚡ Penales</option>'
             +'</select>'
           : '')
       +'</div>'
-      +(ko
+      +(ko && !isSemiM
         ? '<div id="rs_pen_'+m.id+'" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(100,160,255,.08);border:1px solid rgba(100,160,255,.25);border-radius:8px">'
           +'<div style="font-size:11px;font-weight:700;color:rgba(100,160,255,.9);margin-bottom:6px">⚡ ¿Quién ganó en penales?</div>'
           +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:4px">'
@@ -6732,6 +6873,23 @@ function renderAdminMatches(){
           +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer">'
             +'<input type="radio" name="rs_win_'+m.id+'" id="rs_wa_'+m.id+'" value="away" style="accent-color:#7ab"/>'
             +getTeamVisual(away)+' '+escapeHtml(awayName)
+          +'</label>'
+          +'</div>'
+        : '')
+      +(isSemiM
+        ? '<div style="margin-top:8px;padding:10px 12px;background:rgba(100,160,255,.08);border:1px solid rgba(100,160,255,.25);border-radius:8px">'
+          +'<div style="font-size:11px;font-weight:700;color:rgba(100,160,255,.9);margin-bottom:8px">⭐ Marcador = 90 min | ¿Quién avanza a la final?</div>'
+          +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:5px">'
+            +'<input type="radio" name="rs_adv_'+m.id+'" id="rs_adv_h_'+m.id+'" value="home" style="accent-color:#7ab"/>'
+            +getTeamVisual(home)+' '+escapeHtml(homeName)
+          +'</label>'
+          +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:8px">'
+            +'<input type="radio" name="rs_adv_'+m.id+'" id="rs_adv_a_'+m.id+'" value="away" style="accent-color:#7ab"/>'
+            +getTeamVisual(away)+' '+escapeHtml(awayName)
+          +'</label>'
+          +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--text2)">'
+            +'<input type="checkbox" id="rs_pen_cb_'+m.id+'" style="accent-color:#7ab"/>'
+            +' ⚡ ¿El partido llegó a penales?'
           +'</label>'
           +'</div>'
         : '')
@@ -6756,7 +6914,14 @@ function renderAdminMatches(){
       const wEl = document.getElementById('rs_w_'+m.id);
       if(hEl) hEl.value = r.scoreH;
       if(aEl) aEl.value = r.scoreA;
-      if(wEl){
+      if(m.semi){
+        const advHEl = document.getElementById('rs_adv_h_'+m.id);
+        const advAEl = document.getElementById('rs_adv_a_'+m.id);
+        if(advHEl) advHEl.checked = r.winner === 'home';
+        if(advAEl) advAEl.checked = r.winner === 'away';
+        const penCbEl = document.getElementById('rs_pen_cb_'+m.id);
+        if(penCbEl) penCbEl.checked = !!r.penalties;
+      } else if(wEl){
         wEl.value = r.winner ? 'pen' : '';
         resTogglePen(m.id);
         const whEl = document.getElementById('rs_wh_'+m.id);
@@ -6808,7 +6973,7 @@ function _resShowLocked(matchId){
   const del = document.getElementById('rs_del_'+matchId);
   if(del) del.style.display='none';
   // Disable all inputs for this match
-  ['rs_h_','rs_a_','rs_w_','rs_wh_','rs_wa_','rs_save_'].forEach(p=>{
+  ['rs_h_','rs_a_','rs_w_','rs_wh_','rs_wa_','rs_save_','rs_adv_h_','rs_adv_a_','rs_pen_cb_'].forEach(p=>{
     const el = document.getElementById(p+matchId);
     if(el){ el.disabled=true; el.style.opacity='0.5'; }
   });
@@ -6822,7 +6987,7 @@ function _resHideLocked(matchId){
   if(lkBtn) lkBtn.style.display='';
   const del = document.getElementById('rs_del_'+matchId);
   if(del) del.style.display='';
-  ['rs_h_','rs_a_','rs_w_','rs_wh_','rs_wa_','rs_save_'].forEach(p=>{
+  ['rs_h_','rs_a_','rs_w_','rs_wh_','rs_wa_','rs_save_','rs_adv_h_','rs_adv_a_','rs_pen_cb_'].forEach(p=>{
     const el = document.getElementById(p+matchId);
     if(el){ el.disabled=false; el.style.opacity=''; }
   });
@@ -6891,26 +7056,43 @@ function resSave(matchId){
   const a = parseInt(aEl&&aEl.value);
   if(isNaN(h)||isNaN(a)||h<0||a<0){ showToast(t('Ingresa un marcador válido','Enter a valid score'),'error'); return; }
 
-  const ko = isKnockoutMatch(findMatch(matchId));
+  const matchObj = findMatch(matchId);
+  const ko = isKnockoutMatch(matchObj);
+  const isSemiR = matchObj && matchObj.semi;
   const wEl = document.getElementById('rs_w_'+matchId);
-  const isPen = ko && wEl && wEl.value==='pen';
-
-  // Partido eliminatorio empatado DEBE tener penales seleccionados
-  if(ko && h===a && !isPen){
-    showToast(t('Marcador empatado en eliminatoria — selecciona Penales y elige ganador',
-               'Tied score in knockout — select Penalties and pick winner'),'error');
-    if(wEl) wEl.focus();
-    return;
-  }
+  const isPen = ko && !isSemiR && wEl && wEl.value==='pen';
 
   const result = { scoreH:h, scoreA:a, updatedAt:Date.now() };
 
-  if(isPen){
-    const whEl = document.getElementById('rs_wh_'+matchId);
-    const waEl = document.getElementById('rs_wa_'+matchId);
-    const winner = whEl&&whEl.checked ? 'home' : (waEl&&waEl.checked ? 'away' : null);
-    if(!winner){ showToast(t('Selecciona quién ganó en penales','Select who won on penalties'),'error'); return; }
-    result.winner = winner;
+  if(isSemiR){
+    // Semi: marcador es al 90'. Si empate, necesitamos quién avanza.
+    const advHEl = document.getElementById('rs_adv_h_'+matchId);
+    const advAEl = document.getElementById('rs_adv_a_'+matchId);
+    const penCbEl = document.getElementById('rs_pen_cb_'+matchId);
+    if(h === a){
+      const advance = advHEl&&advHEl.checked ? 'home' : (advAEl&&advAEl.checked ? 'away' : null);
+      if(!advance){
+        showToast(t('Empate al 90\' — selecciona quién avanza a la final','Draw at 90\' — select who advances to the final'),'error');
+        return;
+      }
+      result.winner = advance;
+    }
+    result.penalties = penCbEl ? penCbEl.checked : false;
+  } else {
+    // Partido eliminatorio empatado DEBE tener penales seleccionados
+    if(ko && h===a && !isPen){
+      showToast(t('Marcador empatado en eliminatoria — selecciona Penales y elige ganador',
+                 'Tied score in knockout — select Penalties and pick winner'),'error');
+      if(wEl) wEl.focus();
+      return;
+    }
+    if(isPen){
+      const whEl = document.getElementById('rs_wh_'+matchId);
+      const waEl = document.getElementById('rs_wa_'+matchId);
+      const winner = whEl&&whEl.checked ? 'home' : (waEl&&waEl.checked ? 'away' : null);
+      if(!winner){ showToast(t('Selecciona quién ganó en penales','Select who won on penalties'),'error'); return; }
+      result.winner = winner;
+    }
   }
 
   localStorage.setItem('wc2026_result_'+matchId, JSON.stringify(result));
