@@ -3777,7 +3777,7 @@ function renderManualEntryGrid(){
   // Header row — match names
   html += '<tr><th style="padding:6px 8px;border:1px solid #333;color:#D4AF37;white-space:nowrap;background:#1a1a1a;position:sticky;left:0;z-index:2">Jugador</th>';
   matches.forEach(function(m){
-    const isCloser = !!(m.closer || m.final);
+    const isCloser = !!(m.closer || m.final || m.semi);
     const label = m.home.split(' ')[0]+'<br>vs<br>'+m.away.split(' ')[0];
     html += '<th style="padding:4px 6px;border:1px solid #333;color:'+(isCloser?'#D4AF37':'#aaa')+';text-align:center;background:#1a1a1a;min-width:72px">'+label+(isCloser?' ⭐':'')+'</th>';
   });
@@ -3786,7 +3786,7 @@ function renderManualEntryGrid(){
   // Resultado real row
   html += '<tr style="background:#0d0d0d"><td style="padding:6px 8px;border:1px solid #333;color:#F39C12;font-weight:700;white-space:nowrap;position:sticky;left:0;background:#0d0d0d">📊 Resultado Real</td>';
   matches.forEach(function(m){
-    const isCloser = !!(m.closer || m.final);
+    const isCloser = !!(m.closer || m.final || m.semi);
     if(isCloser){
       const cur = _meResultState[m.id] || {};
       html += '<td style="padding:4px;border:1px solid #333;text-align:center">'
@@ -3811,7 +3811,7 @@ function renderManualEntryGrid(){
     const rowBg = idx%2===0 ? '#111' : '#141414';
     html += '<tr style="background:'+rowBg+'"><td style="padding:6px 8px;border:1px solid #333;color:#fff;font-weight:600;white-space:nowrap;position:sticky;left:0;background:'+rowBg+'">'+p.name+'</td>';
     matches.forEach(function(m){
-      const isCloser = !!(m.closer || m.final);
+      const isCloser = !!(m.closer || m.final || m.semi);
       const cur = (_mePickState[p.key]||{})[m.id] || {};
       if(isCloser){
         html += '<td style="padding:4px;border:1px solid #333;text-align:center">'
@@ -3844,7 +3844,7 @@ function saveManualEntry(){
 
   // Collect closer scores from inputs before building updates
   matches.forEach(function(m){
-    const isCloser = !!(m.closer || m.final);
+    const isCloser = !!(m.closer || m.final || m.semi);
     if(isCloser){
       // Result
       const rH = document.getElementById('merH_'+m.id);
@@ -5030,10 +5030,10 @@ function renderMatches(){
         <div id="semi_extra_${m.id}" style="display:${isDraw?'block':'none'};margin-top:10px;padding:12px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(212,175,55,.25)">
           <p style="font-size:12px;color:var(--gold3);text-align:center;margin-bottom:8px;font-weight:700">⚽ ${es?'Empate al 90\' — ¿Quién avanza?':'Draw at 90\' — Who advances?'}</p>
           <div class="pick-btns">
-            <button class="pick-btn ${pickHClass}" ${disS} onclick="setSemiAdvance('${m.id}','home',this)">
+            <button class="pick-btn semi-adv-btn ${pickHClass}" data-adv="home" ${disS} onclick="setSemiAdvance('${m.id}','home',this)">
               ${getPickBadge(rawHome)}${es?'Local':'Home'}
             </button>
-            <button class="pick-btn ${pickAClass}" ${disS} onclick="setSemiAdvance('${m.id}','away',this)">
+            <button class="pick-btn semi-adv-btn ${pickAClass}" data-adv="away" ${disS} onclick="setSemiAdvance('${m.id}','away',this)">
               ${getPickBadge(rawAway)}${es?'Visitante':'Away'}
             </button>
           </div>
@@ -5484,7 +5484,15 @@ function printMyPicks(){
       const awayName = customTeamNames[m.id+'_away'] || m.away;
       let pickText = '—';
       let pickClass = '';
-      if(m.closer || m.final){
+      if(m.semi){
+        const sh = p.scoreH!==undefined ? p.scoreH : '?';
+        const sa = p.scoreA!==undefined ? p.scoreA : '?';
+        pickText = sh+' — '+sa;
+        if(p.pick) pickText += ' → '+(p.pick==='home'?'LOCAL':'VISITANTE');
+        if(p.penalties===true) pickText += ' (Pen)';
+        else if(p.penalties===false) pickText += ' (ET)';
+        pickClass = 'score';
+      } else if(m.closer || m.final){
         const sh = p.scoreH!==undefined ? p.scoreH : '?';
         const sa = p.scoreA!==undefined ? p.scoreA : '?';
         pickText = sh+' — '+sa;
@@ -5532,8 +5540,8 @@ function openSubmitModal(){
   let missing = [];
   roundMatches.forEach(m=>{
     const p = picks[m.id];
-    if(!m.final && !m.closer && (!p || !p.pick)) missing.push(m.home+' vs '+m.away);
-    if((m.closer||m.final)){
+    if(!m.final && !m.closer && !m.semi && (!p || !p.pick)) missing.push(m.home+' vs '+m.away);
+    if(m.closer||m.final||m.semi){
       // Auto-default missing scores to 0 (blank input = 0 goals)
       if(!picks[m.id]) picks[m.id] = {};
       if(picks[m.id].scoreH===undefined) picks[m.id].scoreH = 0;
@@ -6378,12 +6386,11 @@ function setSemiAdvance(matchId, outcome, btn){
   if(!picks[matchId]) picks[matchId] = {};
   picks[matchId].pick = outcome;
   savePicks();
-  const extra = document.getElementById('semi_extra_'+matchId);
-  if(extra){
-    extra.querySelectorAll('.pick-btn').forEach(b=>{
-      b.classList.remove('selected-home','selected-away','selected-draw');
-    });
-  }
+  // Only reset the two advance buttons, not the penalties yes/no buttons
+  const homeBtn = document.querySelector('#semi_extra_'+matchId+' .semi-adv-btn[data-adv="home"]');
+  const awayBtn = document.querySelector('#semi_extra_'+matchId+' .semi-adv-btn[data-adv="away"]');
+  if(homeBtn) homeBtn.classList.remove('selected-home','selected-away','selected-draw');
+  if(awayBtn) awayBtn.classList.remove('selected-home','selected-away','selected-draw');
   btn.classList.add(outcome==='home'?'selected-home':'selected-away');
 }
 
@@ -7750,7 +7757,15 @@ function renderAdminPickViewerContent(){
 
     // Pick display
     let pickHtml;
-    if(m.closer||m.final){
+    if(m.semi){
+      const sh = pick.scoreH!==undefined?pick.scoreH:'—';
+      const sa = pick.scoreA!==undefined?pick.scoreA:'—';
+      let adv='';
+      if(pick.pick) adv=' →'+(pick.pick==='home'?homeName:awayName);
+      if(pick.penalties===true) adv+='(P)';
+      else if(pick.penalties===false) adv+='(ET)';
+      pickHtml=`<span class="prev-score-box" style="font-size:10px">${sh}-${sa}${adv}</span>`;
+    } else if(m.closer||m.final){
       const sh = pick.scoreH!==undefined?pick.scoreH:'—';
       const sa = pick.scoreA!==undefined?pick.scoreA:'—';
       pickHtml=`<span class="prev-score-box" style="font-size:11px">${sh}-${sa}</span>`;
@@ -7772,7 +7787,7 @@ function renderAdminPickViewerContent(){
       resHtml=`<span style="font-size:11px;color:var(--text2)">${res.scoreH}-${res.scoreA}${penNote}</span>`;
       const pts = scoreMatch(m, pick, res);
       runningPts += pts;
-      if(pts===3)       { ptsHtml=`<strong style="color:#2ecc71">+3</strong>`; ptsBg='rgba(46,204,113,.12)'; }
+      if(pts>=3)        { ptsHtml=`<strong style="color:#2ecc71">+${pts}</strong>`; ptsBg='rgba(46,204,113,.12)'; }
       else if(pts===2)  { ptsHtml=`<strong style="color:#3498db">+2</strong>`; ptsBg='rgba(52,152,219,.12)'; }
       else if(pts===1.5){ ptsHtml=`<strong style="color:#9b59b6">+1.5</strong>`; ptsBg='rgba(155,89,182,.12)'; }
       else if(pts===1)  { ptsHtml=`<strong style="color:#f39c12">+1</strong>`; ptsBg='rgba(243,156,18,.12)'; }
@@ -8388,7 +8403,13 @@ function generatePDFAllRounds(playerName, playerPicks, rounds, isAdminCopy=false
           doc.rect(10,y-4,190,7,'F');
 
           // ── Team cell highlights ──────────────────────────────────
-          if(!(m.closer||m.final)){
+          if(m.semi){
+            const ph = Number(p.scoreH), pa = Number(p.scoreA);
+            const advHome = (!isNaN(ph)&&!isNaN(pa)&&ph>pa) || (ph===pa && p.pick==='home');
+            const advAway = (!isNaN(ph)&&!isNaN(pa)&&pa>ph) || (ph===pa && p.pick==='away');
+            if(advHome){ doc.setFillColor(190,245,208); doc.rect(17,y-3.5,66,5.5,'F'); }
+            else if(advAway){ doc.setFillColor(255,198,193); doc.rect(85,y-3.5,43,5.5,'F'); }
+          } else if(!(m.closer||m.final)){
             if(pick==='home'){
               doc.setFillColor(190,245,208);
               doc.rect(17,y-3.5,66,5.5,'F');
@@ -8421,8 +8442,25 @@ function generatePDFAllRounds(playerName, playerPicks, rounds, isAdminCopy=false
           else { doc.setFont('helvetica','normal'); doc.setTextColor(40,40,40); }
           doc.text(pdfAway, 88, y);
 
-          // ── Pick column: circles ──────────────────────────────────
-          if(!(m.closer||m.final)){
+          // ── Pick column: circles or score ─────────────────────────
+          if(m.semi){
+            const sh = p.scoreH!==undefined?p.scoreH:'?';
+            const sa = p.scoreA!==undefined?p.scoreA:'?';
+            let advText = '';
+            if(p.pick==='home') advText=' H';
+            else if(p.pick==='away') advText=' A';
+            if(p.penalties===true) advText+='(P)';
+            else if(p.penalties===false) advText+='(ET)';
+            const scoreStr = String(sh)+'-'+String(sa)+advText;
+            doc.setFillColor(255,242,175);
+            doc.setDrawColor(160,110,0);
+            doc.setLineWidth(0.9);
+            doc.roundedRect(128,y-4,42,6.5,3,3,'FD');
+            doc.setFont('helvetica','bold');
+            doc.setFontSize(7);
+            doc.setTextColor(110,72,0);
+            doc.text(scoreStr, 149, y+0.3, {align:'center'});
+          } else if(!(m.closer||m.final)){
             // Three circles H / D / A — selected one filled & circled
             const opts = [
               {lbl:'H', cx:136, sel:pick==='home', fill:[190,245,208], stroke:[0,115,48]},
@@ -8480,7 +8518,7 @@ function generatePDFAllRounds(playerName, playerPicks, rounds, isAdminCopy=false
         doc.setFontSize(8);
         doc.setFont('helvetica','bold');
         doc.setTextColor(80,50,0);
-        const totalPicks = roundMatches.filter(m=>playerPicks[m.id]&&(playerPicks[m.id].pick||(m.closer||m.final))).length;
+        const totalPicks = roundMatches.filter(m=>playerPicks[m.id]&&(playerPicks[m.id].pick||(m.closer||m.final||m.semi))).length;
         doc.text('Total picks submitted: '+totalPicks+' / '+roundMatches.length, 14, y+6);
         doc.text(roundName+' — LOCKED & SUBMITTED', 200, y+6, {align:'right'});
         doc.setFont('helvetica','normal');
@@ -9897,7 +9935,7 @@ function renderMyResults(){
 
       let status='wrong', pts=0;
       pts = scoreMatch(m, p, res);
-      if(pts===3){ status='exact'; totalExact++; }
+      if(pts>=3){ status='exact'; totalExact++; }
       else if(pts===2){ status='close'; totalClose++; }
       else if(pts===1.5){ status='close-over'; totalOver++; }
       else if(pts===0.5){ status='near'; totalNear++; }
@@ -9975,7 +10013,13 @@ function renderMyResults(){
           ${(() => {
             // Build "Your pick" with team name instead of Home/Away
             let myPickTeam = '';
-            if(m.closer || m.final){
+            if(m.semi){
+              const sh = p.scoreH??'?', sa = p.scoreA??'?';
+              myPickTeam = `${sh} — ${sa}`;
+              if(p.pick) myPickTeam += ' → '+(p.pick==='home'?homeName:awayName);
+              if(p.penalties===true) myPickTeam += ' (Pen)';
+              else if(p.penalties===false) myPickTeam += ' (ET)';
+            } else if(m.closer || m.final){
               myPickTeam = `${p.scoreH??'?'} — ${p.scoreA??'?'}`;
             } else if(p && p.pick==='home'){
               myPickTeam = homeName;
@@ -9990,7 +10034,13 @@ function renderMyResults(){
             // Build "Real result" with team name
             let realTeam = '', resultLine = '';
             if(res){
-              if(m.closer || m.final){
+              if(m.semi){
+                const rH = Number(res.scoreH), rA = Number(res.scoreA);
+                realTeam = `${res.scoreH} — ${res.scoreA}`;
+                const advancer = rH > rA ? homeName : rA > rH ? awayName : (res.winner==='home'?homeName:awayName);
+                const penNote = res.penalties ? (currentLang==='es'?' (penales)':' (penalties)') : (res.winner && rH===rA ? ' (ET)' : '');
+                resultLine = `<span>⚽ 90': <strong style="color:var(--gold)">${realTeam}</strong> → ${advancer}${penNote}</span>`;
+              } else if(m.closer || m.final){
                 realTeam = `${res.scoreH} — ${res.scoreA}`;
                 resultLine = `<span>⚽ ${currentLang==='es'?'Marcador':'Score'}: <strong style="color:var(--gold)">${realTeam}</strong></span>`;
               } else {
