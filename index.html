@@ -596,8 +596,8 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
   .match-card{padding:14px}
   .team-name{font-size:12px}
   .pick-btn{font-size:11px;padding:7px 4px}
-  .round-tabs{gap:5px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px}
-  .round-tab{font-size:12px;padding:6px 12px;white-space:nowrap}
+  .round-tabs{gap:5px;flex-wrap:wrap;justify-content:center;padding-bottom:2px}
+  .round-tab{font-size:12px;padding:6px 11px;white-space:nowrap}
   .week-selector{flex-direction:column;align-items:flex-start}
   .admin-card{padding:14px}
 }
@@ -650,8 +650,8 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
   .pick-btn{font-size:11px;padding:7px 2px;min-width:60px}
   .score-board{gap:8px;padding:10px 6px}
   .score-input{width:52px;font-size:20px}
-  .round-tabs{gap:4px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px}
-  .round-tab{font-size:11px;padding:5px 10px;white-space:nowrap}
+  .round-tabs{gap:4px;flex-wrap:wrap;justify-content:center;padding-bottom:2px}
+  .round-tab{font-size:11px;padding:5px 9px;white-space:nowrap}
   .submit-area{padding:16px 10px}
   .btn-submit{font-size:18px;padding:12px 28px}
   /* Leaderboard */
@@ -1703,13 +1703,13 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
       <div id="weekDisplayBanner" style="display:none;padding:10px 16px;background:rgba(212,175,55,.12);border:1px solid var(--gold3);border-radius:8px;margin-bottom:16px;font-size:14px;color:var(--gold);font-weight:600;text-align:center"></div>
 
       <div class="round-tabs" id="roundTabs">
-        <button class="round-tab active" onclick="setRound(1)" id="rtab1">Round 1</button>
-        <button class="round-tab" onclick="setRound(2)" id="rtab2">Round 2</button>
-        <button class="round-tab" onclick="setRound(3)" id="rtab3">Round 3</button>
-        <button class="round-tab" onclick="setRound(4)" id="rtab4">Round 4</button>
-        <button class="round-tab" onclick="setRound(5)" id="rtab5">Round 5</button>
-        <button class="round-tab" onclick="setRound(6)" id="rtab6">Round 6</button>
-        <button class="round-tab" onclick="setRound(7)" id="rtab7">Round 7</button>
+        <button class="round-tab active" onclick="setRound(1)" id="rtab1">J1</button>
+        <button class="round-tab" onclick="setRound(2)" id="rtab2">J2</button>
+        <button class="round-tab" onclick="setRound(3)" id="rtab3">J3</button>
+        <button class="round-tab" onclick="setRound(4)" id="rtab4">J4</button>
+        <button class="round-tab" onclick="setRound(5)" id="rtab5">J5</button>
+        <button class="round-tab" onclick="setRound(6)" id="rtab6">J6</button>
+        <button class="round-tab" onclick="setRound(7)" id="rtab7">J7</button>
       </div>
 
       <div id="matchesContainer" class="matches-grid"></div>
@@ -5340,7 +5340,7 @@ function renderRoundTabs(){
   for(let r=1;r<=7;r++){
     const btn = document.getElementById('rtab'+r);
     if(!btn) continue;
-    const label = currentLang==='es' ? 'Jornada '+r : 'Round '+r;
+    const label = (currentLang==='es' ? 'J' : 'R')+r;
     const isApproved = r <= activeWeek || isApprovedForRound(r);
     const isSubmitted = !!(submittedRounds[r] || submittedRounds[String(r)]);
     btn.classList.remove('locked','round-pending','round-submitted','active');
@@ -5354,7 +5354,7 @@ function renderRoundTabs(){
       // non-selected: red blinking if pending, gold if already submitted
       if(!isSubmitted) btn.classList.add('round-pending');
     } else {
-      btn.textContent = (currentLang==='es'?'Jornada ':'Round ')+r+' 🔒';
+      btn.textContent = (currentLang==='es'?'J':'R')+r+' 🔒';
       btn.classList.add('locked');
       btn.title = currentLang==='es'?'No disponible aún':'Not available yet';
     }
