@@ -6795,7 +6795,9 @@ function announceRoundWinner(){
     const allPicks = snaps[1].val() || {};
     const results  = snaps[2].val() || {};
     const roundMatches = MATCHES[round] || [];
-    let best = null;
+
+    // Collect scores for all approved players
+    const scores = [];
     Object.keys(players).forEach(function(key){
       const player = players[key];
       if(!player || !player.approved) return;
@@ -6807,25 +6809,30 @@ function announceRoundWinner(){
         const p = pickData[m.id];
         if(res && p) pts += scoreMatch(m, p, res);
       });
-      if(!best || pts > best.pts){
-        best = {key, name: player.name||key, pts, avatar: player.avatar||null};
-      }
+      const pen = (player.penalties||{})[round] || (player.penalties||{})[String(round)] || 0;
+      pts = Math.max(0, Math.round((pts + pen) * 10) / 10);
+      scores.push({key, name: player.name||key, pts, avatar: player.avatar||null});
     });
-    if(!best || best.pts <= 0){
-      showToast('Aún no hay un ganador con puntos', 'error'); return;
-    }
-    const msg = '🏆 Anunciar ganador de Jornada ' + round + ':\n' + best.name + ' con ' + best.pts + ' pts\n\n¿Confirmar?';
+
+    if(scores.length === 0){ showToast('Aún no hay jugadores con picks', 'error'); return; }
+    const maxPts = Math.max(...scores.map(s => s.pts));
+    if(maxPts <= 0){ showToast('Aún no hay un ganador con puntos', 'error'); return; }
+
+    // All players tied at the top
+    const winners = scores.filter(s => s.pts === maxPts);
+    const namesList = winners.map(w => w.name).join('\n  ');
+    const label = winners.length > 1 ? 'ganadores' : 'ganador';
+    const msg = '🏆 Anunciar ' + label + ' de Jornada ' + round + ':\n  ' + namesList + '\ncon ' + maxPts + ' pts\n\n¿Confirmar?';
     if(!confirm(msg)) return;
+
     db.ref('roundAnnouncements/' + round).set({
-      winnerKey: best.key,
-      winnerName: best.name,
-      winnerPts: best.pts,
-      winnerAvatar: best.avatar,
+      winners: winners.map(w => ({key:w.key, name:w.name, pts:w.pts, avatar:w.avatar||null})),
       announcedAt: Date.now()
     }).then(function(){
-      showToast('¡Ganador anunciado! 🎉', 'success');
-      // Admin sees the FIFA intro immediately (force, bypass localStorage)
-      _showFifaWinnerIntro(best, round);
+      showToast('¡' + (winners.length > 1 ? 'Ganadores anunciados' : 'Ganador anunciado') + '! 🎉', 'success');
+      // Admin sees all intros sequentially
+      winners.forEach(function(w){ _pendingWinnerQueue.push({winner:w, round:round}); });
+      _showNextPendingWinner();
     }).catch(function(){
       showToast('Error guardando en Firebase', 'error');
     });
