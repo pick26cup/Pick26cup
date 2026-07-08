@@ -5605,12 +5605,29 @@ function doSubmitPicks(){
     const key = playerKey();
 
     // 1. Write current-round picks using UPDATE (merge) so other rounds are never overwritten.
-    //    savePicks() already wrote them incrementally — this is a safety guarantee.
     const currentRoundMatchIds = (MATCHES[currentRound]||[]).map(function(m){ return m.id; });
     const roundPicks = {};
     currentRoundMatchIds.forEach(function(id){ if(picksSnapshot[id]) roundPicks[id] = picksSnapshot[id]; });
     if(Object.keys(roundPicks).length > 0){
-      db.ref('picks/'+key+'/picks').update(roundPicks).catch(function(){});
+      var _picksRef = db.ref('picks/'+key+'/picks');
+      var _roundPicksCopy = roundPicks;
+      var _picksRound = currentRound;
+      function _writePicksWithRetry(attempt){
+        _picksRef.update(_roundPicksCopy).then(function(){
+          // also persist backup in localStorage keyed by round for recovery
+          localStorage.setItem('wc2026_backup_picks_'+currentUser+'_R'+_picksRound, JSON.stringify(_roundPicksCopy));
+        }).catch(function(){
+          if(attempt < 3){
+            setTimeout(function(){ _writePicksWithRetry(attempt+1); }, 2000 * attempt);
+          } else {
+            showToast(currentLang==='es'
+              ? '⚠️ No se guardaron los picks en la nube. Tus picks están en este dispositivo. Recarga la app.'
+              : '⚠️ Picks not saved to cloud. Saved on this device. Reload the app.',
+              'error');
+          }
+        });
+      }
+      _writePicksWithRetry(1);
     }
 
     // 2. Mark round as submitted using UPDATE — only touches submittedRounds/{round}, nothing else.
