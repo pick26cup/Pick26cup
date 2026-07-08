@@ -1893,7 +1893,10 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
           <div id="adminSubTab-resultados">
             <div id="adminFbAuthStatus" style="display:none;margin-bottom:12px;padding:10px 14px;border-radius:8px;background:rgba(0,0,0,.3);font-size:12px;line-height:1.5"></div>
             <div class="admin-card">
-              <h3 data-en="Enter Results" data-es="Ingresar Resultados">Enter Results</h3>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <h3 style="margin:0" data-en="Enter Results" data-es="Ingresar Resultados">Enter Results</h3>
+                <button class="btn-sm btn-save" onclick="renderAdminMatches()" style="font-size:11px;padding:4px 10px">↺</button>
+              </div>
               <div class="round-tabs" style="margin-bottom:16px;flex-wrap:wrap">
                 <button class="round-tab active" onclick="setAdminRound(1)" id="artab1">Round 1</button>
                 <button class="round-tab" onclick="setAdminRound(2)" id="artab2">Round 2</button>
@@ -1915,7 +1918,10 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
           <!-- Sub-tab: Equipos -->
           <div id="adminSubTab-equipos" style="display:none">
             <div class="admin-card">
-              <h3 data-en="Edit Team Names" data-es="Editar Nombres de Equipos">Edit Team Names</h3>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <h3 style="margin:0" data-en="Edit Team Names" data-es="Editar Nombres de Equipos">Edit Team Names</h3>
+                <button class="btn-sm btn-save" onclick="renderEditTeams()" style="font-size:11px;padding:4px 10px">↺</button>
+              </div>
               <p style="font-size:12px;color:var(--text2);margin-bottom:12px" data-en="Update placeholder names for rounds 4-7 when teams are confirmed." data-es="Actualiza los nombres para jornadas 4-7 cuando se confirmen los equipos.">Update placeholder names for rounds 4-7 when teams are confirmed.</p>
               <div class="round-tabs" style="margin-bottom:12px;flex-wrap:wrap">
                 <button class="round-tab active" onclick="setEditRound(4)" id="ertab4">Round 4</button>
@@ -1931,7 +1937,10 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
             <div class="admin-card">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
                 <h3 style="margin:0" data-en="📅 Edit Matches" data-es="📅 Editar Partidos">📅 Edit Matches</h3>
-                <button onclick="clearAllMatchOverrides()" style="background:rgba(231,76,60,.15);border:1px solid var(--red);color:var(--red);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">🧹 Reset All Times</button>
+                <div style="display:flex;gap:6px">
+                  <button class="btn-sm btn-save" onclick="renderEditMatches()" style="font-size:11px;padding:4px 10px">↺</button>
+                  <button onclick="clearAllMatchOverrides()" style="background:rgba(231,76,60,.15);border:1px solid var(--red);color:var(--red);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">🧹 Reset All Times</button>
+                </div>
               </div>
               <p style="font-size:12px;color:var(--text2);margin-bottom:10px" data-en="Update date, time or teams if FIFA makes changes." data-es="Actualiza fecha, hora o equipos si FIFA hace cambios.">Update date, time or teams if FIFA makes changes.</p>
               <div class="round-tabs" style="margin-bottom:10px;flex-wrap:wrap">
@@ -1952,7 +1961,10 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
         <div id="adminSec-jornada" style="display:none">
           <button class="admin-back-btn" onclick="backToAdminDash()">← Volver</button>
           <div class="admin-card">
-            <h3 data-en="Round / Week" data-es="Jornada / Semana">Jornada / Semana</h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <h3 style="margin:0" data-en="Round / Week" data-es="Jornada / Semana">Jornada / Semana</h3>
+              <button class="btn-sm btn-save" onclick="updateWeekStatusBadge()" style="font-size:11px;padding:4px 10px">↺</button>
+            </div>
             <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
               <label style="font-size:12px;color:var(--text2)" data-en="Round / Week:" data-es="Jornada / Semana:">Jornada / Semana:</label>
               <select id="activeWeekSelect" style="background:#1a1a1a;border:1px solid #333;color:var(--text);border-radius:6px;padding:4px 8px;font-size:13px">
@@ -2044,7 +2056,10 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
         <div id="adminSec-tardio" style="display:none">
           <button class="admin-back-btn" onclick="backToAdminDash()">← Volver</button>
           <div class="admin-card">
-            <h3>⏰ <span data-en="Late Pick Exception" data-es="Pick Tardío">Late Pick Exception</span></h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+              <h3 style="margin:0">⏰ <span data-en="Late Pick Exception" data-es="Pick Tardío">Late Pick Exception</span></h3>
+              <button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="font-size:11px;padding:4px 10px">↺</button>
+            </div>
             <p style="font-size:12px;color:var(--text2);margin-bottom:12px" data-en="Allow a player to submit picks after the deadline, with an optional point penalty." data-es="Permite a un jugador enviar picks después del cierre, con penalización opcional.">Allow a player to submit picks after the deadline, with an optional point penalty.</p>
             <div style="display:flex;flex-direction:column;gap:10px">
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
