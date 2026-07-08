@@ -4733,6 +4733,19 @@ function syncFromFirebase(){
         picks = fbPicks;
         if(data.submittedRounds) submittedRounds = data.submittedRounds;
       }
+      // Stale-submitted check: picks are now loaded — safe to verify.
+      // If the active round is marked submitted but has zero picks in Firebase,
+      // the previous submit wrote the flag but the picks write failed. Clear it.
+      if(activeWeek > 0 && (submittedRounds[activeWeek] || submittedRounds[String(activeWeek)])){
+        var _activeIds = (MATCHES[activeWeek]||[]).map(function(m){ return m.id; });
+        var _hasPicks = _activeIds.some(function(id){ return picks[id]; });
+        if(!_hasPicks){
+          delete submittedRounds[activeWeek];
+          delete submittedRounds[String(activeWeek)];
+          db.ref('picks/'+playerKey()+'/submittedRounds/'+activeWeek).remove().catch(function(){});
+          db.ref('players/'+playerKey()+'/submittedRounds/'+activeWeek).remove().catch(function(){});
+        }
+      }
       localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
       localStorage.setItem('wc2026_submitted_'+currentUser, JSON.stringify(submittedRounds));
     } else if(!data && Object.keys(picks).length > 0){
