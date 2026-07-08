@@ -8884,7 +8884,7 @@ function isApprovedForRound(round){
   return false;
 }
 
-// A round is locked for editing once we are within 5 h of its first match.
+// A round is locked for editing once we are within 30 min of its first match.
 // Exception: if admin granted a late pick deadline that hasn't passed yet.
 function isRoundLocked(round){
   // Admin can force-unlock a round from the admin panel
