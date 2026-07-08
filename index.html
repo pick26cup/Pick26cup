@@ -2220,25 +2220,6 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
 @keyframes fwTrophyGlow2{0%,100%{filter:drop-shadow(0 0 18px rgba(212,175,55,.7))}50%{filter:drop-shadow(0 0 40px rgba(212,175,55,1))}}
 @keyframes fwPulseRing2{0%{transform:scale(.8);opacity:.8}100%{transform:scale(2.2);opacity:0}}
 
-/* ── RED CARD WARNING ───────────────────────────────────── */
-@keyframes rcOverlayIn{0%{opacity:0}100%{opacity:1}}
-@keyframes rcCardDrop{0%{transform:translateY(-120px) rotate(-15deg) scale(.5);opacity:0}60%{transform:translateY(8px) rotate(3deg) scale(1.08);opacity:1}80%{transform:translateY(-4px) rotate(-1deg) scale(1.02)}100%{transform:translateY(0) rotate(0) scale(1);opacity:1}}
-@keyframes rcPulse{0%,100%{box-shadow:0 0 60px rgba(210,20,20,.55),0 0 120px rgba(180,10,10,.2)}50%{box-shadow:0 0 100px rgba(255,40,40,.85),0 0 200px rgba(210,20,20,.45)}}
-@keyframes rcBadgeIn{0%{transform:scale(0) rotate(20deg);opacity:0}70%{transform:scale(1.12) rotate(-4deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
-@keyframes rcFlash{0%,100%{opacity:1}50%{opacity:.55}}
-#redCardWarning{display:none;position:fixed;inset:0;z-index:11000;background:rgba(4,0,0,.93);align-items:center;justify-content:center;animation:rcOverlayIn .35s ease-out}
-#redCardWarning.rc-visible{display:flex}
-.rc-panel{position:relative;max-width:340px;width:92%;background:linear-gradient(160deg,#1a0202 0%,#0e0000 100%);border:2px solid rgba(200,20,20,.55);border-radius:22px;padding:28px 22px 24px;text-align:center;animation:rcPulse 2.2s 1.2s ease-in-out infinite}
-.rc-card-icon{display:inline-block;font-size:64px;line-height:1;animation:rcCardDrop .7s .25s cubic-bezier(.34,1.4,.64,1) both}
-.rc-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(200,20,20,.18);border:1.5px solid rgba(220,40,40,.55);border-radius:30px;padding:5px 14px;margin:10px 0 14px;animation:rcBadgeIn .5s .9s cubic-bezier(.34,1.4,.64,1) both}
-.rc-badge-text{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;color:#ff4444}
-.rc-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:#fff;line-height:1.15;margin-bottom:10px;animation:rcFlash .9s .3s ease-in-out 3}
-.rc-body{font-size:13px;color:rgba(255,255,255,.72);line-height:1.65;margin-bottom:18px}
-.rc-body strong{color:#ff5555}
-.rc-pts{font-family:'Bebas Neue',sans-serif;font-size:38px;color:#e81010;letter-spacing:2px;display:block;line-height:1;filter:drop-shadow(0 0 12px rgba(230,20,20,.8))}
-.rc-pts-label{font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:3px;color:rgba(255,80,80,.55);display:block;margin-top:2px;margin-bottom:16px}
-.rc-close{background:rgba(200,20,20,.18);border:1.5px solid rgba(220,40,40,.45);color:#ff6666;border-radius:12px;padding:10px 28px;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;cursor:pointer;width:100%;transition:.2s}
-.rc-close:active{background:rgba(200,20,20,.35)}
 
 /* ── FIFA MATCH INTRO ───────────────────────────────────── */
 @keyframes fifaFlagLeft{
@@ -2327,18 +2308,6 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
   </div>
 </div>
 
-<!-- RED CARD WARNING -->
-<div id="redCardWarning" onclick="rcPlayAndClose()">
-  <div class="rc-panel">
-    <div class="rc-card-icon">🟥</div>
-    <div class="rc-badge"><span style="font-size:18px">🏟️</span><span class="rc-badge-text" id="rcBadgeText">AVISO OFICIAL PICK26</span></div>
-    <div class="rc-title" id="rcTitle">⚠️ ATENCIÓN JUGADOR ⚠️</div>
-    <div class="rc-body" id="rcBody"></div>
-    <span class="rc-pts">-1</span>
-    <span class="rc-pts-label" id="rcPtsLabel">CASTIGO POR TARJETA ROJA</span>
-    <div style="margin-top:18px;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;color:rgba(255,100,100,.45);animation:rcFlash 1.4s ease-in-out infinite" id="rcTapHint">👆 TOCA LA PANTALLA PARA ESCUCHAR</div>
-  </div>
-</div>
 
 <!-- SUBMIT MODAL -->
 <div class="modal-overlay hidden" id="submitModal">
@@ -3144,7 +3113,6 @@ function setupFirebase(){
         if(adminLoggedIn) renderPendingPlayers();
       }
       if(currentUser) setupPickNotification();
-      if(currentUser && activeWeek > 0) setTimeout(showRedCardWarning, 1200);
       // Sync currentRound to activeWeek and re-render picks if visible
       if(activeWeek > 0 && currentRound !== activeWeek){
         currentRound = activeWeek;
@@ -10667,112 +10635,6 @@ function playRefWhistle(){
   }catch(e){}
 }
 
-function showRedCardWarning(){
-  if(!currentUser || !activeWeek || activeWeek <= 0) return;
-  // Show every time app opens while player hasn't submitted picks for this round
-  var submitted = submittedRounds[activeWeek] || submittedRounds[String(activeWeek)];
-  if(submitted) return;
-  // Stop showing 30 minutes before the first match of the round (deadline passed)
-  var roundMatches = MATCHES[activeWeek] || [];
-  if(roundMatches.length === 0) return;
-  var firstKickoff = parseMatchDate(roundMatches[0]);
-  if(firstKickoff && Date.now() >= firstKickoff.getTime() - LOCK_BEFORE_MS) return;
-
-  var es = currentLang === 'es';
-
-  // Compute deadline time in Miami (EDT = UTC-4)
-  var deadlineStr = '';
-  if(firstKickoff){
-    var deadlineMs = firstKickoff.getTime() - LOCK_BEFORE_MS;
-    var EDT_OFFSET = -4;
-    var dUtcH = new Date(deadlineMs).getUTCHours() + EDT_OFFSET;
-    var dUtcM = new Date(deadlineMs).getUTCMinutes();
-    if(dUtcH < 0) dUtcH += 24;
-    deadlineStr = ('0'+dUtcH).slice(-2) + ':' + ('0'+dUtcM).slice(-2);
-  }
-  var deadlineLabel = deadlineStr ? '<strong>' + deadlineStr + ' (hora Miami)</strong>' : '<strong>30 min antes del partido</strong>';
-  var deadlineLabelEn = deadlineStr ? '<strong>' + deadlineStr + ' Miami time</strong>' : '<strong>30 min before kickoff</strong>';
-
-  var badge = document.getElementById('rcBadgeText');
-  var title = document.getElementById('rcTitle');
-  var body  = document.getElementById('rcBody');
-  var ptsLabel = document.getElementById('rcPtsLabel');
-  var closeBtn = document.getElementById('rcCloseBtn');
-
-  if(badge) badge.textContent = es ? 'AVISO OFICIAL PICK26 · JORNADA '+activeWeek : 'OFFICIAL PICK26 NOTICE · ROUND '+activeWeek;
-  if(title) title.textContent = es ? '⚠️ ATENCIÓN JUGADOR ⚠️' : '⚠️ PLAYER WARNING ⚠️';
-  if(ptsLabel) ptsLabel.textContent = es ? 'CASTIGO POR TARJETA ROJA' : 'RED CARD PENALTY';
-  if(closeBtn) closeBtn.textContent = es ? 'ENTENDIDO — CERRAR' : 'UNDERSTOOD — CLOSE';
-
-  var msgEs = '¡Aún no has enviado tus picks para la <strong>Jornada '+activeWeek+'</strong>! '
-    + 'Recuerda: tienes hasta ' + deadlineLabel + ' para enviarlos. '
-    + 'El que envía a tiempo está bien — <strong>no pierde ni suma puntos extra por esto</strong>. '
-    + 'Pero si no los envías a tiempo, debes contactar al administrador. '
-    + 'El administrador aplicará la sanción: <strong>TARJETA ROJA = −1 punto</strong> como castigo. 🟥';
-
-  var msgEn = 'You have not submitted your picks for <strong>Round '+activeWeek+'</strong> yet! '
-    + 'Remember: you have until ' + deadlineLabelEn + ' to submit. '
-    + 'Players who submit on time are fine — <strong>no extra points lost or gained for this</strong>. '
-    + 'If you miss the deadline, contact the administrator. '
-    + 'The administrator will apply the penalty: <strong>RED CARD = −1 point</strong>. 🟥';
-
-  if(body) body.innerHTML = es ? msgEs : msgEn;
-
-  var el = document.getElementById('redCardWarning');
-  if(el){ el.onclick = rcPlayAndClose; el.classList.add('rc-visible'); }
-  // Store voice text for when user taps the button (browser requires user gesture for audio)
-  var voiceEs = '¡Atención, jugador! Aquí el árbitro. Todavía no has enviado tus picks para la jornada '
-    + activeWeek + '. Recuerda: tienes hasta treinta minutos antes del partido. '
-    + 'El que envía a tiempo está bien, no pierde puntos. '
-    + 'Pero si no cumples, contacta al administrador. La sanción es tarjeta roja: menos un punto como castigo. '
-    + '¡Envía tus predicciones, campeón!';
-  var voiceEn = 'Attention player! This is your referee speaking. '
-    + 'You have not submitted your picks for round ' + activeWeek + ' yet. '
-    + 'You have thirty minutes before kickoff to submit. Players who submit on time are fine — no penalty. '
-    + 'But if you miss the deadline, contact the administrator. '
-    + 'The penalty is a red card: minus one point. Submit your picks, champion!';
-  window._rcVoiceText = es ? voiceEs : voiceEn;
-}
-
-function rcPlayAndClose(){
-  var el = document.getElementById('redCardWarning');
-  if(!el || !el.classList.contains('rc-visible')) return;
-  el.onclick = null;
-  var hint = document.getElementById('rcTapHint');
-  if(hint) hint.style.display = 'none';
-  // Suppress next-match voice so it doesn't overlap while referee speaks
-  _voiceAnnounced = true;
-  // Play whistle + voice (user gesture unlocks audio)
-  playRefWhistle();
-  var txt = window._rcVoiceText || '';
-  if(txt){
-    var utt = new SpeechSynthesisUtterance('');
-    setTimeout(function(){
-      speakVoice(txt, {pitch:0.88, rate:0.86});
-      // Re-enable next-match voice once utterance ends naturally
-      var check = setInterval(function(){
-        if(!window.speechSynthesis.speaking){ clearInterval(check); _voiceAnnounced = false; }
-      }, 500);
-    }, 650);
-  } else {
-    setTimeout(function(){ _voiceAnnounced = false; }, 5000);
-  }
-  // Close modal visually after 1.5s — voice keeps playing after modal is gone
-  setTimeout(function(){ _dismissRedCard(); }, 1500);
-}
-
-function _dismissRedCard(){
-  var el = document.getElementById('redCardWarning');
-  if(!el) return;
-  el.style.opacity='0'; el.style.transition='opacity .5s';
-  setTimeout(function(){ el.classList.remove('rc-visible'); el.style.opacity=''; el.style.transition=''; window._rcVoiceText=null; }, 520);
-}
-
-function closeRedCardWarning(){
-  window.speechSynthesis && window.speechSynthesis.cancel();
-  _voiceAnnounced = false;
-  _dismissRedCard();
-}
 
 function playStampSound(){
   try{
