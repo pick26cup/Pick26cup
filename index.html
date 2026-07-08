@@ -10372,6 +10372,47 @@ var stadiumAudio = (function(){
     rumbleSrc.connect(rumbleLP); rumbleLP.connect(rumbleG); rumbleG.connect(masterGain);
     rumbleSrc.start();
 
+    // ── VUVUZELAS ────────────────────────────────────────────────────────────
+    // Multiple players slightly detuned — characteristic stadium drone (~Bb3 = 233 Hz)
+    [232, 235, 238, 234, 237].forEach(function(freq, i){
+      var osc = ctx.createOscillator();
+      osc.type = 'sawtooth'; osc.frequency.value = freq;
+
+      var lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1100; lp.Q.value=0.7;
+      var pk = ctx.createBiquadFilter(); pk.type='peaking'; pk.frequency.value=470; pk.Q.value=1.5; pk.gain.value=7;
+
+      // Each player blows in their own rhythm
+      var envOsc = ctx.createOscillator(); envOsc.type='sine'; envOsc.frequency.value=0.06+i*0.015;
+      var envG = ctx.createGain(); envG.gain.value=0.14; envOsc.connect(envG);
+
+      var vg = ctx.createGain(); vg.gain.value=0.07; envG.connect(vg.gain);
+
+      var pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      osc.connect(lp); lp.connect(pk); pk.connect(vg);
+      if(pan){ pan.pan.value=(i/4*2-1)*0.65; vg.connect(pan); pan.connect(masterGain); pan.connect(conv); }
+      else { vg.connect(masterGain); vg.connect(conv); }
+      osc.start(); envOsc.start();
+    });
+
+    // ── APPLAUSE ─────────────────────────────────────────────────────────────
+    // Pink noise shaped to hand-clap frequency band, AM-modulated at clap rate
+    var clapSrc = ctx.createBufferSource();
+    clapSrc.buffer = pinkBuf(3); clapSrc.loop = true;
+    var clapHP = ctx.createBiquadFilter(); clapHP.type='highpass'; clapHP.frequency.value=900;
+    var clapLP = ctx.createBiquadFilter(); clapLP.type='lowpass';  clapLP.frequency.value=3800;
+
+    // Two AM oscillators: slow wave (crowd swell) + faster (individual claps)
+    var clapAm1 = ctx.createOscillator(); clapAm1.type='sine'; clapAm1.frequency.value=0.09;
+    var clapAm2 = ctx.createOscillator(); clapAm2.type='sine'; clapAm2.frequency.value=3.2;
+    var cag1 = ctx.createGain(); cag1.gain.value=0.18; clapAm1.connect(cag1);
+    var cag2 = ctx.createGain(); cag2.gain.value=0.22; clapAm2.connect(cag2);
+
+    var clapG = ctx.createGain(); clapG.gain.value=0.14;
+    cag1.connect(clapG.gain); cag2.connect(clapG.gain);
+    clapSrc.connect(clapHP); clapHP.connect(clapLP); clapLP.connect(clapG);
+    clapG.connect(masterGain); clapG.connect(conv);
+    clapSrc.start(); clapAm1.start(); clapAm2.start();
+
     // ── GLOBAL SWELL ─────────────────────────────────────────────────────────
     // Slow wave (~20 sec cycle) — crowd rises and falls like a real stadium
     var swellOsc = ctx.createOscillator();
