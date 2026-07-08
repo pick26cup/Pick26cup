@@ -10241,7 +10241,7 @@ function renderGroupStats(players, allPicks, results){
   var m=document.getElementById('bgMusic');
   if(!m) return;
   var START_VOL = 0.05;
-  var TARGET_VOL = 0.18;
+  var TARGET_VOL = 0.16;
   var FADE_STEPS = 80;   // 80 steps × 100ms = 8 seconds gradual rise
   m.volume = START_VOL;
   var played = false;
@@ -10427,7 +10427,7 @@ var stadiumAudio = (function(){
 
     // Lower background music slightly
     var m = document.getElementById('bgMusic');
-    if(m) m.volume = 0.15;
+    if(m) m.volume = 0.14;
   }
 
   function init() {
@@ -10497,7 +10497,7 @@ function toggleMute(){
   if(!m || !btn) return;
   if(m.muted || m.volume === 0){
     m.muted = false;
-    m.volume = _savedMusicVol || 0.18;
+    m.volume = _savedMusicVol || 0.16;
     stadiumAudio.mute(false);
     btn.textContent = '🔊';
     btn.classList.remove('muted');
