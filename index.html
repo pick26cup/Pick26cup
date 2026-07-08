@@ -1893,7 +1893,10 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
           <div id="adminSubTab-resultados">
             <div id="adminFbAuthStatus" style="display:none;margin-bottom:12px;padding:10px 14px;border-radius:8px;background:rgba(0,0,0,.3);font-size:12px;line-height:1.5"></div>
             <div class="admin-card">
-              <h3 data-en="Enter Results" data-es="Ingresar Resultados">Enter Results</h3>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <h3 style="margin:0" data-en="Enter Results" data-es="Ingresar Resultados">Enter Results</h3>
+                <button class="btn-sm btn-save" onclick="renderAdminMatches()" style="font-size:11px;padding:4px 10px">↺</button>
+              </div>
               <div class="round-tabs" style="margin-bottom:16px;flex-wrap:wrap">
                 <button class="round-tab active" onclick="setAdminRound(1)" id="artab1">Round 1</button>
                 <button class="round-tab" onclick="setAdminRound(2)" id="artab2">Round 2</button>
@@ -1915,7 +1918,10 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
           <!-- Sub-tab: Equipos -->
           <div id="adminSubTab-equipos" style="display:none">
             <div class="admin-card">
-              <h3 data-en="Edit Team Names" data-es="Editar Nombres de Equipos">Edit Team Names</h3>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <h3 style="margin:0" data-en="Edit Team Names" data-es="Editar Nombres de Equipos">Edit Team Names</h3>
+                <button class="btn-sm btn-save" onclick="renderEditTeams()" style="font-size:11px;padding:4px 10px">↺</button>
+              </div>
               <p style="font-size:12px;color:var(--text2);margin-bottom:12px" data-en="Update placeholder names for rounds 4-7 when teams are confirmed." data-es="Actualiza los nombres para jornadas 4-7 cuando se confirmen los equipos.">Update placeholder names for rounds 4-7 when teams are confirmed.</p>
               <div class="round-tabs" style="margin-bottom:12px;flex-wrap:wrap">
                 <button class="round-tab active" onclick="setEditRound(4)" id="ertab4">Round 4</button>
@@ -1931,7 +1937,10 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
             <div class="admin-card">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
                 <h3 style="margin:0" data-en="📅 Edit Matches" data-es="📅 Editar Partidos">📅 Edit Matches</h3>
-                <button onclick="clearAllMatchOverrides()" style="background:rgba(231,76,60,.15);border:1px solid var(--red);color:var(--red);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">🧹 Reset All Times</button>
+                <div style="display:flex;gap:6px">
+                  <button class="btn-sm btn-save" onclick="renderEditMatches()" style="font-size:11px;padding:4px 10px">↺</button>
+                  <button onclick="clearAllMatchOverrides()" style="background:rgba(231,76,60,.15);border:1px solid var(--red);color:var(--red);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">🧹 Reset All Times</button>
+                </div>
               </div>
               <p style="font-size:12px;color:var(--text2);margin-bottom:10px" data-en="Update date, time or teams if FIFA makes changes." data-es="Actualiza fecha, hora o equipos si FIFA hace cambios.">Update date, time or teams if FIFA makes changes.</p>
               <div class="round-tabs" style="margin-bottom:10px;flex-wrap:wrap">
@@ -1952,7 +1961,10 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
         <div id="adminSec-jornada" style="display:none">
           <button class="admin-back-btn" onclick="backToAdminDash()">← Volver</button>
           <div class="admin-card">
-            <h3 data-en="Round / Week" data-es="Jornada / Semana">Jornada / Semana</h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <h3 style="margin:0" data-en="Round / Week" data-es="Jornada / Semana">Jornada / Semana</h3>
+              <button class="btn-sm btn-save" onclick="updateWeekStatusBadge()" style="font-size:11px;padding:4px 10px">↺</button>
+            </div>
             <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
               <label style="font-size:12px;color:var(--text2)" data-en="Round / Week:" data-es="Jornada / Semana:">Jornada / Semana:</label>
               <select id="activeWeekSelect" style="background:#1a1a1a;border:1px solid #333;color:var(--text);border-radius:6px;padding:4px 8px;font-size:13px">
@@ -2044,7 +2056,10 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
         <div id="adminSec-tardio" style="display:none">
           <button class="admin-back-btn" onclick="backToAdminDash()">← Volver</button>
           <div class="admin-card">
-            <h3>⏰ <span data-en="Late Pick Exception" data-es="Pick Tardío">Late Pick Exception</span></h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+              <h3 style="margin:0">⏰ <span data-en="Late Pick Exception" data-es="Pick Tardío">Late Pick Exception</span></h3>
+              <button class="btn-sm btn-save" onclick="renderAdminPlayers()" style="font-size:11px;padding:4px 10px">↺</button>
+            </div>
             <p style="font-size:12px;color:var(--text2);margin-bottom:12px" data-en="Allow a player to submit picks after the deadline, with an optional point penalty." data-es="Permite a un jugador enviar picks después del cierre, con penalización opcional.">Allow a player to submit picks after the deadline, with an optional point penalty.</p>
             <div style="display:flex;flex-direction:column;gap:10px">
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
@@ -3867,7 +3882,6 @@ function saveManualEntry(){
     });
     updates['picks/'+p.key+'/submittedRounds/'+_meRound] = true;
     updates['picks/'+p.key+'/name'] = p.name;
-    updates['players/'+p.key+'/submittedRounds/'+_meRound] = true;
   });
 
   db.ref().update(updates).then(function(){
@@ -3889,7 +3903,6 @@ function adminMarkSubmitted(key, name, round){
   if(!_fbAuthOk){ showToast('⚠️ Firebase Auth requerido — inicia sesión admin primero','error',4000); return; }
   const updates = {};
   updates['picks/'+key+'/submittedRounds/'+round] = true;
-  updates['players/'+key+'/submittedRounds/'+round] = true;
   db.ref().update(updates).then(function(){
     showToast('✅ '+name+' marcado como enviado J'+round, 'success', 4000);
     setTimeout(renderPendingPlayers, 600);
@@ -3989,7 +4002,6 @@ function recoverSubmissions(){
 
         if(madeCount > 0){
           updates['picks/'+key+'/submittedRounds/'+round] = true;
-          updates['players/'+key+'/submittedRounds/'+round] = true;
           recovered++;
         } else {
           noPicks++;
@@ -4066,7 +4078,7 @@ function doLogin(){
         submittedRounds = {};
         localStorage.removeItem('wc2026_picks_'+name);
         localStorage.removeItem('wc2026_submitted_'+name);
-        db.ref('players/'+key).set({name, approved:false, pts:0, submittedRounds:{}});
+        db.ref('players/'+key).set({name, approved:false, pts:0});
         db.ref('picks/'+key).remove();
         proceed(true);
       } else {
@@ -4723,7 +4735,6 @@ function syncFromFirebase(){
         }
         realMissed.forEach(function(r){
           db.ref('picks/'+playerKey()+'/submittedRounds/'+r).set(true).catch(function(){});
-          db.ref('players/'+playerKey()+'/submittedRounds/'+r).set(true).catch(function(){});
         });
         // Merge Firebase picks with local picks (local has the missed-round picks)
         picks = Object.assign({}, localPicks, fbPicks);
@@ -4743,7 +4754,6 @@ function syncFromFirebase(){
           delete submittedRounds[activeWeek];
           delete submittedRounds[String(activeWeek)];
           db.ref('picks/'+playerKey()+'/submittedRounds/'+activeWeek).remove().catch(function(){});
-          db.ref('players/'+playerKey()+'/submittedRounds/'+activeWeek).remove().catch(function(){});
         }
       }
       localStorage.setItem('wc2026_picks_'+currentUser, JSON.stringify(picks));
@@ -5643,23 +5653,12 @@ function doSubmitPicks(){
       ua: navigator.userAgent.slice(0,120)
     }).catch(function(){});
 
-    // 4. Register player / update submittedRounds in players node.
-    // Write only the current round flag directly — never replace all submittedRounds.
-    // Write submittedRounds flag and ensure player record exists in one atomic pass
+    // 4. Ensure player record exists in players node (submittedRounds lives in picks/{key}).
     db.ref('players/'+key).once('value').then(function(snap){
       if(!snap.val()){
-        // New player: create record with current round already flagged
-        const firstRound = {};
-        firstRound[currentRound] = true;
-        db.ref('players/'+key).set({name:currentUser, approved:false, pts:0, submittedRounds:firstRound}).catch(function(){});
-      } else {
-        // Existing player: write only the round flag, never touch other data
-        db.ref('players/'+key+'/submittedRounds/'+currentRound).set(true).catch(function(){});
+        db.ref('players/'+key).set({name:currentUser, approved:false, pts:0}).catch(function(){});
       }
-    }).catch(function(){
-      // Fallback: try direct write if read failed
-      db.ref('players/'+key+'/submittedRounds/'+currentRound).set(true).catch(function(){});
-    });
+    }).catch(function(){});
   } else {
     _justSubmitted = false;
   }
@@ -6327,7 +6326,7 @@ function pickMatchesResult(pick, res){
 // Robustly check "did this player submit round N?" regardless of whether
 // Firebase stored submittedRounds as an object {"1":true} OR as a sparse
 // array [null,true] (Firebase auto-converts numeric keys to arrays).
-// Reads from BOTH the picks node and the players node.
+// Canonical source is picks/{key}/submittedRounds; players node fallback for backward compat.
 function hasSubmittedRound(pickNode, playerNode, round){
   function check(sr){
     if(!sr) return false;
@@ -7334,10 +7333,8 @@ function renderAdminPlayers(){
     cont.innerHTML='';
     Object.entries(merged).forEach(([key, player])=>{
       if(player._orphan){
-        // Recreate the players node — preserve any submittedRounds from the picks node
         if(db){
-          const orphanSR = (allPicks[key] && allPicks[key].submittedRounds) ? allPicks[key].submittedRounds : {};
-          db.ref('players/'+key).set({name:player.name, approved:false, pts:0, submittedRounds:orphanSR}).catch(()=>{});
+          db.ref('players/'+key).set({name:player.name, approved:false, pts:0}).catch(()=>{});
         }
       }
       const row = document.createElement('div');
@@ -7351,7 +7348,7 @@ function renderAdminPlayers(){
         ? `<button class="btn-sm btn-revoke" onclick="setPlayerApproval('${key}',false)">Revoke</button>`
         : `<button class="btn-sm btn-approve" onclick="setPlayerApproval('${key}',true)">Approve</button>`;
       const playerPicksData = allPicks[key] || {};
-      // Use picks node as primary; fall back to players node (written by doSubmitPicks transaction)
+      // submittedRounds canonical source: picks node; players node is backward-compat fallback
       const srData = playerPicksData.submittedRounds || player.submittedRounds || {};
       const submittedRounds = Object.keys(srData).filter(function(k){ return srData[k]; });
       // Badges J1-J7
@@ -8249,9 +8246,10 @@ function renderRoundPayments(){
 
 function setRoundApproval(key, round, approved){
   if(!db){ showToast(t('Firebase no disponible','Firebase unavailable'),'error'); return; }
-  const ref = db.ref('players/'+key+'/approvedRounds/'+round);
-  const action = approved ? ref.set(true) : ref.remove();
-  action.then(function(){
+  const updates = {};
+  updates['players/'+key+'/approvedRounds/'+round] = approved ? true : null;
+  if(approved) updates['players/'+key+'/approved'] = true;
+  db.ref('/').update(updates).then(function(){
     showToast(
       approved
         ? t('✅ Jugador aprobado para Jornada ','✅ Player approved for Round ')+round
@@ -8259,6 +8257,7 @@ function setRoundApproval(key, round, approved){
       'success'
     );
     renderRoundPayments();
+    renderAdminPlayers();
   }).catch(function(){
     showToast(t('Error: revisa las reglas de Firebase','Error: check Firebase rules'),'error');
   });
@@ -8273,11 +8272,13 @@ function approveAllForRound(){
     const updates = {};
     Object.keys(players).forEach(function(key){
       updates['players/'+key+'/approvedRounds/'+round] = true;
+      updates['players/'+key+'/approved'] = true;
     });
     return db.ref('/').update(updates);
   }).then(function(){
     showToast(t('✅ Todos aprobados para Jornada ','✅ All approved for Round ')+round,'success');
     renderRoundPayments();
+    renderAdminPlayers();
   }).catch(function(){
     showToast('Error','error');
   });
@@ -8285,7 +8286,10 @@ function approveAllForRound(){
 
 function setPlayerApproval(key, approved){
   if(!db){ showToast(t('Firebase no disponible','Firebase unavailable'),'error'); return; }
-  db.ref('players/'+key+'/approved').set(approved).then(function(){
+  const updates = {};
+  updates['players/'+key+'/approved'] = approved;
+  if(approved) updates['players/'+key+'/approvedRounds/1'] = true;
+  db.ref('/').update(updates).then(function(){
     showToast(approved?t('Jugador aprobado ✅','Player approved ✅'):t('Jugador revocado','Player revoked'),'success');
     if(approved) setTimeout(recalcAllPoints, 400);
     renderAdminPlayers();
@@ -8371,10 +8375,8 @@ function clearPlayerRoundPicks(key, playerName, round){
   if(!confirm(t('¿Borrar las predicciones de la Jornada '+round+' de '+playerName+'?\nEl jugador podrá reenviar sus predicciones de esta jornada.','Clear Round '+round+' picks for '+playerName+'?\nThe player will be unlocked to re-submit predictions for this round.'))) return;
   if(!db){ showToast(t('Se requiere Firebase','Firebase required'),'error'); return; }
 
-  // Remove submitted flag from picks node
+  // Remove submitted flag — single source in picks node
   db.ref('picks/'+key+'/submittedRounds/'+round).remove();
-  // Remove submitted flag from players node
-  db.ref('players/'+key+'/submittedRounds/'+round).remove();
 
   // Remove all individual picks for this round's matches
   const roundMatches = MATCHES[round] || [];
