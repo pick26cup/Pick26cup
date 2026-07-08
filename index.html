@@ -8866,8 +8866,8 @@ function parseMatchDate(match){
   return new Date(utcMs);
 }
 
-// Lock threshold: 2 hours before kickoff (in ms).
-const LOCK_BEFORE_MS = 2 * 60 * 60 * 1000;
+// Lock threshold: 30 minutes before kickoff (in ms).
+const LOCK_BEFORE_MS = 30 * 60 * 1000;
 
 // Is a round locked? Yes once we are within LOCK_BEFORE_MS of the first match.
 function hasMatchStarted(match){
