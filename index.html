@@ -1832,6 +1832,9 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
           </div>
           <div id="pendingPlayerList"><p style="color:var(--text2);font-size:12px">Loading...</p></div>
           <div style="margin-top:10px;border-top:1px solid #333;padding-top:10px;display:flex;flex-direction:column;gap:6px">
+            <button onclick="cleanStaleSubmittedFlags()" style="background:rgba(231,76,60,.15);border:1.5px solid #e74c3c;color:#e74c3c;font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;width:100%">
+              🧹 Desbloquear jugadores sin picks (limpiar flags vacíos)
+            </button>
             <button onclick="recoverSubmissions()" style="background:rgba(212,175,55,.15);border:1.5px solid var(--gold);color:var(--gold);font-family:'DM Sans';font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;width:100%">
               🔧 Recuperar envíos desde picks guardados
             </button>
@@ -4029,6 +4032,77 @@ function recoverSubmissions(){
     const msg = t('Error al leer jugadores: ','Error reading players: ')+(e.message||'');
     if(status){ status.style.color='#e74c3c'; status.textContent = msg; }
     showToast(msg, 'error', 5000);
+  });
+}
+
+// Scans all players for stale submittedRounds flags — flag=true but zero picks stored.
+// Removes the flag so those players can submit their picks.
+function cleanStaleSubmittedFlags(){
+  if(!db){ showToast('Sin conexión','error'); return; }
+  if(!_fbAuthOk){ showToast('⚠️ Firebase Auth requerido — inicia sesión admin primero','error',4000); return; }
+  const sel = document.getElementById('pendingRoundSelect');
+  const round = sel ? parseInt(sel.value) : (activeWeek || 1);
+  const status = document.getElementById('recoverStatus');
+  if(status){ status.style.display='block'; status.style.color='var(--text2)'; status.textContent='🧹 Escaneando J'+round+'...'; }
+
+  const roundMatchIds = (MATCHES[round]||[]).map(function(m){ return m.id; });
+  if(!roundMatchIds.length){
+    if(status){ status.textContent='Sin partidos definidos para J'+round; }
+    return;
+  }
+
+  db.ref('players').once('value').then(function(pSnap){
+    const players = pSnap.val() || {};
+    const keys = Object.keys(players);
+    // Try full picks tree; fall back to per-player reads
+    return db.ref('picks').once('value').then(function(s){ return s.val()||{}; }).catch(function(){
+      return Promise.all(keys.map(function(k){
+        return db.ref('picks/'+k).once('value').then(function(s){ return [k, s.val()]; }).catch(function(){ return [k, null]; });
+      })).then(function(entries){
+        var obj = {};
+        entries.forEach(function(e){ if(e[1]) obj[e[0]]=e[1]; });
+        return obj;
+      });
+    }).then(function(allPicks){
+      var updates = {};
+      var cleaned = [], valid = [];
+      keys.forEach(function(key){
+        var pd = allPicks[key] || {};
+        var player = players[key] || {};
+        var sr = pd.submittedRounds || player.submittedRounds || {};
+        var hasFlag = !!(sr[String(round)] || sr[round]);
+        if(!hasFlag) return;
+        var roundPicks = pd.picks || {};
+        var hasPicks = roundMatchIds.some(function(id){
+          var p = roundPicks[id];
+          return p && (p.pick || p.scoreH !== undefined);
+        });
+        if(hasPicks){
+          valid.push(player.name || key);
+        } else {
+          // Flag present but no picks — stale, remove it
+          updates['picks/'+key+'/submittedRounds/'+round] = null;
+          cleaned.push(player.name || key);
+        }
+      });
+
+      if(!cleaned.length){
+        var msg = '✅ Sin flags vacíos en J'+round+(valid.length?' · '+valid.length+' con picks válidos':'');
+        if(status){ status.style.color='#2ECC71'; status.textContent=msg; }
+        showToast(msg,'success',4000);
+        return;
+      }
+
+      return db.ref('/').update(updates).then(function(){
+        var msg = '🧹 '+cleaned.length+' jugador(es) desbloqueado(s) para J'+round+':\n'+cleaned.join(', ')
+          +(valid.length ? '\n✅ '+valid.length+' conservados (tienen picks)' : '');
+        if(status){ status.style.color='#2ECC71'; status.textContent=msg; }
+        showToast('🧹 '+cleaned.length+' jugadores desbloqueados — ya pueden enviar sus picks','success',6000);
+        setTimeout(function(){ renderPendingPlayers(); }, 800);
+      });
+    });
+  }).catch(function(e){
+    if(status){ status.style.color='#e74c3c'; status.textContent='Error: '+(e.message||e); }
   });
 }
 
