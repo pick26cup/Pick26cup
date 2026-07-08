@@ -5378,7 +5378,7 @@ function renderRoundTabs(){
 // ══════════════════════════════════════════════════════
 function setPick(matchId, outcome, btn){
   if(isRoundLocked(currentRound)){
-    showToast(currentLang==='es'?'🔒 Predicciones cerradas (2 h antes del partido).':'🔒 Picks locked — closes 2 h before kickoff.','error');
+    showToast(currentLang==='es'?'🔒 Predicciones cerradas (30 min antes del partido).':'🔒 Picks locked — closes 30 min before kickoff.','error');
     return;
   }
   if(!picks[matchId]) picks[matchId] = {};
@@ -5393,7 +5393,7 @@ function setPick(matchId, outcome, btn){
 
 function setScore(matchId, side, val){
   if(isRoundLocked(currentRound)){
-    showToast(currentLang==='es'?'🔒 Predicciones cerradas (2 h antes del partido).':'🔒 Picks locked — closes 2 h before kickoff.','error');
+    showToast(currentLang==='es'?'🔒 Predicciones cerradas (30 min antes del partido).':'🔒 Picks locked — closes 30 min before kickoff.','error');
     renderMatches();
     return;
   }
@@ -5542,7 +5542,7 @@ function openSubmitModal(){
     return;
   }
   if(isRoundLocked(currentRound)){
-    showToast(currentLang==='es'?'🔒 Predicciones cerradas (2 h antes del partido).':'🔒 Picks locked — closes 2 h before kickoff.','error');
+    showToast(currentLang==='es'?'🔒 Predicciones cerradas (30 min antes del partido).':'🔒 Picks locked — closes 30 min before kickoff.','error');
     return;
   }
   // Scroll to top so modal is visible without user needing to scroll
