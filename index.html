@@ -4827,21 +4827,6 @@ function syncFromFirebase(){
       }
     });
 
-    // Detect rounds marked submitted in Firebase but with no actual picks saved.
-    // This happens when a previous submit wrote submittedRounds but the picks write failed.
-    // Only auto-clear the current active round to avoid touching historical rounds.
-    Object.keys(fbSubmitted).forEach(function(r){
-      if(!fbSubmitted[r] || Number(r) !== activeWeek) return;
-      var roundMatchIds = (MATCHES[activeWeek]||[]).map(function(m){ return m.id; });
-      var hasPicksForRound = roundMatchIds.some(function(id){ return picks && picks[id]; });
-      if(!hasPicksForRound){
-        // No picks saved — clear the stale submitted flag so player can submit again
-        delete submittedRounds[r];
-        db.ref('picks/'+playerKey()+'/submittedRounds/'+r).remove().catch(function(){});
-        db.ref('players/'+playerKey()+'/submittedRounds/'+r).remove().catch(function(){});
-        cleared = true;
-      }
-    });
 
     if(cleared){
       localStorage.setItem('wc2026_submitted_'+currentUser, JSON.stringify(submittedRounds));
