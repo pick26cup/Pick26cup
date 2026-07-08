@@ -4700,25 +4700,35 @@ function syncFromFirebase(){
       });
 
       if(missedRounds.length > 0){
-        // Re-upload picks and submittedRounds flags for rounds Firebase is missing
+        // Re-upload picks and submittedRounds flags for rounds Firebase is missing.
+        // Only re-upload a round if local picks actually exist for it — prevents
+        // propagating a stale submitted flag from a previously failed write.
         var picksUpdates = {};
+        var realMissed = [];
         missedRounds.forEach(function(r){
-          (MATCHES[r]||[]).forEach(function(m){
-            if(localPicks[m.id]) picksUpdates[m.id] = localPicks[m.id];
-          });
+          var roundMatchIds = (MATCHES[r]||[]).map(function(m){ return m.id; });
+          var hasLocalPicks = roundMatchIds.some(function(id){ return localPicks[id]; });
+          if(hasLocalPicks){
+            realMissed.push(r);
+            roundMatchIds.forEach(function(id){
+              if(localPicks[id]) picksUpdates[id] = localPicks[id];
+            });
+          } else {
+            // No local picks for this round — the submitted flag is stale; clear it
+            delete localSubmitted[r];
+          }
         });
         if(Object.keys(picksUpdates).length > 0){
           db.ref('picks/'+playerKey()+'/picks').update(picksUpdates).catch(function(){});
         }
-        missedRounds.forEach(function(r){
+        realMissed.forEach(function(r){
           db.ref('picks/'+playerKey()+'/submittedRounds/'+r).set(true).catch(function(){});
           db.ref('players/'+playerKey()+'/submittedRounds/'+r).set(true).catch(function(){});
         });
         // Merge Firebase picks with local picks (local has the missed-round picks)
         picks = Object.assign({}, localPicks, fbPicks);
         submittedRounds = Object.assign({}, localSubmitted, fbSubmitted);
-        // Write to firebase the merged submittedRounds
-        missedRounds.forEach(function(r){ submittedRounds[r] = true; });
+        realMissed.forEach(function(r){ submittedRounds[r] = true; });
       } else {
         picks = fbPicks;
         if(data.submittedRounds) submittedRounds = data.submittedRounds;
@@ -4814,6 +4824,22 @@ function syncFromFirebase(){
       if(fbSubmitted[r] && !submittedRounds[r] && !submittedRounds[Number(r)]){
         submittedRounds[r] = true;
         restored = true;
+      }
+    });
+
+    // Detect rounds marked submitted in Firebase but with no actual picks saved.
+    // This happens when a previous submit wrote submittedRounds but the picks write failed.
+    // Only auto-clear the current active round to avoid touching historical rounds.
+    Object.keys(fbSubmitted).forEach(function(r){
+      if(!fbSubmitted[r] || Number(r) !== activeWeek) return;
+      var roundMatchIds = (MATCHES[activeWeek]||[]).map(function(m){ return m.id; });
+      var hasPicksForRound = roundMatchIds.some(function(id){ return picks && picks[id]; });
+      if(!hasPicksForRound){
+        // No picks saved — clear the stale submitted flag so player can submit again
+        delete submittedRounds[r];
+        db.ref('picks/'+playerKey()+'/submittedRounds/'+r).remove().catch(function(){});
+        db.ref('players/'+playerKey()+'/submittedRounds/'+r).remove().catch(function(){});
+        cleared = true;
       }
     });
 
