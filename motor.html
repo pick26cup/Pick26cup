@@ -130,7 +130,7 @@
     <div class="kicker">FIFA World Cup 2026 · Motor Predictivo</div>
     <h1>Motor <b>Elo → Poisson</b> · Jornadas</h1>
     <div class="sub">Calendario real (72 partidos de grupos) con predicción por jornada · eliminatorias editables conforme avanza el Mundial.</div>
-    <div class="sub" style="margin-top:6px;color:#7d8a9a"><span class="flag" style="margin:0">Estado de datos</span> Cuartos COMPLETOS (J6 4/4 · 11-jul-2026) · Elo post-J6 · J7 Semis pre-poblada · forma real 6 partidos (grupos+R32+R16+QF).</div>
+    <div class="sub" style="margin-top:6px;color:#7d8a9a"><span class="flag" style="margin:0">Estado de datos</span> Octavos COMPLETOS (J5 8/8 · 7-jul-2026) · Elo post-J5 · FIFA 11-jun (48/48) · J6 Cuartos pre-poblada · forma real 5 partidos (grupos+R32+R16).</div>
   </header>
 
   <div class="tabs">
@@ -261,12 +261,12 @@ const home=_E('home'),away=_E('away'),ha=_E('ha'),caut=_E('caut'),haVal=_E('haVa
   rtbody=_E('rtbody'),search=_E('search'),imp=_E('imp');
 
 const TEAMS=[
- // Elo post-J6 (al 11-jul-2026) · FIFA jun-11-2026 (48/48) · K=60, G=f(GD), HA=+100
+ // Elo post-J5 (al 7-jul-2026) · FIFA jun-11-2026 (48/48) · K=60, G=f(GD), HA=+100
  {g:"A",n:"México",c:"MX",elo:1924,fifa:1681,host:true},{g:"A",n:"Sudáfrica",c:"ZA",elo:1568,fifa:1428,host:false},
  {g:"A",n:"Corea del Sur",c:"KR",elo:1723,fifa:1592,host:false},{g:"A",n:"Chequia",c:"CZ",elo:1681,fifa:1506,host:false},
  {g:"B",n:"Canadá",c:"CA",elo:1731,fifa:1559,host:true},{g:"B",n:"Bosnia y H.",c:"BA",elo:1596,fifa:1387,host:false},
- {g:"B",n:"Catar",c:"QA",elo:1410,fifa:1450,host:false},{g:"B",n:"Suiza",c:"CH",elo:1926,fifa:1649,host:false},
- {g:"C",n:"Brasil",c:"BR",elo:2002,fifa:1761,host:false},{g:"C",n:"Marruecos",c:"MA",elo:1889,fifa:1756,host:false},
+ {g:"B",n:"Catar",c:"QA",elo:1410,fifa:1450,host:false},{g:"B",n:"Suiza",c:"CH",elo:1947,fifa:1649,host:false},
+ {g:"C",n:"Brasil",c:"BR",elo:2002,fifa:1761,host:false},{g:"C",n:"Marruecos",c:"MA",elo:1918,fifa:1756,host:false},
  {g:"C",n:"Haití",c:"HT",elo:1517,fifa:1293,host:false},{g:"C",n:"Escocia",c:"SQ",elo:1745,fifa:1503,host:false},
  {g:"D",n:"Estados Unidos",c:"US",elo:1755,fifa:1673,host:true},{g:"D",n:"Paraguay",c:"PY",elo:1808,fifa:1505,host:false},
  {g:"D",n:"Australia",c:"AU",elo:1795,fifa:1574,host:false},{g:"D",n:"Turquía",c:"TR",elo:1852,fifa:1606,host:false},
@@ -274,17 +274,17 @@ const TEAMS=[
  {g:"E",n:"Costa de Marfil",c:"CI",elo:1733,fifa:1541,host:false},{g:"E",n:"Ecuador",c:"EC",elo:1856,fifa:1571,host:false},
  {g:"F",n:"Países Bajos",c:"NL",elo:1970,fifa:1758,host:false},{g:"F",n:"Japón",c:"JP",elo:1886,fifa:1660,host:false},
  {g:"F",n:"Suecia",c:"SE",elo:1725,fifa:1533,host:false},{g:"F",n:"Túnez",c:"TN",elo:1560,fifa:1476,host:false},
- {g:"G",n:"Bélgica",c:"BE",elo:1948,fifa:1735,host:false},{g:"G",n:"Egipto",c:"EG",elo:1742,fifa:1571,host:false},
+ {g:"G",n:"Bélgica",c:"BE",elo:1962,fifa:1735,host:false},{g:"G",n:"Egipto",c:"EG",elo:1742,fifa:1571,host:false},
  {g:"G",n:"Irán",c:"IR",elo:1764,fifa:1620,host:false},{g:"G",n:"Nueva Zelanda",c:"NZ",elo:1534,fifa:1276,host:false},
- {g:"H",n:"España",c:"ES",elo:2189,fifa:1876,host:false},{g:"H",n:"Cabo Verde",c:"CV",elo:1619,fifa:1371,host:false},
+ {g:"H",n:"España",c:"ES",elo:2175,fifa:1876,host:false},{g:"H",n:"Cabo Verde",c:"CV",elo:1619,fifa:1371,host:false},
  {g:"H",n:"Arabia Saudí",c:"SA",elo:1589,fifa:1440,host:false},{g:"H",n:"Uruguay",c:"UY",elo:1841,fifa:1673,host:false},
- {g:"I",n:"Francia",c:"FR",elo:2079,fifa:1877,host:false},{g:"I",n:"Senegal",c:"SN",elo:1821,fifa:1689,host:false},
- {g:"I",n:"Irak",c:"IQ",elo:1570,fifa:1446,host:false},{g:"I",n:"Noruega",c:"NO",elo:2038,fifa:1577,host:false},
- {g:"J",n:"Argentina",c:"AR",elo:2176,fifa:1875,host:false},{g:"J",n:"Argelia",c:"DZ",elo:1748,fifa:1571,host:false},
+ {g:"I",n:"Francia",c:"FR",elo:2050,fifa:1877,host:false},{g:"I",n:"Senegal",c:"SN",elo:1821,fifa:1689,host:false},
+ {g:"I",n:"Irak",c:"IQ",elo:1570,fifa:1446,host:false},{g:"I",n:"Noruega",c:"NO",elo:2067,fifa:1577,host:false},
+ {g:"J",n:"Argentina",c:"AR",elo:2155,fifa:1875,host:false},{g:"J",n:"Argelia",c:"DZ",elo:1748,fifa:1571,host:false},
  {g:"J",n:"Austria",c:"AT",elo:1820,fifa:1597,host:false},{g:"J",n:"Jordania",c:"JO",elo:1631,fifa:1391,host:false},
  {g:"K",n:"Portugal",c:"PT",elo:1992,fifa:1764,host:false},{g:"K",n:"RD Congo",c:"CD",elo:1712,fifa:1474,host:false},
  {g:"K",n:"Uzbekistán",c:"UZ",elo:1634,fifa:1459,host:false},{g:"K",n:"Colombia",c:"CO",elo:2001,fifa:1693,host:false},
- {g:"L",n:"Inglaterra",c:"EN",elo:2103,fifa:1826,host:false},{g:"L",n:"Croacia",c:"HR",elo:1878,fifa:1717,host:false},
+ {g:"L",n:"Inglaterra",c:"EN",elo:2074,fifa:1826,host:false},{g:"L",n:"Croacia",c:"HR",elo:1878,fifa:1717,host:false},
  {g:"L",n:"Ghana",c:"GH",elo:1570,fifa:1347,host:false},{g:"L",n:"Panamá",c:"PA",elo:1658,fifa:1505,host:false},
 ];
 const IDX={};TEAMS.forEach((t,i)=>IDX[t.c]=i);
@@ -315,9 +315,7 @@ const KOR={
  6:{name:"Cuartos de final",slots:[
    "QF1·M97 · W-M89-FR vs W-M90-MA","QF2·M98 · W-M93-ES vs W-M94-BE",
    "QF3·M99 · W-M91-NO vs W-M92-EN","QF4·M100 · W-M95-AR vs W-M96-CH"]},
- 7:{name:"Semifinales y Final",slots:[
-   "SF1·M101 · W-M97-FR vs W-M98-ES","SF2·M102 · W-M99-EN vs W-M100-AR",
-   "Final·M103 · W-SF1 vs W-SF2","3er·M104 · L-SF1 vs L-SF2"]},
+ 7:{name:"Semifinales y Final",slots:["Semifinal 1","Semifinal 2","Final","Tercer puesto"]},
 };
 const koState={4:[],5:[],6:[],7:[]};
 for(const r in KOR) koState[r]=KOR[r].slots.map(()=>({h:"",a:"",ha:"none"}));
@@ -342,13 +340,9 @@ for(const r in KOR) koState[r]=KOR[r].slots.map(()=>({h:"",a:"",ha:"none"}));
 koState[5][3].ha='h'; koState[5][5].ha='h';
 /* J6 Cuartos — resultados reales J5 (7-jul-2026) · QF bracket oficial FIFA M97-M100
    QF1 M97 Boston: FR vs MA · QF2 M98 LA: ES vs BE
-   QF3 M99 Miami(Hard Rock): NO vs EN · QF4 M100 KC: AR vs CH */
+   QF3 M99 Miami: NO vs EN · QF4 M100 KC: AR vs CH */
 [["FR","MA"],["ES","BE"],["NO","EN"],["AR","CH"]
 ].forEach(function(pair,i){koState[6][i].h=pair[0];koState[6][i].a=pair[1];});
-/* J7 Semis — resultados reales J6: FR2-0MA · ES2-1BE · EN2-1NO · AR3-1CH (9-11-jul-2026)
-   SF1 M101 Dallas 14-jul: FR vs ES · SF2 M102 Atlanta 15-jul: EN vs AR (ambas neutrales) */
-[["FR","ES"],["EN","AR"]
-].forEach(function(pair,i){koState[7][i].h=pair[0];koState[7][i].a=pair[1];});
 
 /* Resultados KO reales WC2026 (marcador 90 min) — para calibración goalForm */
 const R32_SCORES=[
@@ -361,10 +355,6 @@ const R32_SCORES=[
 const R16_SCORES=[
   ["PY","FR",0,1],["CA","MA",0,3],["BR","NO",1,2],["MX","EN",2,3],
   ["PT","ES",0,1],["US","BE",1,4],["AR","EG",3,2],["CH","CO",0,0]
-];
-/* J6 resultados: FR2-0MA · ES2-1BE · EN2-1NO(Hard Rock Miami) · AR3-1CH */
-const QF_SCORES=[
-  ["FR","MA",2,0],["ES","BE",2,1],["NO","EN",1,2],["AR","CH",3,1]
 ];
 
 const fc=[1];for(let i=1;i<=15;i++)fc[i]=fc[i-1]*i;
@@ -422,13 +412,13 @@ function goalForm(c){
     var gh=+rs.gh,gaa=+rs.ga;
     scored+=(isH?gh:gaa);conceded+=(isH?gaa:gh);games++;
   });});
-  /* incluir datos KO reales (R32 + R16 + QF) — forma actualizada al 11-jul-2026 */
-  [R32_SCORES,R16_SCORES,QF_SCORES].forEach(function(arr){arr.forEach(function(m){
+  /* incluir datos KO reales (R32 + R16) — forma actualizada al 7-jul-2026 */
+  [R32_SCORES,R16_SCORES].forEach(function(arr){arr.forEach(function(m){
     var isH=m[0]===c,isA=m[1]===c;if(!isH&&!isA)return;
     scored+=(isH?m[2]:m[3]);conceded+=(isH?m[3]:m[2]);games++;
   });});
   if(!games)return {att:1,def:1,scored:0,conceded:0,g:0};
-  const BLEND=0.40; /* calibrado con 6 partidos WC2026 reales (3 grupos + R32 + R16 + QF) */
+  const BLEND=0.38; /* calibrado con 5 partidos WC2026 reales (3 grupos + R32 + R16) */
   const rawAtt=(scored/games)/MEAN_GOAL;
   /* def = vulnerabilidad: >1 = fácil de marcarle (mala defensa) · <1 = difícil (buena defensa) */
   const rawDef=Math.min(Math.max(conceded/games,0.05)/MEAN_GOAL,2.4);
