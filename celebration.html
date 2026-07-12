@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pick26 · Gracias / Thank You</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--gold:#D4AF37;--gold2:#F5D060;--gold3:#B8860B;--dark:#0a0a0a;--dark2:#111;--text:#f0f0f0;--text2:#999;--green:#2ECC71;--red:#E74C3C}
+html{scroll-behavior:smooth}
+body{background:var(--dark);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow-x:hidden}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important}}
+
+/* LANG */
+.lang-toggle{position:fixed;top:14px;right:14px;z-index:999;background:rgba(10,10,10,.9);border:1.5px solid var(--gold);color:var(--gold);font-family:monospace;font-size:12px;font-weight:700;padding:7px 14px;border-radius:20px;cursor:pointer;letter-spacing:2px;transition:.2s}
+.lang-toggle:hover{background:rgba(212,175,55,.15)}
+span.es{display:inline}span.en{display:none}
+.es{display:block}.en{display:none}
+body.lang-en span.es{display:none}body.lang-en span.en{display:inline}
+body.lang-en .es{display:none}body.lang-en .en{display:block}
+
+/* LOADING */
+#loading-screen{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:20px;transition:opacity .6s}
+#loading-screen.hidden{opacity:0;pointer-events:none}
+.loader-logo{font-family:Impact,Arial,sans-serif;font-size:72px;font-weight:900;letter-spacing:4px;background:linear-gradient(135deg,#B8860B,#D4AF37,#F5D060);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pulse-l 1.5s ease-in-out infinite}
+@keyframes pulse-l{0%,100%{filter:brightness(1)}50%{filter:brightness(1.5)}}
+.loader-msg{font-family:monospace;font-size:12px;color:rgba(212,175,55,.6);letter-spacing:3px;text-transform:uppercase}
+.loader-dots::after{content:'...';animation:dots 1.5s steps(4,end) infinite}
+@keyframes dots{0%,20%{color:transparent;text-shadow:none}40%{color:rgba(212,175,55,.6);text-shadow:none}60%{color:rgba(212,175,55,.6)}100%{color:rgba(212,175,55,.6)}}
+
+/* ERROR */
+#error-screen{display:none;position:fixed;inset:0;background:#0a0a0a;align-items:center;justify-content:center;flex-direction:column;gap:16px;z-index:9998;padding:24px;text-align:center}
+#error-screen h2{font-family:Impact,sans-serif;font-size:32px;color:var(--red)}
+#error-screen p{font-size:14px;color:var(--text2);max-width:340px;line-height:1.6}
+
+/* HERO */
+#act-hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;text-align:center;padding:60px 20px;background:radial-gradient(ellipse 80% 60% at 50% 0%,#1c1200,var(--dark) 70%)}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.hero-content{position:relative;z-index:1}
+.logo-mark{font-family:Impact,Arial,sans-serif;font-size:clamp(56px,14vw,130px);font-weight:900;letter-spacing:4px;line-height:1;background:linear-gradient(160deg,var(--gold3),var(--gold) 35%,var(--gold2) 55%,var(--gold) 80%,var(--gold3));background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 4s linear infinite}
+@keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+.hero-cup{font-family:monospace;font-size:clamp(9px,1.8vw,13px);letter-spacing:5px;color:rgba(212,175,55,.55);text-transform:uppercase;margin:4px 0 36px}
+.hero-main{font-family:Impact,Arial,sans-serif;font-size:clamp(40px,10vw,96px);line-height:1.02;text-transform:uppercase}
+.hero-main .l1{color:#fff;animation:fadeUp .9s .2s ease-out both}
+.hero-main .l2{color:var(--gold);animation:fadeUp .9s .5s ease-out both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.hero-rule{width:90px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:26px auto;animation:fadeUp .9s 1s ease-out both}
+.hero-dates{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;animation:fadeUp .9s 1.2s ease-out both}
+.hdc{display:flex;flex-direction:column;align-items:center;gap:2px}
+.hdc-label{font-family:monospace;font-size:9px;letter-spacing:2px;color:var(--gold3);text-transform:uppercase}
+.hdc-range{font-size:12px;color:var(--text2)}
+.hdc-arrow{font-size:12px;color:var(--gold);padding-top:12px}
+.scroll-hint{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:var(--gold);opacity:.55;font-size:20px;text-decoration:none;animation:bob 2s ease-in-out infinite;z-index:1}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0);opacity:.55}50%{transform:translateX(-50%) translateY(8px);opacity:1}}
+
+/* SECTIONS */
+.s-eye{font-family:monospace;font-size:10px;letter-spacing:4px;color:var(--gold3);text-transform:uppercase;text-align:center;margin-bottom:8px}
+.s-title{font-family:Impact,Arial,sans-serif;font-size:clamp(36px,8vw,72px);text-align:center;color:#fff;line-height:1;margin-bottom:52px}
+.s-title .g{color:var(--gold)}
+
+/* TIMELINE */
+#act-timeline{padding:72px 20px;max-width:860px;margin:0 auto}
+.tl-wrap{position:relative;padding-left:40px}
+.tl-wrap::before{content:'';position:absolute;left:11px;top:20px;bottom:20px;width:2px;background:linear-gradient(180deg,transparent,var(--gold) 10%,var(--gold) 90%,transparent)}
+.tl-item{position:relative;background:var(--dark2);border:1px solid rgba(212,175,55,.18);border-radius:14px;padding:24px 24px;margin-bottom:36px;transition:border-color .3s}
+.tl-item:hover{border-color:rgba(212,175,55,.4)}
+.tl-dot{position:absolute;left:-34px;top:26px;width:16px;height:16px;background:var(--gold);border-radius:50%;border:3px solid var(--dark);box-shadow:0 0 10px rgba(212,175,55,.6)}
+.tl-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--gold3),var(--gold2));color:#000;font-family:Impact,sans-serif;font-size:11px;letter-spacing:2px;padding:3px 12px;border-radius:20px;margin-bottom:12px;font-weight:900}
+.tl-champ-row{display:flex;align-items:baseline;gap:12px;margin-bottom:4px;flex-wrap:wrap}
+.tl-champ-name{font-family:Impact,Arial,sans-serif;font-size:clamp(30px,5.5vw,50px);color:#fff;line-height:1}
+.tl-champ-pts{font-family:monospace;font-size:14px;color:var(--gold2);padding:4px 10px;background:rgba(212,175,55,.1);border-radius:6px;border:1px solid rgba(212,175,55,.2)}
+.tl-dates-str{font-family:monospace;font-size:10px;color:var(--text2);letter-spacing:2px;margin-bottom:14px}
+.tl-podium{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.pod{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:7px;font-size:12px}
+.pod.g{background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.3);color:var(--gold2)}
+.pod.s{background:rgba(180,180,180,.07);border:1px solid rgba(180,180,180,.18);color:#ccc}
+.pod.b{background:rgba(180,120,60,.1);border:1px solid rgba(180,120,60,.22);color:#CD7F32}
+.pod-name{font-weight:600}.pod-pts{font-family:monospace;font-size:11px;opacity:.8}
+.tl-ex-label{font-family:monospace;font-size:9px;letter-spacing:3px;color:var(--text2);text-transform:uppercase;margin-bottom:8px}
+.tl-ex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:7px}
+.ec{background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.2);border-radius:7px;padding:7px 10px}
+.ec-player{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
+.ec-match{font-size:10px;color:var(--text2);margin-bottom:2px}
+.ec-score{font-family:monospace;font-size:11px;color:var(--green)}
+.no-exactos{font-size:12px;color:var(--text2);font-style:italic}
+
+/* HOF */
+#act-hof{background:linear-gradient(180deg,var(--dark) 0%,#060606 100%);padding:72px 20px}
+.hof-inner{max-width:900px;margin:0 auto}
+.hof-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.hof-panel{background:var(--dark2);border-radius:14px;padding:24px 20px}
+.hof-panel.p-ex{border:1px solid rgba(46,204,113,.2)}
+.hof-panel.p-gu{border:1px solid rgba(231,76,60,.2)}
+.hof-phead{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.06)}
+.hof-icon{font-size:26px;line-height:1}
+.hof-ptitle{font-family:Impact,sans-serif;font-size:20px;color:#fff;line-height:1.1}
+.hof-psub{font-size:10px;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-top:3px}
+.hof-entry{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.hof-entry:last-child{border-bottom:none;padding-bottom:0}
+.hof-num{font-family:monospace;font-size:11px;color:var(--gold3);min-width:22px;padding-top:2px;flex-shrink:0}
+.hof-body{flex:1;min-width:0}
+.hof-name{font-size:14px;font-weight:600;color:var(--text)}
+.hof-det{font-size:10px;color:var(--text2);font-family:monospace;margin-top:3px;line-height:1.5}
+.hof-bdg{flex-shrink:0;font-family:monospace;font-size:10px;padding:2px 7px;border-radius:10px;letter-spacing:1px;margin-top:2px;white-space:nowrap}
+.bdg-g{background:rgba(46,204,113,.12);color:var(--green);border:1px solid rgba(46,204,113,.25)}
+.bdg-r{background:rgba(231,76,60,.1);color:var(--red);border:1px solid rgba(231,76,60,.2)}
+.hof-note{margin-top:18px;padding:12px;background:rgba(231,76,60,.06);border-radius:9px;border:1px solid rgba(231,76,60,.12);font-size:11px;color:var(--text2);line-height:1.6}
+.hof-empty{font-size:13px;color:var(--green);font-style:italic;padding:8px 0}
+
+/* CLOSING */
+#act-closing{background:#000;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;position:relative;overflow:hidden}
+#closing-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.closing-content{position:relative;z-index:1}
+.closing-logo{font-family:Impact,Arial,sans-serif;font-size:clamp(80px,20vw,200px);font-weight:900;letter-spacing:4px;line-height:1;background:linear-gradient(160deg,var(--gold3),var(--gold) 35%,var(--gold2) 55%,var(--gold) 80%,var(--gold3));background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pulse-logo 2.5s ease-in-out infinite,shimmer 4s linear infinite;margin-bottom:12px}
+@keyframes pulse-logo{0%,100%{filter:brightness(1) drop-shadow(0 0 0 rgba(212,175,55,0));transform:scale(1)}50%{filter:brightness(1.5) drop-shadow(0 0 40px rgba(212,175,55,.7));transform:scale(1.04)}}
+.closing-sub{font-family:monospace;font-size:clamp(10px,1.8vw,13px);color:rgba(212,175,55,.35);letter-spacing:6px;text-transform:uppercase;margin-bottom:56px}
+.btn-lb{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--gold3),var(--gold) 50%,var(--gold2));color:#000;font-family:Impact,Arial,sans-serif;font-size:clamp(15px,3vw,21px);font-weight:900;letter-spacing:3px;text-transform:uppercase;padding:16px 40px;border-radius:60px;border:none;cursor:pointer;text-decoration:none;transition:.25s;box-shadow:0 6px 28px rgba(212,175,55,.25)}
+.btn-lb:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 12px 44px rgba(212,175,55,.45)}
+
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s,transform .7s}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+@media(max-width:600px){
+  .hof-grid{grid-template-columns:1fr}
+  .tl-wrap{padding-left:30px}
+  .tl-wrap::before{left:7px}
+  .tl-dot{left:-27px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="loader-logo">PICK26</div>
+  <div class="loader-msg loader-dots"><span class="es">Cargando datos reales</span><span class="en">Loading real data</span></div>
+</div>
+<div id="error-screen" style="display:flex;display:none">
+  <h2>⚠️ Error</h2>
+  <p id="error-msg">No se pudieron cargar los datos de Firebase.</p>
+</div>
+
+<button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
+
+<!-- ACT 1: HERO -->
+<section id="act-hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-content">
+    <div class="logo-mark">PICK26</div>
+    <div class="hero-cup">COPA DEL MUNDO · WORLD CUP 2025</div>
+    <h1 class="hero-main">
+      <div class="l1">GRACIAS · THANK YOU</div>
+      <div class="l2">POR PICK26</div>
+    </h1>
+    <div class="hero-rule"></div>
+    <div class="hero-dates" id="hero-dates-row">
+      <div class="hdc"><span class="hdc-label">J1</span><span class="hdc-range">11 JUN</span></div>
+      <div class="hdc-arrow">→</div>
+      <div class="hdc"><span class="hdc-label">J2</span><span class="hdc-range">18 JUN</span></div>
+      <div class="hdc-arrow">→</div>
+      <div class="hdc"><span class="hdc-label">J3</span><span class="hdc-range">24 JUN</span></div>
+      <div class="hdc-arrow">→</div>
+      <div class="hdc"><span class="hdc-label">J4</span><span class="hdc-range">28 JUN</span></div>
+      <div class="hdc-arrow">→</div>
+      <div class="hdc"><span class="hdc-label">J5</span><span class="hdc-range">4 JUL</span></div>
+      <div class="hdc-arrow">→</div>
+      <div class="hdc"><span class="hdc-label" style="color:var(--gold)">J6 🏆</span><span class="hdc-range" style="color:var(--gold)">9 JUL</span></div>
+    </div>
+  </div>
+  <a href="#act-timeline" class="scroll-hint">↓</a>
+</section>
+
+<!-- ACT 2: TIMELINE -->
+<section id="act-timeline">
+  <p class="s-eye reveal">J1 · J2 · J3 · J4 · J5 · J6 · 2025</p>
+  <h2 class="s-title reveal">
+    <span class="g es">LÍNEA DE TIEMPO</span>
+    <span class="g en">WINNER TIMELINE</span>
+  </h2>
+  <div class="tl-wrap" id="timeline-container">
+    <!-- populated by JS -->
+  </div>
+</section>
+
+<!-- ACT 3: HALL OF FAME -->
+<section id="act-hof">
+  <div class="hof-inner">
+    <p class="s-eye reveal"><span class="es">SALÓN DE LA FAMA</span><span class="en">HALL OF FAME</span></p>
+    <h2 class="s-title reveal">
+      <span class="g es">LEYENDAS</span><span class="g en">LEGENDS</span>
+      <span> J1–J6</span>
+    </h2>
+    <div class="hof-grid">
+      <div class="hof-panel p-ex reveal" id="hof-exactos">
+        <div class="hof-phead">
+          <div class="hof-icon">⭐</div>
+          <div>
+            <div class="hof-ptitle"><span class="es">Los que acertaron</span><span class="en">Exact scorers</span></div>
+            <div class="hof-psub"><span class="es">Marcador exacto J1–J6</span><span class="en">Exact score J1–J6</span></div>
+          </div>
+        </div>
+        <div id="hof-exactos-list"></div>
+      </div>
+      <div class="hof-panel p-gu reveal" id="hof-gaveup">
+        <div class="hof-phead">
+          <div class="hof-icon">🏳️</div>
+          <div>
+            <div class="hof-ptitle"><span class="es">Se rindieron</span><span class="en">Gave up</span></div>
+            <div class="hof-psub"><span class="es">No enviaron picks J1–J6</span><span class="en">No picks in J1–J6</span></div>
+          </div>
+        </div>
+        <div id="hof-gaveup-list"></div>
+        <div class="hof-note">
+          <span class="es">💬 Siempre habrá una próxima temporada. ¡Los esperamos!</span>
+          <span class="en">💬 There's always next season. We'll be waiting!</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ACT 4: CLOSING -->
+<section id="act-closing">
+  <canvas id="closing-canvas"></canvas>
+  <div class="closing-content">
+    <div class="closing-logo">PICK26</div>
+    <div class="closing-sub" id="closing-sub-rounds">J1 · J2 · J3 · J4 · J5 · J6 · 2025</div>
+    <a href="index.html" class="btn-lb">
+      📊 <span class="es">VER LEADERBOARD J1–J6</span><span class="en">VIEW LEADERBOARD J1–J6</span>
+    </a>
+  </div>
+</section>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+// ── Firebase config ──────────────────────────────────────────────
+firebase.initializeApp({
+  apiKey:"AIzaSyAt-YPPSX2jFsA-VtdZn6dlIWgdOR45eBQ",
+  authDomain:"your-world-cup-prediction.firebaseapp.com",
+  databaseURL:"https://your-world-cup-prediction-default-rtdb.firebaseio.com",
+  projectId:"your-world-cup-prediction",
+  messagingSenderId:"167527835666",
+  appId:"1:167527835226:web:a7b19da5a01e1de04c90cb"
+});
+const db = firebase.database();
+
+// ── Match data ──────────────────────────────────────────────────
+const ROUNDS = {
+  1:{ids:['1_1','1_2','1_3','1_4','1_5','1_6','1_7','1_8','1_9','1_10','1_11','1_12','1_13','1_14','1_15','1_16','1_17','1_18','1_19','1_20','1_21','1_22','1_23','1_24'],closer:'1_24',dates:'11–17 JUN',label:'JORNADA 1',isJ6:false},
+  2:{ids:['2_1','2_2','2_3','2_4','2_5','2_6','2_7','2_8','2_9','2_10','2_11','2_12','2_13','2_14','2_15','2_16','2_17','2_18','2_19','2_20','2_21','2_22','2_23','2_24'],closer:'2_24',dates:'18–23 JUN',label:'JORNADA 2',isJ6:false},
+  3:{ids:['3_1','3_2','3_3','3_4','3_5','3_6','3_7','3_8','3_9','3_10','3_11','3_12','3_13','3_14','3_15','3_16','3_17','3_18','3_19','3_20','3_21','3_22','3_23','3_24'],closer:'3_24',dates:'24–27 JUN',label:'JORNADA 3',isJ6:false},
+  4:{ids:['4_1','4_2','4_3','4_4','4_5','4_6','4_7','4_8','4_9','4_10','4_11','4_12','4_13','4_14','4_15','4_16'],closer:'4_16',dates:'28 JUN–3 JUL',label:'JORNADA 4',isJ6:false},
+  5:{ids:['5_1','5_2','5_3','5_4','5_5','5_6','5_7','5_8'],closer:'5_8',dates:'4–7 JUL',label:'JORNADA 5',isJ6:false},
+  6:{ids:['6_1','6_2','6_3','6_4'],closer:'6_4',dates:'9–11 JUL',label:'JORNADA 6',isJ6:true}
+};
+
+const MATCH_NAMES = {
+  '1_24':'Uzbekistán vs Colombia','2_24':'Colombia vs Congo','3_24':'Jordania vs Argentina',
+  '4_16':'Colombia vs Ghana','5_8':'Suiza vs Colombia','6_4':'Argentina vs Suiza'
+};
+
+// ── Scoring ──────────────────────────────────────────────────────
+function scoreOne(isCloser, roundNum, pick, res) {
+  if (!pick || !res) return {pts:0, exact:false};
+  if (isCloser) {
+    const rH=Number(res.scoreH), rA=Number(res.scoreA);
+    if (isNaN(rH)||isNaN(rA)) return {pts:0,exact:false};
+    const pH=Number(pick.scoreH), pA=Number(pick.scoreA);
+    if (isNaN(pH)||isNaN(pA)) return {pts:0,exact:false};
+    if (pH===rH && pA===rA) return {pts:3, exact:true};
+    const predW = pH>pA?'home':pA>pH?'away':'draw';
+    const realW = rH>rA?'home':rA>rH?'away':(res.winner||'draw');
+    if (roundNum>=2) return {pts:predW===realW?1:0, exact:false};
+    const diff = Math.abs(pH-rH)+Math.abs(pA-rA);
+    if (diff===1) return {pts:(pH+pA)<(rH+rA)?2:1.5, exact:false};
+    return {pts:predW===realW?1:0, exact:false};
+  }
+  if (!res.pick) return {pts:0,exact:false};
+  return {pts:pick.pick===res.pick?1:0, exact:false};
+}
+
+// ── Lang toggle ───────────────────────────────────────────────────
+function toggleLang(){
+  const b=document.body,btn=document.getElementById('langBtn');
+  b.classList.toggle('lang-en');
+  btn.textContent=b.classList.contains('lang-en')?'ES':'EN';
+}
+
+// ── Hero particles ────────────────────────────────────────────────
+(function(){
+  const c=document.getElementById('hero-canvas'),ctx=c.getContext('2d'),pts=[];
+  function resize(){c.width=c.offsetWidth;c.height=c.offsetHeight;}
+  window.addEventListener('resize',resize);resize();
+  const cols=['rgba(212,175,55,','rgba(245,208,96,','rgba(184,134,11,'];
+  function P(){this.rst();}
+  P.prototype.rst=function(){
+    this.x=Math.random()*c.width;this.y=c.height+10;
+    this.r=Math.random()*2+.4;this.vy=-(Math.random()*.6+.2);this.vx=(Math.random()-.5)*.3;
+    this.life=0;this.max=Math.random()*200+100;this.col=cols[Math.floor(Math.random()*3)];this.tw=Math.random()*6.28;
+  };
+  for(let i=0;i<80;i++){const p=new P();p.y=Math.random()*c.height;p.life=Math.random()*p.max;pts.push(p);}
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    pts.forEach(p=>{
+      p.life++;p.x+=p.vx;p.y+=p.vy;p.tw+=.05;
+      const lr=p.life/p.max;
+      let a=lr<.2?lr/.2:lr>.7?1-(lr-.7)/.3:1;
+      a*=(.6+.4*Math.sin(p.tw));
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,6.28);ctx.fillStyle=p.col+a+')';ctx.fill();
+      if(p.r>1.4){ctx.beginPath();ctx.arc(p.x,p.y,p.r*2.5,0,6.28);ctx.fillStyle=p.col+(a*.1)+')';ctx.fill();}
+      if(p.life>=p.max||p.y<-8)p.rst();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ── Closing stars ─────────────────────────────────────────────────
+(function(){
+  const c=document.getElementById('closing-canvas'),ctx=c.getContext('2d'),stars=[];
+  function resize(){c.width=c.offsetWidth;c.height=c.offsetHeight;}
+  window.addEventListener('resize',resize);resize();
+  for(let i=0;i<120;i++)stars.push({x:Math.random(),y:Math.random(),r:Math.random()*1.3+.3,ph:Math.random()*6.28,sp:Math.random()*.007+.002,gold:Math.random()>.45});
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    stars.forEach(s=>{s.ph+=s.sp;const a=(Math.sin(s.ph)+1)/2*.75+.1;ctx.beginPath();ctx.arc(s.x*c.width,s.y*c.height,s.r,0,6.28);ctx.fillStyle=s.gold?`rgba(212,175,55,${a})`:`rgba(255,255,255,${a*.35})`;ctx.fill();});
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ── Scroll reveal ─────────────────────────────────────────────────
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});
+},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// ── HTML helpers ──────────────────────────────────────────────────
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function renderTimeline(roundStatsArr) {
+  const cont = document.getElementById('timeline-container');
+  cont.innerHTML = '';
+
+  roundStatsArr.forEach((rs, idx) => {
+    const { round, cfg, top5, exactos } = rs;
+    const isLast = rs.isJ6;
+    const dotStyle = isLast ? 'background:var(--gold2);box-shadow:0 0 18px rgba(245,208,96,.9)' : '';
+    const badgeStyle = isLast ? 'background:linear-gradient(135deg,#B8860B,#FFD700,#F5D060)' : '';
+    const nameStyle = isLast ? 'color:var(--gold)' : '';
+
+    const winner = top5[0] || {name:'—', pts:0};
+    const second = top5[1];
+    const third  = top5[2];
+
+    const podiumHTML = `
+      <div class="tl-podium">
+        ${winner.submitted !== false ? `<div class="pod g">🥇 <span class="pod-name">${esc(winner.name)}</span> <span class="pod-pts">${winner.pts} pts</span></div>` : ''}
+        ${second ? `<div class="pod s">🥈 <span class="pod-name">${esc(second.name)}</span> <span class="pod-pts">${second.pts} pts</span></div>` : ''}
+        ${third  ? `<div class="pod b">🥉 <span class="pod-name">${esc(third.name)}</span> <span class="pod-pts">${third.pts} pts</span></div>` : ''}
+      </div>`;
+
+    let exactosHTML = '';
+    if (exactos.length > 0) {
+      exactosHTML = `
+        <div class="tl-ex-label">⭐ <span class="es">Exacto del partido cierre</span><span class="en">Closer match exact score</span></div>
+        <div class="tl-ex-grid">
+          ${exactos.map(ex => `
+            <div class="ec">
+              <div class="ec-player">${esc(ex.player)}</div>
+              <div class="ec-match">${esc(MATCH_NAMES[cfg.closer]||cfg.closer)}</div>
+              <div class="ec-score">${esc(ex.pred)} = ${esc(ex.result)} ✓</div>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    const item = document.createElement('div');
+    item.className = 'tl-item reveal';
+    item.innerHTML = `
+      <div class="tl-dot" style="${dotStyle}"></div>
+      <div class="tl-badge" style="${badgeStyle}">⚽ ${isLast ? '🏆 ' : ''}${esc(cfg.label)} · ROUND ${round}</div>
+      <div class="tl-champ-row">
+        <div class="tl-champ-name" style="${nameStyle}">${esc(winner.name)}</div>
+        <div class="tl-champ-pts">${winner.pts} PTS</div>
+      </div>
+      <div class="tl-dates-str">${esc(cfg.dates)} · ${cfg.ids.length} <span class="es">PARTIDOS</span><span class="en">MATCHES</span></div>
+      ${podiumHTML}
+      ${exactosHTML}`;
+    cont.appendChild(item);
+    obs.observe(item);
+  });
+}
+
+function renderHallOfFame(exactosByPlayer, gaveUpByPlayer) {
+  // Exactos
+  const exList = document.getElementById('hof-exactos-list');
+  exList.innerHTML = '';
+  const exEntries = Object.entries(exactosByPlayer).sort((a,b) => b[1].length - a[1].length);
+  if (exEntries.length === 0) {
+    exList.innerHTML = '<div class="hof-empty">Nadie acertó el marcador exacto 😅</div>';
+  } else {
+    exEntries.forEach(([name, matches], i) => {
+      exList.innerHTML += `
+        <div class="hof-entry">
+          <div class="hof-num">#${i+1}</div>
+          <div class="hof-body">
+            <div class="hof-name">${esc(name)}</div>
+            <div class="hof-det">${matches.map(esc).join(' · ')}</div>
+          </div>
+          <div class="hof-bdg bdg-g">${matches.length} ✓</div>
+        </div>`;
+    });
+  }
+
+  // Gave up
+  const guList = document.getElementById('hof-gaveup-list');
+  guList.innerHTML = '';
+  const guEntries = Object.entries(gaveUpByPlayer).sort((a,b) => b[1].length - a[1].length);
+  if (guEntries.length === 0) {
+    guList.innerHTML = '<div class="hof-empty" style="color:var(--green)">🎉 <span class="es">¡Todos enviaron sus picks!</span><span class="en">Everyone submitted!</span></div>';
+  } else {
+    guEntries.forEach(([name, rounds]) => {
+      guList.innerHTML += `
+        <div class="hof-entry">
+          <div class="hof-num">—</div>
+          <div class="hof-body">
+            <div class="hof-name">${esc(name)}</div>
+            <div class="hof-det"><span class="es">No envió:</span><span class="en">Missed:</span> ${rounds.map(esc).join(', ')}</div>
+          </div>
+          <div class="hof-bdg bdg-r">${rounds.join(',')} ✗</div>
+        </div>`;
+    });
+  }
+}
+
+// ── Main data load ────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const [pSnap, picksSnap, resSnap] = await Promise.all([
+      db.ref('players').once('value'),
+      db.ref('picks').once('value'),
+      db.ref('results').once('value'),
+    ]);
+
+    const players = pSnap.val() || {};
+    const allPicks = picksSnap.val() || {};
+    const results  = resSnap.val() || {};
+
+    const playerNames = {};
+    for (const [key, p] of Object.entries(players)) {
+      if (p && p.name) playerNames[key] = p.name;
+    }
+
+    const roundStatsArr = [];
+    const exactosByPlayer = {};
+    const gaveUpByPlayer  = {};
+    let completedRounds = 0;
+
+    for (const [roundStr, cfg] of Object.entries(ROUNDS)) {
+      const round = Number(roundStr);
+      const hasResults = cfg.ids.some(id => {
+        const r = results[id];
+        return r && (r.pick != null || r.scoreH != null);
+      });
+      if (!hasResults) continue;
+      completedRounds = round;
+
+      const rows = [];
+      for (const [key, pd] of Object.entries(allPicks)) {
+        const name = playerNames[key];
+        if (!name) continue;
+        const submitted = (pd.submittedRounds || {})[round];
+        const rPicks = pd.picks || {};
+
+        if (!submitted) {
+          rows.push({name, pts:0, submitted:false});
+          if (!gaveUpByPlayer[name]) gaveUpByPlayer[name] = [];
+          gaveUpByPlayer[name].push(`J${round}`);
+          continue;
+        }
+
+        let pts = 0;
+        const closerPick = rPicks[cfg.closer];
+        const closerRes  = results[cfg.closer];
+        let exact = false;
+
+        for (const id of cfg.ids) {
+          const pick = rPicks[id];
+          const res  = results[id];
+          if (!res) continue;
+          const {pts:p, exact:e} = scoreOne(id===cfg.closer, round, pick, res);
+          pts += p;
+          if (e) exact = true;
+        }
+
+        rows.push({name, pts, submitted:true});
+
+        if (exact && closerPick && closerRes) {
+          const pred   = `${closerPick.scoreH}-${closerPick.scoreA}`;
+          const result = `${closerRes.scoreH}-${closerRes.scoreA}`;
+          if (!exactosByPlayer[name]) exactosByPlayer[name] = [];
+          exactosByPlayer[name].push(`J${round}: ${pred}`);
+          roundStatsArr.__lastExactos = roundStatsArr.__lastExactos || {};
+          roundStatsArr.__lastExactos[round] = roundStatsArr.__lastExactos[round] || [];
+          roundStatsArr.__lastExactos[round].push({player:name, pred, result});
+        }
+      }
+
+      rows.sort((a,b) => b.pts - a.pts);
+      const exactosForRound = (roundStatsArr.__lastExactos || {})[round] || [];
+      roundStatsArr.push({round, cfg, top5:rows.slice(0,3), exactos:exactosForRound, isJ6:cfg.isJ6});
+    }
+
+    // Update closing subtitle
+    if (completedRounds > 0) {
+      const sub = Array.from({length:completedRounds},(_,i)=>`J${i+1}`).join(' · ') + ' · 2025';
+      document.getElementById('closing-sub-rounds').textContent = sub;
+    }
+
+    renderTimeline(roundStatsArr);
+    renderHallOfFame(exactosByPlayer, gaveUpByPlayer);
+
+    // Hide loading
+    const ls = document.getElementById('loading-screen');
+    ls.classList.add('hidden');
+    setTimeout(()=>ls.style.display='none', 700);
+
+  } catch(err) {
+    document.getElementById('loading-screen').style.display = 'none';
+    const es = document.getElementById('error-screen');
+    es.style.display = 'flex';
+    document.getElementById('error-msg').textContent = 'Error: ' + err.message;
+    console.error(err);
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
