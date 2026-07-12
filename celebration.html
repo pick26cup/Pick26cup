@@ -261,11 +261,16 @@ const MATCH_NAMES = {
   '4_16':'Colombia vs Ghana','5_8':'Suiza vs Colombia','6_4':'Argentina vs Suiza'
 };
 
-// ── Scoring ──────────────────────────────────────────────────────
+// ── Scoring (mirrors app's scoreMatch exactly) ───────────────────
+// Results stored as {scoreH,scoreA} by main admin panel,
+// or {home,away,pick} by manual-entry. Handle both.
+function _rH(res){ return res.scoreH !== undefined ? Number(res.scoreH) : Number(res.home); }
+function _rA(res){ return res.scoreA !== undefined ? Number(res.scoreA) : Number(res.away); }
+
 function scoreOne(isCloser, roundNum, pick, res) {
   if (!pick || !res) return {pts:0, exact:false};
+  const rH=_rH(res), rA=_rA(res);
   if (isCloser) {
-    const rH=Number(res.scoreH), rA=Number(res.scoreA);
     if (isNaN(rH)||isNaN(rA)) return {pts:0,exact:false};
     const pH=Number(pick.scoreH), pA=Number(pick.scoreA);
     if (isNaN(pH)||isNaN(pA)) return {pts:0,exact:false};
@@ -277,8 +282,19 @@ function scoreOne(isCloser, roundNum, pick, res) {
     if (diff===1) return {pts:(pH+pA)<(rH+rA)?2:1.5, exact:false};
     return {pts:predW===realW?1:0, exact:false};
   }
-  if (!res.pick) return {pts:0,exact:false};
-  return {pts:pick.pick===res.pick?1:0, exact:false};
+  // Regular match: compute outcome from scoreH/scoreA, fallback to res.pick
+  const pickDir = pick.pick;
+  if (!pickDir) return {pts:0,exact:false};
+  let real = (!isNaN(rH)&&!isNaN(rA)) ? (rH>rA?'home':rA>rH?'away':'draw') : res.pick;
+  if (!real) return {pts:0,exact:false};
+  return {pts:pickDir===real?1:0, exact:false};
+}
+
+// ── Submitted check (mirrors app's hasSubmittedRound) ────────────
+// Firebase may store numeric keys as sparse arrays — check both
+function hasSubmitted(pd, playerData, round) {
+  function chk(sr){ return !!(sr && (sr[round] || sr[String(round)])); }
+  return chk(pd && pd.submittedRounds) || chk(playerData && playerData.submittedRounds);
 }
 
 // ── Lang toggle ───────────────────────────────────────────────────
@@ -462,7 +478,7 @@ async function loadData() {
       const round = Number(roundStr);
       const hasResults = cfg.ids.some(id => {
         const r = results[id];
-        return r && (r.pick != null || r.scoreH != null);
+        return r && (r.pick != null || r.scoreH != null || r.home != null);
       });
       if (!hasResults) continue;
       completedRounds = round;
@@ -471,7 +487,7 @@ async function loadData() {
       for (const [key, pd] of Object.entries(allPicks)) {
         const name = playerNames[key];
         if (!name) continue;
-        const submitted = (pd.submittedRounds || {})[round];
+        const submitted = hasSubmitted(pd, players[key], round);
         const rPicks = pd.picks || {};
 
         if (!submitted) {
@@ -499,7 +515,7 @@ async function loadData() {
 
         if (exact && closerPick && closerRes) {
           const pred   = `${closerPick.scoreH}-${closerPick.scoreA}`;
-          const result = `${closerRes.scoreH}-${closerRes.scoreA}`;
+          const result = `${_rH(closerRes)}-${_rA(closerRes)}`;
           if (!exactosByPlayer[name]) exactosByPlayer[name] = [];
           exactosByPlayer[name].push(`J${round}: ${pred}`);
           roundStatsArr.__lastExactos = roundStatsArr.__lastExactos || {};
