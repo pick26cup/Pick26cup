@@ -368,12 +368,15 @@ function renderTimeline(roundStatsArr) {
     const nameStyle = isLast ? 'color:var(--gold)' : '';
 
     const winner = top5[0] || {name:'—', pts:0};
-    const second = top5[1];
-    const third  = top5[2];
+    // Detect ties for 1st place
+    const winners = top5.filter(p => p.pts === winner.pts);
+    const runners = top5.filter(p => p.pts < winner.pts);
+    const second  = runners[0];
+    const third   = runners[1];
 
     const podiumHTML = `
       <div class="tl-podium">
-        ${winner.submitted !== false ? `<div class="pod g">🥇 <span class="pod-name">${esc(winner.name)}</span> <span class="pod-pts">${winner.pts} pts</span></div>` : ''}
+        ${winners.map(w => `<div class="pod g">🥇 <span class="pod-name">${esc(w.name)}</span> <span class="pod-pts">${w.pts} pts</span></div>`).join('')}
         ${second ? `<div class="pod s">🥈 <span class="pod-name">${esc(second.name)}</span> <span class="pod-pts">${second.pts} pts</span></div>` : ''}
         ${third  ? `<div class="pod b">🥉 <span class="pod-name">${esc(third.name)}</span> <span class="pod-pts">${third.pts} pts</span></div>` : ''}
       </div>`;
@@ -398,7 +401,7 @@ function renderTimeline(roundStatsArr) {
       <div class="tl-dot" style="${dotStyle}"></div>
       <div class="tl-badge" style="${badgeStyle}">⚽ ${isLast ? '🏆 ' : ''}${esc(cfg.label)} · ROUND ${round}</div>
       <div class="tl-champ-row">
-        <div class="tl-champ-name" style="${nameStyle}">${esc(winner.name)}</div>
+        <div class="tl-champ-name" style="${nameStyle}">${winners.map(w => esc(w.name)).join(' · ')}</div>
         <div class="tl-champ-pts">${winner.pts} PTS</div>
       </div>
       <div class="tl-dates-str">${esc(cfg.dates)} · ${cfg.ids.length} <span class="es">PARTIDOS</span><span class="en">MATCHES</span></div>
@@ -532,7 +535,7 @@ async function loadData() {
       }
 
       rows.sort((a,b) => b.pts - a.pts);
-      roundStatsArr.push({round, cfg, top5:rows.filter(r=>r.submitted).slice(0,3), exactos:roundExactos[round]||[], isJ6:cfg.isJ6});
+      roundStatsArr.push({round, cfg, top5:rows.filter(r=>r.submitted).slice(0,5), exactos:roundExactos[round]||[], isJ6:cfg.isJ6});
     }
 
     // "Se rindió" = submitted 0 rounds across all completed jornadas
