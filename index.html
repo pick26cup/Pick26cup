@@ -11558,6 +11558,10 @@ document.addEventListener('keydown', function(e){
 
 <!-- ══════════════ CELEBRATION OVERLAY ══════════════ -->
 <div id="cel-overlay">
+  <!-- YouTube IFrame hidden player -->
+  <div id="cel-yt-player" style="display:none;position:absolute;pointer-events:none;width:1px;height:1px"></div>
+  <!-- Music toggle button -->
+  <button id="cel-music-btn" onclick="celToggleMusic()" title="Música" style="position:fixed;bottom:24px;right:24px;z-index:9600;width:48px;height:48px;border-radius:50%;border:2px solid #D4AF37;background:rgba(0,0,0,.7);color:#D4AF37;font-size:22px;cursor:pointer;display:none">♫</button>
   <button id="cel-close-btn" onclick="closeCelebration()">✕ &nbsp;ENTRAR A LA APP</button>
 
   <!-- Intro splash -->
@@ -11673,6 +11677,7 @@ function showCelebration() {
     _celInitClosingCanvas();
     _celInitReveal();
     _celLoadData();
+    celInitMusic();
   }
 }
 
@@ -11683,6 +11688,49 @@ function closeCelebration() {
 
 // Lanzar celebración automáticamente al abrir la app
 document.addEventListener('DOMContentLoaded', function(){ showCelebration(); });
+
+// ── CELEBRATION MUSIC (YouTube IFrame API) ───────────────────────────────────
+var _celYTPlayer = null;
+var _celMuted = true;
+
+function celInitMusic() {
+  if (_celYTPlayer) return;
+  var tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+}
+
+// Called automatically by YouTube IFrame API when ready
+function onYouTubeIframeAPIReady() {
+  _celYTPlayer = new YT.Player('cel-yt-player', {
+    videoId: 'QJpaHXBjwpU',
+    playerVars: { autoplay: 1, loop: 1, playlist: 'QJpaHXBjwpU', controls: 0, disablekb: 1, fs: 0, modestbranding: 1, rel: 0 },
+    events: {
+      onReady: function(e) {
+        e.target.mute();
+        e.target.playVideo();
+        // Show music button
+        var btn = document.getElementById('cel-music-btn');
+        if (btn) btn.style.display = 'block';
+      }
+    }
+  });
+}
+
+function celToggleMusic() {
+  if (!_celYTPlayer) return;
+  var btn = document.getElementById('cel-music-btn');
+  if (_celMuted) {
+    _celYTPlayer.unMute();
+    _celYTPlayer.setVolume(70);
+    _celMuted = false;
+    if (btn) btn.textContent = '⏸';
+  } else {
+    _celYTPlayer.mute();
+    _celMuted = true;
+    if (btn) btn.textContent = '♫';
+  }
+}
 
 function _celStartIntro() {
   var el = document.getElementById('cel-intro');
