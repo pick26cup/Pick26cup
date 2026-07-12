@@ -11844,8 +11844,8 @@ function _celRenderHOF(exactosByPlayer, gaveUpNames) {
 async function _celLoadData() {
   // Firebase se carga de forma asíncrona; esperar hasta que db esté listo
   var wait = 0;
-  while (!window.db && wait < 100) { await new Promise(function(r){ setTimeout(r,150); }); wait++; }
-  if (!window.db) {
+  while ((!db) && wait < 100) { await new Promise(function(r){ setTimeout(r,150); }); wait++; }
+  if (!db) {
     document.getElementById('cel-loading').innerHTML = '<p style="color:#E74C3C;font-family:monospace">Sin conexión — recarga la página</p>';
     return;
   }
