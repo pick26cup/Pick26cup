@@ -126,6 +126,11 @@ body.lang-en .es{display:none}body.lang-en .en{display:block}
   .tl-wrap::before{left:7px}
   .tl-dot{left:-27px}
 }
+/* INTRO SPLASH */
+#intro-splash{position:fixed;inset:0;background:#000;z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;animation:intro-seq 3.2s ease forwards;pointer-events:none}
+.intro-logo{font-family:Impact,Arial,sans-serif;font-size:clamp(110px,28vw,320px);font-weight:900;letter-spacing:4px;line-height:1;background:linear-gradient(160deg,var(--gold3),var(--gold) 35%,var(--gold2) 55%,var(--gold) 80%,var(--gold3));background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 3s linear infinite}
+.intro-sub{font-family:monospace;font-size:clamp(9px,1.8vw,12px);color:rgba(212,175,55,.35);letter-spacing:8px;text-transform:uppercase}
+@keyframes intro-seq{0%{opacity:0;transform:scale(.82)}18%{opacity:1;transform:scale(1)}72%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.04)}}
 /* MUSIC BUTTON */
 .music-btn{position:fixed;bottom:24px;right:24px;z-index:998;width:52px;height:52px;border-radius:50%;background:rgba(10,10,10,.92);border:1.5px solid var(--gold);color:var(--gold);font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;box-shadow:0 4px 20px rgba(212,175,55,.25);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .music-btn:hover{background:rgba(212,175,55,.15);transform:scale(1.08)}
@@ -134,6 +139,12 @@ body.lang-en .es{display:none}body.lang-en .en{display:block}
 </style>
 </head>
 <body>
+
+<!-- INTRO SPLASH -->
+<div id="intro-splash">
+  <div class="intro-logo">PICK26</div>
+  <div class="intro-sub">COPA DEL MUNDO · WORLD CUP 2025</div>
+</div>
 
 <!-- LOADING -->
 <div id="loading-screen">
@@ -573,6 +584,13 @@ async function loadData() {
 }
 
 loadData();
+
+// Remove intro splash after animation completes
+(function(){
+  var splash = document.getElementById('intro-splash');
+  if(!splash) return;
+  splash.addEventListener('animationend', function(){ splash.style.display='none'; }, {once:true});
+})();
 </script>
 
 <!-- YouTube hidden music player -->
