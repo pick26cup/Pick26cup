@@ -6752,20 +6752,37 @@ async function doAdminLogin(){
 
 // Resultados confirmados jornada 4 — se auto-corrigen al login de admin
 const _VERIFIED_RESULTS = {
-  '4_1':{ scoreH:0, scoreA:1 },
-  '4_2':{ scoreH:2, scoreA:1 },
-  '4_3':{ scoreH:1, scoreA:1, winner:'away' },  // Paraguay gana en penales 4-3
-  '4_4':{ scoreH:1, scoreA:1, winner:'away' },  // Marruecos gana en penales 3-2
-  '4_5':{ scoreH:1, scoreA:2 },
-  '4_6':{ scoreH:3, scoreA:0 },
-  '4_7':{ scoreH:2, scoreA:0 },
-  '4_8':{ scoreH:2, scoreA:1 },
-  '4_9':{ scoreH:2, scoreA:1 },   // Bélgica 2-1 Senegal
-  '4_10':{ scoreH:2, scoreA:0 },  // Estados Unidos 2-0 Bosnia
-  '4_11':{ scoreH:3, scoreA:0 },  // España 3-0 Austria
-  '4_12':{ scoreH:2, scoreA:1 },  // Portugal 2-1 Croacia
-  '4_13':{ scoreH:2, scoreA:0 },  // Suiza 2-0 Argelia (Embolo + Ndoye)
-  '4_14':{ scoreH:1, scoreA:1, winner:'away' },  // Australia 1-1 Egipto; Egipto gana pen 4-2
+  // J4 · Ronda de 32 (28 jun – 3 jul)
+  '4_1':{ scoreH:0, scoreA:1 },                              // Sudáfrica 0-1 Canadá
+  '4_2':{ scoreH:2, scoreA:1 },                              // Brasil 2-1 Japón
+  '4_3':{ scoreH:1, scoreA:1, winner:'away' },               // Alemania 1-1 Paraguay; Paraguay pen 4-3
+  '4_4':{ scoreH:1, scoreA:1, winner:'away' },               // Países Bajos 1-1 Marruecos; Marruecos pen 3-2
+  '4_5':{ scoreH:1, scoreA:2 },                              // Costa de Marfil 1-2 Noruega
+  '4_6':{ scoreH:3, scoreA:0 },                              // Francia 3-0 Suecia
+  '4_7':{ scoreH:2, scoreA:0 },                              // México 2-0 Ecuador
+  '4_8':{ scoreH:2, scoreA:1 },                              // Inglaterra 2-1 Congo
+  '4_9':{ scoreH:2, scoreA:1 },                              // Bélgica 2-1 Senegal
+  '4_10':{ scoreH:2, scoreA:0 },                             // Estados Unidos 2-0 Bosnia
+  '4_11':{ scoreH:3, scoreA:0 },                             // España 3-0 Austria
+  '4_12':{ scoreH:2, scoreA:1 },                             // Portugal 2-1 Croacia
+  '4_13':{ scoreH:2, scoreA:0 },                             // Suiza 2-0 Argelia
+  '4_14':{ scoreH:1, scoreA:1, winner:'away' },              // Australia 1-1 Egipto; Egipto pen 4-2
+  '4_15':{ scoreH:1, scoreA:1, winner:'home' },              // Argentina 1-1 Cabo Verde; Argentina pen
+  '4_16':{ scoreH:1, scoreA:0 },                             // Colombia 1-0 Ghana
+  // J5 · Octavos de final / R16 (4–7 jul)
+  '5_1':{ scoreH:0, scoreA:3 },                              // Canadá 0-3 Marruecos
+  '5_2':{ scoreH:0, scoreA:1 },                              // Paraguay 0-1 Francia
+  '5_3':{ scoreH:1, scoreA:2 },                              // Brasil 1-2 Noruega
+  '5_4':{ scoreH:2, scoreA:3 },                              // México 2-3 Inglaterra
+  '5_5':{ scoreH:1, scoreA:0 },                              // España 1-0 Portugal
+  '5_6':{ scoreH:4, scoreA:1 },                              // Bélgica 4-1 Estados Unidos
+  '5_7':{ scoreH:3, scoreA:2 },                              // Argentina 3-2 Egipto
+  '5_8':{ scoreH:0, scoreA:0, winner:'home' },               // Suiza 0-0 Colombia; Suiza pen
+  // J6 · Cuartos de final (9–11 jul)
+  '6_1':{ scoreH:0, scoreA:2 },                              // Marruecos 0-2 Francia
+  '6_2':{ scoreH:2, scoreA:1 },                              // España 2-1 Bélgica
+  '6_3':{ scoreH:1, scoreA:2 },                              // Noruega 1-2 Inglaterra (Hard Rock Miami)
+  '6_4':{ scoreH:3, scoreA:1 },                              // Argentina 3-1 Suiza
 };
 
 function _autoRepairResults(){
@@ -6782,7 +6799,7 @@ function _autoRepairResults(){
       updates['results/'+id] = Object.assign({}, correct, { locked:true, lockedAt:now, updatedAt:now });
     });
     if(!Object.keys(updates).length){
-      showToast(t('✅ Jornada 4 — todos los marcadores están correctos','✅ Round 4 — all scores are correct'),'success', 3000);
+      showToast(t('✅ J4–J6 — todos los marcadores están correctos','✅ J4–J6 — all scores are correct'),'success', 3000);
       return;
     }
     db.ref().update(updates)
