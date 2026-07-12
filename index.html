@@ -11670,6 +11670,9 @@ function showCelebration() {
   ov.style.display = 'block';
   document.body.style.overflow = 'hidden';
   ov.scrollTop = 0;
+  // Silenciar la música de fondo de la app mientras dura la celebración
+  var bg = document.getElementById('bgMusic');
+  if (bg) { bg.pause(); bg.currentTime = 0; }
   if (!_celLoaded) {
     _celLoaded = true;
     _celStartIntro();
@@ -11684,6 +11687,8 @@ function showCelebration() {
 function closeCelebration() {
   document.getElementById('cel-overlay').style.display = 'none';
   document.body.style.overflow = '';
+  // Silenciar Dai Dai al salir
+  if (_celYTPlayer) { try { _celYTPlayer.pauseVideo(); } catch(e){} }
 }
 
 // Lanzar celebración automáticamente al abrir la app
