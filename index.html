@@ -1484,6 +1484,112 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
 .pod-fadein{animation:pod-fadein .5s ease-out both}
 /* confetti canvas */
 #confettiCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:8}
+
+/* ═══════════════════════════════ CELEBRATION OVERLAY ═══════════════════════ */
+#cel-overlay{position:fixed;inset:0;z-index:9500;overflow-y:auto;overflow-x:hidden;background:#0a0a0a;display:none}
+#cel-close-btn{position:sticky;top:0;left:0;z-index:200;display:flex;align-items:center;gap:7px;background:rgba(10,10,10,.95);border:none;border-bottom:1px solid rgba(212,175,55,.15);color:rgba(212,175,55,.7);font-family:monospace;font-size:11px;letter-spacing:2px;padding:10px 18px;cursor:pointer;width:100%;text-align:left;transition:.2s}
+#cel-close-btn:hover{color:var(--gold);background:rgba(212,175,55,.08)}
+/* Intro splash */
+#cel-intro{position:fixed;inset:0;background:#000;z-index:9700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;pointer-events:none;opacity:0}
+#cel-intro.go{animation:cel-intro-seq 3.2s ease forwards}
+.cel-intro-logo{font-family:Impact,Arial,sans-serif;font-size:clamp(110px,28vw,320px);font-weight:900;letter-spacing:4px;line-height:1;background:linear-gradient(160deg,#B8860B,#D4AF37 35%,#F5D060 55%,#D4AF37 80%,#B8860B);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:cel-shimmer 3s linear infinite}
+.cel-intro-sub{font-family:monospace;font-size:clamp(9px,1.8vw,12px);color:rgba(212,175,55,.35);letter-spacing:8px;text-transform:uppercase}
+@keyframes cel-intro-seq{0%{opacity:0;transform:scale(.82)}18%{opacity:1;transform:scale(1)}72%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.04)}}
+@keyframes cel-shimmer{0%{background-position:0%}100%{background-position:200%}}
+/* Loading */
+#cel-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:20px;transition:opacity .5s}
+#cel-loading.cel-hidden{opacity:0;pointer-events:none}
+.cel-llogo{font-family:Impact,Arial,sans-serif;font-size:72px;font-weight:900;letter-spacing:4px;background:linear-gradient(135deg,#B8860B,#D4AF37,#F5D060);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:cel-plse 1.5s ease-in-out infinite}
+.cel-lmsg{font-family:monospace;font-size:12px;color:rgba(212,175,55,.6);letter-spacing:3px;text-transform:uppercase}
+.cel-lmsg::after{content:'...';animation:cel-dots 1.5s steps(4,end) infinite}
+@keyframes cel-plse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.5)}}
+@keyframes cel-dots{0%,20%{color:transparent}40%,100%{color:rgba(212,175,55,.6)}}
+/* Hero */
+#cel-act-hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;text-align:center;padding:60px 20px;background:radial-gradient(ellipse 80% 60% at 50% 0%,#1c1200,#0a0a0a 70%)}
+#cel-hero-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.cel-hero-content{position:relative;z-index:1}
+.cel-logo-mark{font-family:Impact,Arial,sans-serif;font-size:clamp(56px,14vw,130px);font-weight:900;letter-spacing:4px;line-height:1;background:linear-gradient(160deg,#B8860B,#D4AF37 35%,#F5D060 55%,#D4AF37 80%,#B8860B);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:cel-shimmer 4s linear infinite}
+.cel-hero-cup{font-family:monospace;font-size:clamp(9px,1.8vw,13px);letter-spacing:5px;color:rgba(212,175,55,.55);text-transform:uppercase;margin:4px 0 36px}
+.cel-hero-main{font-family:Impact,Arial,sans-serif;font-size:clamp(40px,10vw,96px);line-height:1.02;text-transform:uppercase}
+.cel-hero-main .cel-l1{color:#fff;animation:cel-fadeUp .9s .2s ease-out both}
+.cel-hero-main .cel-l2{color:#D4AF37;animation:cel-fadeUp .9s .5s ease-out both}
+@keyframes cel-fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.cel-hero-rule{width:90px;height:1px;background:linear-gradient(90deg,transparent,#D4AF37,transparent);margin:26px auto;animation:cel-fadeUp .9s 1s ease-out both}
+.cel-hero-dates{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;animation:cel-fadeUp .9s 1.2s ease-out both}
+.cel-hdc{display:flex;flex-direction:column;align-items:center;gap:2px}
+.cel-hdc-label{font-family:monospace;font-size:9px;letter-spacing:2px;color:#B8860B;text-transform:uppercase}
+.cel-hdc-range{font-size:12px;color:#999}
+.cel-hdc-arrow{font-size:12px;color:#D4AF37;padding-top:12px}
+.cel-scroll-hint{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:#D4AF37;opacity:.55;font-size:20px;text-decoration:none;animation:cel-bob 2s ease-in-out infinite;z-index:1}
+@keyframes cel-bob{0%,100%{transform:translateX(-50%) translateY(0);opacity:.55}50%{transform:translateX(-50%) translateY(8px);opacity:1}}
+/* Sections */
+.cel-s-eye{font-family:monospace;font-size:10px;letter-spacing:4px;color:#B8860B;text-transform:uppercase;text-align:center;margin-bottom:8px}
+.cel-s-title{font-family:Impact,Arial,sans-serif;font-size:clamp(36px,8vw,72px);text-align:center;color:#fff;line-height:1;margin-bottom:52px}
+.cel-s-title .cel-g{color:#D4AF37}
+/* Timeline */
+#cel-act-timeline{padding:72px 20px;max-width:860px;margin:0 auto}
+.cel-tl-wrap{position:relative;padding-left:40px}
+.cel-tl-wrap::before{content:'';position:absolute;left:11px;top:20px;bottom:20px;width:2px;background:linear-gradient(180deg,transparent,#D4AF37 10%,#D4AF37 90%,transparent)}
+.cel-tl-item{position:relative;background:#111;border:1px solid rgba(212,175,55,.18);border-radius:14px;padding:24px;margin-bottom:36px;transition:border-color .3s}
+.cel-tl-item:hover{border-color:rgba(212,175,55,.4)}
+.cel-tl-dot{position:absolute;left:-34px;top:26px;width:16px;height:16px;background:#D4AF37;border-radius:50%;border:3px solid #0a0a0a;box-shadow:0 0 10px rgba(212,175,55,.6)}
+.cel-tl-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#B8860B,#F5D060);color:#000;font-family:Impact,sans-serif;font-size:11px;letter-spacing:2px;padding:3px 12px;border-radius:20px;margin-bottom:12px;font-weight:900}
+.cel-tl-champ-row{display:flex;align-items:baseline;gap:12px;margin-bottom:4px;flex-wrap:wrap}
+.cel-tl-champ-name{font-family:Impact,Arial,sans-serif;font-size:clamp(30px,5.5vw,50px);color:#fff;line-height:1}
+.cel-tl-champ-pts{font-family:monospace;font-size:14px;color:#F5D060;padding:4px 10px;background:rgba(212,175,55,.1);border-radius:6px;border:1px solid rgba(212,175,55,.2)}
+.cel-tl-dates-str{font-family:monospace;font-size:10px;color:#999;letter-spacing:2px;margin-bottom:14px}
+.cel-tl-podium{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.cel-pod{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:7px;font-size:12px}
+.cel-pod.g{background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.3);color:#F5D060}
+.cel-pod.s{background:rgba(180,180,180,.07);border:1px solid rgba(180,180,180,.18);color:#ccc}
+.cel-pod.b{background:rgba(180,120,60,.1);border:1px solid rgba(180,120,60,.22);color:#CD7F32}
+.cel-pod-name{font-weight:600}.cel-pod-pts{font-family:monospace;font-size:11px;opacity:.8}
+.cel-tl-ex-label{font-family:monospace;font-size:9px;letter-spacing:3px;color:#999;text-transform:uppercase;margin-bottom:8px}
+.cel-tl-ex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:7px}
+.cel-ec{background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.2);border-radius:7px;padding:7px 10px}
+.cel-ec-player{font-size:12px;font-weight:600;color:#f0f0f0;margin-bottom:2px}
+.cel-ec-match{font-size:10px;color:#999;margin-bottom:2px}
+.cel-ec-score{font-family:monospace;font-size:11px;color:#2ECC71}
+/* Hall of Fame */
+#cel-act-hof{background:linear-gradient(180deg,#0a0a0a 0%,#060606 100%);padding:72px 20px}
+.cel-hof-inner{max-width:900px;margin:0 auto}
+.cel-hof-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.cel-hof-panel{background:#111;border-radius:14px;padding:24px 20px}
+.cel-hof-panel.p-ex{border:1px solid rgba(46,204,113,.2)}
+.cel-hof-panel.p-gu{border:1px solid rgba(231,76,60,.2)}
+.cel-hof-phead{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.06)}
+.cel-hof-icon{font-size:26px;line-height:1}
+.cel-hof-ptitle{font-family:Impact,sans-serif;font-size:20px;color:#fff;line-height:1.1}
+.cel-hof-psub{font-size:10px;color:#999;letter-spacing:1px;text-transform:uppercase;margin-top:3px}
+.cel-hof-entry{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.cel-hof-entry:last-child{border-bottom:none;padding-bottom:0}
+.cel-hof-num{font-family:monospace;font-size:11px;color:#B8860B;min-width:22px;padding-top:2px;flex-shrink:0}
+.cel-hof-body{flex:1;min-width:0}
+.cel-hof-name{font-size:14px;font-weight:600;color:#f0f0f0}
+.cel-hof-det{font-size:10px;color:#999;font-family:monospace;margin-top:3px;line-height:1.5}
+.cel-hof-bdg{flex-shrink:0;font-family:monospace;font-size:10px;padding:2px 7px;border-radius:10px;letter-spacing:1px;margin-top:2px;white-space:nowrap}
+.cel-bdg-g{background:rgba(46,204,113,.12);color:#2ECC71;border:1px solid rgba(46,204,113,.25)}
+.cel-bdg-r{background:rgba(231,76,60,.1);color:#E74C3C;border:1px solid rgba(231,76,60,.2)}
+.cel-hof-empty{font-size:13px;color:#2ECC71;font-style:italic;padding:8px 0}
+.cel-hof-note{margin-top:18px;padding:12px;background:rgba(231,76,60,.06);border-radius:9px;border:1px solid rgba(231,76,60,.12);font-size:11px;color:#999;line-height:1.6}
+/* Closing */
+#cel-act-closing{background:#000;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;position:relative;overflow:hidden}
+#cel-closing-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.cel-closing-content{position:relative;z-index:1}
+.cel-closing-logo{font-family:Impact,Arial,sans-serif;font-size:clamp(80px,20vw,200px);font-weight:900;letter-spacing:4px;line-height:1;background:linear-gradient(160deg,#B8860B,#D4AF37 35%,#F5D060 55%,#D4AF37 80%,#B8860B);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:cel-pulse-logo 2.5s ease-in-out infinite,cel-shimmer 4s linear infinite;margin-bottom:12px}
+@keyframes cel-pulse-logo{0%,100%{filter:brightness(1) drop-shadow(0 0 0 rgba(212,175,55,0));transform:scale(1)}50%{filter:brightness(1.5) drop-shadow(0 0 40px rgba(212,175,55,.7));transform:scale(1.04)}}
+.cel-closing-sub{font-family:monospace;font-size:clamp(10px,1.8vw,13px);color:rgba(212,175,55,.35);letter-spacing:6px;text-transform:uppercase;margin-bottom:56px}
+.cel-btn-app{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#B8860B,#D4AF37 50%,#F5D060);color:#000;font-family:Impact,Arial,sans-serif;font-size:clamp(15px,3vw,21px);font-weight:900;letter-spacing:3px;text-transform:uppercase;padding:16px 40px;border-radius:60px;border:none;cursor:pointer;transition:.25s;box-shadow:0 6px 28px rgba(212,175,55,.25)}
+.cel-btn-app:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 12px 44px rgba(212,175,55,.45)}
+/* Reveal */
+.cel-reveal{opacity:0;transform:translateY(26px);transition:opacity .7s,transform .7s}
+.cel-reveal.visible{opacity:1;transform:translateY(0)}
+@media(max-width:600px){
+  .cel-hof-grid{grid-template-columns:1fr}
+  .cel-tl-wrap{padding-left:30px}
+  .cel-tl-wrap::before{left:7px}
+  .cel-tl-dot{left:-27px}
+}
 </style>
 </head>
 <body>
@@ -1640,7 +1746,8 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
         <button onclick="showSection('results')" data-section="results" data-en="My Results" data-es="Mis Resultados">My Results</button>
         <button onclick="showSection('groups')" data-section="groups" data-en="Groups" data-es="Grupos">Groups</button>
         <button onclick="showSection('admin')" data-section="admin" data-en="Admin" data-es="Admin">Admin <span id="adminNavBadge" style="display:none" class="notif-badge">0</span></button>
-      </nav>
+              <button onclick="showCelebration()" data-section="celebration" data-en="🏆 Celebration" data-es="🏆 Celebración" style="background:linear-gradient(135deg,rgba(184,134,11,.25),rgba(212,175,55,.25));border-color:rgba(212,175,55,.5);color:#D4AF37">🏆 Celebración</button>
+</nav>
       <div class="header-right">
         <button id="helpBtn" onclick="openRulesModal()" title="Cómo funciona / How it works" aria-label="Reglas">❓</button>
         <button id="soundBtn" onclick="toggleMute()" title="Silenciar / Activar música" aria-label="Mute">🔊</button>
@@ -11449,5 +11556,369 @@ document.addEventListener('keydown', function(e){
     </div>
   </div>
 </div>
+
+<!-- ══════════════ CELEBRATION OVERLAY ══════════════ -->
+<div id="cel-overlay">
+  <button id="cel-close-btn" onclick="closeCelebration()">✕ &nbsp;ENTRAR A LA APP</button>
+
+  <!-- Intro splash -->
+  <div id="cel-intro">
+    <div class="cel-intro-logo">PICK26</div>
+    <div class="cel-intro-sub">COPA DEL MUNDO · WORLD CUP 2026</div>
+  </div>
+
+  <!-- Loading -->
+  <div id="cel-loading">
+    <div class="cel-llogo">PICK26</div>
+    <div class="cel-lmsg">Cargando datos</div>
+  </div>
+
+  <!-- ACT 1: HERO -->
+  <section id="cel-act-hero">
+    <canvas id="cel-hero-canvas"></canvas>
+    <div class="cel-hero-content">
+      <div class="cel-logo-mark">PICK26</div>
+      <div class="cel-hero-cup">COPA DEL MUNDO · WORLD CUP 2026</div>
+      <h1 class="cel-hero-main">
+        <div class="cel-l1">GRACIAS · THANK YOU</div>
+        <div class="cel-l2">POR PICK26</div>
+      </h1>
+      <div class="cel-hero-rule"></div>
+      <div class="cel-hero-dates">
+        <div class="cel-hdc"><span class="cel-hdc-label">J1</span><span class="cel-hdc-range">11 JUN</span></div>
+        <div class="cel-hdc-arrow">→</div>
+        <div class="cel-hdc"><span class="cel-hdc-label">J2</span><span class="cel-hdc-range">18 JUN</span></div>
+        <div class="cel-hdc-arrow">→</div>
+        <div class="cel-hdc"><span class="cel-hdc-label">J3</span><span class="cel-hdc-range">24 JUN</span></div>
+        <div class="cel-hdc-arrow">→</div>
+        <div class="cel-hdc"><span class="cel-hdc-label">J4</span><span class="cel-hdc-range">28 JUN</span></div>
+        <div class="cel-hdc-arrow">→</div>
+        <div class="cel-hdc"><span class="cel-hdc-label">J5</span><span class="cel-hdc-range">4 JUL</span></div>
+        <div class="cel-hdc-arrow">→</div>
+        <div class="cel-hdc"><span class="cel-hdc-label" style="color:#D4AF37">J6 🏆</span><span class="cel-hdc-range" style="color:#D4AF37">9 JUL</span></div>
+      </div>
+    </div>
+    <a href="#cel-act-timeline" class="cel-scroll-hint">↓</a>
+  </section>
+
+  <!-- ACT 2: TIMELINE -->
+  <section id="cel-act-timeline">
+    <p class="cel-s-eye cel-reveal">J1 · J2 · J3 · J4 · J5 · J6 · 2026</p>
+    <h2 class="cel-s-title cel-reveal">
+      <span class="cel-g">LÍNEA DE TIEMPO</span>
+    </h2>
+    <div class="cel-tl-wrap" id="cel-timeline-container"></div>
+  </section>
+
+  <!-- ACT 3: HALL OF FAME -->
+  <section id="cel-act-hof">
+    <div class="cel-hof-inner">
+      <p class="cel-s-eye cel-reveal">SALÓN DE LA FAMA</p>
+      <h2 class="cel-s-title cel-reveal">
+        <span class="cel-g">LEYENDAS</span> J1–J6
+      </h2>
+      <div class="cel-hof-grid">
+        <div class="cel-hof-panel p-ex cel-reveal">
+          <div class="cel-hof-phead">
+            <div class="cel-hof-icon">⭐</div>
+            <div>
+              <div class="cel-hof-ptitle">Los que acertaron</div>
+              <div class="cel-hof-psub">Marcador exacto J1–J6</div>
+            </div>
+          </div>
+          <div id="cel-hof-exactos-list"></div>
+        </div>
+        <div class="cel-hof-panel p-gu cel-reveal">
+          <div class="cel-hof-phead">
+            <div class="cel-hof-icon">🏳️</div>
+            <div>
+              <div class="cel-hof-ptitle">Se rindieron</div>
+              <div class="cel-hof-psub">No enviaron picks J1–J6</div>
+            </div>
+          </div>
+          <div id="cel-hof-gaveup-list"></div>
+          <div class="cel-hof-note">💬 Siempre habrá una próxima temporada. ¡Los esperamos!</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACT 4: CLOSING -->
+  <section id="cel-act-closing">
+    <canvas id="cel-closing-canvas"></canvas>
+    <div class="cel-closing-content">
+      <div class="cel-closing-logo">PICK26</div>
+      <div class="cel-closing-sub" id="cel-closing-sub">J1 · J2 · J3 · J4 · J5 · J6 · 2026</div>
+      <button class="cel-btn-app" onclick="closeCelebration()">
+        📊 &nbsp;ENTRAR A LA APP
+      </button>
+    </div>
+  </section>
+</div>
+
+
+<script>
+// ══════════════════════════════ CELEBRATION ══════════════════════════════════
+var _celLoaded = false;
+var _celObs = null;
+
+function showCelebration() {
+  var ov = document.getElementById('cel-overlay');
+  ov.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  ov.scrollTop = 0;
+  if (!_celLoaded) {
+    _celLoaded = true;
+    _celStartIntro();
+    _celInitHeroCanvas();
+    _celInitClosingCanvas();
+    _celInitReveal();
+    _celLoadData();
+  }
+}
+
+function closeCelebration() {
+  document.getElementById('cel-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function _celStartIntro() {
+  var el = document.getElementById('cel-intro');
+  el.classList.add('go');
+  el.addEventListener('animationend', function(){ el.style.display = 'none'; }, {once:true});
+}
+
+function _celInitHeroCanvas() {
+  var c = document.getElementById('cel-hero-canvas');
+  if (!c) return;
+  var ctx = c.getContext('2d'), pts = [];
+  function resize(){ c.width = c.offsetWidth; c.height = c.offsetHeight; }
+  resize();
+  var cols = ['rgba(212,175,55,','rgba(245,208,96,','rgba(184,134,11,'];
+  function P(){ this.rst(); }
+  P.prototype.rst = function(){
+    this.x=Math.random()*c.width; this.y=c.height+10;
+    this.r=Math.random()*2+.4; this.vy=-(Math.random()*.6+.2); this.vx=(Math.random()-.5)*.3;
+    this.life=0; this.max=Math.random()*200+100; this.col=cols[Math.floor(Math.random()*3)]; this.tw=Math.random()*6.28;
+  };
+  for(var i=0;i<80;i++){var p=new P();p.y=Math.random()*c.height;p.life=Math.random()*p.max;pts.push(p);}
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    pts.forEach(function(p){
+      p.life++;p.x+=p.vx;p.y+=p.vy;p.tw+=.05;
+      var lr=p.life/p.max, a=lr<.2?lr/.2:lr>.7?1-(lr-.7)/.3:1;
+      a*=(.6+.4*Math.sin(p.tw));
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,6.28);ctx.fillStyle=p.col+a+')';ctx.fill();
+      if(p.r>1.4){ctx.beginPath();ctx.arc(p.x,p.y,p.r*2.5,0,6.28);ctx.fillStyle=p.col+(a*.1)+')';ctx.fill();}
+      if(p.life>=p.max||p.y<-8)p.rst();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function _celInitClosingCanvas() {
+  var c = document.getElementById('cel-closing-canvas');
+  if (!c) return;
+  var ctx = c.getContext('2d'), stars = [];
+  function resize(){ c.width = c.offsetWidth; c.height = c.offsetHeight; }
+  resize();
+  for(var i=0;i<120;i++) stars.push({x:Math.random(),y:Math.random(),r:Math.random()*1.3+.3,ph:Math.random()*6.28,sp:Math.random()*.007+.002,gold:Math.random()>.45});
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    stars.forEach(function(s){ s.ph+=s.sp; var a=(Math.sin(s.ph)+1)/2*.75+.1; ctx.beginPath();ctx.arc(s.x*c.width,s.y*c.height,s.r,0,6.28);ctx.fillStyle=s.gold?'rgba(212,175,55,'+a+')':'rgba(255,255,255,'+(a*.35)+')';ctx.fill(); });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function _celInitReveal() {
+  _celObs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){e.target.classList.add('visible');_celObs.unobserve(e.target);} });
+  },{threshold:.1, root: document.getElementById('cel-overlay')});
+  document.querySelectorAll('.cel-reveal').forEach(function(el){ _celObs.observe(el); });
+}
+
+function _celEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+var CEL_ROUNDS = {
+  1:{ids:['1_1','1_2','1_3','1_4','1_5','1_6','1_7','1_8','1_9','1_10','1_11','1_12','1_13','1_14','1_15','1_16','1_17','1_18','1_19','1_20','1_21','1_22','1_23','1_24'],closer:'1_24',dates:'11–17 JUN',label:'JORNADA 1',isJ6:false},
+  2:{ids:['2_1','2_2','2_3','2_4','2_5','2_6','2_7','2_8','2_9','2_10','2_11','2_12','2_13','2_14','2_15','2_16','2_17','2_18','2_19','2_20','2_21','2_22','2_23','2_24'],closer:'2_24',dates:'18–23 JUN',label:'JORNADA 2',isJ6:false},
+  3:{ids:['3_1','3_2','3_3','3_4','3_5','3_6','3_7','3_8','3_9','3_10','3_11','3_12','3_13','3_14','3_15','3_16','3_17','3_18','3_19','3_20','3_21','3_22','3_23','3_24'],closer:'3_24',dates:'24–27 JUN',label:'JORNADA 3',isJ6:false},
+  4:{ids:['4_1','4_2','4_3','4_4','4_5','4_6','4_7','4_8','4_9','4_10','4_11','4_12','4_13','4_14','4_15','4_16'],closer:'4_16',dates:'28 JUN–3 JUL',label:'JORNADA 4',isJ6:false},
+  5:{ids:['5_1','5_2','5_3','5_4','5_5','5_6','5_7','5_8'],closer:'5_8',dates:'4–7 JUL',label:'JORNADA 5',isJ6:false},
+  6:{ids:['6_1','6_2','6_3','6_4'],closer:'6_4',dates:'9–11 JUL',label:'JORNADA 6',isJ6:true}
+};
+var CEL_MATCH_NAMES = {'1_24':'Uzbekistán vs Colombia','2_24':'Colombia vs Congo','3_24':'Jordania vs Argentina','4_16':'Colombia vs Ghana','5_8':'Suiza vs Colombia','6_4':'Argentina vs Suiza'};
+
+function _celRH(res){ return res.scoreH !== undefined ? Number(res.scoreH) : Number(res.home); }
+function _celRA(res){ return res.scoreA !== undefined ? Number(res.scoreA) : Number(res.away); }
+
+function _celScoreOne(isCloser, roundNum, pick, res) {
+  if (!pick || !res) return {pts:0, exact:false};
+  var rH=_celRH(res), rA=_celRA(res);
+  if (isCloser) {
+    if (isNaN(rH)||isNaN(rA)) return {pts:0,exact:false};
+    var pH=Number(pick.scoreH), pA=Number(pick.scoreA);
+    if (isNaN(pH)||isNaN(pA)) return {pts:0,exact:false};
+    if (pH===rH && pA===rA) return {pts:3, exact:true};
+    var predW = pH>pA?'home':pA>pH?'away':'draw';
+    var realW = rH>rA?'home':rA>rH?'away':(res.winner||'draw');
+    if (roundNum>=2) return {pts:predW===realW?1:0, exact:false};
+    var diff = Math.abs(pH-rH)+Math.abs(pA-rA);
+    if (diff===1) return {pts:(pH+pA)<(rH+rA)?2:1.5, exact:false};
+    return {pts:predW===realW?1:0, exact:false};
+  }
+  var pickDir = pick.pick;
+  if (!pickDir) return {pts:0,exact:false};
+  var real = (!isNaN(rH)&&!isNaN(rA)) ? (rH>rA?'home':rA>rH?'away':'draw') : res.pick;
+  if (!real) return {pts:0,exact:false};
+  return {pts:pickDir===real?1:0, exact:false};
+}
+
+function _celHasSubmitted(pd, playerData, round) {
+  function chk(sr){ return !!(sr && (sr[round] || sr[String(round)])); }
+  return chk(pd && pd.submittedRounds) || chk(playerData && playerData.submittedRounds);
+}
+
+function _celRenderTimeline(arr) {
+  var cont = document.getElementById('cel-timeline-container');
+  cont.innerHTML = '';
+  arr.forEach(function(rs) {
+    var round=rs.round, cfg=rs.cfg, top5=rs.top5, exactos=rs.exactos, isLast=rs.isJ6;
+    var dotStyle = isLast ? 'background:#F5D060;box-shadow:0 0 18px rgba(245,208,96,.9)' : '';
+    var badgeStyle = isLast ? 'background:linear-gradient(135deg,#B8860B,#FFD700,#F5D060)' : '';
+    var nameStyle = isLast ? 'color:#D4AF37' : '';
+    var winner = top5[0] || {name:'—', pts:0};
+    var winners = top5.filter(function(p){ return p.pts === winner.pts; });
+    var runners = top5.filter(function(p){ return p.pts < winner.pts; });
+    var second = runners[0], third = runners[1];
+    var podHTML = '<div class="cel-tl-podium">'
+      + winners.map(function(w){ return '<div class="cel-pod g">🥇 <span class="cel-pod-name">'+_celEsc(w.name)+'</span> <span class="cel-pod-pts">'+w.pts+' pts</span></div>'; }).join('')
+      + (second ? '<div class="cel-pod s">🥈 <span class="cel-pod-name">'+_celEsc(second.name)+'</span> <span class="cel-pod-pts">'+second.pts+' pts</span></div>' : '')
+      + (third  ? '<div class="cel-pod b">🥉 <span class="cel-pod-name">'+_celEsc(third.name)+'</span> <span class="cel-pod-pts">'+third.pts+' pts</span></div>' : '')
+      + '</div>';
+    var exHTML = '';
+    if (exactos.length > 0) {
+      exHTML = '<div class="cel-tl-ex-label">⭐ Exacto del partido cierre</div><div class="cel-tl-ex-grid">'
+        + exactos.map(function(ex){ return '<div class="cel-ec"><div class="cel-ec-player">'+_celEsc(ex.player)+'</div><div class="cel-ec-match">'+_celEsc(CEL_MATCH_NAMES[cfg.closer]||cfg.closer)+'</div><div class="cel-ec-score">'+_celEsc(ex.pred)+' = '+_celEsc(ex.result)+' ✓</div></div>'; }).join('')
+        + '</div>';
+    }
+    var item = document.createElement('div');
+    item.className = 'cel-tl-item cel-reveal';
+    item.innerHTML = '<div class="cel-tl-dot" style="'+dotStyle+'"></div>'
+      + '<div class="cel-tl-badge" style="'+badgeStyle+'">⚽ '+(isLast?'🏆 ':'')+_celEsc(cfg.label)+'</div>'
+      + '<div class="cel-tl-champ-row"><div class="cel-tl-champ-name" style="'+nameStyle+'">'+winners.map(function(w){return _celEsc(w.name);}).join(' · ')+'</div><div class="cel-tl-champ-pts">'+winner.pts+' PTS</div></div>'
+      + '<div class="cel-tl-dates-str">'+_celEsc(cfg.dates)+' · '+cfg.ids.length+' PARTIDOS</div>'
+      + podHTML + exHTML;
+    cont.appendChild(item);
+    if (_celObs) _celObs.observe(item);
+  });
+}
+
+function _celRenderHOF(exactosByPlayer, gaveUpNames) {
+  var exList = document.getElementById('cel-hof-exactos-list');
+  exList.innerHTML = '';
+  var exEntries = Object.entries(exactosByPlayer).sort(function(a,b){ return b[1].length - a[1].length; });
+  if (exEntries.length === 0) {
+    exList.innerHTML = '<div class="cel-hof-empty">Nadie acertó el marcador exacto 😅</div>';
+  } else {
+    exEntries.forEach(function(entry, i) {
+      var name=entry[0], matches=entry[1];
+      exList.innerHTML += '<div class="cel-hof-entry"><div class="cel-hof-num">#'+(i+1)+'</div><div class="cel-hof-body"><div class="cel-hof-name">'+_celEsc(name)+'</div><div class="cel-hof-det">'+matches.map(_celEsc).join(' · ')+'</div></div><div class="cel-hof-bdg cel-bdg-g">'+matches.length+' ✓</div></div>';
+    });
+  }
+  var guList = document.getElementById('cel-hof-gaveup-list');
+  guList.innerHTML = '';
+  if (!gaveUpNames || gaveUpNames.length === 0) {
+    guList.innerHTML = '<div class="cel-hof-empty" style="color:#2ECC71">🎉 ¡Todos enviaron sus picks!</div>';
+  } else {
+    gaveUpNames.forEach(function(name) {
+      guList.innerHTML += '<div class="cel-hof-entry"><div class="cel-hof-num">—</div><div class="cel-hof-body"><div class="cel-hof-name">'+_celEsc(name)+'</div><div class="cel-hof-det">No envió ninguna jornada</div></div><div class="cel-hof-bdg cel-bdg-r">✗</div></div>';
+    });
+  }
+}
+
+async function _celLoadData() {
+  try {
+    var snapshots = await Promise.all([
+      db.ref('players').once('value'),
+      db.ref('picks').once('value'),
+      db.ref('results').once('value')
+    ]);
+    var players = snapshots[0].val() || {};
+    var allPicks = snapshots[1].val() || {};
+    var results  = snapshots[2].val() || {};
+
+    var playerNames = {};
+    Object.keys(players).forEach(function(k){ if(players[k]&&players[k].name) playerNames[k]=players[k].name; });
+
+    var roundStatsArr=[], exactosByPlayer={}, submittedAnyRound={}, roundExactos={}, completedRounds=0;
+    var allKeys = new Set(
+      Object.keys(players).filter(function(k){ return players[k]&&players[k].name; })
+      .concat(Object.keys(allPicks).filter(function(k){ return playerNames[k]; }))
+    );
+
+    Object.entries(CEL_ROUNDS).forEach(function(entry) {
+      var roundStr=entry[0], cfg=entry[1], round=Number(roundStr);
+      var hasRes = cfg.ids.some(function(id){ var r=results[id]; return r&&(r.pick!=null||r.scoreH!=null||r.home!=null); });
+      if (!hasRes) return;
+      completedRounds = round;
+      var rows = [];
+      allKeys.forEach(function(key) {
+        var name = playerNames[key]||(players[key]&&players[key].name);
+        if (!name) return;
+        var pd = allPicks[key]||{};
+        var submitted = _celHasSubmitted(pd, players[key], round);
+        if (submitted) submittedAnyRound[key] = true;
+        var rPicks = pd.picks||{};
+        if (!submitted) { rows.push({name:name,pts:0,submitted:false}); return; }
+        var pts=0, exact=false;
+        cfg.ids.forEach(function(id){
+          var pick=rPicks[id], res=results[id];
+          if (!res) return;
+          var s=_celScoreOne(id===cfg.closer,round,pick,res);
+          pts+=s.pts; if(s.exact) exact=true;
+        });
+        rows.push({name:name,pts:pts,submitted:true});
+        if (exact && rPicks[cfg.closer] && results[cfg.closer]) {
+          var cp=rPicks[cfg.closer], cr=results[cfg.closer];
+          var pred=cp.scoreH+'-'+cp.scoreA, result=_celRH(cr)+'-'+_celRA(cr);
+          if(!exactosByPlayer[name]) exactosByPlayer[name]=[];
+          exactosByPlayer[name].push('J'+round+': '+pred);
+          if(!roundExactos[round]) roundExactos[round]=[];
+          roundExactos[round].push({player:name,pred:pred,result:result});
+        }
+      });
+      rows.sort(function(a,b){ return b.pts-a.pts; });
+      roundStatsArr.push({round:round,cfg:cfg,top5:rows.filter(function(r){return r.submitted;}).slice(0,5),exactos:roundExactos[round]||[],isJ6:cfg.isJ6});
+    });
+
+    var gaveUpNames = Array.from(allKeys)
+      .filter(function(k){ return !submittedAnyRound[k]&&(playerNames[k]||(players[k]&&players[k].name)); })
+      .map(function(k){ return playerNames[k]||(players[k]&&players[k].name); })
+      .filter(Boolean);
+
+    if (completedRounds > 0) {
+      var sub = [];
+      for(var i=1;i<=completedRounds;i++) sub.push('J'+i);
+      document.getElementById('cel-closing-sub').textContent = sub.join(' · ') + ' · 2026';
+    }
+
+    _celRenderTimeline(roundStatsArr);
+    _celRenderHOF(exactosByPlayer, gaveUpNames);
+
+    // Hide loading
+    var ld = document.getElementById('cel-loading');
+    ld.classList.add('cel-hidden');
+    setTimeout(function(){ ld.style.display='none'; }, 600);
+
+  } catch(err) {
+    document.getElementById('cel-loading').innerHTML = '<p style="color:#E74C3C;font-family:monospace">Error: '+err.message+'</p>';
+    console.error(err);
+  }
+}
+</script>
+
 </body>
 </html>
