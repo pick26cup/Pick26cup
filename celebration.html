@@ -126,6 +126,11 @@ body.lang-en .es{display:none}body.lang-en .en{display:block}
   .tl-wrap::before{left:7px}
   .tl-dot{left:-27px}
 }
+/* MUSIC BUTTON */
+.music-btn{position:fixed;bottom:24px;right:24px;z-index:998;width:52px;height:52px;border-radius:50%;background:rgba(10,10,10,.92);border:1.5px solid var(--gold);color:var(--gold);font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;box-shadow:0 4px 20px rgba(212,175,55,.25);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.music-btn:hover{background:rgba(212,175,55,.15);transform:scale(1.08)}
+.music-btn.playing{animation:pulse-m 2s ease-in-out infinite}
+@keyframes pulse-m{0%,100%{box-shadow:0 0 18px rgba(212,175,55,.5)}50%{box-shadow:0 0 32px rgba(212,175,55,.95)}}
 </style>
 </head>
 <body>
@@ -568,6 +573,54 @@ async function loadData() {
 }
 
 loadData();
+</script>
+
+<!-- YouTube hidden music player -->
+<div id="yt-player" style="position:fixed;left:-300px;top:-300px;width:1px;height:1px;pointer-events:none;visibility:hidden;"></div>
+
+<!-- Floating music control -->
+<button class="music-btn" id="music-btn" title="Música · FIFA 2026" onclick="toggleMusic()">♫</button>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+let ytPlayer = null;
+let musicOn  = false;
+
+function onYouTubeIframeAPIReady() {
+  ytPlayer = new YT.Player('yt-player', {
+    videoId: 'QJpaHXBjwpU',  // Shakira & Burna Boy - Dai Dai (FIFA World Cup 2026)
+    playerVars: {
+      autoplay: 1,
+      mute: 1,
+      loop: 1,
+      playlist: 'QJpaHXBjwpU',
+      controls: 0,
+      disablekb: 1,
+      fs: 0,
+      rel: 0,
+      modestbranding: 1
+    },
+    events: {
+      onReady: function(e) { e.target.playVideo(); }
+    }
+  });
+}
+
+function toggleMusic() {
+  const btn = document.getElementById('music-btn');
+  if (!ytPlayer || typeof ytPlayer.unMute !== 'function') return;
+  if (musicOn) {
+    ytPlayer.mute();
+    btn.textContent = '♫';
+    btn.classList.remove('playing');
+  } else {
+    ytPlayer.unMute();
+    ytPlayer.setVolume(70);
+    btn.textContent = '⏸';
+    btn.classList.add('playing');
+  }
+  musicOn = !musicOn;
+}
 </script>
 </body>
 </html>
