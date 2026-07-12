@@ -11709,9 +11709,22 @@ function onYouTubeIframeAPIReady() {
       onReady: function(e) {
         e.target.mute();
         e.target.playVideo();
-        // Show music button
         var btn = document.getElementById('cel-music-btn');
         if (btn) btn.style.display = 'block';
+        // Activar sonido al primer toque en cualquier parte de la pantalla
+        var ov = document.getElementById('cel-overlay');
+        function _celFirstTouch() {
+          if (_celMuted) {
+            _celYTPlayer.unMute();
+            _celYTPlayer.setVolume(70);
+            _celMuted = false;
+            if (btn) btn.textContent = '⏸';
+          }
+          ov.removeEventListener('touchstart', _celFirstTouch);
+          ov.removeEventListener('click', _celFirstTouch);
+        }
+        ov.addEventListener('touchstart', _celFirstTouch, {once:true});
+        ov.addEventListener('click', _celFirstTouch, {once:true});
       }
     }
   });
