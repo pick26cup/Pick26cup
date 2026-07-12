@@ -1746,7 +1746,6 @@ nav button.active{background:var(--gold);border-color:var(--gold);color:#000;fon
         <button onclick="showSection('results')" data-section="results" data-en="My Results" data-es="Mis Resultados">My Results</button>
         <button onclick="showSection('groups')" data-section="groups" data-en="Groups" data-es="Grupos">Groups</button>
         <button onclick="showSection('admin')" data-section="admin" data-en="Admin" data-es="Admin">Admin <span id="adminNavBadge" style="display:none" class="notif-badge">0</span></button>
-              <button onclick="showCelebration()" data-section="celebration" data-en="🏆 Celebration" data-es="🏆 Celebración" style="background:linear-gradient(135deg,rgba(184,134,11,.25),rgba(212,175,55,.25));border-color:rgba(212,175,55,.5);color:#D4AF37">🏆 Celebración</button>
 </nav>
       <div class="header-right">
         <button id="helpBtn" onclick="openRulesModal()" title="Cómo funciona / How it works" aria-label="Reglas">❓</button>
@@ -11681,6 +11680,9 @@ function closeCelebration() {
   document.getElementById('cel-overlay').style.display = 'none';
   document.body.style.overflow = '';
 }
+
+// Lanzar celebración automáticamente al abrir la app
+document.addEventListener('DOMContentLoaded', function(){ showCelebration(); });
 
 function _celStartIntro() {
   var el = document.getElementById('cel-intro');
