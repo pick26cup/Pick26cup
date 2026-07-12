@@ -11709,27 +11709,26 @@ function celInitMusic() {
 function onYouTubeIframeAPIReady() {
   _celYTPlayer = new YT.Player('cel-yt-player', {
     videoId: 'QJpaHXBjwpU',
-    playerVars: { autoplay: 1, loop: 1, playlist: 'QJpaHXBjwpU', controls: 0, disablekb: 1, fs: 0, modestbranding: 1, rel: 0 },
+    playerVars: { autoplay: 0, loop: 1, playlist: 'QJpaHXBjwpU', controls: 0, disablekb: 1, fs: 0, modestbranding: 1, rel: 0 },
     events: {
-      onReady: function(e) {
-        e.target.mute();
-        e.target.playVideo();
+      onReady: function() {
         var btn = document.getElementById('cel-music-btn');
         if (btn) btn.style.display = 'block';
-        // Activar sonido al primer toque en cualquier parte de la pantalla
+        // En móvil playVideo sólo funciona dentro de un gesto del usuario
         var ov = document.getElementById('cel-overlay');
         function _celFirstTouch() {
-          if (_celMuted) {
+          _celYTPlayer.mute();
+          _celYTPlayer.playVideo();
+          // Pequeño delay para asegurar que el video arrancó antes de desmutear
+          setTimeout(function() {
             _celYTPlayer.unMute();
             _celYTPlayer.setVolume(70);
             _celMuted = false;
             if (btn) btn.textContent = '⏸';
-          }
-          ov.removeEventListener('touchstart', _celFirstTouch);
-          ov.removeEventListener('click', _celFirstTouch);
+          }, 300);
         }
-        ov.addEventListener('touchstart', _celFirstTouch, {once:true});
-        ov.addEventListener('click', _celFirstTouch, {once:true});
+        ov.addEventListener('touchstart', _celFirstTouch, {once:true, passive:true});
+        ov.addEventListener('click',      _celFirstTouch, {once:true});
       }
     }
   });
@@ -11739,12 +11738,13 @@ function celToggleMusic() {
   if (!_celYTPlayer) return;
   var btn = document.getElementById('cel-music-btn');
   if (_celMuted) {
+    _celYTPlayer.playVideo();
     _celYTPlayer.unMute();
     _celYTPlayer.setVolume(70);
     _celMuted = false;
     if (btn) btn.textContent = '⏸';
   } else {
-    _celYTPlayer.mute();
+    _celYTPlayer.pauseVideo();
     _celMuted = true;
     if (btn) btn.textContent = '♫';
   }
