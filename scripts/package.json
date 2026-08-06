@@ -1,9 +1,0 @@
-{
-  "name": "pick26-update-results",
-  "version": "1.0.0",
-  "type": "commonjs",
-  "dependencies": {
-    "firebase-admin": "^12.0.0",
-    "node-fetch": "^2.7.0"
-  }
-}
