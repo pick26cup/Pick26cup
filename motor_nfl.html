@@ -117,6 +117,33 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
 
 /* Division label */
 .div-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+/* ── Pick Sheet ────────────────────── */
+.pick-sheet{font-size:14px}
+.pick-day-hdr{font-size:13px;font-weight:800;color:var(--amber);padding:12px 0 6px;border-bottom:2px solid var(--amber);margin-bottom:2px;letter-spacing:.03em}
+.pick-row{display:grid;grid-template-columns:28px 1fr 32px 1fr 28px 68px;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--line);cursor:default;transition:background .12s}
+.pick-row:hover{background:rgba(255,176,0,.03);border-radius:6px}
+.pick-chk{width:22px;height:22px;border:2px solid var(--line);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .15s;flex-shrink:0}
+.pick-chk:hover{border-color:var(--amber)}
+.pick-chk.picked{background:var(--amber);border-color:var(--amber);color:#0a0e14}
+.pick-team{display:flex;flex-direction:column;gap:1px}
+.pick-team.away{text-align:right;align-items:flex-end}
+.pick-team.home{text-align:left;align-items:flex-start}
+.pick-tn{font-size:13px;font-weight:700;line-height:1.2}
+.pick-tn.fav{color:var(--amber)}
+.pick-tc{font-size:10px;color:var(--muted);font-weight:400}
+.pick-bar-wrap{display:flex;height:4px;border-radius:2px;overflow:hidden;margin-top:2px;width:80px}
+.pick-bar-away{background:var(--loss);border-radius:2px 0 0 2px}
+.pick-bar-home{background:var(--win);border-radius:0 2px 2px 0}
+.pick-at{font-size:11px;color:var(--muted);text-align:center;font-weight:600}
+.pick-time{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
+.pick-details{font-size:10.5px;color:var(--muted);padding:2px 28px 7px;display:flex;gap:12px;border-bottom:1px solid rgba(26,34,51,.8)}
+.pick-details .sp{color:var(--amber);font-weight:700}
+.pick-details .ou{color:var(--muted)}
+.pick-details .sc{color:var(--text)}
+.pick-footer{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--amber);font-size:12px}
+.pick-footer .picks-done{color:var(--amber);font-weight:700}
+.pick-summary{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:12px;margin-top:8px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -224,29 +251,67 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
 
 <!-- ═══ SEMANA ═══ -->
 <div id="week" class="view">
-  <div class="card">
+  <div class="card" style="padding-bottom:10px">
     <div class="card-title" style="margin-bottom:10px">Semana / Ronda</div>
     <div class="week-row" id="weekRow"></div>
   </div>
   <div class="card">
-    <div class="card-title" id="weekLabel">Semana 1 · 2026</div>
-    <div id="gameList" style="font-size:12px;color:var(--muted);text-align:center;padding:20px">
-      Cargando partidos…
+    <!-- pick sheet header -->
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px">
+      <div>
+        <div style="font-size:11px;color:var(--amber);letter-spacing:.1em;text-transform:uppercase;font-weight:700">NFL 2026</div>
+        <div id="weekLabel" style="font-size:20px;font-weight:800;line-height:1.1">Week 1 Pick Sheet</div>
+      </div>
+      <div style="text-align:right;font-size:11px;color:var(--muted)">
+        <div id="pickCount" style="color:var(--amber);font-weight:700;font-size:15px">0 / 0</div>
+        <div>picks hechos</div>
+      </div>
     </div>
+
+    <!-- column headers (like pick sheet) -->
+    <div style="display:grid;grid-template-columns:28px 1fr 32px 1fr 28px 68px;gap:6px;padding:0 0 6px;border-bottom:1px solid var(--line);margin-bottom:4px">
+      <div></div>
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;text-align:right;letter-spacing:.08em">Visitante</div>
+      <div></div>
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Local</div>
+      <div></div>
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;text-align:right;letter-spacing:.08em">Hora ET</div>
+    </div>
+
+    <div class="pick-sheet" id="gameList">Cargando…</div>
+
+    <!-- footer -->
+    <div class="pick-footer">
+      <div>
+        <span class="picks-done" id="picksDone">0</span>
+        <span style="color:var(--muted)"> picks seleccionados</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:11px;color:var(--muted)">Desempate (pts totales):</span>
+        <input type="number" id="tiebreakerPts" placeholder="ej. 47" min="0" max="120" style="width:64px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:5px 8px;font-size:13px;font-family:inherit;text-align:center">
+      </div>
+      <button class="btn" onclick="clearPicks()">Limpiar picks</button>
+    </div>
+
+    <!-- my picks summary -->
+    <div class="pick-summary" id="pickSummary" style="display:none"></div>
   </div>
+
   <div class="card">
-    <div class="card-title">Agregar partido manual</div>
+    <div class="card-title">Agregar partido</div>
     <div style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;align-items:center">
       <select id="addH" class="team-sel"></select>
-      <span style="color:var(--muted);font-size:12px;text-align:center">vs</span>
+      <span style="color:var(--muted);font-size:12px;text-align:center">at</span>
       <select id="addA" class="team-sel"></select>
-      <button class="btn amber" onclick="addGame()">+ Agregar</button>
+      <button class="btn amber" onclick="addGame()">+ Add</button>
     </div>
-    <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+    <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <label style="font-size:12px;color:var(--muted)">Sede:</label>
       <button class="ha-btn on" id="addHAh" onclick="setAddHA('h')">Local A</button>
       <button class="ha-btn" id="addHAn" onclick="setAddHA('n')">Neutral</button>
       <button class="ha-btn" id="addHAa" onclick="setAddHA('a')">Local B</button>
+      <input id="addDay" placeholder="Día (ej. Dom · Sep 13)" style="flex:1;min-width:140px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:5px 8px;font-size:12px;font-family:inherit">
+      <input id="addTime" placeholder="Hora ET" style="width:80px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:5px 8px;font-size:12px;font-family:inherit">
     </div>
   </div>
 </div>
@@ -613,40 +678,139 @@ function buildWeekRow(){
   });
 }
 
+/* picks state: weekPicks[week][gameIdx] = 'away'|'home'|null */
+const weekPicks={};
+for(let w=1;w<=18;w++) weekPicks[w]={};
+['WC','DIV','CCG','SB'].forEach(r=>weekPicks[r]={});
+
+function togglePick(idx, side){
+  if(!weekPicks[curWeek]) weekPicks[curWeek]={};
+  const cur=weekPicks[curWeek][idx];
+  weekPicks[curWeek][idx]=(cur===side?null:side);
+  renderWeek();
+}
+
+function clearPicks(){
+  weekPicks[curWeek]={};
+  renderWeek();
+}
+
 function renderWeek(){
-  const label=typeof curWeek==='number'?'Semana '+curWeek+' · NFL 2026':curWeek+' · NFL 2026';
-  document.getElementById('weekLabel').textContent=label;
+  const wLabel=typeof curWeek==='number'?'Week '+curWeek+' Pick Sheet':'NFL 2026 · '+curWeek;
+  document.getElementById('weekLabel').textContent=wLabel;
   const games=weekGames[curWeek]||[];
   const gl=document.getElementById('gameList');
+
   if(!games.length){
-    gl.innerHTML='<div style="color:var(--muted);text-align:center;padding:16px;font-size:12px">Sin partidos. Agrega usando el panel de abajo.</div>';
+    gl.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px;font-size:12px">Sin partidos. Agrega usando el panel de abajo.</div>';
+    updatePickCount(games);
     return;
   }
-  gl.innerHTML=games.map(function(g,i){
-    const tH=TEAMS_NFL[IDX_NFL[g.hc]];
-    const tA=TEAMS_NFL[IDX_NFL[g.ac]];
-    if(!tH||!tA) return '';
-    // temporarily set haSide for prediction
+
+  const P=getK();
+  let html='';
+  let lastDay='';
+
+  games.forEach(function(g,i){
+    const tV=TEAMS_NFL[IDX_NFL[g.hc]]; // visitor (hc)
+    const tH=TEAMS_NFL[IDX_NFL[g.ac]]; // home (ac)
+    if(!tV||!tH) return;
+
+    // day header
+    const day=g.day||'';
+    if(day && day!==lastDay){
+      html+=`<div class="pick-day-hdr">${day}</div>`;
+      lastDay=day;
+    }
+
+    // prediction (swap haSide temporarily)
     const savedHA=haSide;
     haSide=g.ha;
     const r=predict(g.hc,g.ac);
     haSide=savedHA;
-    if(!r) return '';
-    const ph=Math.round(r.pH*100);
-    const sp=r.spread.toFixed(1);
-    const spStr=(r.spread>0?tH.c+' −'+Math.abs(+sp):r.spread<0?tA.c+' −'+Math.abs(+sp):'Pick\'em');
-    const P=getK();
-    return `<div class="game-card">
-      <div class="gc-team away" style="color:${ph>50?'var(--win)':'var(--muted)'}">${tH.c}<br><span style="font-size:10px;color:var(--muted)">${ph}%</span></div>
-      <div class="gc-at">@ ${g.ha==='h'?tH.c:(g.ha==='a'?tA.c:'Neutral')}<br><span style="font-size:9px;color:var(--muted)">${g.ha==='n'?'Neutral':'Local'}</span></div>
-      <div class="gc-team" style="color:${ph<50?'var(--loss)':'var(--muted)'}">${tA.c}<br><span style="font-size:10px;color:var(--muted)">${100-ph}%</span></div>
-      <div class="gc-odds">
-        <div class="sp">${spStr}</div>
-        <div class="ou">OU ${P.TOTAL.toFixed(1)}</div>
-        <button onclick="removeGame(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;margin-top:4px">✕</button>
+    if(!r) return;
+
+    // r.pH = P(hc wins) = P(visitor wins when ha='a')
+    const pV=Math.round(r.pH*100);  // visitor win%
+    const pH=100-pV;                 // home win%
+    const sp=r.spread;               // positive = visitor favored
+    // spread label from HOME team perspective: sp<0 means home favored
+    const homeSpread=-sp;
+    const favIsHome=homeSpread>0;
+    const favIsAway=sp>0;
+    const spAbs=Math.abs(sp).toFixed(1);
+    let spLabel='Pick\'em';
+    if(favIsHome) spLabel=tH.c+' -'+spAbs;
+    else if(favIsAway) spLabel=tV.c+' -'+spAbs;
+
+    const predScV=Math.round(r.scoreH*2)/2;   // hc = visitor expected score
+    const predScH=Math.round(r.scoreA*2)/2;   // ac = home expected score
+    const pick=weekPicks[curWeek]?weekPicks[curWeek][i]:null;
+
+    // bar widths
+    const bV=pV; const bH=pH;
+
+    html+=`
+    <div class="pick-row" id="pr${i}">
+      <div class="pick-chk${pick==='away'?' picked':''}" onclick="togglePick(${i},'away')" title="Pick ${tV.c}">${pick==='away'?'✓':''}</div>
+      <div class="pick-team away">
+        <span class="pick-tn${!favIsHome&&favIsAway?' fav':''}">${tV.n}</span>
+        <span class="pick-tc">${tV.c} · ${pV}%</span>
+        <div class="pick-bar-wrap" style="flex-direction:row-reverse">
+          <div class="pick-bar-away" style="width:${bV}%"></div>
+          <div style="flex:${100-bV}%;background:transparent"></div>
+        </div>
       </div>
+      <div class="pick-at">${g.ha==='n'?'vs':'at'}</div>
+      <div class="pick-team home">
+        <span class="pick-tn${favIsHome?' fav':''}">${tH.n}</span>
+        <span class="pick-tc">${tH.c} · ${pH}%</span>
+        <div class="pick-bar-wrap">
+          <div class="pick-bar-home" style="width:${bH}%"></div>
+          <div style="flex:${100-bH}%;background:transparent"></div>
+        </div>
+      </div>
+      <div class="pick-chk${pick==='home'?' picked':''}" onclick="togglePick(${i},'home')" title="Pick ${tH.c}">${pick==='home'?'✓':''}</div>
+      <div class="pick-time">${g.time||''}</div>
+    </div>
+    <div class="pick-details">
+      <span class="sp">${spLabel}</span>
+      <span class="ou">O/U ${P.TOTAL.toFixed(1)}</span>
+      <span class="sc">${tV.c} ${predScV} · ${tH.c} ${predScH}</span>
+      <button onclick="removeGame(${i})" style="background:none;border:none;color:rgba(107,124,147,.5);cursor:pointer;font-size:10px;margin-left:auto;padding:0">✕</button>
     </div>`;
-  }).join('');
+  });
+
+  gl.innerHTML=html;
+  updatePickCount(games);
+}
+
+function updatePickCount(games){
+  const picks=weekPicks[curWeek]||{};
+  const done=Object.values(picks).filter(v=>v!==null&&v!==undefined).length;
+  const total=games.length;
+  document.getElementById('pickCount').textContent=done+' / '+total;
+  document.getElementById('picksDone').textContent=done;
+
+  // build picks summary
+  const summary=document.getElementById('pickSummary');
+  const games_=weekGames[curWeek]||[];
+  const myPicks=games_.map(function(g,i){
+    const p=picks[i];
+    if(!p) return null;
+    const tV=TEAMS_NFL[IDX_NFL[g.hc]];
+    const tH=TEAMS_NFL[IDX_NFL[g.ac]];
+    if(!tV||!tH) return null;
+    const chosen=p==='away'?tV:tH;
+    return chosen.c;
+  }).filter(Boolean);
+
+  if(myPicks.length){
+    summary.style.display='block';
+    summary.innerHTML='<b style="color:var(--text)">Mis picks:</b> '+myPicks.join(' · ');
+  } else {
+    summary.style.display='none';
+  }
 }
 
 function addGame(){
@@ -654,7 +818,9 @@ function addGame(){
   const ac=document.getElementById('addA').value;
   if(!hc||!ac||hc===ac) return;
   if(!weekGames[curWeek]) weekGames[curWeek]=[];
-  weekGames[curWeek].push({hc,ac,ha:addHA});
+  const day=document.getElementById('addDay').value||'';
+  const time=document.getElementById('addTime').value||'';
+  weekGames[curWeek].push({hc,ac,ha:addHA,day,time});
   renderWeek();
 }
 
@@ -863,28 +1029,22 @@ function initSelects(){
    Formato: {hc:visitante, ac:local, ha:'a'} | SF vs LAR → SF local
    ══════════════════════════════════════════════════════ */
 const W1_SCHEDULE=[
-  /* Miércoles 9 sep · 8:20 pm */
-  {hc:'NE', ac:'SEA',ha:'a'},
-  /* Jueves 10 sep · 8:00 pm */
-  {hc:'LAR',ac:'SF', ha:'a'},  // SF local ("vs" = SF home)
-  /* Domingo 13 sep · 1:00 pm ET */
-  {hc:'ATL',ac:'PIT',ha:'a'},
-  {hc:'BAL',ac:'IND',ha:'a'},
-  {hc:'BUF',ac:'HOU',ha:'a'},
-  {hc:'CHI',ac:'CAR',ha:'a'},
-  {hc:'CLE',ac:'JAX',ha:'a'},
-  {hc:'TB', ac:'CIN',ha:'a'},
-  {hc:'NO', ac:'DET',ha:'a'},
-  {hc:'NYJ',ac:'TEN',ha:'a'},
-  /* Domingo 13 sep · 4:25 pm ET */
-  {hc:'ARI',ac:'LAC',ha:'a'},
-  {hc:'GB', ac:'MIN',ha:'a'},
-  {hc:'MIA',ac:'LV', ha:'a'},
-  /* Domingo 13 sep · 8:20 pm ET (Sunday Night) */
-  {hc:'WAS',ac:'PHI',ha:'a'},
-  {hc:'DAL',ac:'NYG',ha:'a'},
-  /* Lunes 14 sep · 8:15 pm ET (Monday Night) */
-  {hc:'DEN',ac:'KC', ha:'a'},
+  {hc:'NE', ac:'SEA',ha:'a',day:'Wednesday, Sep. 9', time:'8:20 pm'},
+  {hc:'LAR',ac:'SF', ha:'a',day:'Thursday, Sep. 10', time:'8:00 pm'},
+  {hc:'ATL',ac:'PIT',ha:'a',day:'Sunday, Sep. 13',   time:'1:00 pm'},
+  {hc:'BAL',ac:'IND',ha:'a',day:'Sunday, Sep. 13',   time:'1:00 pm'},
+  {hc:'BUF',ac:'HOU',ha:'a',day:'Sunday, Sep. 13',   time:'1:00 pm'},
+  {hc:'CHI',ac:'CAR',ha:'a',day:'Sunday, Sep. 13',   time:'1:00 pm'},
+  {hc:'CLE',ac:'JAX',ha:'a',day:'Sunday, Sep. 13',   time:'1:00 pm'},
+  {hc:'TB', ac:'CIN',ha:'a',day:'Sunday, Sep. 13',   time:'1:00 pm'},
+  {hc:'NO', ac:'DET',ha:'a',day:'Sunday, Sep. 13',   time:'1:00 pm'},
+  {hc:'NYJ',ac:'TEN',ha:'a',day:'Sunday, Sep. 13',   time:'1:00 pm'},
+  {hc:'ARI',ac:'LAC',ha:'a',day:'Sunday, Sep. 13',   time:'4:25 pm'},
+  {hc:'GB', ac:'MIN',ha:'a',day:'Sunday, Sep. 13',   time:'4:25 pm'},
+  {hc:'MIA',ac:'LV', ha:'a',day:'Sunday, Sep. 13',   time:'4:25 pm'},
+  {hc:'WAS',ac:'PHI',ha:'a',day:'Sunday, Sep. 13',   time:'8:20 pm'},
+  {hc:'DAL',ac:'NYG',ha:'a',day:'Sunday, Sep. 13',   time:'8:20 pm'},
+  {hc:'DEN',ac:'KC', ha:'a',day:'Monday, Sep. 14',   time:'8:15 pm'},
 ];
 W1_SCHEDULE.forEach(function(g){weekGames[1].push(g);});
 
