@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Motor NFL 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#101620;--panel2:#0d1219;
+  --amber:#ffb000;--win:#34d99b;--loss:#ff7676;--draw:#9aa3b0;
+  --muted:#6b7c93;--line:#1a2233;--text:#e8ecf0;
+  --afc:#4a8fe8;--nfc:#e87a4a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:14px;min-height:100vh;
+  background-image:linear-gradient(rgba(255,176,0,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,176,0,.018) 1px,transparent 1px);
+  background-size:34px 34px}
+a{color:var(--amber)}
+header{padding:28px 20px 18px;max-width:900px;margin:0 auto}
+.kicker{font-size:11px;color:var(--amber);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+h1{font-size:clamp(22px,4vw,32px);font-weight:800;line-height:1.1}
+h1 b{color:var(--amber)}
+.sub{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5}
+.flag{display:inline-block;background:rgba(255,176,0,.1);border:1px solid rgba(255,176,0,.3);color:var(--amber);border-radius:6px;padding:1px 7px;font-size:10px;margin-right:4px}
+.flag.afc{background:rgba(74,143,232,.1);border-color:rgba(74,143,232,.3);color:var(--afc)}
+.flag.nfc{background:rgba(232,122,74,.1);border-color:rgba(232,122,74,.3);color:var(--nfc)}
+
+.tabs{display:flex;gap:8px;padding:0 20px 14px;max-width:900px;margin:0 auto;flex-wrap:wrap}
+.tab{background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:8px 16px;cursor:pointer;font-family:inherit;font-size:13px;transition:all .15s}
+.tab.on{background:var(--amber);color:#0a0e14;border-color:var(--amber);font-weight:700}
+
+.view{display:none;max-width:900px;margin:0 auto;padding:0 20px 40px}
+.view.on{display:block}
+
+.card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+.card-title{font-size:11px;color:var(--amber);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;font-weight:700}
+
+/* Predictor */
+.predictor-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-bottom:18px}
+.team-box{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+.team-box label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:8px}
+select.team-sel{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;cursor:pointer}
+select.team-sel:focus{outline:none;border-color:var(--amber)}
+.vs-box{text-align:center;padding:8px}
+.vs-box span{font-size:18px;font-weight:800;color:var(--muted)}
+.ha-btns{display:flex;gap:4px;justify-content:center;margin-top:8px}
+.ha-btn{background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:7px;padding:4px 10px;cursor:pointer;font-size:11px;font-family:inherit;transition:all .15s}
+.ha-btn.on{background:var(--amber);color:#0a0e14;border-color:var(--amber);font-weight:700}
+
+/* Result cards */
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat-box{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
+.stat-val{font-size:26px;font-weight:800;font-family:'Bricolage Grotesque',sans-serif}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:3px}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* Win bar */
+.winbar-wrap{margin-bottom:14px}
+.winbar-labels{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+.winbar{height:18px;background:var(--bg);border-radius:9px;overflow:hidden;border:1px solid var(--line);display:flex}
+.winbar .seg-h{background:linear-gradient(90deg,var(--win),#1c9d6e);transition:width .4s}
+.winbar .seg-a{background:linear-gradient(90deg,#d83b3b,var(--loss));transition:width .4s}
+
+/* Score distribution */
+.dist-wrap{margin-bottom:4px}
+.dist-title{font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em}
+.dist-bars{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;align-items:end;height:72px}
+.dist-bar-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.dist-bar{width:100%;border-radius:4px 4px 0 0;min-height:2px;transition:height .3s}
+.dist-bar.win{background:linear-gradient(180deg,var(--win),#1c9d6e)}
+.dist-bar.loss{background:linear-gradient(180deg,var(--loss),#a02020)}
+.dist-bar.close{background:linear-gradient(180deg,#e8b84a,#b07020)}
+.dist-lbl{font-size:9px;color:var(--muted);margin-top:4px;text-align:center;line-height:1.2}
+
+/* Semana */
+.week-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.wbtn{background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:7px 11px;cursor:pointer;font-size:12px;font-family:inherit;min-width:44px;text-align:center;transition:all .15s}
+.wbtn.on{background:var(--amber);color:#0a0e14;border-color:var(--amber);font-weight:700}
+.wbtn.po{border-color:rgba(255,176,0,.4);color:rgba(255,176,0,.7)}
+
+/* Game card */
+.game-card{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:grid;grid-template-columns:1fr 80px 1fr auto;gap:8px;align-items:center}
+.gc-team{font-size:13px;font-weight:600}
+.gc-team.away{text-align:right}
+.gc-at{font-size:11px;color:var(--muted);text-align:center}
+.gc-odds{text-align:right;font-size:12px}
+.gc-odds .sp{color:var(--amber);font-weight:700}
+.gc-odds .ou{color:var(--muted)}
+.gc-pct{display:flex;gap:4px;align-items:center;font-size:11px}
+.gc-pct-h{color:var(--win)}
+.gc-pct-a{color:var(--loss)}
+
+/* Teams table */
+.teams-table{width:100%;border-collapse:collapse}
+.teams-table th{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:6px 8px;text-align:left;border-bottom:1px solid var(--line)}
+.teams-table td{padding:7px 8px;border-bottom:1px solid rgba(26,34,51,.5);font-size:13px}
+.teams-table tr:last-child td{border-bottom:none}
+.teams-table .elo-inp{width:58px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:3px 6px;font-size:12px;font-family:inherit;text-align:right}
+.teams-table .elo-inp:focus{outline:none;border-color:var(--amber)}
+.rank-badge{display:inline-block;background:rgba(255,176,0,.12);color:var(--amber);border-radius:5px;padding:1px 6px;font-size:11px;font-weight:700}
+.conf-header{font-size:11px;color:var(--amber);text-transform:uppercase;letter-spacing:.1em;padding:10px 8px 4px;font-weight:700;border-bottom:1px solid var(--line)}
+
+/* Cal panel */
+.cal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.cal-grid{grid-template-columns:1fr}}
+.cal-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.cal-row label{font-size:12px;color:var(--muted);flex:1}
+.cal-row input[type=range]{flex:2;accent-color:var(--amber)}
+.cal-row .cal-val{font-size:13px;color:var(--amber);font-weight:700;min-width:38px;text-align:right}
+.btn{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:8px 16px;cursor:pointer;font-family:inherit;font-size:13px;transition:all .15s}
+.btn:hover{border-color:var(--amber);color:var(--amber)}
+.btn.amber{background:var(--amber);color:#0a0e14;border-color:var(--amber);font-weight:700}
+.btn.amber:hover{opacity:.9}
+
+/* Division label */
+.div-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">NFL 2026 · Motor Predictivo</div>
+  <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
+  <div class="sub">Modelo Elo calibrado + Spread/Total/Win% · Distribución de márgenes vía distribución normal · K=20 · σ=13.45.</div>
+  <div class="sub" style="margin-top:6px;color:#7d8a9a">
+    <span class="flag">Estado de datos</span> Elo pretemporada 2026 (base histórica 2024-25) · editable en pestaña Equipos.
+    <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab on" data-v="pred">🏈 Predictor</div>
+  <div class="tab" data-v="week">📅 Semana</div>
+  <div class="tab" data-v="teams">📊 Equipos</div>
+  <div class="tab" data-v="cal">⚙️ Calibración</div>
+</div>
+
+<!-- ═══ PREDICTOR ═══ -->
+<div id="pred" class="view on">
+  <div class="card">
+    <div class="card-title">Selección de partido</div>
+    <div class="predictor-grid">
+      <div class="team-box">
+        <label>Equipo A</label>
+        <select id="teamH" class="team-sel"></select>
+        <div class="ha-btns" style="margin-top:8px">
+          <button class="ha-btn on" data-side="h" onclick="setHASide('h')">Local</button>
+          <button class="ha-btn" data-side="n" onclick="setHASide('n')">Neutral</button>
+          <button class="ha-btn" data-side="a" onclick="setHASide('a')">Visitante</button>
+        </div>
+      </div>
+      <div class="vs-box"><span>VS</span></div>
+      <div class="team-box">
+        <label>Equipo B</label>
+        <select id="teamA" class="team-sel"></select>
+        <div style="margin-top:8px;font-size:10px;color:var(--muted);text-align:center">Visitante / Neutral</div>
+      </div>
+    </div>
+
+    <!-- Win bar -->
+    <div class="winbar-wrap">
+      <div class="winbar-labels">
+        <span id="lblH" style="color:var(--win);font-weight:700">— %</span>
+        <span style="font-size:11px;color:var(--muted)">Victoria</span>
+        <span id="lblA" style="color:var(--loss);font-weight:700">— %</span>
+      </div>
+      <div class="winbar" id="winbar">
+        <div class="seg-h" id="barH" style="width:50%"></div>
+        <div class="seg-a" id="barA" style="width:50%"></div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="result-grid">
+      <div class="stat-box">
+        <div class="stat-val" id="statSpread" style="color:var(--amber)">—</div>
+        <div class="stat-lbl">Spread (A)</div>
+        <div class="stat-sub" id="statSpreadSub">línea A vs B</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="statTotal">—</div>
+        <div class="stat-lbl">Over/Under</div>
+        <div class="stat-sub" id="statTotalSub">total puntos</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="statEloDiff" style="color:var(--muted)">—</div>
+        <div class="stat-lbl">Δ Elo</div>
+        <div class="stat-sub" id="statEloDiffSub">A vs B (neto)</div>
+      </div>
+    </div>
+
+    <!-- Score estimates -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div class="stat-box">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Puntos esperados A</div>
+        <div id="scoreH" style="font-size:22px;font-weight:800;color:var(--win)">—</div>
+      </div>
+      <div class="stat-box">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Puntos esperados B</div>
+        <div id="scoreA" style="font-size:22px;font-weight:800;color:var(--loss)">—</div>
+      </div>
+    </div>
+
+    <!-- Margin distribution -->
+    <div class="dist-wrap">
+      <div class="dist-title">Distribución del margen (puntos de A)</div>
+      <div class="dist-bars" id="distBars"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--muted);padding:0 2px">
+        <span style="color:var(--loss)">← B gana</span>
+        <span>Margen (A − B)</span>
+        <span style="color:var(--win)">A gana →</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenarios -->
+  <div class="card" id="scenCard">
+    <div class="card-title">Probabilidades por resultado</div>
+    <div id="scenRows" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+  </div>
+</div>
+
+<!-- ═══ SEMANA ═══ -->
+<div id="week" class="view">
+  <div class="card">
+    <div class="card-title" style="margin-bottom:10px">Semana / Ronda</div>
+    <div class="week-row" id="weekRow"></div>
+  </div>
+  <div class="card">
+    <div class="card-title" id="weekLabel">Semana 1 · 2026</div>
+    <div id="gameList" style="font-size:12px;color:var(--muted);text-align:center;padding:20px">
+      Cargando partidos…
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Agregar partido manual</div>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;align-items:center">
+      <select id="addH" class="team-sel"></select>
+      <span style="color:var(--muted);font-size:12px;text-align:center">vs</span>
+      <select id="addA" class="team-sel"></select>
+      <button class="btn amber" onclick="addGame()">+ Agregar</button>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+      <label style="font-size:12px;color:var(--muted)">Sede:</label>
+      <button class="ha-btn on" id="addHAh" onclick="setAddHA('h')">Local A</button>
+      <button class="ha-btn" id="addHAn" onclick="setAddHA('n')">Neutral</button>
+      <button class="ha-btn" id="addHAa" onclick="setAddHA('a')">Local B</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EQUIPOS ═══ -->
+<div id="teams" class="view">
+  <div class="card">
+    <div class="card-title">Base de equipos · Elo editable</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="btn" id="confAfc" onclick="filterConf('AFC')">AFC</button>
+      <button class="btn" id="confNfc" onclick="filterConf('NFC')">NFC</button>
+      <button class="btn on" id="confAll" onclick="filterConf('ALL')" style="border-color:var(--amber);color:var(--amber)">Todos</button>
+      <button class="btn" onclick="sortByElo()" style="margin-left:auto">↕ Elo</button>
+      <button class="btn" onclick="resetElo()">Reset</button>
+    </div>
+    <table class="teams-table" id="teamsTable">
+      <thead>
+        <tr>
+          <th>#</th><th>Equipo</th><th>Conf</th><th>División</th><th>Elo</th><th>Rank</th>
+        </tr>
+      </thead>
+      <tbody id="teamsTbody"></tbody>
+    </table>
+  </div>
+  <!-- Power ranking visual -->
+  <div class="card">
+    <div class="card-title">Power Ranking · Visual</div>
+    <div id="powerRanking"></div>
+  </div>
+</div>
+
+<!-- ═══ CALIBRACIÓN ═══ -->
+<div id="cal" class="view">
+  <div class="card">
+    <div class="card-title">Parámetros del modelo</div>
+    <div class="cal-grid">
+      <div>
+        <div class="cal-row">
+          <label>HFA (Elo) <span style="color:var(--muted);font-size:10px">≈ pts spread</span></label>
+          <input type="range" id="cHFA" min="0" max="120" step="5" value="48" oninput="calUpdate()">
+          <span class="cal-val"><span id="vHFA">48</span> <span style="font-size:10px;color:var(--muted)" id="vHFApt">(2.3 pts)</span></span>
+        </div>
+        <div class="cal-row">
+          <label>σ Margen <span style="font-size:10px;color:var(--muted)">dev. estándar spread</span></label>
+          <input type="range" id="cSigma" min="8" max="20" step=".5" value="13.5" oninput="calUpdate()">
+          <span class="cal-val" id="vSigma">13.5</span>
+        </div>
+        <div class="cal-row">
+          <label>Elo/Punto <span style="font-size:10px;color:var(--muted)">conversión</span></label>
+          <input type="range" id="cEPP" min="15" max="30" step="1" value="21" oninput="calUpdate()">
+          <span class="cal-val" id="vEPP">21</span>
+        </div>
+      </div>
+      <div>
+        <div class="cal-row">
+          <label>Total medio <span style="font-size:10px;color:var(--muted)">pts totales</span></label>
+          <input type="range" id="cTotal" min="36" max="62" step=".5" value="46.5" oninput="calUpdate()">
+          <span class="cal-val" id="vTotal">46.5</span>
+        </div>
+        <div class="cal-row">
+          <label>σ Total <span style="font-size:10px;color:var(--muted)">varianza total</span></label>
+          <input type="range" id="cSigmaT" min="10" max="30" step="1" value="23" oninput="calUpdate()">
+          <span class="cal-val" id="vSigmaT">23</span>
+        </div>
+        <div class="cal-row">
+          <label>K (Elo update)</label>
+          <input type="range" id="cK" min="10" max="40" step="2" value="20" oninput="calUpdate()">
+          <span class="cal-val" id="vK">20</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn amber" onclick="resetCal()">Reset defaults</button>
+      <button class="btn" onclick="renderPredictor()">Recalcular</button>
+    </div>
+    <div style="margin-top:14px;padding:12px;background:var(--bg);border:1px solid var(--line);border-radius:10px;font-size:12px;color:var(--muted);line-height:1.7">
+      <b style="color:var(--text)">Modelo NFL Elo → Spread:</b><br>
+      <b>Spread</b> = (Elo_A − Elo_B ± HFA_elo) / Elo_por_punto<br>
+      <b>Win%</b> = Φ(spread / σ) · distribución normal estándar<br>
+      <b>Pts_A</b> = (Total + spread) / 2 · <b>Pts_B</b> = (Total − spread) / 2<br>
+      <b>Elo update</b> (post-partido): ΔElo = K × (W − We) donde We = 1/(1+10^(−dr/400))<br>
+      <b>HFA referencia NFL</b>: ~2–3 pts (≈48 Elo) · <b>σ histórica</b>: ~13.45 pts
+    </div>
+  </div>
+
+  <!-- Elo Calculator -->
+  <div class="card">
+    <div class="card-title">Calculadora Elo post-partido</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Equipo A · Elo pre</label>
+        <input type="number" id="eloA_pre" value="1500" style="width:100%;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 10px;font-size:13px;font-family:inherit">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Equipo B · Elo pre</label>
+        <input type="number" id="eloB_pre" value="1500" style="width:100%;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 10px;font-size:13px;font-family:inherit">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+      <label style="font-size:12px;color:var(--muted)">Resultado:</label>
+      <button class="ha-btn on" id="resW" onclick="setRes('win')">A gana</button>
+      <button class="ha-btn" id="resD" onclick="setRes('draw')">Empate OT</button>
+      <button class="ha-btn" id="resL" onclick="setRes('loss')">B gana</button>
+      <label style="font-size:12px;color:var(--muted);margin-left:8px">Margen (pts):</label>
+      <input type="number" id="eloMOV" value="7" min="0" max="50" style="width:60px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 8px;font-size:13px;font-family:inherit">
+    </div>
+    <button class="btn amber" onclick="calcElo()">Calcular ΔElo</button>
+    <div id="eloResult" style="margin-top:12px;font-size:13px;min-height:32px"></div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   DATOS · 32 equipos NFL 2026
+   Elo base: estimado post-temporada 2025 (pretemporada 2026)
+   Liga media = 1500 · editable en pestaña Equipos
+   ══════════════════════════════════════════════════════ */
+const TEAMS_NFL=[
+  // AFC East
+  {c:'BUF',n:'Buffalo Bills',      conf:'AFC',div:'AFC East', elo:1605},
+  {c:'MIA',n:'Miami Dolphins',     conf:'AFC',div:'AFC East', elo:1560},
+  {c:'NE', n:'New England Patriots',conf:'AFC',div:'AFC East',elo:1430},
+  {c:'NYJ',n:'New York Jets',      conf:'AFC',div:'AFC East', elo:1425},
+  // AFC North
+  {c:'BAL',n:'Baltimore Ravens',   conf:'AFC',div:'AFC North',elo:1600},
+  {c:'CIN',n:'Cincinnati Bengals', conf:'AFC',div:'AFC North',elo:1555},
+  {c:'CLE',n:'Cleveland Browns',   conf:'AFC',div:'AFC North',elo:1445},
+  {c:'PIT',n:'Pittsburgh Steelers',conf:'AFC',div:'AFC North',elo:1500},
+  // AFC South
+  {c:'HOU',n:'Houston Texans',     conf:'AFC',div:'AFC South',elo:1545},
+  {c:'IND',n:'Indianapolis Colts', conf:'AFC',div:'AFC South',elo:1490},
+  {c:'JAX',n:'Jacksonville Jaguars',conf:'AFC',div:'AFC South',elo:1495},
+  {c:'TEN',n:'Tennessee Titans',   conf:'AFC',div:'AFC South',elo:1435},
+  // AFC West
+  {c:'DEN',n:'Denver Broncos',     conf:'AFC',div:'AFC West', elo:1540},
+  {c:'KC', n:'Kansas City Chiefs', conf:'AFC',div:'AFC West', elo:1645},
+  {c:'LV', n:'Las Vegas Raiders',  conf:'AFC',div:'AFC West', elo:1425},
+  {c:'LAC',n:'LA Chargers',        conf:'AFC',div:'AFC West', elo:1510},
+  // NFC East
+  {c:'DAL',n:'Dallas Cowboys',     conf:'NFC',div:'NFC East', elo:1535},
+  {c:'NYG',n:'New York Giants',    conf:'NFC',div:'NFC East', elo:1450},
+  {c:'PHI',n:'Philadelphia Eagles',conf:'NFC',div:'NFC East', elo:1620},
+  {c:'WAS',n:'Washington Commanders',conf:'NFC',div:'NFC East',elo:1505},
+  // NFC North
+  {c:'CHI',n:'Chicago Bears',      conf:'NFC',div:'NFC North',elo:1475},
+  {c:'DET',n:'Detroit Lions',      conf:'NFC',div:'NFC North',elo:1585},
+  {c:'GB', n:'Green Bay Packers',  conf:'NFC',div:'NFC North',elo:1525},
+  {c:'MIN',n:'Minnesota Vikings',  conf:'NFC',div:'NFC North',elo:1560},
+  // NFC South
+  {c:'ATL',n:'Atlanta Falcons',    conf:'NFC',div:'NFC South',elo:1480},
+  {c:'CAR',n:'Carolina Panthers',  conf:'NFC',div:'NFC South',elo:1405},
+  {c:'NO', n:'New Orleans Saints', conf:'NFC',div:'NFC South',elo:1455},
+  {c:'TB', n:'Tampa Bay Buccaneers',conf:'NFC',div:'NFC South',elo:1515},
+  // NFC West
+  {c:'ARI',n:'Arizona Cardinals',  conf:'NFC',div:'NFC West', elo:1450},
+  {c:'LAR',n:'LA Rams',            conf:'NFC',div:'NFC West', elo:1530},
+  {c:'SEA',n:'Seattle Seahawks',   conf:'NFC',div:'NFC West', elo:1520},
+  {c:'SF', n:'San Francisco 49ers',conf:'NFC',div:'NFC West', elo:1595},
+];
+const ELO_BASE=JSON.parse(JSON.stringify(TEAMS_NFL.map(t=>({c:t.c,elo:t.elo}))));
+const IDX_NFL={};TEAMS_NFL.forEach((t,i)=>IDX_NFL[t.c]=i);
+
+/* ══════════════════════════════════════════════════════
+   ESTADO UI
+   ══════════════════════════════════════════════════════ */
+let haSide='h';   // 'h' | 'n' | 'a'  (A es local/neutral/visitante)
+let addHA='n';
+let curWeek=1;
+let confFilter='ALL';
+let eloResult='win';
+let weekGames={};  // {week: [{hc,ac,ha}]}
+for(let w=1;w<=18;w++) weekGames[w]=[];
+['WC','DIV','CCG','SB'].forEach(r=>weekGames[r]=[]);
+
+/* ══════════════════════════════════════════════════════
+   MODELO
+   ══════════════════════════════════════════════════════ */
+function getK(){
+  return {
+    HFA:+document.getElementById('cHFA').value,
+    SIGMA:+document.getElementById('cSigma').value,
+    EPP:+document.getElementById('cEPP').value,
+    TOTAL:+document.getElementById('cTotal').value,
+    SIGMAT:+document.getElementById('cSigmaT').value,
+    K:+document.getElementById('cK').value,
+  };
+}
+
+/* Normal CDF via approximation (Abramowitz & Stegun) */
+function normCDF(x){
+  const t=1/(1+0.2316419*Math.abs(x));
+  const d=0.3989423*Math.exp(-x*x/2);
+  const p=d*t*(0.3193815+t*(-0.3565638+t*(1.7814779+t*(-1.8212560+t*1.3302744))));
+  return x>=0?1-p:p;
+}
+
+function predict(teamH_code, teamA_code){
+  const P=getK();
+  const tH=TEAMS_NFL[IDX_NFL[teamH_code]];
+  const tA=TEAMS_NFL[IDX_NFL[teamA_code]];
+  if(!tH||!tA) return null;
+
+  let dr=tH.elo - tA.elo;
+  // Home field advantage: +HFA for A side, -HFA if A side is visiting
+  let hfa=0;
+  if(haSide==='h') hfa=P.HFA;      // team A is home
+  else if(haSide==='a') hfa=-P.HFA; // team B is home (A is visitor)
+  // neutral: hfa=0
+
+  const drAdj=dr+hfa;
+  const spread=drAdj/P.EPP;  // positive = A favored
+  const pH=normCDF(spread/P.SIGMA);   // P(A wins)
+  const pA=1-pH;
+  const scoreH=(P.TOTAL+spread)/2;
+  const scoreA=(P.TOTAL-spread)/2;
+  return {spread, pH, pA, scoreH, scoreA, drAdj, eloH:tH.elo, eloA:tA.elo, dr};
+}
+
+/* Margin distribution: 7 buckets */
+function marginDist(spread, sigma){
+  const cuts=[-21,-14,-7,-1,0,7,14,21]; // bin edges (exclusive/inclusive)
+  // Buckets: <-21 | -21to-14 | -14to-7 | -7to0 | 0to7 | 7to14 | 14+ (A margin)
+  const labels=['B +21+','B +14','B +7','Cerrado','A +7','A +14','A +21+'];
+  const probs=[];
+  probs.push(normCDF((-21-spread)/sigma));                         // B wins 21+
+  probs.push(normCDF((-14-spread)/sigma)-normCDF((-21-spread)/sigma)); // B 14-21
+  probs.push(normCDF((-7-spread)/sigma)-normCDF((-14-spread)/sigma));  // B 7-14
+  probs.push(normCDF((0-spread)/sigma)-normCDF((-7-spread)/sigma));    // B 0-7
+  probs.push(normCDF((7-spread)/sigma)-normCDF((0-spread)/sigma));     // A 0-7
+  probs.push(normCDF((14-spread)/sigma)-normCDF((7-spread)/sigma));    // A 7-14
+  probs.push(1-normCDF((14-spread)/sigma));                            // A 14+
+  return {probs, labels};
+}
+
+/* ══════════════════════════════════════════════════════
+   RENDER PREDICTOR
+   ══════════════════════════════════════════════════════ */
+function renderPredictor(){
+  const hc=document.getElementById('teamH').value;
+  const ac=document.getElementById('teamA').value;
+  if(!hc||!ac||hc===ac){clearPred();return;}
+  const r=predict(hc,ac);
+  if(!r){clearPred();return;}
+
+  // Win bar
+  const ph=Math.round(r.pH*100);
+  const pa=100-ph;
+  document.getElementById('barH').style.width=ph+'%';
+  document.getElementById('barA').style.width=pa+'%';
+  const tH=TEAMS_NFL[IDX_NFL[hc]];
+  const tA=TEAMS_NFL[IDX_NFL[ac]];
+  document.getElementById('lblH').textContent=tH.c+' '+ph+'%';
+  document.getElementById('lblA').textContent=pa+'% '+tA.c;
+
+  // Spread display
+  const sp=r.spread;
+  const favCode=sp>0?hc:ac;
+  const favSpread=(sp>0?-sp:sp).toFixed(1);
+  document.getElementById('statSpread').textContent=(sp>=0?'-':'+')+(Math.abs(sp)).toFixed(1);
+  document.getElementById('statSpread').style.color=sp>0?'var(--win)':sp<0?'var(--loss)':'var(--muted)';
+  document.getElementById('statSpreadSub').textContent=sp>0?`${tH.c} favorito`:(sp<0?`${tA.c} favorito`:'pick\'em');
+
+  // Total
+  const P=getK();
+  document.getElementById('statTotal').textContent=P.TOTAL.toFixed(1);
+  document.getElementById('statTotalSub').textContent='ajusta en Calibración';
+
+  // Elo diff
+  document.getElementById('statEloDiff').textContent=(r.drAdj>0?'+':'')+Math.round(r.drAdj);
+  document.getElementById('statEloDiffSub').textContent=`${tH.c}(${tH.elo}) vs ${tA.c}(${tA.elo})`;
+
+  // Scores
+  document.getElementById('scoreH').textContent=Math.round(r.scoreH*2)/2;
+  document.getElementById('scoreA').textContent=Math.round(r.scoreA*2)/2;
+
+  // Distribution bars
+  const sigma=P.SIGMA;
+  const {probs,labels}=marginDist(sp,sigma);
+  const maxP=Math.max(...probs);
+  const barColors=['loss','loss','loss','close','win','win','win'];
+  const bars=document.getElementById('distBars');
+  bars.innerHTML='';
+  probs.forEach(function(p,i){
+    const col=document.createElement('div');
+    col.className='dist-bar-col';
+    const bar=document.createElement('div');
+    bar.className='dist-bar '+barColors[i];
+    bar.style.height=Math.max((p/maxP)*100,2)+'%';
+    bar.title=labels[i]+': '+Math.round(p*100)+'%';
+    const lbl=document.createElement('div');
+    lbl.className='dist-lbl';
+    lbl.textContent=Math.round(p*100)+'%';
+    col.appendChild(bar);col.appendChild(lbl);
+    bars.appendChild(col);
+  });
+
+  // Scenarios
+  const scenRows=document.getElementById('scenRows');
+  const scenarios=[
+    {label:'A gana cómodo (7+)', pct:probs[4]+probs[5]+probs[6], col:'var(--win)'},
+    {label:'A gana ajustado (1-6)', pct:probs[3], col:'#88cc88'},  // approximate: A 0-7 bucket
+    {label:'B gana ajustado (1-6)', pct:probs[3], col:'#cc8888'},  // share bucket
+    {label:'B gana cómodo (7+)', pct:probs[0]+probs[1]+probs[2], col:'var(--loss)'},
+  ];
+  // Better: recalc close wins properly
+  const pAcl=normCDF((0-sp)/sigma)-normCDF((-3-sp)/sigma);  // B by 1-3
+  const pHcl=normCDF((3-sp)/sigma)-normCDF((0-sp)/sigma);   // A by 1-3
+  const pAmd=normCDF((-3-sp)/sigma)-normCDF((-7-sp)/sigma); // B by 4-7
+  const pHmd=normCDF((7-sp)/sigma)-normCDF((3-sp)/sigma);   // A by 4-7
+  const pAb=1-normCDF((-7-sp)/sigma);  // A wins (recalc from A side)
+  const pBb=normCDF((-7-sp)/sigma);    // B wins 7+
+
+  const finalScen=[
+    {label:`${tH.c} gana (+7 o más)`, pct:probs[4]+probs[5]+probs[6], col:'var(--win)'},
+    {label:`${tH.c} gana (+3 a +6)`,  pct:pHmd,   col:'#44bb88'},
+    {label:`${tH.c} gana (+1 a +3)`,  pct:pHcl,   col:'#88ccaa'},
+    {label:`${tA.c} gana (+1 a +3)`,  pct:pAcl,   col:'#cc8888'},
+    {label:`${tA.c} gana (+3 a +6)`,  pct:pAmd,   col:'#bb4444'},
+    {label:`${tA.c} gana (+7 o más)`,  pct:probs[0]+probs[1]+probs[2], col:'var(--loss)'},
+  ];
+  scenRows.style.gridTemplateColumns='1fr';
+  scenRows.innerHTML=finalScen.map(function(s){
+    const w=Math.round(s.pct*100);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)">
+      <span style="font-size:12px;color:var(--muted);flex:1">${s.label}</span>
+      <div style="flex:2;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--line)">
+        <div style="height:100%;width:${w}%;background:${s.col};border-radius:4px;transition:width .3s"></div>
+      </div>
+      <span style="font-size:13px;font-weight:700;color:${s.col};min-width:36px;text-align:right">${w}%</span>
+    </div>`;
+  }).join('');
+}
+
+function clearPred(){
+  ['barH','barA'].forEach(function(id){document.getElementById(id).style.width='50%';});
+  document.getElementById('lblH').textContent='— %';
+  document.getElementById('lblA').textContent='— %';
+  ['statSpread','statTotal','statEloDiff','scoreH','scoreA'].forEach(function(id){
+    document.getElementById(id).textContent='—';
+  });
+  document.getElementById('distBars').innerHTML='';
+  document.getElementById('scenRows').innerHTML='';
+}
+
+/* ══════════════════════════════════════════════════════
+   SEMANA
+   ══════════════════════════════════════════════════════ */
+function buildWeekRow(){
+  const wrap=document.getElementById('weekRow');
+  wrap.innerHTML='';
+  for(let w=1;w<=18;w++){
+    const b=document.createElement('button');
+    b.className='wbtn'+(curWeek===w?' on':'');
+    b.textContent='W'+w;
+    b.onclick=(function(ww){return function(){curWeek=ww;buildWeekRow();renderWeek();};})(w);
+    wrap.appendChild(b);
+  }
+  [{k:'WC',l:'Wild Card'},{k:'DIV',l:'Div'},{k:'CCG',l:'Conf'},{k:'SB',l:'Super Bowl'}].forEach(function(po){
+    const b=document.createElement('button');
+    b.className='wbtn po'+(curWeek===po.k?' on':'');
+    b.textContent=po.l;
+    b.onclick=(function(kk){return function(){curWeek=kk;buildWeekRow();renderWeek();};})(po.k);
+    wrap.appendChild(b);
+  });
+}
+
+function renderWeek(){
+  const label=typeof curWeek==='number'?'Semana '+curWeek+' · NFL 2026':curWeek+' · NFL 2026';
+  document.getElementById('weekLabel').textContent=label;
+  const games=weekGames[curWeek]||[];
+  const gl=document.getElementById('gameList');
+  if(!games.length){
+    gl.innerHTML='<div style="color:var(--muted);text-align:center;padding:16px;font-size:12px">Sin partidos. Agrega usando el panel de abajo.</div>';
+    return;
+  }
+  gl.innerHTML=games.map(function(g,i){
+    const tH=TEAMS_NFL[IDX_NFL[g.hc]];
+    const tA=TEAMS_NFL[IDX_NFL[g.ac]];
+    if(!tH||!tA) return '';
+    // temporarily set haSide for prediction
+    const savedHA=haSide;
+    haSide=g.ha;
+    const r=predict(g.hc,g.ac);
+    haSide=savedHA;
+    if(!r) return '';
+    const ph=Math.round(r.pH*100);
+    const sp=r.spread.toFixed(1);
+    const spStr=(r.spread>0?tH.c+' −'+Math.abs(+sp):r.spread<0?tA.c+' −'+Math.abs(+sp):'Pick\'em');
+    const P=getK();
+    return `<div class="game-card">
+      <div class="gc-team away" style="color:${ph>50?'var(--win)':'var(--muted)'}">${tH.c}<br><span style="font-size:10px;color:var(--muted)">${ph}%</span></div>
+      <div class="gc-at">@ ${g.ha==='h'?tH.c:(g.ha==='a'?tA.c:'Neutral')}<br><span style="font-size:9px;color:var(--muted)">${g.ha==='n'?'Neutral':'Local'}</span></div>
+      <div class="gc-team" style="color:${ph<50?'var(--loss)':'var(--muted)'}">${tA.c}<br><span style="font-size:10px;color:var(--muted)">${100-ph}%</span></div>
+      <div class="gc-odds">
+        <div class="sp">${spStr}</div>
+        <div class="ou">OU ${P.TOTAL.toFixed(1)}</div>
+        <button onclick="removeGame(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;margin-top:4px">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addGame(){
+  const hc=document.getElementById('addH').value;
+  const ac=document.getElementById('addA').value;
+  if(!hc||!ac||hc===ac) return;
+  if(!weekGames[curWeek]) weekGames[curWeek]=[];
+  weekGames[curWeek].push({hc,ac,ha:addHA});
+  renderWeek();
+}
+
+function removeGame(i){
+  weekGames[curWeek].splice(i,1);
+  renderWeek();
+}
+
+function setAddHA(v){
+  addHA=v;
+  ['addHAh','addHAn','addHAa'].forEach(function(id){document.getElementById(id).classList.remove('on');});
+  document.getElementById('addHA'+v).classList.add('on');
+}
+
+/* ══════════════════════════════════════════════════════
+   EQUIPOS
+   ══════════════════════════════════════════════════════ */
+function renderTeams(){
+  const body=document.getElementById('teamsTbody');
+  let filtered=[...TEAMS_NFL];
+  if(confFilter!=='ALL') filtered=filtered.filter(t=>t.conf===confFilter);
+
+  // Sort by Elo desc
+  const sorted=[...filtered].sort(function(a,b){return b.elo-a.elo;});
+  const globalRank=function(code){return [...TEAMS_NFL].sort((a,b)=>b.elo-a.elo).findIndex(t=>t.c===code)+1;};
+
+  body.innerHTML=sorted.map(function(t,i){
+    const rank=globalRank(t.c);
+    const confCls=t.conf==='AFC'?'afc':'nfc';
+    return `<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td><b>${t.c}</b> <span style="color:var(--muted);font-size:11px">${t.n}</span></td>
+      <td><span class="flag ${confCls}">${t.conf}</span></td>
+      <td class="div-label">${t.div.replace(t.conf+' ','')}</td>
+      <td><input class="elo-inp" type="number" value="${t.elo}" min="1200" max="1800" onchange="updateElo('${t.c}',this.value)"></td>
+      <td><span class="rank-badge">#${rank}</span></td>
+    </tr>`;
+  }).join('');
+
+  renderPowerRanking();
+}
+
+function updateElo(code,val){
+  const i=IDX_NFL[code];
+  if(i===undefined) return;
+  const v=Math.max(1200,Math.min(1800,+val));
+  TEAMS_NFL[i].elo=v;
+  renderPowerRanking();
+  renderPredictor();
+}
+
+function renderPowerRanking(){
+  const sorted=[...TEAMS_NFL].sort(function(a,b){return b.elo-a.elo;});
+  const maxElo=sorted[0].elo;
+  const minElo=sorted[sorted.length-1].elo;
+  const range=maxElo-minElo||1;
+  const wrap=document.getElementById('powerRanking');
+  wrap.innerHTML=sorted.map(function(t,i){
+    const pct=((t.elo-minElo)/range)*100;
+    const confCls=t.conf==='AFC'?'var(--afc)':'var(--nfc)';
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+      <span style="font-size:11px;color:var(--muted);min-width:18px;text-align:right">${i+1}</span>
+      <span style="font-size:12px;font-weight:700;min-width:36px;color:${confCls}">${t.c}</span>
+      <div style="flex:1;height:10px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--line)">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,${confCls},${confCls}88);border-radius:5px;transition:width .3s"></div>
+      </div>
+      <span style="font-size:12px;color:var(--muted);min-width:40px;text-align:right">${t.elo}</span>
+    </div>`;
+  }).join('');
+}
+
+function filterConf(cf){
+  confFilter=cf;
+  ['confAfc','confNfc','confAll'].forEach(function(id){
+    const el=document.getElementById(id);
+    el.style.borderColor='';el.style.color='';
+  });
+  const mp={AFC:'confAfc',NFC:'confNfc',ALL:'confAll'};
+  const el=document.getElementById(mp[cf]);
+  if(el){el.style.borderColor='var(--amber)';el.style.color='var(--amber)';}
+  renderTeams();
+}
+
+function sortByElo(){
+  renderTeams(); // already sorted by Elo
+}
+
+function resetElo(){
+  ELO_BASE.forEach(function(b){TEAMS_NFL[IDX_NFL[b.c]].elo=b.elo;});
+  renderTeams();
+  renderPredictor();
+  // refresh inputs
+  document.querySelectorAll('.elo-inp').forEach(function(inp){
+    const tr=inp.closest('tr');
+    if(!tr) return;
+  });
+  renderTeams();
+}
+
+/* ══════════════════════════════════════════════════════
+   CALIBRACIÓN
+   ══════════════════════════════════════════════════════ */
+function calUpdate(){
+  const P=getK();
+  document.getElementById('vHFA').textContent=P.HFA;
+  document.getElementById('vHFApt').textContent='('+(P.HFA/P.EPP).toFixed(1)+' pts)';
+  document.getElementById('vSigma').textContent=P.SIGMA;
+  document.getElementById('vEPP').textContent=P.EPP;
+  document.getElementById('vTotal').textContent=P.TOTAL;
+  document.getElementById('vSigmaT').textContent=P.SIGMAT;
+  document.getElementById('vK').textContent=P.K;
+  renderPredictor();
+  renderWeek();
+}
+
+function resetCal(){
+  const defs={cHFA:48,cSigma:13.5,cEPP:21,cTotal:46.5,cSigmaT:23,cK:20};
+  Object.entries(defs).forEach(function([id,v]){document.getElementById(id).value=v;});
+  calUpdate();
+}
+
+/* ══════════════════════════════════════════════════════
+   ELO CALCULATOR
+   ══════════════════════════════════════════════════════ */
+function setRes(r){
+  eloResult=r;
+  ['resW','resD','resL'].forEach(function(id){document.getElementById(id).classList.remove('on');});
+  const mp={win:'resW',draw:'resD',loss:'resL'};
+  document.getElementById(mp[r]).classList.add('on');
+}
+
+function calcElo(){
+  const ea=+document.getElementById('eloA_pre').value;
+  const eb=+document.getElementById('eloB_pre').value;
+  const mov=+document.getElementById('eloMOV').value;
+  const K=getK().K;
+  const we=1/(1+Math.pow(10,-(ea-eb)/400));
+  const w=eloResult==='win'?1:(eloResult==='draw'?0.5:0);
+  const delta=K*(w-we);
+  const eaPost=Math.round(ea+delta);
+  const ebPost=Math.round(eb-delta);
+  const col=delta>0?'var(--win)':delta<0?'var(--loss)':'var(--muted)';
+  document.getElementById('eloResult').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="stat-box"><div style="font-size:20px;font-weight:800;color:${col}">${delta>0?'+':''}${Math.round(delta)}</div><div style="font-size:11px;color:var(--muted)">ΔElo A · We=${(we*100).toFixed(1)}%</div><div style="font-size:13px;color:var(--text)">${ea} → <b>${eaPost}</b></div></div>
+      <div class="stat-box"><div style="font-size:20px;font-weight:800;color:${delta<0?'var(--win)':delta>0?'var(--loss)':'var(--muted)'}">${delta>0?'-':'+'}${Math.abs(Math.round(delta))}</div><div style="font-size:11px;color:var(--muted)">ΔElo B</div><div style="font-size:13px;color:var(--text)">${eb} → <b>${ebPost}</b></div></div>
+    </div>`;
+}
+
+/* ══════════════════════════════════════════════════════
+   HFA BUTTON
+   ══════════════════════════════════════════════════════ */
+function setHASide(side){
+  haSide=side;
+  document.querySelectorAll('.ha-btn[data-side]').forEach(function(b){
+    b.classList.toggle('on',b.dataset.side===side);
+  });
+  renderPredictor();
+}
+
+/* ══════════════════════════════════════════════════════
+   TABS
+   ══════════════════════════════════════════════════════ */
+document.querySelectorAll('.tab').forEach(function(tab){
+  tab.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+    tab.classList.add('on');
+    document.getElementById(tab.dataset.v).classList.add('on');
+    if(tab.dataset.v==='teams') renderTeams();
+    if(tab.dataset.v==='week'){buildWeekRow();renderWeek();}
+  });
+});
+
+/* ══════════════════════════════════════════════════════
+   POPULATE SELECTS
+   ══════════════════════════════════════════════════════ */
+function populateSelect(id,excludeId){
+  const sel=document.getElementById(id);
+  const byConf={AFC:[],NFC:[]};
+  TEAMS_NFL.forEach(function(t){byConf[t.conf].push(t);});
+  sel.innerHTML='';
+  ['AFC','NFC'].forEach(function(conf){
+    const og=document.createElement('optgroup');
+    og.label='── '+conf+' ──';
+    byConf[conf].forEach(function(t){
+      const op=document.createElement('option');
+      op.value=t.c;op.textContent=t.c+' · '+t.n;
+      og.appendChild(op);
+    });
+    sel.appendChild(og);
+  });
+}
+
+function initSelects(){
+  ['teamH','teamA','addH','addA'].forEach(function(id){populateSelect(id);});
+  // Default: KC vs PHI
+  document.getElementById('teamH').value='KC';
+  document.getElementById('teamA').value='PHI';
+  document.getElementById('addH').value='KC';
+  document.getElementById('addA').value='PHI';
+}
+
+/* ══════════════════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════════════════ */
+initSelects();
+calUpdate();
+renderPredictor();
+buildWeekRow();
+renderWeek();
+
+document.getElementById('teamH').onchange=renderPredictor;
+document.getElementById('teamA').onchange=renderPredictor;
+</script>
+</body>
+</html>
