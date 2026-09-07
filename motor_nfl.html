@@ -152,7 +152,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
   <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
   <div class="sub">Modelo Elo calibrado + Spread/Total/Win% · Distribución de márgenes vía distribución normal · K=20 · σ=13.45.</div>
   <div class="sub" style="margin-top:6px;color:#7d8a9a">
-    <span class="flag">Estado de datos</span> Elo pretemporada 2026 (base histórica 2024-25) · editable en pestaña Equipos.
+    <span class="flag">Estado de datos</span> Elo pretemporada 2026 calibrado con T25-26 real · SEA campeón SB LX · editable en pestaña Equipos.
     <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
   </div>
 </header>
@@ -430,46 +430,46 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
    Liga media = 1500 · editable en pestaña Equipos
    ══════════════════════════════════════════════════════ */
 const TEAMS_NFL=[
-  // AFC East
-  {c:'BUF',n:'Buffalo Bills',      conf:'AFC',div:'AFC East', elo:1605},
-  {c:'MIA',n:'Miami Dolphins',     conf:'AFC',div:'AFC East', elo:1560},
-  {c:'NE', n:'New England Patriots',conf:'AFC',div:'AFC East',elo:1430},
-  {c:'NYJ',n:'New York Jets',      conf:'AFC',div:'AFC East', elo:1425},
+  // AFC East — calibrado temporada 2025-26
+  {c:'BUF',n:'Buffalo Bills',      conf:'AFC',div:'AFC East', elo:1555}, // seed 6 AFC · 12-5
+  {c:'MIA',n:'Miami Dolphins',     conf:'AFC',div:'AFC East', elo:1490}, // no playoffs
+  {c:'NE', n:'New England Patriots',conf:'AFC',div:'AFC East',elo:1625}, // seed 2 AFC · 14-3 · SB LX finalista
+  {c:'NYJ',n:'New York Jets',      conf:'AFC',div:'AFC East', elo:1420}, // no playoffs
   // AFC North
-  {c:'BAL',n:'Baltimore Ravens',   conf:'AFC',div:'AFC North',elo:1600},
-  {c:'CIN',n:'Cincinnati Bengals', conf:'AFC',div:'AFC North',elo:1555},
-  {c:'CLE',n:'Cleveland Browns',   conf:'AFC',div:'AFC North',elo:1445},
-  {c:'PIT',n:'Pittsburgh Steelers',conf:'AFC',div:'AFC North',elo:1500},
+  {c:'BAL',n:'Baltimore Ravens',   conf:'AFC',div:'AFC North',elo:1525}, // no playoffs
+  {c:'CIN',n:'Cincinnati Bengals', conf:'AFC',div:'AFC North',elo:1490}, // no playoffs
+  {c:'CLE',n:'Cleveland Browns',   conf:'AFC',div:'AFC North',elo:1405}, // no playoffs
+  {c:'PIT',n:'Pittsburgh Steelers',conf:'AFC',div:'AFC North',elo:1525}, // seed 4 AFC · 10-7
   // AFC South
-  {c:'HOU',n:'Houston Texans',     conf:'AFC',div:'AFC South',elo:1545},
-  {c:'IND',n:'Indianapolis Colts', conf:'AFC',div:'AFC South',elo:1490},
-  {c:'JAX',n:'Jacksonville Jaguars',conf:'AFC',div:'AFC South',elo:1495},
-  {c:'TEN',n:'Tennessee Titans',   conf:'AFC',div:'AFC South',elo:1435},
+  {c:'HOU',n:'Houston Texans',     conf:'AFC',div:'AFC South',elo:1560}, // seed 5 AFC · 12-5
+  {c:'IND',n:'Indianapolis Colts', conf:'AFC',div:'AFC South',elo:1455}, // no playoffs
+  {c:'JAX',n:'Jacksonville Jaguars',conf:'AFC',div:'AFC South',elo:1590}, // seed 3 AFC · 13-4
+  {c:'TEN',n:'Tennessee Titans',   conf:'AFC',div:'AFC South',elo:1415}, // no playoffs
   // AFC West
-  {c:'DEN',n:'Denver Broncos',     conf:'AFC',div:'AFC West', elo:1540},
-  {c:'KC', n:'Kansas City Chiefs', conf:'AFC',div:'AFC West', elo:1645},
-  {c:'LV', n:'Las Vegas Raiders',  conf:'AFC',div:'AFC West', elo:1425},
-  {c:'LAC',n:'LA Chargers',        conf:'AFC',div:'AFC West', elo:1510},
+  {c:'DEN',n:'Denver Broncos',     conf:'AFC',div:'AFC West', elo:1615}, // seed 1 AFC · 14-3
+  {c:'KC', n:'Kansas City Chiefs', conf:'AFC',div:'AFC West', elo:1455}, // no playoffs (caída)
+  {c:'LV', n:'Las Vegas Raiders',  conf:'AFC',div:'AFC West', elo:1410}, // no playoffs
+  {c:'LAC',n:'LA Chargers',        conf:'AFC',div:'AFC West', elo:1535}, // seed 7 AFC · 11-6
   // NFC East
-  {c:'DAL',n:'Dallas Cowboys',     conf:'NFC',div:'NFC East', elo:1535},
-  {c:'NYG',n:'New York Giants',    conf:'NFC',div:'NFC East', elo:1450},
-  {c:'PHI',n:'Philadelphia Eagles',conf:'NFC',div:'NFC East', elo:1620},
-  {c:'WAS',n:'Washington Commanders',conf:'NFC',div:'NFC East',elo:1505},
+  {c:'DAL',n:'Dallas Cowboys',     conf:'NFC',div:'NFC East', elo:1465}, // no playoffs
+  {c:'NYG',n:'New York Giants',    conf:'NFC',div:'NFC East', elo:1400}, // no playoffs
+  {c:'PHI',n:'Philadelphia Eagles',conf:'NFC',div:'NFC East', elo:1545}, // seed 3 NFC · 11-6
+  {c:'WAS',n:'Washington Commanders',conf:'NFC',div:'NFC East',elo:1465}, // no playoffs
   // NFC North
-  {c:'CHI',n:'Chicago Bears',      conf:'NFC',div:'NFC North',elo:1475},
-  {c:'DET',n:'Detroit Lions',      conf:'NFC',div:'NFC North',elo:1585},
-  {c:'GB', n:'Green Bay Packers',  conf:'NFC',div:'NFC North',elo:1525},
-  {c:'MIN',n:'Minnesota Vikings',  conf:'NFC',div:'NFC North',elo:1560},
+  {c:'CHI',n:'Chicago Bears',      conf:'NFC',div:'NFC North',elo:1550}, // seed 2 NFC · 11-6
+  {c:'DET',n:'Detroit Lions',      conf:'NFC',div:'NFC North',elo:1515}, // no playoffs
+  {c:'GB', n:'Green Bay Packers',  conf:'NFC',div:'NFC North',elo:1500}, // seed 7 NFC · 9-7-1
+  {c:'MIN',n:'Minnesota Vikings',  conf:'NFC',div:'NFC North',elo:1500}, // no playoffs
   // NFC South
-  {c:'ATL',n:'Atlanta Falcons',    conf:'NFC',div:'NFC South',elo:1480},
-  {c:'CAR',n:'Carolina Panthers',  conf:'NFC',div:'NFC South',elo:1405},
-  {c:'NO', n:'New Orleans Saints', conf:'NFC',div:'NFC South',elo:1455},
-  {c:'TB', n:'Tampa Bay Buccaneers',conf:'NFC',div:'NFC South',elo:1515},
+  {c:'ATL',n:'Atlanta Falcons',    conf:'NFC',div:'NFC South',elo:1475}, // no playoffs
+  {c:'CAR',n:'Carolina Panthers',  conf:'NFC',div:'NFC South',elo:1465}, // seed 4 NFC · 8-9
+  {c:'NO', n:'New Orleans Saints', conf:'NFC',div:'NFC South',elo:1440}, // no playoffs
+  {c:'TB', n:'Tampa Bay Buccaneers',conf:'NFC',div:'NFC South',elo:1465}, // no playoffs
   // NFC West
-  {c:'ARI',n:'Arizona Cardinals',  conf:'NFC',div:'NFC West', elo:1450},
-  {c:'LAR',n:'LA Rams',            conf:'NFC',div:'NFC West', elo:1530},
-  {c:'SEA',n:'Seattle Seahawks',   conf:'NFC',div:'NFC West', elo:1520},
-  {c:'SF', n:'San Francisco 49ers',conf:'NFC',div:'NFC West', elo:1595},
+  {c:'ARI',n:'Arizona Cardinals',  conf:'NFC',div:'NFC West', elo:1390}, // no playoffs
+  {c:'LAR',n:'LA Rams',            conf:'NFC',div:'NFC West', elo:1565}, // seed 5 NFC · 12-5
+  {c:'SEA',n:'Seattle Seahawks',   conf:'NFC',div:'NFC West', elo:1660}, // seed 1 NFC · 14-3 · SB LX campeón
+  {c:'SF', n:'San Francisco 49ers',conf:'NFC',div:'NFC West', elo:1560}, // seed 6 NFC · 12-5
 ];
 const ELO_BASE=JSON.parse(JSON.stringify(TEAMS_NFL.map(t=>({c:t.c,elo:t.elo}))));
 const IDX_NFL={};TEAMS_NFL.forEach((t,i)=>IDX_NFL[t.c]=i);
