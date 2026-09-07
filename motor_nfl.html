@@ -159,6 +159,26 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
 .pick-footer{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--amber);font-size:12px}
 .pick-footer .picks-done{color:var(--amber);font-weight:700}
 .pick-summary{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:12px;margin-top:8px;color:var(--muted)}
+
+/* ── Tiebreaker (desempate) ────────── */
+.tb-box{margin-top:14px;background:linear-gradient(180deg,rgba(255,176,0,.07),rgba(255,176,0,.02));border:2px solid var(--amber);border-radius:12px;padding:14px}
+.tb-hdr{font-size:11px;color:var(--amber);letter-spacing:.1em;text-transform:uppercase;font-weight:800}
+.tb-game{font-size:14px;font-weight:700;margin:3px 0 11px}
+.tb-game span{color:var(--muted);font-weight:400;font-size:12px}
+.tb-main{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.tb-rec{background:var(--amber);color:#0a0e14;border-radius:10px;padding:7px 20px;text-align:center;flex-shrink:0}
+.tb-rec .n{font-size:32px;font-weight:800;line-height:1}
+.tb-rec .l{font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-top:1px}
+.tb-inp{display:flex;flex-direction:column;gap:4px}
+.tb-inp label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tb-inp input{width:86px;background:var(--bg);border:2px solid var(--line);color:var(--text);border-radius:8px;padding:7px 8px;font-size:19px;font-weight:800;font-family:inherit;text-align:center}
+.tb-inp input:focus{outline:none;border-color:var(--amber)}
+.tb-src{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;margin-top:11px;padding-top:9px;border-top:1px solid rgba(255,176,0,.2);color:var(--muted)}
+.tb-src b{color:var(--text);font-weight:700}
+.tb-hist{font-size:10.5px;color:var(--muted);margin-top:8px;line-height:1.6}
+.tb-hist .u{color:var(--win)}
+.tb-hist .o{color:var(--loss)}
+.tb-note{font-size:10.5px;color:#7d8a9a;margin-top:7px;font-style:italic;line-height:1.5}
 </style>
 </head>
 <body>
@@ -301,15 +321,14 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
         <span class="picks-done" id="picksDone">0</span>
         <span style="color:var(--muted)"> picks seleccionados</span>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span style="font-size:11px;color:var(--muted)">Desempate (pts totales):</span>
-        <input type="number" id="tiebreakerPts" placeholder="ej. 47" min="0" max="120" style="width:64px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:5px 8px;font-size:13px;font-family:inherit;text-align:center">
-      </div>
       <button class="btn" onclick="clearPicks()">Limpiar picks</button>
     </div>
 
     <!-- my picks summary -->
     <div class="pick-summary" id="pickSummary" style="display:none"></div>
+
+    <!-- tiebreaker -->
+    <div class="tb-box" id="tbBox" style="display:none"></div>
   </div>
 
   <div class="card">
@@ -825,6 +844,69 @@ function renderWeek(){
 
   gl.innerHTML=html;
   updatePickCount(games);
+  renderTiebreak(games);
+}
+
+/* Desempate: total de puntos del ÚLTIMO partido de la semana */
+let tbUser={};   // {week: numero escrito por el usuario}
+function setTb(v){ tbUser[curWeek]=v; }
+
+function renderTiebreak(games){
+  const box=document.getElementById('tbBox');
+  if(!games||!games.length){ box.style.display='none'; return; }
+
+  const g=games[games.length-1];
+  const tV=TEAMS_NFL[IDX_NFL[g.hc]], tH=TEAMS_NFL[IDX_NFL[g.ac]];
+  if(!tV||!tH){ box.style.display='none'; return; }
+
+  const mk=mkt(g);
+  const h=H2H[g.hc+'@'+g.ac];
+  const r=tiebreakRec(mk?mk.ou:null, h?h.tot:null);
+  if(!r){ box.style.display='none'; return; }
+
+  box.style.display='block';
+  const val = tbUser[curWeek]!==undefined ? tbUser[curWeek] : r.rec;
+
+  let fuentes='';
+  if(r.mkt!=null)  fuentes+=`<div>Línea del mercado · <b>${r.mkt.toFixed(1)}</b></div>`;
+  if(r.hist!=null) fuentes+=`<div>Historial cara a cara · <b>${r.hist.toFixed(1)}</b></div>`;
+  if(r.mix!=null)  fuentes+=`<div>Mezcla · <b>${r.mix.toFixed(1)}</b></div>`;
+  fuentes+=`<div>Error esperado · <b>±${r.err.toFixed(1)}</b></div>`;
+
+  let hist='';
+  if(h){
+    const linea=r.mkt;
+    hist='<div class="tb-hist"><b style="color:var(--text)">'+h.desc+':</b> '+
+      h.det.map(function(d,i){
+        const t=h.tot[i];
+        const cls=(linea!=null&&t>linea)?'o':'u';
+        return '<span class="'+cls+'">'+d+' ('+t+')</span>';
+      }).join(' · ')+'</div>';
+    if(r.mkt!=null){
+      const bajo=h.tot.filter(function(t){return t<r.mkt;}).length;
+      const ult6=h.tot.slice(-6), bajo6=ult6.filter(function(t){return t<r.mkt;}).length;
+      hist+=`<div class="tb-note">${bajo} de ${h.tot.length} por debajo de ${r.mkt} · `+
+            `los últimos 6: ${bajo6} de ${ult6.length} · máximo reciente ${Math.max.apply(null,ult6)}</div>`;
+    }
+  }
+
+  box.innerHTML=`
+    <div class="tb-hdr">Desempate · Total de puntos</div>
+    <div class="tb-game">${tV.n} ${g.ha==='n'?'vs':'@'} ${tH.n}
+      <span>· ${g.day||''}${g.time?' · '+g.time:''} · último partido de la semana</span></div>
+    <div class="tb-main">
+      <div class="tb-rec"><div class="n">${r.rec}</div><div class="l">Recomendado</div></div>
+      <div class="tb-inp">
+        <label>Mi número</label>
+        <input type="number" id="tiebreakerPts" min="0" max="120" value="${val}"
+               oninput="setTb(this.value)">
+      </div>
+      <div class="tb-src" style="border:none;margin:0;padding:0;flex:1">${fuentes}</div>
+    </div>
+    ${hist}
+    <div class="tb-note">Gana quien quede más cerca, así que el número elegido es el que
+      menos error promedio deja entre los tres escenarios — no el más probable de uno solo.
+      Si tu pool usa «el más cercano sin pasarse», baja a ${Math.round(r.hist!=null?r.hist:r.rec)}.</div>`;
 }
 
 function updatePickCount(games){
@@ -1140,6 +1222,56 @@ const MARKET_W1={
 };
 /* Solo la Semana 1 tiene líneas cargadas */
 function mkt(g){ return curWeek===1 ? (MARKET_W1[g.hc+'@'+g.ac]||null) : null; }
+
+/* ══════════════════════════════════════════════════════
+   HISTORIAL CARA A CARA — para el desempate
+   Totales de puntos de enfrentamientos previos, del más
+   antiguo al más reciente. Sirve para proyectar el total
+   del último partido de la semana (la casilla de tiebreaker).
+   ══════════════════════════════════════════════════════ */
+const H2H={
+  'DEN@KC':{
+    desc:'10 enfrentamientos 2021-2025',
+    tot:[31,52,62,51,27,33,30,38,41,33],
+    det:['dic-21 KC 22-9','ene-22 KC 28-24','dic-22 KC 34-28','ene-23 KC 27-24',
+         'oct-23 KC 19-8','oct-23 DEN 24-9','nov-24 KC 16-14','ene-25 DEN 38-0',
+         'nov-25 DEN 22-19','dic-25 DEN 20-13'],
+  },
+};
+
+/* ══════════════════════════════════════════════════════
+   NÚMERO ÓPTIMO PARA EL DESEMPATE
+   En un tiebreaker no eliges over/under: gana quien quede
+   MÁS CERCA. Así que no se busca el total "más probable",
+   sino el número que minimiza el error absoluto esperado
+   frente a los escenarios plausibles (mercado, historial y
+   la mezcla de ambos). Ese mínimo es la mejor apuesta
+   aunque no sea óptima en ningún escenario por separado.
+   ══════════════════════════════════════════════════════ */
+const TB_SIGMA=13.5;   // desv. típica real del total de un juego NFL
+function normPDF(x){ return Math.exp(-x*x/2)/Math.sqrt(2*Math.PI); }
+/* E|X - real| con real ~ N(mu, TB_SIGMA) */
+function expAbsErr(X,mu){
+  const d=(X-mu)/TB_SIGMA;
+  return TB_SIGMA*(2*normPDF(d)+d*(2*normCDF(d)-1));
+}
+function tiebreakRec(mktTotal, h2hTot){
+  // proyección histórica ponderada por recencia (peso lineal creciente)
+  let num=0,den=0;
+  (h2hTot||[]).forEach(function(t,i){ const w=i+1; num+=t*w; den+=w; });
+  const hist = den ? num/den : null;
+  const mix  = (mktTotal!=null && hist!=null) ? (mktTotal+hist)/2 : null;
+
+  const scen=[mktTotal,hist,mix].filter(function(v){return v!=null;});
+  if(!scen.length) return null;
+
+  let best=null;
+  for(let X=20;X<=70;X++){
+    const e=scen.reduce(function(s,mu){return s+expAbsErr(X,mu);},0)/scen.length;
+    if(!best||e<best.e) best={X:X,e:e};
+  }
+  return {rec:best.X, err:best.e, mkt:mktTotal, hist:hist, mix:mix, n:(h2hTot||[]).length};
+}
 
 /* ══════════════════════════════════════════════════════
    INIT
