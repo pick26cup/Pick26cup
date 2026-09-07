@@ -141,6 +141,21 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
 .pick-details .sp{color:var(--amber);font-weight:700}
 .pick-details .ou{color:var(--muted)}
 .pick-details .sc{color:var(--text)}
+.pick-details .mk{color:#7d8a9a;font-style:italic}
+.pick-details .rec-tag{color:var(--win);font-weight:800;letter-spacing:.02em}
+
+/* Equipo recomendado por el motor: queda "encerrado" */
+.pick-team.rec .pick-tn{
+  display:inline-block;
+  background:rgba(52,217,155,.14);
+  border:2px solid var(--win);
+  border-radius:999px;
+  padding:2px 11px;
+  color:var(--win);
+  box-shadow:0 0 0 3px rgba(52,217,155,.12);
+}
+.pick-team.rec .pick-tn.fav{color:var(--win)}
+.pick-team.rec .pick-tc{color:var(--win);opacity:.85;font-weight:700}
 .pick-footer{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--amber);font-size:12px}
 .pick-footer .picks-done{color:var(--amber);font-weight:700}
 .pick-summary{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:12px;margin-top:8px;color:var(--muted)}
@@ -150,7 +165,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
 <header>
   <div class="kicker">NFL 2026 · Motor Predictivo</div>
   <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
-  <div class="sub">Modelo Elo calibrado + Spread/Total/Win% · Distribución de márgenes vía distribución normal · K=20 · σ=13.45.</div>
+  <div class="sub">Elo calibrado <b>mezclado con las líneas del mercado y el consenso de especialistas</b> · Spread/Total/Win% · Márgenes vía distribución normal · σ=13.45.</div>
   <div class="sub" style="margin-top:6px;color:#7d8a9a">
     <span class="flag">Estado de datos</span> Elo pretemporada 2026 calibrado con T25-26 real · SEA campeón SB LX · editable en pestaña Equipos.
     <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
@@ -381,6 +396,11 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
           <input type="range" id="cK" min="10" max="40" step="2" value="20" oninput="calUpdate()">
           <span class="cal-val" id="vK">20</span>
         </div>
+        <div class="cal-row">
+          <label>Peso mercado <span style="font-size:10px;color:var(--muted)">líneas + expertos</span></label>
+          <input type="range" id="cMkt" min="0" max="100" step="5" value="75" oninput="calUpdate()">
+          <span class="cal-val" id="vMkt">75%</span>
+        </div>
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-top:8px">
@@ -497,6 +517,7 @@ function getK(){
     TOTAL:+document.getElementById('cTotal').value,
     SIGMAT:+document.getElementById('cSigmaT').value,
     K:+document.getElementById('cK').value,
+    MKT:+document.getElementById('cMkt').value/100,
   };
 }
 
@@ -508,7 +529,9 @@ function normCDF(x){
   return x>=0?1-p:p;
 }
 
-function predict(teamH_code, teamA_code){
+/* mkSpread: línea del mercado ya en convención A (positivo = A favorito).
+   mkTotal : total del partido. Ambos opcionales; si faltan, Elo puro. */
+function predict(teamH_code, teamA_code, mkSpread, mkTotal){
   const P=getK();
   const tH=TEAMS_NFL[IDX_NFL[teamH_code]];
   const tA=TEAMS_NFL[IDX_NFL[teamA_code]];
@@ -522,12 +545,20 @@ function predict(teamH_code, teamA_code){
   // neutral: hfa=0
 
   const drAdj=dr+hfa;
-  const spread=drAdj/P.EPP;  // positive = A favored
+  const eloSpread=drAdj/P.EPP;  // positive = A favored
+
+  // Mezcla Elo ↔ mercado. El mercado ya contiene el consenso de
+  // los especialistas, así que domina salvo que se baje el peso.
+  const w=(mkSpread==null||isNaN(mkSpread))?0:P.MKT;
+  const spread=(1-w)*eloSpread + w*mkSpread;
+  const TOT=(mkTotal==null||isNaN(mkTotal))?P.TOTAL:mkTotal;
+
   const pH=normCDF(spread/P.SIGMA);   // P(A wins)
   const pA=1-pH;
-  const scoreH=(P.TOTAL+spread)/2;
-  const scoreA=(P.TOTAL-spread)/2;
-  return {spread, pH, pA, scoreH, scoreA, drAdj, eloH:tH.elo, eloA:tA.elo, dr};
+  const scoreH=(TOT+spread)/2;
+  const scoreA=(TOT-spread)/2;
+  return {spread, eloSpread, mkSpread:(w?mkSpread:null), total:TOT, w,
+          pH, pA, scoreH, scoreA, drAdj, eloH:tH.elo, eloA:tA.elo, dr};
 }
 
 /* Margin distribution: 7 buckets */
@@ -724,9 +755,12 @@ function renderWeek(){
     }
 
     // prediction (swap haSide temporarily)
+    const mk=mkt(g);
     const savedHA=haSide;
     haSide=g.ha;
-    const r=predict(g.hc,g.ac);
+    // mk.sp está desde el local; el lado A de predict es el visitante (g.hc),
+    // y el margen esperado del visitante es exactamente mk.sp.
+    const r=predict(g.hc, g.ac, mk?mk.sp:null, mk?mk.ou:null);
     haSide=savedHA;
     if(!r) return;
 
@@ -747,13 +781,18 @@ function renderWeek(){
     const predScH=Math.round(r.scoreA*2)/2;   // ac = home expected score
     const pick=weekPicks[curWeek]?weekPicks[curWeek][i]:null;
 
+    // ── EQUIPO RECOMENDADO: el lado con mayor probabilidad ──
+    const recSide=pV>=pH?'away':'home';
+    const recConf=Math.max(pV,pH);            // confianza 50-100
+    const recTeam=recSide==='away'?tV:tH;
+
     // bar widths
     const bV=pV; const bH=pH;
 
     html+=`
     <div class="pick-row" id="pr${i}">
       <div class="pick-chk${pick==='away'?' picked':''}" onclick="togglePick(${i},'away')" title="Pick ${tV.c}">${pick==='away'?'✓':''}</div>
-      <div class="pick-team away">
+      <div class="pick-team away${recSide==='away'?' rec':''}">
         <span class="pick-tn${!favIsHome&&favIsAway?' fav':''}">${tV.n}</span>
         <span class="pick-tc">${tV.c} · ${pV}%</span>
         <div class="pick-bar-wrap" style="flex-direction:row-reverse">
@@ -762,7 +801,7 @@ function renderWeek(){
         </div>
       </div>
       <div class="pick-at">${g.ha==='n'?'vs':'at'}</div>
-      <div class="pick-team home">
+      <div class="pick-team home${recSide==='home'?' rec':''}">
         <span class="pick-tn${favIsHome?' fav':''}">${tH.n}</span>
         <span class="pick-tc">${tH.c} · ${pH}%</span>
         <div class="pick-bar-wrap">
@@ -774,9 +813,12 @@ function renderWeek(){
       <div class="pick-time">${g.time||''}</div>
     </div>
     <div class="pick-details">
+      <span class="rec-tag" title="Equipo que el motor recomienda">▶ ${recTeam.c} ${recConf}%</span>
       <span class="sp">${spLabel}</span>
-      <span class="ou">O/U ${P.TOTAL.toFixed(1)}</span>
+      <span class="ou">O/U ${r.total.toFixed(1)}${mk&&mk.est&&mk.est.indexOf('ou')>=0?'*':''}</span>
       <span class="sc">${tV.c} ${predScV} · ${tH.c} ${predScH}</span>
+      ${mk?`<span class="mk">mercado ${mk.sp>0?'+'+mk.sp:mk.sp} ${tH.c}${mk.est?' *':''}</span>`:''}
+      ${mk&&mk.note?`<span class="mk">${mk.note}</span>`:''}
       <button onclick="removeGame(${i})" style="background:none;border:none;color:rgba(107,124,147,.5);cursor:pointer;font-size:10px;margin-left:auto;padding:0">✕</button>
     </div>`;
   });
@@ -795,19 +837,33 @@ function updatePickCount(games){
   // build picks summary
   const summary=document.getElementById('pickSummary');
   const games_=weekGames[curWeek]||[];
+  let agree=0;
   const myPicks=games_.map(function(g,i){
     const p=picks[i];
     if(!p) return null;
     const tV=TEAMS_NFL[IDX_NFL[g.hc]];
     const tH=TEAMS_NFL[IDX_NFL[g.ac]];
     if(!tV||!tH) return null;
+
+    // ¿coincide con lo que recomienda el motor?
+    const mk=mkt(g);
+    const savedHA=haSide; haSide=g.ha;
+    const r=predict(g.hc, g.ac, mk?mk.sp:null, mk?mk.ou:null);
+    haSide=savedHA;
+    const recSide=r?(r.pH>=0.5?'away':'home'):null;
+    const ok=recSide&&recSide===p;
+    if(ok) agree++;
+
     const chosen=p==='away'?tV:tH;
-    return chosen.c;
+    return ok?chosen.c:'<span style="color:var(--loss)">'+chosen.c+'</span>';
   }).filter(Boolean);
 
   if(myPicks.length){
     summary.style.display='block';
-    summary.innerHTML='<b style="color:var(--text)">Mis picks:</b> '+myPicks.join(' · ');
+    summary.innerHTML='<b style="color:var(--text)">Mis picks:</b> '+myPicks.join(' · ')+
+      '<br><span style="color:var(--win)">'+agree+'/'+myPicks.length+
+      ' coinciden con el motor</span>'+
+      (agree<myPicks.length?' <span style="color:var(--loss)">· en rojo, los que van contra el modelo</span>':'');
   } else {
     summary.style.display='none';
   }
@@ -932,12 +988,13 @@ function calUpdate(){
   document.getElementById('vTotal').textContent=P.TOTAL;
   document.getElementById('vSigmaT').textContent=P.SIGMAT;
   document.getElementById('vK').textContent=P.K;
+  document.getElementById('vMkt').textContent=Math.round(P.MKT*100)+'%';
   renderPredictor();
   renderWeek();
 }
 
 function resetCal(){
-  const defs={cHFA:48,cSigma:13.5,cEPP:21,cTotal:46.5,cSigmaT:23,cK:20};
+  const defs={cHFA:48,cSigma:13.5,cEPP:21,cTotal:46.5,cSigmaT:23,cK:20,cMkt:75};
   Object.entries(defs).forEach(function([id,v]){document.getElementById(id).value=v;});
   calUpdate();
 }
@@ -1030,7 +1087,7 @@ function initSelects(){
    ══════════════════════════════════════════════════════ */
 const W1_SCHEDULE=[
   {hc:'NE', ac:'SEA',ha:'a',day:'Wednesday, Sep. 9', time:'8:20 pm'},
-  {hc:'LAR',ac:'SF', ha:'a',day:'Thursday, Sep. 10', time:'8:00 pm'},
+  {hc:'LAR',ac:'SF', ha:'n',day:'Thursday, Sep. 10', time:'8:00 pm'},
   {hc:'ATL',ac:'PIT',ha:'a',day:'Sunday, Sep. 13',   time:'1:00 pm'},
   {hc:'BAL',ac:'IND',ha:'a',day:'Sunday, Sep. 13',   time:'1:00 pm'},
   {hc:'BUF',ac:'HOU',ha:'a',day:'Sunday, Sep. 13',   time:'1:00 pm'},
@@ -1047,6 +1104,42 @@ const W1_SCHEDULE=[
   {hc:'DEN',ac:'KC', ha:'a',day:'Monday, Sep. 14',   time:'8:15 pm'},
 ];
 W1_SCHEDULE.forEach(function(g){weekGames[1].push(g);});
+
+/* ══════════════════════════════════════════════════════
+   MERCADO / CONSENSO DE ESPECIALISTAS — Semana 1 2026
+   Líneas de casas de apuestas + consenso de los expertos
+   (ESPN, CBS, FOX, SI, Covers) recogidas el 7-sep-2026.
+
+   La línea del mercado es el mejor predictor público que
+   existe: ya incorpora lesiones, clima, QB y el juicio de
+   cientos de especialistas. Por eso el motor la mezcla con
+   el Elo en vez de ignorarla — eso es lo que sube aciertos.
+
+   sp = spread visto desde el LOCAL de esta hoja
+        (negativo = local favorito)
+   ou = total de puntos (over/under)
+   est= dato estimado, no publicado ('sp' y/o 'ou')
+   ══════════════════════════════════════════════════════ */
+const MARKET_W1={
+  'NE@SEA' :{sp: -3.5, ou:44.5},
+  'LAR@SF' :{sp:  3.5, ou:48.5, note:'Melbourne · LAR local designado'},
+  'ATL@PIT':{sp: -3.5, ou:42.5},
+  'BAL@IND':{sp:  3.5, ou:44.5, est:'ou'},
+  'BUF@HOU':{sp: -1.5, ou:45.5, est:'sp'},
+  'CHI@CAR':{sp:  2.5, ou:44.5},
+  'CLE@JAX':{sp: -7.5, ou:40.5},
+  'TB@CIN' :{sp: -3.5, ou:50.5},
+  'NO@DET' :{sp: -7.0, ou:48.5},
+  'NYJ@TEN':{sp: -3.0, ou:39.5},
+  'ARI@LAC':{sp:-10.0, ou:47.5},
+  'GB@MIN' :{sp: -1.5, ou:46.5},
+  'MIA@LV' :{sp: -3.5, ou:40.5},
+  'WAS@PHI':{sp: -4.5, ou:44.5},
+  'DAL@NYG':{sp:  3.0, ou:48.5},
+  'DEN@KC' :{sp: -2.5, ou:43.5},
+};
+/* Solo la Semana 1 tiene líneas cargadas */
+function mkt(g){ return curWeek===1 ? (MARKET_W1[g.hc+'@'+g.ac]||null) : null; }
 
 /* ══════════════════════════════════════════════════════
    INIT
