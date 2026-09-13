@@ -160,6 +160,33 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
 .pick-footer .picks-done{color:var(--amber);font-weight:700}
 .pick-summary{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:12px;margin-top:8px;color:var(--muted)}
 
+/* ── Resultados ────────────────────── */
+.pick-row.played{background:rgba(255,255,255,.018)}
+.pick-team.won .pick-tn{color:var(--win)}
+.pick-team.lost .pick-tn{opacity:.45;text-decoration:line-through}
+.pick-team.lost .pick-tc{opacity:.45}
+.res-inp{display:inline-flex;align-items:center;gap:3px}
+.res-inp input{width:34px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:2px 3px;font-size:11px;font-family:inherit;text-align:center;font-weight:700}
+.res-inp input:focus{outline:none;border-color:var(--amber)}
+.res-inp .dash{color:var(--muted);font-size:10px}
+.res-badge{font-weight:800;border-radius:5px;padding:1px 7px;font-size:10px}
+.res-badge.hit{background:rgba(52,217,155,.14);color:var(--win)}
+.res-badge.miss{background:rgba(255,118,118,.13);color:var(--loss)}
+.res-badge.tie{background:rgba(154,163,176,.15);color:var(--draw)}
+.res-tally{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.res-tally>div{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 14px;flex:1;min-width:96px}
+.res-tally .lbl{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.res-tally .num{display:block;font-size:21px;font-weight:800;color:var(--amber);line-height:1.15}
+.res-tally .pc{font-size:11px;color:var(--muted)}
+.res-table{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap}
+.res-table th{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;padding:6px 9px;text-align:left;border-bottom:1px solid var(--line);font-weight:700}
+.res-table td{padding:7px 9px;border-bottom:1px solid rgba(26,34,51,.55)}
+.res-table tr:last-child td{border-bottom:none}
+.res-table .g{color:var(--muted)}
+.res-table .sc{font-weight:800;color:var(--text)}
+.res-table .w{font-weight:700;color:var(--win)}
+.res-table .ou{font-size:10px;color:var(--muted)}
+
 /* ── Tiebreaker (desempate) ────────── */
 .tb-box{margin-top:14px;background:linear-gradient(180deg,rgba(255,176,0,.07),rgba(255,176,0,.02));border:2px solid var(--amber);border-radius:12px;padding:14px}
 .tb-hdr{font-size:11px;color:var(--amber);letter-spacing:.1em;text-transform:uppercase;font-weight:800}
@@ -331,6 +358,12 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
     <div class="tb-box" id="tbBox" style="display:none"></div>
   </div>
 
+  <!-- resultados -->
+  <div class="card" id="resCard" style="display:none">
+    <div class="card-title">Resultados · quién ganó</div>
+    <div id="resBody"></div>
+  </div>
+
   <div class="card">
     <div class="card-title">Agregar partido</div>
     <div style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;align-items:center">
@@ -470,45 +503,45 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
    ══════════════════════════════════════════════════════ */
 const TEAMS_NFL=[
   // AFC East — calibrado temporada 2025-26
-  {c:'BUF',n:'Buffalo Bills',      conf:'AFC',div:'AFC East', elo:1555}, // seed 6 AFC · 12-5
-  {c:'MIA',n:'Miami Dolphins',     conf:'AFC',div:'AFC East', elo:1490}, // no playoffs
-  {c:'NE', n:'New England Patriots',conf:'AFC',div:'AFC East',elo:1625}, // seed 2 AFC · 14-3 · SB LX finalista
-  {c:'NYJ',n:'New York Jets',      conf:'AFC',div:'AFC East', elo:1420}, // no playoffs
+  {c:'BUF',s:'Bills',     n:'Buffalo Bills',      conf:'AFC',div:'AFC East', elo:1555}, // seed 6 AFC · 12-5
+  {c:'MIA',s:'Dolphins',  n:'Miami Dolphins',     conf:'AFC',div:'AFC East', elo:1490}, // no playoffs
+  {c:'NE', s:'Patriots',  n:'New England Patriots',conf:'AFC',div:'AFC East',elo:1625}, // seed 2 AFC · 14-3 · SB LX finalista
+  {c:'NYJ',s:'Jets',      n:'New York Jets',      conf:'AFC',div:'AFC East', elo:1420}, // no playoffs
   // AFC North
-  {c:'BAL',n:'Baltimore Ravens',   conf:'AFC',div:'AFC North',elo:1525}, // no playoffs
-  {c:'CIN',n:'Cincinnati Bengals', conf:'AFC',div:'AFC North',elo:1490}, // no playoffs
-  {c:'CLE',n:'Cleveland Browns',   conf:'AFC',div:'AFC North',elo:1405}, // no playoffs
-  {c:'PIT',n:'Pittsburgh Steelers',conf:'AFC',div:'AFC North',elo:1525}, // seed 4 AFC · 10-7
+  {c:'BAL',s:'Ravens',    n:'Baltimore Ravens',   conf:'AFC',div:'AFC North',elo:1525}, // no playoffs
+  {c:'CIN',s:'Bengals',   n:'Cincinnati Bengals', conf:'AFC',div:'AFC North',elo:1490}, // no playoffs
+  {c:'CLE',s:'Browns',    n:'Cleveland Browns',   conf:'AFC',div:'AFC North',elo:1405}, // no playoffs
+  {c:'PIT',s:'Steelers',  n:'Pittsburgh Steelers',conf:'AFC',div:'AFC North',elo:1525}, // seed 4 AFC · 10-7
   // AFC South
-  {c:'HOU',n:'Houston Texans',     conf:'AFC',div:'AFC South',elo:1560}, // seed 5 AFC · 12-5
-  {c:'IND',n:'Indianapolis Colts', conf:'AFC',div:'AFC South',elo:1455}, // no playoffs
-  {c:'JAX',n:'Jacksonville Jaguars',conf:'AFC',div:'AFC South',elo:1590}, // seed 3 AFC · 13-4
-  {c:'TEN',n:'Tennessee Titans',   conf:'AFC',div:'AFC South',elo:1415}, // no playoffs
+  {c:'HOU',s:'Texans',    n:'Houston Texans',     conf:'AFC',div:'AFC South',elo:1560}, // seed 5 AFC · 12-5
+  {c:'IND',s:'Colts',     n:'Indianapolis Colts', conf:'AFC',div:'AFC South',elo:1455}, // no playoffs
+  {c:'JAX',s:'Jaguars',   n:'Jacksonville Jaguars',conf:'AFC',div:'AFC South',elo:1590}, // seed 3 AFC · 13-4
+  {c:'TEN',s:'Titans',    n:'Tennessee Titans',   conf:'AFC',div:'AFC South',elo:1415}, // no playoffs
   // AFC West
-  {c:'DEN',n:'Denver Broncos',     conf:'AFC',div:'AFC West', elo:1615}, // seed 1 AFC · 14-3
-  {c:'KC', n:'Kansas City Chiefs', conf:'AFC',div:'AFC West', elo:1455}, // no playoffs (caída)
-  {c:'LV', n:'Las Vegas Raiders',  conf:'AFC',div:'AFC West', elo:1410}, // no playoffs
-  {c:'LAC',n:'LA Chargers',        conf:'AFC',div:'AFC West', elo:1535}, // seed 7 AFC · 11-6
+  {c:'DEN',s:'Broncos',   n:'Denver Broncos',     conf:'AFC',div:'AFC West', elo:1615}, // seed 1 AFC · 14-3
+  {c:'KC', s:'Chiefs',    n:'Kansas City Chiefs', conf:'AFC',div:'AFC West', elo:1455}, // no playoffs (caída)
+  {c:'LV', s:'Raiders',   n:'Las Vegas Raiders',  conf:'AFC',div:'AFC West', elo:1410}, // no playoffs
+  {c:'LAC',s:'Chargers',  n:'LA Chargers',        conf:'AFC',div:'AFC West', elo:1535}, // seed 7 AFC · 11-6
   // NFC East
-  {c:'DAL',n:'Dallas Cowboys',     conf:'NFC',div:'NFC East', elo:1465}, // no playoffs
-  {c:'NYG',n:'New York Giants',    conf:'NFC',div:'NFC East', elo:1400}, // no playoffs
-  {c:'PHI',n:'Philadelphia Eagles',conf:'NFC',div:'NFC East', elo:1545}, // seed 3 NFC · 11-6
-  {c:'WAS',n:'Washington Commanders',conf:'NFC',div:'NFC East',elo:1465}, // no playoffs
+  {c:'DAL',s:'Cowboys',   n:'Dallas Cowboys',     conf:'NFC',div:'NFC East', elo:1465}, // no playoffs
+  {c:'NYG',s:'Giants',    n:'New York Giants',    conf:'NFC',div:'NFC East', elo:1400}, // no playoffs
+  {c:'PHI',s:'Eagles',    n:'Philadelphia Eagles',conf:'NFC',div:'NFC East', elo:1545}, // seed 3 NFC · 11-6
+  {c:'WAS',s:'Commanders',n:'Washington Commanders',conf:'NFC',div:'NFC East',elo:1465}, // no playoffs
   // NFC North
-  {c:'CHI',n:'Chicago Bears',      conf:'NFC',div:'NFC North',elo:1550}, // seed 2 NFC · 11-6
-  {c:'DET',n:'Detroit Lions',      conf:'NFC',div:'NFC North',elo:1515}, // no playoffs
-  {c:'GB', n:'Green Bay Packers',  conf:'NFC',div:'NFC North',elo:1500}, // seed 7 NFC · 9-7-1
-  {c:'MIN',n:'Minnesota Vikings',  conf:'NFC',div:'NFC North',elo:1500}, // no playoffs
+  {c:'CHI',s:'Bears',     n:'Chicago Bears',      conf:'NFC',div:'NFC North',elo:1550}, // seed 2 NFC · 11-6
+  {c:'DET',s:'Lions',     n:'Detroit Lions',      conf:'NFC',div:'NFC North',elo:1515}, // no playoffs
+  {c:'GB', s:'Packers',   n:'Green Bay Packers',  conf:'NFC',div:'NFC North',elo:1500}, // seed 7 NFC · 9-7-1
+  {c:'MIN',s:'Vikings',   n:'Minnesota Vikings',  conf:'NFC',div:'NFC North',elo:1500}, // no playoffs
   // NFC South
-  {c:'ATL',n:'Atlanta Falcons',    conf:'NFC',div:'NFC South',elo:1475}, // no playoffs
-  {c:'CAR',n:'Carolina Panthers',  conf:'NFC',div:'NFC South',elo:1465}, // seed 4 NFC · 8-9
-  {c:'NO', n:'New Orleans Saints', conf:'NFC',div:'NFC South',elo:1440}, // no playoffs
-  {c:'TB', n:'Tampa Bay Buccaneers',conf:'NFC',div:'NFC South',elo:1465}, // no playoffs
+  {c:'ATL',s:'Falcons',   n:'Atlanta Falcons',    conf:'NFC',div:'NFC South',elo:1475}, // no playoffs
+  {c:'CAR',s:'Panthers',  n:'Carolina Panthers',  conf:'NFC',div:'NFC South',elo:1465}, // seed 4 NFC · 8-9
+  {c:'NO', s:'Saints',    n:'New Orleans Saints', conf:'NFC',div:'NFC South',elo:1440}, // no playoffs
+  {c:'TB', s:'Buccaneers',n:'Tampa Bay Buccaneers',conf:'NFC',div:'NFC South',elo:1465}, // no playoffs
   // NFC West
-  {c:'ARI',n:'Arizona Cardinals',  conf:'NFC',div:'NFC West', elo:1390}, // no playoffs
-  {c:'LAR',n:'LA Rams',            conf:'NFC',div:'NFC West', elo:1565}, // seed 5 NFC · 12-5
-  {c:'SEA',n:'Seattle Seahawks',   conf:'NFC',div:'NFC West', elo:1660}, // seed 1 NFC · 14-3 · SB LX campeón
-  {c:'SF', n:'San Francisco 49ers',conf:'NFC',div:'NFC West', elo:1560}, // seed 6 NFC · 12-5
+  {c:'ARI',s:'Cardinals', n:'Arizona Cardinals',  conf:'NFC',div:'NFC West', elo:1390}, // no playoffs
+  {c:'LAR',s:'Rams',      n:'LA Rams',            conf:'NFC',div:'NFC West', elo:1565}, // seed 5 NFC · 12-5
+  {c:'SEA',s:'Seahawks',  n:'Seattle Seahawks',   conf:'NFC',div:'NFC West', elo:1660}, // seed 1 NFC · 14-3 · SB LX campeón
+  {c:'SF', s:'49ers',     n:'San Francisco 49ers',conf:'NFC',div:'NFC West', elo:1560}, // seed 6 NFC · 12-5
 ];
 const ELO_BASE=JSON.parse(JSON.stringify(TEAMS_NFL.map(t=>({c:t.c,elo:t.elo}))));
 const IDX_NFL={};TEAMS_NFL.forEach((t,i)=>IDX_NFL[t.c]=i);
@@ -733,6 +766,37 @@ const weekPicks={};
 for(let w=1;w<=18;w++) weekPicks[w]={};
 ['WC','DIV','CCG','SB'].forEach(r=>weekPicks[r]={});
 
+/* ══════════════════════════════════════════════════════
+   RESULTADOS REALES
+   weekRes[semana][idx] = {v:ptsVisitante, h:ptsLocal}
+   ══════════════════════════════════════════════════════ */
+const weekRes={};
+for(let w=1;w<=18;w++) weekRes[w]={};
+['WC','DIV','CCG','SB'].forEach(r=>weekRes[r]={});
+
+function getRes(i){
+  const r=weekRes[curWeek]?weekRes[curWeek][i]:null;
+  return (r && (r.v!=null || r.h!=null)) ? r : null;
+}
+/* devuelve 'away'|'home'|'tie'|null — null si falta algún marcador */
+function resWinner(r){
+  if(!r || r.v==null || r.h==null) return null;
+  if(r.v>r.h) return 'away';
+  if(r.h>r.v) return 'home';
+  return 'tie';
+}
+function setRes2(i, side, val){
+  if(!weekRes[curWeek]) weekRes[curWeek]={};
+  if(!weekRes[curWeek][i]) weekRes[curWeek][i]={v:null,h:null};
+  const n=(val===''||val==null)?null:Math.max(0,Math.min(99,parseInt(val,10)));
+  weekRes[curWeek][i][side]=isNaN(n)?null:n;
+  renderWeek();
+}
+function clearRes(){
+  weekRes[curWeek]={};
+  renderWeek();
+}
+
 function togglePick(idx, side){
   if(!weekPicks[curWeek]) weekPicks[curWeek]={};
   const cur=weekPicks[curWeek][idx];
@@ -805,14 +869,20 @@ function renderWeek(){
     const recConf=Math.max(pV,pH);            // confianza 50-100
     const recTeam=recSide==='away'?tV:tH;
 
+    // ── RESULTADO REAL (si ya se jugó) ──
+    const res=getRes(i);
+    const win=resWinner(res);                 // 'away'|'home'|'tie'|null
+    const pickOK=(win&&pick)?(win==='tie'?null:win===pick):null;
+    const recOK =(win&&win!=='tie')?(win===recSide):null;
+
     // bar widths
     const bV=pV; const bH=pH;
 
     html+=`
-    <div class="pick-row" id="pr${i}">
-      <div class="pick-chk${pick==='away'?' picked':''}" onclick="togglePick(${i},'away')" title="Pick ${tV.c}">${pick==='away'?'✓':''}</div>
-      <div class="pick-team away${recSide==='away'?' rec':''}">
-        <span class="pick-tn${!favIsHome&&favIsAway?' fav':''}">${tV.n}</span>
+    <div class="pick-row${win?' played':''}" id="pr${i}">
+      <div class="pick-chk${pick==='away'?' picked':''}" onclick="togglePick(${i},'away')" title="Pick ${tV.s}">${pick==='away'?'✓':''}</div>
+      <div class="pick-team away${recSide==='away'?' rec':''}${win==='away'?' won':''}${win&&win!=='away'&&win!=='tie'?' lost':''}">
+        <span class="pick-tn${!favIsHome&&favIsAway?' fav':''}">${tV.s}</span>
         <span class="pick-tc">${tV.c} · ${pV}%</span>
         <div class="pick-bar-wrap" style="flex-direction:row-reverse">
           <div class="pick-bar-away" style="width:${bV}%"></div>
@@ -820,24 +890,34 @@ function renderWeek(){
         </div>
       </div>
       <div class="pick-at">${g.ha==='n'?'vs':'at'}</div>
-      <div class="pick-team home${recSide==='home'?' rec':''}">
-        <span class="pick-tn${favIsHome?' fav':''}">${tH.n}</span>
+      <div class="pick-team home${recSide==='home'?' rec':''}${win==='home'?' won':''}${win&&win!=='home'&&win!=='tie'?' lost':''}">
+        <span class="pick-tn${favIsHome?' fav':''}">${tH.s}</span>
         <span class="pick-tc">${tH.c} · ${pH}%</span>
         <div class="pick-bar-wrap">
           <div class="pick-bar-home" style="width:${bH}%"></div>
           <div style="flex:${100-bH}%;background:transparent"></div>
         </div>
       </div>
-      <div class="pick-chk${pick==='home'?' picked':''}" onclick="togglePick(${i},'home')" title="Pick ${tH.c}">${pick==='home'?'✓':''}</div>
+      <div class="pick-chk${pick==='home'?' picked':''}" onclick="togglePick(${i},'home')" title="Pick ${tH.s}">${pick==='home'?'✓':''}</div>
       <div class="pick-time">${g.time||''}</div>
     </div>
     <div class="pick-details">
-      <span class="rec-tag" title="Equipo que el motor recomienda">▶ ${recTeam.c} ${recConf}%</span>
+      <span class="rec-tag" title="Equipo que el motor recomienda">▶ ${recTeam.s} ${recConf}%</span>
       <span class="sp">${spLabel}</span>
       <span class="ou">O/U ${r.total.toFixed(1)}${mk&&mk.est&&mk.est.indexOf('ou')>=0?'*':''}</span>
       <span class="sc">${tV.c} ${predScV} · ${tH.c} ${predScH}</span>
       ${mk?`<span class="mk">mercado ${mk.sp>0?'+'+mk.sp:mk.sp} ${tH.c}${mk.est?' *':''}</span>`:''}
       ${mk&&mk.note?`<span class="mk">${mk.note}</span>`:''}
+      <span class="res-inp" title="Marcador final">
+        <input type="number" min="0" max="99" placeholder="–" value="${res&&res.v!=null?res.v:''}"
+               oninput="setRes2(${i},'v',this.value)"><span class="dash">–</span><input
+               type="number" min="0" max="99" placeholder="–" value="${res&&res.h!=null?res.h:''}"
+               oninput="setRes2(${i},'h',this.value)">
+      </span>
+      ${win?`<span class="res-badge ${win==='tie'?'tie':(recOK?'hit':'miss')}">${
+        win==='tie'?'Empate':(win==='away'?tV.s:tH.s)+' ganó'
+      }${recOK===null?'':(recOK?' · motor ✓':' · motor ✗')}${
+        pickOK===null?'':(pickOK?' · tu pick ✓':' · tu pick ✗')}</span>`:''}
       <button onclick="removeGame(${i})" style="background:none;border:none;color:rgba(107,124,147,.5);cursor:pointer;font-size:10px;margin-left:auto;padding:0">✕</button>
     </div>`;
   });
@@ -920,24 +1000,49 @@ function updatePickCount(games){
   const summary=document.getElementById('pickSummary');
   const games_=weekGames[curWeek]||[];
   let agree=0;
+  const filas=[];                       // partidos ya jugados, para la tabla
+  let motorW=0, motorL=0, miW=0, miL=0;
+
   const myPicks=games_.map(function(g,i){
-    const p=picks[i];
-    if(!p) return null;
     const tV=TEAMS_NFL[IDX_NFL[g.hc]];
     const tH=TEAMS_NFL[IDX_NFL[g.ac]];
     if(!tV||!tH) return null;
 
-    // ¿coincide con lo que recomienda el motor?
     const mk=mkt(g);
     const savedHA=haSide; haSide=g.ha;
     const r=predict(g.hc, g.ac, mk?mk.sp:null, mk?mk.ou:null);
     haSide=savedHA;
     const recSide=r?(r.pH>=0.5?'away':'home'):null;
+    const recTeam=recSide==='away'?tV:tH;
+    const recConf=r?Math.round(Math.max(r.pH,1-r.pH)*100):null;
+
+    // resultado real
+    const res=weekRes[curWeek]?weekRes[curWeek][i]:null;
+    const win=resWinner(res);
+    const p=picks[i];
+
+    if(win){
+      const ganador = win==='tie' ? null : (win==='away'?tV:tH);
+      const motorOK = win==='tie' ? null : (win===recSide);
+      const miOK    = (!p||win==='tie') ? null : (win===p);
+      if(motorOK===true) motorW++; else if(motorOK===false) motorL++;
+      if(miOK===true) miW++; else if(miOK===false) miL++;
+      filas.push({
+        vis:tV.s, loc:tH.s, ha:g.ha,
+        pv:res.v, ph:res.h,
+        ganador: ganador?ganador.s:'Empate',
+        total: res.v+res.h,
+        ou: r?r.total:null,
+        motor: recTeam.s, motorConf:recConf, motorOK:motorOK,
+        mi: p?(p==='away'?tV.s:tH.s):null, miOK:miOK,
+      });
+    }
+
+    if(!p) return null;
     const ok=recSide&&recSide===p;
     if(ok) agree++;
-
     const chosen=p==='away'?tV:tH;
-    return ok?chosen.c:'<span style="color:var(--loss)">'+chosen.c+'</span>';
+    return ok?chosen.s:'<span style="color:var(--loss)">'+chosen.s+'</span>';
   }).filter(Boolean);
 
   if(myPicks.length){
@@ -949,6 +1054,52 @@ function updatePickCount(games){
   } else {
     summary.style.display='none';
   }
+
+  renderResultados(filas, motorW, motorL, miW, miL);
+}
+
+/* Tabla de resultados — nombres cortos (Panthers, Bengals, Packers…) */
+function renderResultados(filas, motorW, motorL, miW, miL){
+  const card=document.getElementById('resCard');
+  const body=document.getElementById('resBody');
+  if(!filas.length){ card.style.display='none'; return; }
+  card.style.display='block';
+
+  const pct=function(w,l){ return (w+l)?Math.round(100*w/(w+l))+'%':'—'; };
+  const marca=function(ok){
+    return ok===null?'<span style="color:var(--draw)">—</span>'
+         : ok?'<span style="color:var(--win);font-weight:800">✓</span>'
+             :'<span style="color:var(--loss);font-weight:800">✗</span>';
+  };
+
+  body.innerHTML=`
+  <div class="res-tally">
+    <div><span class="lbl">Motor</span><span class="num">${motorW}-${motorL}</span><span class="pc">${pct(motorW,motorL)}</span></div>
+    <div><span class="lbl">Mis picks</span><span class="num">${miW}-${miL}</span><span class="pc">${pct(miW,miL)}</span></div>
+    <div><span class="lbl">Jugados</span><span class="num">${filas.length}</span><span class="pc">de ${(weekGames[curWeek]||[]).length}</span></div>
+  </div>
+  <div style="overflow-x:auto">
+  <table class="res-table">
+    <thead><tr>
+      <th>Partido</th><th>Marcador</th><th>Ganó</th><th>Total</th>
+      <th>Motor</th><th></th><th>Mi pick</th><th></th>
+    </tr></thead>
+    <tbody>
+    ${filas.map(function(f){
+      const ouTxt=f.ou!=null?(f.total>f.ou?'<span style="color:var(--loss)">O</span>':'<span style="color:var(--win)">U</span>')+' '+f.ou.toFixed(1):'';
+      return `<tr>
+        <td class="g">${f.vis} ${f.ha==='n'?'vs':'@'} ${f.loc}</td>
+        <td class="sc">${f.pv}–${f.ph}</td>
+        <td class="w">${f.ganador}</td>
+        <td>${f.total} <span class="ou">${ouTxt}</span></td>
+        <td>${f.motor} <span class="ou">${f.motorConf!=null?f.motorConf+'%':''}</span></td>
+        <td>${marca(f.motorOK)}</td>
+        <td>${f.mi||'<span style="color:var(--draw)">sin pick</span>'}</td>
+        <td>${marca(f.miOK)}</td>
+      </tr>`;}).join('')}
+    </tbody>
+  </table></div>
+  <div style="margin-top:10px"><button class="btn" onclick="clearRes()">Limpiar resultados</button></div>`;
 }
 
 function addGame(){
