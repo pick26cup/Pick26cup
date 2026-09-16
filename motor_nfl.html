@@ -214,7 +214,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
   <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
   <div class="sub">Elo calibrado <b>mezclado con las líneas del mercado y el consenso de especialistas</b> · Spread/Total/Win% · Márgenes vía distribución normal · σ=13.45.</div>
   <div class="sub" style="margin-top:6px;color:#7d8a9a">
-    <span class="flag">Estado de datos</span> Elo calibrado con la Semana 1 completa (16/16) · motor 11-5 · desempate clavado en 41 · editable en pestaña Equipos.
+    <span class="flag">Estado de datos</span> Elo calibrado con la Semana 1 (16/16 · motor 11-5) · Semana 2 cargada con líneas del 16-sep · editable en pestaña Equipos.
     <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
   </div>
 </header>
@@ -1364,6 +1364,54 @@ const W1_RESULTS=[
 W1_RESULTS.forEach(function(r,i){ weekRes[1][i]={v:r[0], h:r[1]}; });
 
 /* ══════════════════════════════════════════════════════
+   SEMANA 2 — 17-21 sep 2026 (según pick sheet impreso)
+   Formato: {hc:visitante, ac:local, ha:'a'}
+   ══════════════════════════════════════════════════════ */
+const W2_SCHEDULE=[
+  {hc:'DET',ac:'BUF',ha:'a',day:'Thursday, Sep. 17', time:'8:15 pm'},
+  {hc:'CAR',ac:'ATL',ha:'a',day:'Sunday, Sep. 20',   time:'1:00 pm'},
+  {hc:'MIN',ac:'CHI',ha:'a',day:'Sunday, Sep. 20',   time:'1:00 pm'},
+  {hc:'PHI',ac:'TEN',ha:'a',day:'Sunday, Sep. 20',   time:'1:00 pm'},
+  {hc:'PIT',ac:'NE', ha:'a',day:'Sunday, Sep. 20',   time:'1:00 pm'},
+  {hc:'GB', ac:'NYJ',ha:'a',day:'Sunday, Sep. 20',   time:'1:00 pm'},
+  {hc:'CLE',ac:'TB', ha:'a',day:'Sunday, Sep. 20',   time:'1:00 pm'},
+  {hc:'NO', ac:'BAL',ha:'a',day:'Sunday, Sep. 20',   time:'1:00 pm'},
+  {hc:'CIN',ac:'HOU',ha:'a',day:'Sunday, Sep. 20',   time:'1:00 pm'},
+  {hc:'JAX',ac:'DEN',ha:'a',day:'Sunday, Sep. 20',   time:'4:05 pm'},
+  {hc:'LV', ac:'LAC',ha:'a',day:'Sunday, Sep. 20',   time:'4:05 pm'},
+  {hc:'WAS',ac:'DAL',ha:'a',day:'Sunday, Sep. 20',   time:'4:25 pm'},
+  {hc:'SEA',ac:'ARI',ha:'a',day:'Sunday, Sep. 20',   time:'4:25 pm'},
+  {hc:'MIA',ac:'SF', ha:'a',day:'Sunday, Sep. 20',   time:'4:25 pm'},
+  {hc:'IND',ac:'KC', ha:'a',day:'Sunday, Sep. 20',   time:'8:20 pm'},
+  {hc:'NYG',ac:'LAR',ha:'a',day:'Monday, Sep. 21',   time:'8:15 pm'},
+];
+W2_SCHEDULE.forEach(function(g){weekGames[2].push(g);});
+
+/* Líneas de mercado Semana 2 — recogidas el 16-sep-2026.
+   sp desde el LOCAL (negativo = local favorito) · ou = total */
+const MARKET_W2={
+  'DET@BUF':{sp: -3.5, ou:53.5},
+  'CAR@ATL':{sp:  1.5, ou:43.5},   // Carolina favorita de visita
+  'MIN@CHI':{sp: -5.5, ou:49.5},
+  'PHI@TEN':{sp:  7.0, ou:39.5},   // Philadelphia favorita de visita
+  'PIT@NE' :{sp: -5.5, ou:41.5},
+  'GB@NYJ' :{sp:  3.5, ou:44.5},   // Green Bay favorita de visita
+  'CLE@TB' :{sp: -8.5, ou:41.5},
+  'NO@BAL' :{sp: -8.5, ou:46.5},
+  'CIN@HOU':{sp: -3.0, ou:46.5},
+  'JAX@DEN':{sp: -2.5, ou:43.5},
+  'LV@LAC' :{sp: -7.0, ou:43.5},
+  'WAS@DAL':{sp: -3.5, ou:50.5},
+  'SEA@ARI':{sp:  4.5, ou:41.5},   // Seattle favorita de visita
+  'MIA@SF' :{sp:-13.5, ou:45.5},
+  'IND@KC' :{sp: -6.5, ou:47.5},
+  'NYG@LAR':{sp: -9.5, ou:47.5},
+};
+
+/* Arranca en la Semana 2: la 1 ya está cerrada */
+curWeek=2;
+
+/* ══════════════════════════════════════════════════════
    MERCADO / CONSENSO DE ESPECIALISTAS — Semana 1 2026
    Líneas de casas de apuestas + consenso de los expertos
    (ESPN, CBS, FOX, SI, Covers) recogidas el 7-sep-2026.
@@ -1396,8 +1444,11 @@ const MARKET_W1={
   'DAL@NYG':{sp:  3.0, ou:48.5},
   'DEN@KC' :{sp: -2.5, ou:43.5},
 };
-/* Solo la Semana 1 tiene líneas cargadas */
-function mkt(g){ return curWeek===1 ? (MARKET_W1[g.hc+'@'+g.ac]||null) : null; }
+/* Líneas cargadas por semana (se evalúa al llamar, no al definir) */
+function mkt(g){
+  const M = curWeek===1 ? MARKET_W1 : (curWeek===2 ? MARKET_W2 : null);
+  return M ? (M[g.hc+'@'+g.ac]||null) : null;
+}
 
 /* ══════════════════════════════════════════════════════
    HISTORIAL CARA A CARA — para el desempate
