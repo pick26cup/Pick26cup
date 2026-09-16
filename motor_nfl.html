@@ -503,45 +503,45 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
    ══════════════════════════════════════════════════════ */
 const TEAMS_NFL=[
   // AFC East — calibrado temporada 2025-26
-  {c:'BUF',s:'Bills',     n:'Buffalo Bills',      conf:'AFC',div:'AFC East', elo:1575}, // seed 6 AFC · 12-5
-  {c:'MIA',s:'Dolphins',  n:'Miami Dolphins',     conf:'AFC',div:'AFC East', elo:1461}, // no playoffs
-  {c:'NE', s:'Patriots',  n:'New England Patriots',conf:'AFC',div:'AFC East',elo:1615}, // seed 2 AFC · 14-3 · SB LX finalista
-  {c:'NYJ',s:'Jets',      n:'New York Jets',      conf:'AFC',div:'AFC East', elo:1449}, // no playoffs
+  {c:'BUF',s:'Bills',     p:'Buffalo',     n:'Buffalo Bills',      conf:'AFC',div:'AFC East', elo:1575}, // seed 6 AFC · 12-5
+  {c:'MIA',s:'Dolphins',  p:'Miami',  n:'Miami Dolphins',     conf:'AFC',div:'AFC East', elo:1461}, // no playoffs
+  {c:'NE', s:'Patriots',  p:'New England',  n:'New England Patriots',conf:'AFC',div:'AFC East',elo:1615}, // seed 2 AFC · 14-3 · SB LX finalista
+  {c:'NYJ',s:'Jets',      p:'NY Jets',      n:'New York Jets',      conf:'AFC',div:'AFC East', elo:1449}, // no playoffs
   // AFC North
-  {c:'BAL',s:'Ravens',    n:'Baltimore Ravens',   conf:'AFC',div:'AFC North',elo:1552}, // no playoffs
-  {c:'CIN',s:'Bengals',   n:'Cincinnati Bengals', conf:'AFC',div:'AFC North',elo:1505}, // no playoffs
-  {c:'CLE',s:'Browns',    n:'Cleveland Browns',   conf:'AFC',div:'AFC North',elo:1393}, // no playoffs
-  {c:'PIT',s:'Steelers',  n:'Pittsburgh Steelers',conf:'AFC',div:'AFC North',elo:1539}, // seed 4 AFC · 10-7
+  {c:'BAL',s:'Ravens',    p:'Baltimore',    n:'Baltimore Ravens',   conf:'AFC',div:'AFC North',elo:1552}, // no playoffs
+  {c:'CIN',s:'Bengals',   p:'Cincinnati',   n:'Cincinnati Bengals', conf:'AFC',div:'AFC North',elo:1505}, // no playoffs
+  {c:'CLE',s:'Browns',    p:'Cleveland',    n:'Cleveland Browns',   conf:'AFC',div:'AFC North',elo:1393}, // no playoffs
+  {c:'PIT',s:'Steelers',  p:'Pittsburgh',  n:'Pittsburgh Steelers',conf:'AFC',div:'AFC North',elo:1539}, // seed 4 AFC · 10-7
   // AFC South
-  {c:'HOU',s:'Texans',    n:'Houston Texans',     conf:'AFC',div:'AFC South',elo:1540}, // seed 5 AFC · 12-5
-  {c:'IND',s:'Colts',     n:'Indianapolis Colts', conf:'AFC',div:'AFC South',elo:1428}, // no playoffs
-  {c:'JAX',s:'Jaguars',   n:'Jacksonville Jaguars',conf:'AFC',div:'AFC South',elo:1602}, // seed 3 AFC · 13-4
-  {c:'TEN',s:'Titans',    n:'Tennessee Titans',   conf:'AFC',div:'AFC South',elo:1386}, // no playoffs
+  {c:'HOU',s:'Texans',    p:'Houston',    n:'Houston Texans',     conf:'AFC',div:'AFC South',elo:1540}, // seed 5 AFC · 12-5
+  {c:'IND',s:'Colts',     p:'Indianapolis',     n:'Indianapolis Colts', conf:'AFC',div:'AFC South',elo:1428}, // no playoffs
+  {c:'JAX',s:'Jaguars',   p:'Jacksonville',   n:'Jacksonville Jaguars',conf:'AFC',div:'AFC South',elo:1602}, // seed 3 AFC · 13-4
+  {c:'TEN',s:'Titans',    p:'Tennessee',    n:'Tennessee Titans',   conf:'AFC',div:'AFC South',elo:1386}, // no playoffs
   // AFC West
-  {c:'DEN',s:'Broncos',   n:'Denver Broncos',     conf:'AFC',div:'AFC West', elo:1576}, // seed 1 AFC · 14-3
-  {c:'KC', s:'Chiefs',    n:'Kansas City Chiefs', conf:'AFC',div:'AFC West', elo:1494}, // no playoffs (caída)
-  {c:'LV', s:'Raiders',   n:'Las Vegas Raiders',  conf:'AFC',div:'AFC West', elo:1439}, // no playoffs
-  {c:'LAC',s:'Chargers',  n:'LA Chargers',        conf:'AFC',div:'AFC West', elo:1500}, // seed 7 AFC · 11-6
+  {c:'DEN',s:'Broncos',   p:'Denver',   n:'Denver Broncos',     conf:'AFC',div:'AFC West', elo:1576}, // seed 1 AFC · 14-3
+  {c:'KC', s:'Chiefs',    p:'Kansas City',    n:'Kansas City Chiefs', conf:'AFC',div:'AFC West', elo:1494}, // no playoffs (caída)
+  {c:'LV', s:'Raiders',   p:'Las Vegas',   n:'Las Vegas Raiders',  conf:'AFC',div:'AFC West', elo:1439}, // no playoffs
+  {c:'LAC',s:'Chargers',  p:'LA Chargers',  n:'LA Chargers',        conf:'AFC',div:'AFC West', elo:1500}, // seed 7 AFC · 11-6
   // NFC East
-  {c:'DAL',s:'Cowboys',   n:'Dallas Cowboys',     conf:'NFC',div:'NFC East', elo:1442}, // no playoffs
-  {c:'NYG',s:'Giants',    n:'New York Giants',    conf:'NFC',div:'NFC East', elo:1423}, // no playoffs
-  {c:'PHI',s:'Eagles',    n:'Philadelphia Eagles',conf:'NFC',div:'NFC East', elo:1552}, // seed 3 NFC · 11-6
-  {c:'WAS',s:'Commanders',n:'Washington Commanders',conf:'NFC',div:'NFC East',elo:1458}, // no playoffs
+  {c:'DAL',s:'Cowboys',   p:'Dallas',   n:'Dallas Cowboys',     conf:'NFC',div:'NFC East', elo:1442}, // no playoffs
+  {c:'NYG',s:'Giants',    p:'NY Giants',    n:'New York Giants',    conf:'NFC',div:'NFC East', elo:1423}, // no playoffs
+  {c:'PHI',s:'Eagles',    p:'Philadelphia',    n:'Philadelphia Eagles',conf:'NFC',div:'NFC East', elo:1552}, // seed 3 NFC · 11-6
+  {c:'WAS',s:'Commanders',p:'Washington',n:'Washington Commanders',conf:'NFC',div:'NFC East',elo:1458}, // no playoffs
   // NFC North
-  {c:'CHI',s:'Bears',     n:'Chicago Bears',      conf:'NFC',div:'NFC North',elo:1578}, // seed 2 NFC · 11-6
-  {c:'DET',s:'Lions',     n:'Detroit Lions',      conf:'NFC',div:'NFC North',elo:1519}, // no playoffs
-  {c:'GB', s:'Packers',   n:'Green Bay Packers',  conf:'NFC',div:'NFC North',elo:1476}, // seed 7 NFC · 9-7-1
-  {c:'MIN',s:'Vikings',   n:'Minnesota Vikings',  conf:'NFC',div:'NFC North',elo:1524}, // no playoffs
+  {c:'CHI',s:'Bears',     p:'Chicago',     n:'Chicago Bears',      conf:'NFC',div:'NFC North',elo:1578}, // seed 2 NFC · 11-6
+  {c:'DET',s:'Lions',     p:'Detroit',     n:'Detroit Lions',      conf:'NFC',div:'NFC North',elo:1519}, // no playoffs
+  {c:'GB', s:'Packers',   p:'Green Bay',   n:'Green Bay Packers',  conf:'NFC',div:'NFC North',elo:1476}, // seed 7 NFC · 9-7-1
+  {c:'MIN',s:'Vikings',   p:'Minnesota',   n:'Minnesota Vikings',  conf:'NFC',div:'NFC North',elo:1524}, // no playoffs
   // NFC South
-  {c:'ATL',s:'Falcons',   n:'Atlanta Falcons',    conf:'NFC',div:'NFC South',elo:1461}, // no playoffs
-  {c:'CAR',s:'Panthers',  n:'Carolina Panthers',  conf:'NFC',div:'NFC South',elo:1437}, // seed 4 NFC · 8-9
-  {c:'NO', s:'Saints',    n:'New Orleans Saints', conf:'NFC',div:'NFC South',elo:1436}, // no playoffs
-  {c:'TB', s:'Buccaneers',n:'Tampa Bay Buccaneers',conf:'NFC',div:'NFC South',elo:1450}, // no playoffs
+  {c:'ATL',s:'Falcons',   p:'Atlanta',   n:'Atlanta Falcons',    conf:'NFC',div:'NFC South',elo:1461}, // no playoffs
+  {c:'CAR',s:'Panthers',  p:'Carolina',  n:'Carolina Panthers',  conf:'NFC',div:'NFC South',elo:1437}, // seed 4 NFC · 8-9
+  {c:'NO', s:'Saints',    p:'New Orleans',    n:'New Orleans Saints', conf:'NFC',div:'NFC South',elo:1436}, // no playoffs
+  {c:'TB', s:'Buccaneers',p:'Tampa Bay',n:'Tampa Bay Buccaneers',conf:'NFC',div:'NFC South',elo:1450}, // no playoffs
   // NFC West
-  {c:'ARI',s:'Cardinals', n:'Arizona Cardinals',  conf:'NFC',div:'NFC West', elo:1425}, // no playoffs
-  {c:'LAR',s:'Rams',      n:'LA Rams',            conf:'NFC',div:'NFC West', elo:1534}, // seed 5 NFC · 12-5
-  {c:'SEA',s:'Seahawks',  n:'Seattle Seahawks',   conf:'NFC',div:'NFC West', elo:1670}, // seed 1 NFC · 14-3 · SB LX campeón
-  {c:'SF', s:'49ers',     n:'San Francisco 49ers',conf:'NFC',div:'NFC West', elo:1591}, // seed 6 NFC · 12-5
+  {c:'ARI',s:'Cardinals', p:'Arizona', n:'Arizona Cardinals',  conf:'NFC',div:'NFC West', elo:1425}, // no playoffs
+  {c:'LAR',s:'Rams',      p:'LA Rams',      n:'LA Rams',            conf:'NFC',div:'NFC West', elo:1534}, // seed 5 NFC · 12-5
+  {c:'SEA',s:'Seahawks',  p:'Seattle',  n:'Seattle Seahawks',   conf:'NFC',div:'NFC West', elo:1670}, // seed 1 NFC · 14-3 · SB LX campeón
+  {c:'SF', s:'49ers',     p:'San Francisco',     n:'San Francisco 49ers',conf:'NFC',div:'NFC West', elo:1591}, // seed 6 NFC · 12-5
 ];
 const ELO_BASE=JSON.parse(JSON.stringify(TEAMS_NFL.map(t=>({c:t.c,elo:t.elo}))));
 const IDX_NFL={};TEAMS_NFL.forEach((t,i)=>IDX_NFL[t.c]=i);
@@ -880,10 +880,10 @@ function renderWeek(){
 
     html+=`
     <div class="pick-row${win?' played':''}" id="pr${i}">
-      <div class="pick-chk${pick==='away'?' picked':''}" onclick="togglePick(${i},'away')" title="Pick ${tV.s}">${pick==='away'?'✓':''}</div>
+      <div class="pick-chk${pick==='away'?' picked':''}" onclick="togglePick(${i},'away')" title="Pick ${tV.p}">${pick==='away'?'✓':''}</div>
       <div class="pick-team away${recSide==='away'?' rec':''}${win==='away'?' won':''}${win&&win!=='away'&&win!=='tie'?' lost':''}">
-        <span class="pick-tn${!favIsHome&&favIsAway?' fav':''}">${tV.s}</span>
-        <span class="pick-tc">${tV.c} · ${pV}%</span>
+        <span class="pick-tn${!favIsHome&&favIsAway?' fav':''}">${tV.p}</span>
+        <span class="pick-tc">${tV.s} · ${pV}%</span>
         <div class="pick-bar-wrap" style="flex-direction:row-reverse">
           <div class="pick-bar-away" style="width:${bV}%"></div>
           <div style="flex:${100-bV}%;background:transparent"></div>
@@ -891,18 +891,18 @@ function renderWeek(){
       </div>
       <div class="pick-at">${g.ha==='n'?'vs':'at'}</div>
       <div class="pick-team home${recSide==='home'?' rec':''}${win==='home'?' won':''}${win&&win!=='home'&&win!=='tie'?' lost':''}">
-        <span class="pick-tn${favIsHome?' fav':''}">${tH.s}</span>
-        <span class="pick-tc">${tH.c} · ${pH}%</span>
+        <span class="pick-tn${favIsHome?' fav':''}">${tH.p}</span>
+        <span class="pick-tc">${tH.s} · ${pH}%</span>
         <div class="pick-bar-wrap">
           <div class="pick-bar-home" style="width:${bH}%"></div>
           <div style="flex:${100-bH}%;background:transparent"></div>
         </div>
       </div>
-      <div class="pick-chk${pick==='home'?' picked':''}" onclick="togglePick(${i},'home')" title="Pick ${tH.s}">${pick==='home'?'✓':''}</div>
+      <div class="pick-chk${pick==='home'?' picked':''}" onclick="togglePick(${i},'home')" title="Pick ${tH.p}">${pick==='home'?'✓':''}</div>
       <div class="pick-time">${g.time||''}</div>
     </div>
     <div class="pick-details">
-      <span class="rec-tag" title="Equipo que el motor recomienda">▶ ${recTeam.s} ${recConf}%</span>
+      <span class="rec-tag" title="Equipo que el motor recomienda">▶ ${recTeam.p} ${recConf}%</span>
       <span class="sp">${spLabel}</span>
       <span class="ou">O/U ${r.total.toFixed(1)}${mk&&mk.est&&mk.est.indexOf('ou')>=0?'*':''}</span>
       <span class="sc">${tV.c} ${predScV} · ${tH.c} ${predScH}</span>
@@ -915,7 +915,7 @@ function renderWeek(){
                oninput="setRes2(${i},'h',this.value)">
       </span>
       ${win?`<span class="res-badge ${win==='tie'?'tie':(recOK?'hit':'miss')}">${
-        win==='tie'?'Empate':(win==='away'?tV.s:tH.s)+' ganó'
+        win==='tie'?'Empate':(win==='away'?tV.p:tH.p)+' ganó'
       }${recOK===null?'':(recOK?' · motor ✓':' · motor ✗')}${
         pickOK===null?'':(pickOK?' · tu pick ✓':' · tu pick ✗')}</span>`:''}
       <button onclick="removeGame(${i})" style="background:none;border:none;color:rgba(107,124,147,.5);cursor:pointer;font-size:10px;margin-left:auto;padding:0">✕</button>
@@ -972,7 +972,7 @@ function renderTiebreak(games){
 
   box.innerHTML=`
     <div class="tb-hdr">Desempate · Total de puntos</div>
-    <div class="tb-game">${tV.n} ${g.ha==='n'?'vs':'@'} ${tH.n}
+    <div class="tb-game">${tV.p} ${g.ha==='n'?'vs':'at'} ${tH.p}
       <span>· ${g.day||''}${g.time?' · '+g.time:''} · último partido de la semana</span></div>
     <div class="tb-main">
       <div class="tb-rec"><div class="n">${r.rec}</div><div class="l">Recomendado</div></div>
@@ -1028,13 +1028,13 @@ function updatePickCount(games){
       if(motorOK===true) motorW++; else if(motorOK===false) motorL++;
       if(miOK===true) miW++; else if(miOK===false) miL++;
       filas.push({
-        vis:tV.s, loc:tH.s, ha:g.ha,
+        vis:tV.p, loc:tH.p, ha:g.ha,
         pv:res.v, ph:res.h,
-        ganador: ganador?ganador.s:'Empate',
+        ganador: ganador?ganador.p:'Empate',
         total: res.v+res.h,
         ou: r?r.total:null,
-        motor: recTeam.s, motorConf:recConf, motorOK:motorOK,
-        mi: p?(p==='away'?tV.s:tH.s):null, miOK:miOK,
+        motor: recTeam.p, motorConf:recConf, motorOK:motorOK,
+        mi: p?(p==='away'?tV.p:tH.p):null, miOK:miOK,
       });
     }
 
@@ -1042,7 +1042,7 @@ function updatePickCount(games){
     const ok=recSide&&recSide===p;
     if(ok) agree++;
     const chosen=p==='away'?tV:tH;
-    return ok?chosen.s:'<span style="color:var(--loss)">'+chosen.s+'</span>';
+    return ok?chosen.p:'<span style="color:var(--loss)">'+chosen.p+'</span>';
   }).filter(Boolean);
 
   if(myPicks.length){
