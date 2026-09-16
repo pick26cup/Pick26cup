@@ -214,7 +214,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
   <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
   <div class="sub">Elo calibrado <b>mezclado con las líneas del mercado y el consenso de especialistas</b> · Spread/Total/Win% · Márgenes vía distribución normal · σ=13.45.</div>
   <div class="sub" style="margin-top:6px;color:#7d8a9a">
-    <span class="flag">Estado de datos</span> Elo calibrado con los 10 primeros partidos de la Semana 1 (13-sep) · motor 7-3 · editable en pestaña Equipos.
+    <span class="flag">Estado de datos</span> Elo calibrado con la Semana 1 completa (16/16) · motor 11-5 · desempate clavado en 41 · editable en pestaña Equipos.
     <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
   </div>
 </header>
@@ -504,7 +504,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
 const TEAMS_NFL=[
   // AFC East — calibrado temporada 2025-26
   {c:'BUF',s:'Bills',     n:'Buffalo Bills',      conf:'AFC',div:'AFC East', elo:1575}, // seed 6 AFC · 12-5
-  {c:'MIA',s:'Dolphins',  n:'Miami Dolphins',     conf:'AFC',div:'AFC East', elo:1490}, // no playoffs
+  {c:'MIA',s:'Dolphins',  n:'Miami Dolphins',     conf:'AFC',div:'AFC East', elo:1461}, // no playoffs
   {c:'NE', s:'Patriots',  n:'New England Patriots',conf:'AFC',div:'AFC East',elo:1615}, // seed 2 AFC · 14-3 · SB LX finalista
   {c:'NYJ',s:'Jets',      n:'New York Jets',      conf:'AFC',div:'AFC East', elo:1449}, // no playoffs
   // AFC North
@@ -518,27 +518,27 @@ const TEAMS_NFL=[
   {c:'JAX',s:'Jaguars',   n:'Jacksonville Jaguars',conf:'AFC',div:'AFC South',elo:1602}, // seed 3 AFC · 13-4
   {c:'TEN',s:'Titans',    n:'Tennessee Titans',   conf:'AFC',div:'AFC South',elo:1386}, // no playoffs
   // AFC West
-  {c:'DEN',s:'Broncos',   n:'Denver Broncos',     conf:'AFC',div:'AFC West', elo:1615}, // seed 1 AFC · 14-3
-  {c:'KC', s:'Chiefs',    n:'Kansas City Chiefs', conf:'AFC',div:'AFC West', elo:1455}, // no playoffs (caída)
-  {c:'LV', s:'Raiders',   n:'Las Vegas Raiders',  conf:'AFC',div:'AFC West', elo:1410}, // no playoffs
-  {c:'LAC',s:'Chargers',  n:'LA Chargers',        conf:'AFC',div:'AFC West', elo:1535}, // seed 7 AFC · 11-6
+  {c:'DEN',s:'Broncos',   n:'Denver Broncos',     conf:'AFC',div:'AFC West', elo:1576}, // seed 1 AFC · 14-3
+  {c:'KC', s:'Chiefs',    n:'Kansas City Chiefs', conf:'AFC',div:'AFC West', elo:1494}, // no playoffs (caída)
+  {c:'LV', s:'Raiders',   n:'Las Vegas Raiders',  conf:'AFC',div:'AFC West', elo:1439}, // no playoffs
+  {c:'LAC',s:'Chargers',  n:'LA Chargers',        conf:'AFC',div:'AFC West', elo:1500}, // seed 7 AFC · 11-6
   // NFC East
-  {c:'DAL',s:'Cowboys',   n:'Dallas Cowboys',     conf:'NFC',div:'NFC East', elo:1465}, // no playoffs
-  {c:'NYG',s:'Giants',    n:'New York Giants',    conf:'NFC',div:'NFC East', elo:1400}, // no playoffs
-  {c:'PHI',s:'Eagles',    n:'Philadelphia Eagles',conf:'NFC',div:'NFC East', elo:1545}, // seed 3 NFC · 11-6
-  {c:'WAS',s:'Commanders',n:'Washington Commanders',conf:'NFC',div:'NFC East',elo:1465}, // no playoffs
+  {c:'DAL',s:'Cowboys',   n:'Dallas Cowboys',     conf:'NFC',div:'NFC East', elo:1442}, // no playoffs
+  {c:'NYG',s:'Giants',    n:'New York Giants',    conf:'NFC',div:'NFC East', elo:1423}, // no playoffs
+  {c:'PHI',s:'Eagles',    n:'Philadelphia Eagles',conf:'NFC',div:'NFC East', elo:1552}, // seed 3 NFC · 11-6
+  {c:'WAS',s:'Commanders',n:'Washington Commanders',conf:'NFC',div:'NFC East',elo:1458}, // no playoffs
   // NFC North
   {c:'CHI',s:'Bears',     n:'Chicago Bears',      conf:'NFC',div:'NFC North',elo:1578}, // seed 2 NFC · 11-6
   {c:'DET',s:'Lions',     n:'Detroit Lions',      conf:'NFC',div:'NFC North',elo:1519}, // no playoffs
-  {c:'GB', s:'Packers',   n:'Green Bay Packers',  conf:'NFC',div:'NFC North',elo:1500}, // seed 7 NFC · 9-7-1
-  {c:'MIN',s:'Vikings',   n:'Minnesota Vikings',  conf:'NFC',div:'NFC North',elo:1500}, // no playoffs
+  {c:'GB', s:'Packers',   n:'Green Bay Packers',  conf:'NFC',div:'NFC North',elo:1476}, // seed 7 NFC · 9-7-1
+  {c:'MIN',s:'Vikings',   n:'Minnesota Vikings',  conf:'NFC',div:'NFC North',elo:1524}, // no playoffs
   // NFC South
   {c:'ATL',s:'Falcons',   n:'Atlanta Falcons',    conf:'NFC',div:'NFC South',elo:1461}, // no playoffs
   {c:'CAR',s:'Panthers',  n:'Carolina Panthers',  conf:'NFC',div:'NFC South',elo:1437}, // seed 4 NFC · 8-9
   {c:'NO', s:'Saints',    n:'New Orleans Saints', conf:'NFC',div:'NFC South',elo:1436}, // no playoffs
   {c:'TB', s:'Buccaneers',n:'Tampa Bay Buccaneers',conf:'NFC',div:'NFC South',elo:1450}, // no playoffs
   // NFC West
-  {c:'ARI',s:'Cardinals', n:'Arizona Cardinals',  conf:'NFC',div:'NFC West', elo:1390}, // no playoffs
+  {c:'ARI',s:'Cardinals', n:'Arizona Cardinals',  conf:'NFC',div:'NFC West', elo:1425}, // no playoffs
   {c:'LAR',s:'Rams',      n:'LA Rams',            conf:'NFC',div:'NFC West', elo:1534}, // seed 5 NFC · 12-5
   {c:'SEA',s:'Seahawks',  n:'Seattle Seahawks',   conf:'NFC',div:'NFC West', elo:1670}, // seed 1 NFC · 14-3 · SB LX campeón
   {c:'SF', s:'49ers',     n:'San Francisco 49ers',conf:'NFC',div:'NFC West', elo:1591}, // seed 6 NFC · 12-5
@@ -1337,6 +1337,31 @@ const W1_SCHEDULE=[
   {hc:'DEN',ac:'KC', ha:'a',day:'Monday, Sep. 14',   time:'8:15 pm'},
 ];
 W1_SCHEDULE.forEach(function(g){weekGames[1].push(g);});
+
+/* ══════════════════════════════════════════════════════
+   RESULTADOS REALES — Semana 1 2026 (completa, 9-14 sep)
+   [puntos visitante, puntos local] en el orden del calendario.
+   El Elo de arriba ya está calibrado con estos 16 partidos.
+   ══════════════════════════════════════════════════════ */
+const W1_RESULTS=[
+  [10,13],  // Patriots @ Seahawks
+  [ 7,27],  // Rams vs 49ers (Melbourne)
+  [13,20],  // Falcons @ Steelers
+  [41,23],  // Ravens @ Colts
+  [36,31],  // Bills @ Texans
+  [59,37],  // Bears @ Panthers
+  [10,34],  // Browns @ Jaguars
+  [27,33],  // Buccaneers @ Bengals
+  [30,31],  // Saints @ Lions
+  [23,10],  // Jets @ Titans
+  [26,14],  // Cardinals @ Chargers
+  [22,39],  // Packers @ Vikings
+  [13,27],  // Dolphins @ Raiders
+  [22,24],  // Commanders @ Eagles
+  [20,28],  // Cowboys @ Giants
+  [10,31],  // Broncos @ Chiefs — desempate: 41 pts
+];
+W1_RESULTS.forEach(function(r,i){ weekRes[1][i]={v:r[0], h:r[1]}; });
 
 /* ══════════════════════════════════════════════════════
    MERCADO / CONSENSO DE ESPECIALISTAS — Semana 1 2026
