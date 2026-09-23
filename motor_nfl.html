@@ -214,7 +214,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
   <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
   <div class="sub">Elo calibrado <b>mezclado con las líneas del mercado y el consenso de especialistas</b> · Spread/Total/Win% · Márgenes vía distribución normal · σ=13.45.</div>
   <div class="sub" style="margin-top:6px;color:#7d8a9a">
-    <span class="flag">Estado de datos</span> Elo calibrado con las Semanas 1 y 2 completas (32/32 · motor 22-10, 69%) · editable en pestaña Equipos.
+    <span class="flag">Estado de datos</span> Elo calibrado con las Semanas 1-2 (32/32 · motor 22-10, 69%) · Semana 3 cargada con líneas del 23-sep · editable en pestaña Equipos.
     <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
   </div>
 </header>
@@ -1429,8 +1429,53 @@ const W2_RESULTS=[
 ];
 W2_RESULTS.forEach(function(r,i){ weekRes[2][i]={v:r[0], h:r[1]}; });
 
-/* Arranca en la Semana 2 */
-curWeek=2;
+/* ══════════════════════════════════════════════════════
+   SEMANA 3 — 24-28 sep 2026 (según pick sheet impreso)
+   Baltimore-Dallas se juega en Río de Janeiro: sitio neutral,
+   sin ventaja de local pese a figurar Dallas como local.
+   ══════════════════════════════════════════════════════ */
+const W3_SCHEDULE=[
+  {hc:'ATL',ac:'GB', ha:'a',day:'Thursday, Sep. 24', time:'8:15 pm'},
+  {hc:'LAC',ac:'BUF',ha:'a',day:'Sunday, Sep. 27',   time:'1:00 pm'},
+  {hc:'CAR',ac:'CLE',ha:'a',day:'Sunday, Sep. 27',   time:'1:00 pm'},
+  {hc:'NYJ',ac:'DET',ha:'a',day:'Sunday, Sep. 27',   time:'1:00 pm'},
+  {hc:'HOU',ac:'IND',ha:'a',day:'Sunday, Sep. 27',   time:'1:00 pm'},
+  {hc:'KC', ac:'MIA',ha:'a',day:'Sunday, Sep. 27',   time:'1:00 pm'},
+  {hc:'TEN',ac:'NYG',ha:'a',day:'Sunday, Sep. 27',   time:'1:00 pm'},
+  {hc:'CIN',ac:'PIT',ha:'a',day:'Sunday, Sep. 27',   time:'1:00 pm'},
+  {hc:'SEA',ac:'WAS',ha:'a',day:'Sunday, Sep. 27',   time:'1:00 pm'},
+  {hc:'NE', ac:'JAX',ha:'a',day:'Sunday, Sep. 27',   time:'1:00 pm'},
+  {hc:'ARI',ac:'SF', ha:'a',day:'Sunday, Sep. 27',   time:'4:05 pm'},
+  {hc:'MIN',ac:'TB', ha:'a',day:'Sunday, Sep. 27',   time:'4:05 pm'},
+  {hc:'BAL',ac:'DAL',ha:'n',day:'Sunday, Sep. 27',   time:'4:25 pm'},
+  {hc:'LV', ac:'NO', ha:'a',day:'Sunday, Sep. 27',   time:'4:25 pm'},
+  {hc:'LAR',ac:'DEN',ha:'a',day:'Sunday, Sep. 27',   time:'8:20 pm'},
+  {hc:'PHI',ac:'CHI',ha:'a',day:'Monday, Sep. 28',   time:'8:15 pm'},
+];
+W3_SCHEDULE.forEach(function(g){weekGames[3].push(g);});
+
+/* Líneas Semana 3 — recogidas el 23-sep-2026 */
+const MARKET_W3={
+  'ATL@GB' :{sp: -6.0, ou:44.5},
+  'LAC@BUF':{sp: -7.0, ou:49.5},
+  'CAR@CLE':{sp:  2.5, ou:40.5},   // Carolina favorita de visita
+  'NYJ@DET':{sp: -6.5, ou:47.5},
+  'HOU@IND':{sp:  2.5, ou:44.5},   // Houston favorita de visita
+  'KC@MIA' :{sp: 11.5, ou:44.5},   // Kansas City favorita de visita
+  'TEN@NYG':{sp: -3.0, ou:42.5, est:'ou'}, // total va de 39.5 a 43.5 según casa
+  'CIN@PIT':{sp:  3.5, ou:43.5},   // Cincinnati favorita de visita
+  'SEA@WAS':{sp:  7.0, ou:41.5},   // Seattle favorita de visita
+  'NE@JAX' :{sp: -3.0, ou:44.5},
+  'ARI@SF' :{sp: -8.5, ou:47.5},
+  'MIN@TB' :{sp:  2.5, ou:44.0},   // Minnesota favorita de visita
+  'BAL@DAL':{sp:  3.0, ou:52.5, note:'Río de Janeiro · sitio neutral'},
+  'LV@NO'  :{sp: -3.0, ou:44.5},
+  'LAR@DEN':{sp:  2.5, ou:45.5},   // LA Rams favorita de visita
+  'PHI@CHI':{sp:  4.0, ou:43.5},   // Philadelphia favorita de visita
+};
+
+/* Arranca en la Semana 3 */
+curWeek=3;
 
 /* ══════════════════════════════════════════════════════
    MERCADO / CONSENSO DE ESPECIALISTAS — Semana 1 2026
@@ -1467,7 +1512,9 @@ const MARKET_W1={
 };
 /* Líneas cargadas por semana (se evalúa al llamar, no al definir) */
 function mkt(g){
-  const M = curWeek===1 ? MARKET_W1 : (curWeek===2 ? MARKET_W2 : null);
+  const M = curWeek===1 ? MARKET_W1
+          : curWeek===2 ? MARKET_W2
+          : curWeek===3 ? MARKET_W3 : null;
   return M ? (M[g.hc+'@'+g.ac]||null) : null;
 }
 
@@ -1484,6 +1531,11 @@ const H2H={
     det:['dic-21 KC 22-9','ene-22 KC 28-24','dic-22 KC 34-28','ene-23 KC 27-24',
          'oct-23 KC 19-8','oct-23 DEN 24-9','nov-24 KC 16-14','ene-25 DEN 38-0',
          'nov-25 DEN 22-19','dic-25 DEN 20-13'],
+  },
+  'PHI@CHI':{
+    desc:'solo 2 enfrentamientos desde 2022 (divisiones distintas)',
+    tot:[45,39],
+    det:['dic-22 PHI 25-20','nov-25 CHI 24-15'],
   },
 };
 
