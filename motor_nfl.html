@@ -214,7 +214,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
   <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
   <div class="sub">Elo calibrado <b>mezclado con las líneas del mercado y el consenso de especialistas</b> · Spread/Total/Win% · Márgenes vía distribución normal · σ=13.45.</div>
   <div class="sub" style="margin-top:6px;color:#7d8a9a">
-    <span class="flag">Estado de datos</span> Elo calibrado hasta la Semana 3 (46 partidos · motor 30-16, 65%) · faltan 2 juegos de la S3 · editable en pestaña Equipos.
+    <span class="flag">Estado de datos</span> Elo calibrado hasta la Semana 3 (47 partidos · motor 31-16, 66%) · falta el desempate del lunes · editable en pestaña Equipos.
     <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
   </div>
 </header>
@@ -518,7 +518,7 @@ const TEAMS_NFL=[
   {c:'JAX',s:'Jaguars',   p:'Jacksonville',   n:'Jacksonville Jaguars',conf:'AFC',div:'AFC South',elo:1617}, // seed 3 AFC · 13-4
   {c:'TEN',s:'Titans',    p:'Tennessee',    n:'Tennessee Titans',   conf:'AFC',div:'AFC South',elo:1363}, // no playoffs
   // AFC West
-  {c:'DEN',s:'Broncos',   p:'Denver',   n:'Denver Broncos',     conf:'AFC',div:'AFC West', elo:1595}, // seed 1 AFC · 14-3
+  {c:'DEN',s:'Broncos',   p:'Denver',   n:'Denver Broncos',     conf:'AFC',div:'AFC West', elo:1551}, // seed 1 AFC · 14-3
   {c:'KC', s:'Chiefs',    p:'Kansas City',    n:'Kansas City Chiefs', conf:'AFC',div:'AFC West', elo:1529}, // no playoffs (caída)
   {c:'LV', s:'Raiders',   p:'Las Vegas',   n:'Las Vegas Raiders',  conf:'AFC',div:'AFC West', elo:1501}, // no playoffs
   {c:'LAC',s:'Chargers',  p:'LA Chargers',  n:'LA Chargers',        conf:'AFC',div:'AFC West', elo:1457}, // seed 7 AFC · 11-6
@@ -539,7 +539,7 @@ const TEAMS_NFL=[
   {c:'TB', s:'Buccaneers',p:'Tampa Bay',n:'Tampa Bay Buccaneers',conf:'NFC',div:'NFC South',elo:1414}, // no playoffs
   // NFC West
   {c:'ARI',s:'Cardinals', p:'Arizona', n:'Arizona Cardinals',  conf:'NFC',div:'NFC West', elo:1404}, // no playoffs
-  {c:'LAR',s:'Rams',      p:'LA Rams',      n:'LA Rams',            conf:'NFC',div:'NFC West', elo:1551}, // seed 5 NFC · 12-5
+  {c:'LAR',s:'Rams',      p:'LA Rams',      n:'LA Rams',            conf:'NFC',div:'NFC West', elo:1595}, // seed 5 NFC · 12-5
   {c:'SEA',s:'Seahawks',  p:'Seattle',  n:'Seattle Seahawks',   conf:'NFC',div:'NFC West', elo:1669}, // seed 1 NFC · 14-3 · SB LX campeón
   {c:'SF', s:'49ers',     p:'San Francisco',     n:'San Francisco 49ers',conf:'NFC',div:'NFC West', elo:1613}, // seed 6 NFC · 12-5
 ];
@@ -1491,7 +1491,7 @@ const W3_RESULTS=[
   [23,16],  // Minnesota @ Tampa Bay
   [34,31],  // Baltimore vs Dallas (Río)
   [35,21],  // Las Vegas @ New Orleans
-  null,     // LA Rams @ Denver
+  [51,14],  // LA Rams @ Denver
   null,     // Philadelphia @ Chicago — desempate
 ];
 W3_RESULTS.forEach(function(r,i){ if(r) weekRes[3][i]={v:r[0], h:r[1]}; });
