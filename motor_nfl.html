@@ -214,7 +214,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
   <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
   <div class="sub">Elo calibrado <b>mezclado con las líneas del mercado y el consenso de especialistas</b> · Spread/Total/Win% · Márgenes vía distribución normal · σ=13.45.</div>
   <div class="sub" style="margin-top:6px;color:#7d8a9a">
-    <span class="flag">Estado de datos</span> Elo calibrado hasta la Semana 3 (42 partidos · motor 27-15, 64%) · faltan 6 juegos de la S3 · editable en pestaña Equipos.
+    <span class="flag">Estado de datos</span> Elo calibrado hasta la Semana 3 (46 partidos · motor 30-16, 65%) · faltan 2 juegos de la S3 · editable en pestaña Equipos.
     <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
   </div>
 </header>
@@ -508,7 +508,7 @@ const TEAMS_NFL=[
   {c:'NE', s:'Patriots',  p:'New England',  n:'New England Patriots',conf:'AFC',div:'AFC East',elo:1599}, // seed 2 AFC · 14-3 · SB LX finalista
   {c:'NYJ',s:'Jets',      p:'NY Jets',      n:'New York Jets',      conf:'AFC',div:'AFC East', elo:1421}, // no playoffs
   // AFC North
-  {c:'BAL',s:'Ravens',    p:'Baltimore',    n:'Baltimore Ravens',   conf:'AFC',div:'AFC North',elo:1524}, // no playoffs
+  {c:'BAL',s:'Ravens',    p:'Baltimore',    n:'Baltimore Ravens',   conf:'AFC',div:'AFC North',elo:1535}, // no playoffs
   {c:'CIN',s:'Bengals',   p:'Cincinnati',   n:'Cincinnati Bengals', conf:'AFC',div:'AFC North',elo:1525}, // no playoffs
   {c:'CLE',s:'Browns',    p:'Cleveland',    n:'Cleveland Browns',   conf:'AFC',div:'AFC North',elo:1427}, // no playoffs
   {c:'PIT',s:'Steelers',  p:'Pittsburgh',  n:'Pittsburgh Steelers',conf:'AFC',div:'AFC North',elo:1533}, // seed 4 AFC · 10-7
@@ -520,10 +520,10 @@ const TEAMS_NFL=[
   // AFC West
   {c:'DEN',s:'Broncos',   p:'Denver',   n:'Denver Broncos',     conf:'AFC',div:'AFC West', elo:1595}, // seed 1 AFC · 14-3
   {c:'KC', s:'Chiefs',    p:'Kansas City',    n:'Kansas City Chiefs', conf:'AFC',div:'AFC West', elo:1529}, // no playoffs (caída)
-  {c:'LV', s:'Raiders',   p:'Las Vegas',   n:'Las Vegas Raiders',  conf:'AFC',div:'AFC West', elo:1471}, // no playoffs
+  {c:'LV', s:'Raiders',   p:'Las Vegas',   n:'Las Vegas Raiders',  conf:'AFC',div:'AFC West', elo:1501}, // no playoffs
   {c:'LAC',s:'Chargers',  p:'LA Chargers',  n:'LA Chargers',        conf:'AFC',div:'AFC West', elo:1457}, // seed 7 AFC · 11-6
   // NFC East
-  {c:'DAL',s:'Cowboys',   p:'Dallas',   n:'Dallas Cowboys',     conf:'NFC',div:'NFC East', elo:1468}, // no playoffs
+  {c:'DAL',s:'Cowboys',   p:'Dallas',   n:'Dallas Cowboys',     conf:'NFC',div:'NFC East', elo:1457}, // no playoffs
   {c:'NYG',s:'Giants',    p:'NY Giants',    n:'New York Giants',    conf:'NFC',div:'NFC East', elo:1419}, // no playoffs
   {c:'PHI',s:'Eagles',    p:'Philadelphia',    n:'Philadelphia Eagles',conf:'NFC',div:'NFC East', elo:1562}, // seed 3 NFC · 11-6
   {c:'WAS',s:'Commanders',p:'Washington',n:'Washington Commanders',conf:'NFC',div:'NFC East',elo:1447}, // no playoffs
@@ -531,17 +531,17 @@ const TEAMS_NFL=[
   {c:'CHI',s:'Bears',     p:'Chicago',     n:'Chicago Bears',      conf:'NFC',div:'NFC North',elo:1554}, // seed 2 NFC · 11-6
   {c:'DET',s:'Lions',     p:'Detroit',     n:'Detroit Lions',      conf:'NFC',div:'NFC North',elo:1516}, // no playoffs
   {c:'GB', s:'Packers',   p:'Green Bay',   n:'Green Bay Packers',  conf:'NFC',div:'NFC North',elo:1452}, // seed 7 NFC · 9-7-1
-  {c:'MIN',s:'Vikings',   p:'Minnesota',   n:'Minnesota Vikings',  conf:'NFC',div:'NFC North',elo:1548}, // no playoffs
+  {c:'MIN',s:'Vikings',   p:'Minnesota',   n:'Minnesota Vikings',  conf:'NFC',div:'NFC North',elo:1564}, // no playoffs
   // NFC South
   {c:'ATL',s:'Falcons',   p:'Atlanta',   n:'Atlanta Falcons',    conf:'NFC',div:'NFC South',elo:1460}, // no playoffs
   {c:'CAR',s:'Panthers',  p:'Carolina',  n:'Carolina Panthers',  conf:'NFC',div:'NFC South',elo:1463}, // seed 4 NFC · 8-9
-  {c:'NO', s:'Saints',    p:'New Orleans',    n:'New Orleans Saints', conf:'NFC',div:'NFC South',elo:1464}, // no playoffs
-  {c:'TB', s:'Buccaneers',p:'Tampa Bay',n:'Tampa Bay Buccaneers',conf:'NFC',div:'NFC South',elo:1430}, // no playoffs
+  {c:'NO', s:'Saints',    p:'New Orleans',    n:'New Orleans Saints', conf:'NFC',div:'NFC South',elo:1434}, // no playoffs
+  {c:'TB', s:'Buccaneers',p:'Tampa Bay',n:'Tampa Bay Buccaneers',conf:'NFC',div:'NFC South',elo:1414}, // no playoffs
   // NFC West
-  {c:'ARI',s:'Cardinals', p:'Arizona', n:'Arizona Cardinals',  conf:'NFC',div:'NFC West', elo:1411}, // no playoffs
+  {c:'ARI',s:'Cardinals', p:'Arizona', n:'Arizona Cardinals',  conf:'NFC',div:'NFC West', elo:1404}, // no playoffs
   {c:'LAR',s:'Rams',      p:'LA Rams',      n:'LA Rams',            conf:'NFC',div:'NFC West', elo:1551}, // seed 5 NFC · 12-5
   {c:'SEA',s:'Seahawks',  p:'Seattle',  n:'Seattle Seahawks',   conf:'NFC',div:'NFC West', elo:1669}, // seed 1 NFC · 14-3 · SB LX campeón
-  {c:'SF', s:'49ers',     p:'San Francisco',     n:'San Francisco 49ers',conf:'NFC',div:'NFC West', elo:1606}, // seed 6 NFC · 12-5
+  {c:'SF', s:'49ers',     p:'San Francisco',     n:'San Francisco 49ers',conf:'NFC',div:'NFC West', elo:1613}, // seed 6 NFC · 12-5
 ];
 const ELO_BASE=JSON.parse(JSON.stringify(TEAMS_NFL.map(t=>({c:t.c,elo:t.elo}))));
 const IDX_NFL={};TEAMS_NFL.forEach((t,i)=>IDX_NFL[t.c]=i);
@@ -1487,10 +1487,10 @@ const W3_RESULTS=[
   [27,30],  // Cincinnati @ Pittsburgh
   [31,33],  // Seattle @ Washington
   [ 6,35],  // New England @ Jacksonville
-  null,     // Arizona @ San Francisco
-  null,     // Minnesota @ Tampa Bay
-  null,     // Baltimore vs Dallas (Río)
-  null,     // Las Vegas @ New Orleans
+  [30,36],  // Arizona @ San Francisco
+  [23,16],  // Minnesota @ Tampa Bay
+  [34,31],  // Baltimore vs Dallas (Río)
+  [35,21],  // Las Vegas @ New Orleans
   null,     // LA Rams @ Denver
   null,     // Philadelphia @ Chicago — desempate
 ];
