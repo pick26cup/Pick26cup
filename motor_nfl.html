@@ -214,7 +214,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
   <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
   <div class="sub">Elo calibrado <b>mezclado con las líneas del mercado y el consenso de especialistas</b> · Spread/Total/Win% · Márgenes vía distribución normal · σ=13.45.</div>
   <div class="sub" style="margin-top:6px;color:#7d8a9a">
-    <span class="flag">Estado de datos</span> Elo calibrado hasta la Semana 3 (47 partidos · motor 31-16, 66%) · falta el desempate del lunes · editable en pestaña Equipos.
+    <span class="flag">Estado de datos</span> Elo calibrado con 47 partidos (motor 31-16, 66%) · Semana 4 cargada con líneas del 28-sep · editable en pestaña Equipos.
     <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
   </div>
 </header>
@@ -1496,8 +1496,53 @@ const W3_RESULTS=[
 ];
 W3_RESULTS.forEach(function(r,i){ if(r) weekRes[3][i]={v:r[0], h:r[1]}; });
 
-/* Arranca en la Semana 3 */
-curWeek=3;
+/* ══════════════════════════════════════════════════════
+   SEMANA 4 — 1-5 oct 2026 (según pick sheet impreso)
+   Indianapolis-Washington es el juego internacional de las
+   9:30 am: la hoja lo marca "vs", así que va como neutral.
+   ══════════════════════════════════════════════════════ */
+const W4_SCHEDULE=[
+  {hc:'PIT',ac:'CLE',ha:'a',day:'Thursday, Oct. 1', time:'8:15 pm'},
+  {hc:'IND',ac:'WAS',ha:'n',day:'Sunday, Oct. 4',   time:'9:30 am'},
+  {hc:'NE', ac:'BUF',ha:'a',day:'Sunday, Oct. 4',   time:'1:00 pm'},
+  {hc:'NYJ',ac:'CHI',ha:'a',day:'Sunday, Oct. 4',   time:'1:00 pm'},
+  {hc:'JAX',ac:'CIN',ha:'a',day:'Sunday, Oct. 4',   time:'1:00 pm'},
+  {hc:'ARI',ac:'NYG',ha:'a',day:'Sunday, Oct. 4',   time:'1:00 pm'},
+  {hc:'LAR',ac:'PHI',ha:'a',day:'Sunday, Oct. 4',   time:'1:00 pm'},
+  {hc:'GB', ac:'TB', ha:'a',day:'Sunday, Oct. 4',   time:'1:00 pm'},
+  {hc:'TEN',ac:'BAL',ha:'a',day:'Sunday, Oct. 4',   time:'1:00 pm'},
+  {hc:'DAL',ac:'HOU',ha:'a',day:'Sunday, Oct. 4',   time:'1:00 pm'},
+  {hc:'MIA',ac:'MIN',ha:'a',day:'Sunday, Oct. 4',   time:'4:05 pm'},
+  {hc:'KC', ac:'LV', ha:'a',day:'Sunday, Oct. 4',   time:'4:25 pm'},
+  {hc:'DEN',ac:'SF', ha:'a',day:'Sunday, Oct. 4',   time:'4:25 pm'},
+  {hc:'LAC',ac:'SEA',ha:'a',day:'Sunday, Oct. 4',   time:'4:25 pm'},
+  {hc:'DET',ac:'CAR',ha:'a',day:'Sunday, Oct. 4',   time:'8:20 pm'},
+  {hc:'ATL',ac:'NO', ha:'a',day:'Monday, Oct. 5',   time:'8:15 pm'},
+];
+W4_SCHEDULE.forEach(function(g){weekGames[4].push(g);});
+
+/* Líneas Semana 4 — recogidas el 28-sep-2026 */
+const MARKET_W4={
+  'PIT@CLE':{sp:  2.5, ou:38.5},   // Pittsburgh favorita de visita · total más bajo de la semana
+  'IND@WAS':{sp:  3.5, ou:47.5, note:'juego internacional · sitio neutral'},
+  'NE@BUF' :{sp: -6.5, ou:48.5},
+  'NYJ@CHI':{sp: -3.0, ou:43.0},
+  'JAX@CIN':{sp: -2.5, ou:51.5},   // total más alto de la semana
+  'ARI@NYG':{sp:  1.0, ou:44.5},   // Arizona favorita de visita
+  'LAR@PHI':{sp:  2.0, ou:46.0},   // LA Rams favorita de visita
+  'GB@TB'  :{sp:  3.5, ou:39.5},   // Green Bay favorita de visita
+  'TEN@BAL':{sp:-11.5, ou:43.5},
+  'DAL@HOU':{sp: -2.5, ou:47.5},
+  'MIA@MIN':{sp:-10.0, ou:39.5},
+  'KC@LV'  :{sp:  5.5, ou:47.5},   // Kansas City favorita de visita
+  'DEN@SF' :{sp: -3.0, ou:46.0},
+  'LAC@SEA':{sp: -6.5, ou:43.5},
+  'DET@CAR':{sp:  2.5, ou:50.5},   // Detroit favorita de visita
+  'ATL@NO' :{sp: -2.5, ou:46.5},
+};
+
+/* Arranca en la Semana 4 */
+curWeek=4;
 
 /* ══════════════════════════════════════════════════════
    MERCADO / CONSENSO DE ESPECIALISTAS — Semana 1 2026
@@ -1536,7 +1581,8 @@ const MARKET_W1={
 function mkt(g){
   const M = curWeek===1 ? MARKET_W1
           : curWeek===2 ? MARKET_W2
-          : curWeek===3 ? MARKET_W3 : null;
+          : curWeek===3 ? MARKET_W3
+          : curWeek===4 ? MARKET_W4 : null;
   return M ? (M[g.hc+'@'+g.ac]||null) : null;
 }
 
@@ -1558,6 +1604,12 @@ const H2H={
     desc:'solo 2 enfrentamientos desde 2022 (divisiones distintas)',
     tot:[45,39],
     det:['dic-22 PHI 25-20','nov-25 CHI 24-15'],
+  },
+  'ATL@NO':{
+    desc:'6 enfrentamientos 2023-2026 · rivalidad divisional',
+    tot:[39,65,50,37,34,36],
+    det:['nov-23 ATL 24-15','ene-24 NO 48-17','sep-24 ATL 26-24',
+         'nov-24 NO 20-17','nov-25 ATL 24-10','ene-26 ATL 19-17'],
   },
 };
 
