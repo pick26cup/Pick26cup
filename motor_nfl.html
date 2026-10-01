@@ -214,7 +214,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
   <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
   <div class="sub">Elo calibrado <b>mezclado con las líneas del mercado y el consenso de especialistas</b> · Spread/Total/Win% · Márgenes vía distribución normal · σ=13.45.</div>
   <div class="sub" style="margin-top:6px;color:#7d8a9a">
-    <span class="flag">Estado de datos</span> Elo calibrado con 47 partidos (motor 31-16, 66%) · Semana 4 cargada con líneas del 28-sep · editable en pestaña Equipos.
+    <span class="flag">Estado de datos</span> Elo calibrado con las Semanas 1-3 completas (48 partidos · motor 31-17, 65%) · Semana 4 cargada con líneas del 28-sep · editable en pestaña Equipos.
     <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
   </div>
 </header>
@@ -525,10 +525,10 @@ const TEAMS_NFL=[
   // NFC East
   {c:'DAL',s:'Cowboys',   p:'Dallas',   n:'Dallas Cowboys',     conf:'NFC',div:'NFC East', elo:1457}, // no playoffs
   {c:'NYG',s:'Giants',    p:'NY Giants',    n:'New York Giants',    conf:'NFC',div:'NFC East', elo:1419}, // no playoffs
-  {c:'PHI',s:'Eagles',    p:'Philadelphia',    n:'Philadelphia Eagles',conf:'NFC',div:'NFC East', elo:1562}, // seed 3 NFC · 11-6
+  {c:'PHI',s:'Eagles',    p:'Philadelphia',    n:'Philadelphia Eagles',conf:'NFC',div:'NFC East', elo:1536}, // seed 3 NFC · 11-6
   {c:'WAS',s:'Commanders',p:'Washington',n:'Washington Commanders',conf:'NFC',div:'NFC East',elo:1447}, // no playoffs
   // NFC North
-  {c:'CHI',s:'Bears',     p:'Chicago',     n:'Chicago Bears',      conf:'NFC',div:'NFC North',elo:1554}, // seed 2 NFC · 11-6
+  {c:'CHI',s:'Bears',     p:'Chicago',     n:'Chicago Bears',      conf:'NFC',div:'NFC North',elo:1580}, // seed 2 NFC · 11-6
   {c:'DET',s:'Lions',     p:'Detroit',     n:'Detroit Lions',      conf:'NFC',div:'NFC North',elo:1516}, // no playoffs
   {c:'GB', s:'Packers',   p:'Green Bay',   n:'Green Bay Packers',  conf:'NFC',div:'NFC North',elo:1452}, // seed 7 NFC · 9-7-1
   {c:'MIN',s:'Vikings',   p:'Minnesota',   n:'Minnesota Vikings',  conf:'NFC',div:'NFC North',elo:1564}, // no playoffs
@@ -1492,7 +1492,7 @@ const W3_RESULTS=[
   [34,31],  // Baltimore vs Dallas (Río)
   [35,21],  // Las Vegas @ New Orleans
   [51,14],  // LA Rams @ Denver
-  null,     // Philadelphia @ Chicago — desempate
+  [ 7,27],  // Philadelphia @ Chicago — desempate: 34 pts
 ];
 W3_RESULTS.forEach(function(r,i){ if(r) weekRes[3][i]={v:r[0], h:r[1]}; });
 
