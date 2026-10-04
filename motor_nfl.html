@@ -187,6 +187,25 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
 .res-table .w{font-weight:700;color:var(--win)}
 .res-table .ou{font-size:10px;color:var(--muted)}
 
+/* ── Modo pool ─────────────────────── */
+.pool-box{margin-top:14px;background:linear-gradient(180deg,rgba(74,143,232,.08),rgba(74,143,232,.02));border:2px solid var(--afc);border-radius:12px;padding:14px}
+.pool-hdr{font-size:11px;color:var(--afc);letter-spacing:.1em;text-transform:uppercase;font-weight:800;margin-bottom:3px}
+.pool-sub{font-size:11.5px;color:var(--muted);margin-bottom:12px;line-height:1.5}
+.pool-ctl{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.pool-ctl label{font-size:11px;color:var(--muted)}
+.pool-ctl input{width:54px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:5px 8px;font-size:13px;font-family:inherit;text-align:center;font-weight:700}
+.pool-ctl input:focus{outline:none;border-color:var(--afc)}
+.pool-row{display:grid;grid-template-columns:22px 1fr auto;gap:9px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(26,34,51,.6);font-size:12.5px}
+.pool-row:last-child{border-bottom:none}
+.pool-n{width:22px;height:22px;border-radius:50%;background:var(--afc);color:#0a0e14;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center}
+.pool-n.off{background:var(--line);color:var(--muted)}
+.pool-g{line-height:1.45}
+.pool-g b{color:var(--win)}
+.pool-g s{color:var(--muted);text-decoration-color:var(--loss)}
+.pool-g .why{display:block;font-size:10.5px;color:var(--muted);font-style:italic}
+.pool-cost{font-size:11px;color:var(--amber);font-weight:700;white-space:nowrap;text-align:right}
+.pool-note{font-size:10.5px;color:#7d8a9a;margin-top:11px;padding-top:9px;border-top:1px solid rgba(74,143,232,.25);line-height:1.55}
+
 /* ── Tiebreaker (desempate) ────────── */
 .tb-box{margin-top:14px;background:linear-gradient(180deg,rgba(255,176,0,.07),rgba(255,176,0,.02));border:2px solid var(--amber);border-radius:12px;padding:14px}
 .tb-hdr{font-size:11px;color:var(--amber);letter-spacing:.1em;text-transform:uppercase;font-weight:800}
@@ -356,6 +375,9 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
 
     <!-- tiebreaker -->
     <div class="tb-box" id="tbBox" style="display:none"></div>
+
+    <!-- modo pool -->
+    <div class="pool-box" id="poolBox" style="display:none"></div>
   </div>
 
   <!-- resultados -->
@@ -925,6 +947,82 @@ function renderWeek(){
   gl.innerHTML=html;
   updatePickCount(games);
   renderTiebreak(games);
+  renderPool(games);
+}
+
+/* ══════════════════════════════════════════════════════
+   MODO POOL — dónde desviarse
+   Un pool se gana POR SEMANA, no por acumulado. Si picas
+   igual que todos, empatas siempre y nunca quedas arriba:
+   el desempate decide, y eso es casi lotería.
+
+   Desviarse en un partido parejo cuesta casi nada en
+   aciertos esperados (2p-1 picks) y es lo único que te
+   separa del pelotón. Esta tabla ordena los partidos por
+   lo BARATO que sale desviarse, no por lo probable.
+   ══════════════════════════════════════════════════════ */
+let poolN=2;
+function setPoolN(v){ poolN=Math.max(0,Math.min(8,parseInt(v,10)||0)); renderWeek(); }
+
+function renderPool(games){
+  const box=document.getElementById('poolBox');
+  if(!games||!games.length){ box.style.display='none'; return; }
+  const P=getK();
+
+  const cand=[];
+  games.forEach(function(g,i){
+    const tV=TEAMS_NFL[IDX_NFL[g.hc]], tH=TEAMS_NFL[IDX_NFL[g.ac]];
+    if(!tV||!tH) return;
+    if(getRes(i)) return;                   // ya se jugó, no sirve desviarse
+    const mk=mkt(g);
+    const savedHA=haSide; haSide=g.ha;
+    const r=predict(g.hc, g.ac, mk?mk.sp:null, mk?mk.ou:null);
+    haSide=savedHA;
+    if(!r) return;
+
+    const favEsVis = r.pH>=0.5;
+    const fav = favEsVis?tV:tH, dog = favEsVis?tH:tV;
+    const conf = Math.max(r.pH, 1-r.pH);
+    const costo = 2*conf-1;                 // picks esperados que cedes al voltear
+
+    // ¿el Elo solo respalda al no-favorito? señal independiente del mercado
+    const eloApoyaDog = mk ? ((r.eloSpread>=0) !== favEsVis) : false;
+
+    cand.push({i, fav, dog, conf, costo, eloApoyaDog,
+               prioridad: costo - (eloApoyaDog?0.14:0)});
+  });
+
+  if(!cand.length){ box.style.display='none'; return; }
+  box.style.display='block';
+  cand.sort(function(a,b){return a.prioridad-b.prioridad;});
+
+  const muestra=cand.slice(0,6);
+  const perdida=cand.slice(0,poolN).reduce(function(s,c){return s+c.costo;},0);
+
+  box.innerHTML=`
+    <div class="pool-hdr">Modo pool · dónde desviarte</div>
+    <div class="pool-sub">Picar igual que todos garantiza empate, nunca victoria.
+      Estos son los partidos donde apartarte del favorito cuesta menos.</div>
+    <div class="pool-ctl">
+      <label>Desvíos a tomar</label>
+      <input type="number" min="0" max="8" value="${poolN}" oninput="setPoolN(this.value)">
+      <span style="font-size:11px;color:var(--muted)">
+        · cedes <b style="color:var(--amber)">${perdida.toFixed(2)}</b> aciertos esperados de 16</span>
+    </div>
+    ${muestra.map(function(c,k){
+      const on=k<poolN;
+      return `<div class="pool-row">
+        <div class="pool-n${on?'':' off'}">${k+1}</div>
+        <div class="pool-g">${on?`<s>${c.fav.p}</s> → <b>${c.dog.p}</b>`
+                              :`${c.fav.p} → ${c.dog.p}`}
+          <span class="why">${c.fav.p} va al ${Math.round(c.conf*100)}%${
+            c.eloApoyaDog?' · el Elo respalda a '+c.dog.p+', el mercado no':''}</span></div>
+        <div class="pool-cost">−${c.costo.toFixed(2)}</div>
+      </div>`;}).join('')}
+    <div class="pool-note">El costo es cuántos aciertos esperados cedes al voltear ese pick.
+      Un desvío de −0.05 es casi gratis; uno de −0.60 te sale caro.
+      Con pools chicos (10-20) bastan 1-2 desvíos; con pools grandes conviene 3-4,
+      porque necesitas separarte de más gente.</div>`;
 }
 
 /* Desempate: total de puntos del ÚLTIMO partido de la semana */
