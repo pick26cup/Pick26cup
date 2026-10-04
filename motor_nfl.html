@@ -231,7 +231,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
 <header>
   <div class="kicker">NFL 2026 · Motor Predictivo</div>
   <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
-  <div class="sub">Elo calibrado <b>mezclado con las líneas del mercado y el consenso de especialistas</b> · Spread/Total/Win% · Márgenes vía distribución normal · σ=13.45.</div>
+  <div class="sub">Elo calibrado <b>mezclado con las líneas de las casas de apuestas</b> · Spread/Total/Win% · Márgenes vía distribución normal · σ=13.45.</div>
   <div class="sub" style="margin-top:6px;color:#7d8a9a">
     <span class="flag">Estado de datos</span> Elo calibrado con 58 partidos (motor 36-22, 62%) · faltan 6 juegos de la S4 · Semana 4 cargada con líneas del 28-sep · editable en pestaña Equipos.
     <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
@@ -1665,8 +1665,13 @@ curWeek=4;
 
 /* ══════════════════════════════════════════════════════
    MERCADO / CONSENSO DE ESPECIALISTAS — Semana 1 2026
-   Líneas de casas de apuestas + consenso de los expertos
-   (ESPN, CBS, FOX, SI, Covers) recogidas el 7-sep-2026.
+   Líneas de casas de apuestas (spread y total) recogidas de
+   notas de ESPN, CBS, FOX, SI y Covers el 7-sep-2026.
+
+   OJO: son LÍNEAS DE MERCADO, no el conteo de picks de los
+   analistas de ESPN. Esa tabla está tras un dominio que el
+   proxy de este entorno bloquea, así que el motor nunca la
+   ha usado.
 
    La línea del mercado es el mejor predictor público que
    existe: ya incorpora lesiones, clima, QB y el juicio de
