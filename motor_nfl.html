@@ -143,6 +143,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
 .pick-details .sc{color:var(--text)}
 .pick-details .mk{color:#7d8a9a;font-style:italic}
 .pick-details .rec-tag{color:var(--win);font-weight:800;letter-spacing:.02em}
+.pick-details .alerta{color:var(--loss);font-weight:700}
 
 /* Equipo recomendado por el motor: queda "encerrado" */
 .pick-team.rec .pick-tn{
@@ -930,6 +931,7 @@ function renderWeek(){
       <span class="sc">${tV.c} ${predScV} · ${tH.c} ${predScH}</span>
       ${mk?`<span class="mk">mercado ${mk.sp>0?'+'+mk.sp:mk.sp} ${tH.c}${mk.est?' *':''}</span>`:''}
       ${mk&&mk.note?`<span class="mk">${mk.note}</span>`:''}
+      ${mk&&mk.alerta?`<span class="alerta">⚠ ${mk.alerta}</span>`:''}
       <span class="res-inp" title="Marcador final">
         <input type="number" min="0" max="99" placeholder="–" value="${res&&res.v!=null?res.v:''}"
                oninput="setRes2(${i},'v',this.value)"><span class="dash">–</span><input
@@ -987,9 +989,12 @@ function renderPool(games){
 
     // ¿el Elo solo respalda al no-favorito? señal independiente del mercado
     const eloApoyaDog = mk ? ((r.eloSpread>=0) !== favEsVis) : false;
+    // ¿el favorito arrastra una lesión que el mercado puede no haber digerido?
+    const lesionFav = !!(mk && mk.alerta);
 
-    cand.push({i, fav, dog, conf, costo, eloApoyaDog,
-               prioridad: costo - (eloApoyaDog?0.14:0)});
+    cand.push({i, fav, dog, conf, costo, eloApoyaDog, lesionFav,
+               alerta: mk?mk.alerta:null,
+               prioridad: costo - (eloApoyaDog?0.14:0) - (lesionFav?0.20:0)});
   });
 
   if(!cand.length){ box.style.display='none'; return; }
@@ -1016,6 +1021,7 @@ function renderPool(games){
         <div class="pool-g">${on?`<s>${c.fav.p}</s> → <b>${c.dog.p}</b>`
                               :`${c.fav.p} → ${c.dog.p}`}
           <span class="why">${c.fav.p} va al ${Math.round(c.conf*100)}%${
+            c.lesionFav?' · <b style="color:var(--loss)">'+c.alerta+'</b>':''}${
             c.eloApoyaDog?' · el Elo respalda a '+c.dog.p+', el mercado no':''}</span></div>
         <div class="pool-cost">−${c.costo.toFixed(2)}</div>
       </div>`;}).join('')}
@@ -1684,22 +1690,23 @@ const W5_SCHEDULE=[
 ];
 W5_SCHEDULE.forEach(function(g){weekGames[5].push(g);});
 
-/* Líneas Semana 5 — recogidas el 5-oct-2026, ninguna estimada */
+/* Líneas Semana 5 — recogidas el 5-oct-2026, ninguna estimada.
+   alerta = lesión confirmada que el mercado puede no haber digerido */
 const MARKET_W5={
   'TB@DAL' :{sp: -9.5, ou:47.5},
   'PHI@JAX':{sp: -3.5, ou:42.5, note:'Londres · sitio neutral'},
-  'LV@NE'  :{sp: -3.5, ou:45.5},
   'HOU@TEN':{sp:  6.5, ou:39.5},   // Houston favorita de visita
+  'CIN@MIA':{sp:  7.5, ou:42.5, alerta:'Chase y Higgins (WR) en duda'},
+  'LV@NE'  :{sp: -3.5, ou:45.5},
+  'MIN@NO' :{sp:  1.5, ou:42.5},   // Minnesota favorita de visita
   'CLE@NYJ':{sp: -1.5, ou:40.5},
   'IND@PIT':{sp: -2.5, ou:44.5},
-  'CIN@MIA':{sp:  7.5, ou:42.5},   // Cincinnati favorita de visita
-  'MIN@NO' :{sp:  1.5, ou:42.5},   // Minnesota favorita de visita
   'NYG@WAS':{sp: -3.0, ou:44.5},
   'DEN@LAC':{sp:  3.5, ou:43.5},   // Denver favorita de visita
-  'CHI@GB' :{sp:  1.5, ou:44.5},   // Chicago favorita de visita
+  'CHI@GB' :{sp:  1.5, ou:44.5, alerta:'Caleb Williams (QB) DESCARTADO'},
   'DET@ARI':{sp:  5.5, ou:53.5},   // Detroit favorita de visita
   'SF@SEA' :{sp: -3.0, ou:46.5},
-  'BAL@ATL':{sp:  3.5, ou:46.5},   // Baltimore favorita de visita
+  'BAL@ATL':{sp:  3.5, ou:46.5, alerta:'Lamar Jackson (QB) en duda · tobillo'},
   'BUF@LAR':{sp: -2.5, ou:53.5},
 };
 
