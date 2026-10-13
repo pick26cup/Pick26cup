@@ -234,7 +234,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
   <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
   <div class="sub">Elo calibrado <b>mezclado con las líneas de las casas de apuestas</b> · Spread/Total/Win% · Márgenes vía distribución normal · σ=13.45.</div>
   <div class="sub" style="margin-top:6px;color:#7d8a9a">
-    <span class="flag">Estado de datos</span> Elo calibrado con 63 partidos (motor 40-23, 63%) · Semana 5 cargada con líneas del 5-oct · Semana 4 cargada con líneas del 28-sep · editable en pestaña Equipos.
+    <span class="flag">Estado de datos</span> Elo calibrado con las Semanas 1-5 completas (79 partidos · motor 50-28, 64%) · Semana 6 cargada con líneas del 13-oct · Semana 4 cargada con líneas del 28-sep · editable en pestaña Equipos.
     <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
   </div>
 </header>
@@ -526,45 +526,45 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
    ══════════════════════════════════════════════════════ */
 const TEAMS_NFL=[
   // AFC East — calibrado temporada 2025-26
-  {c:'BUF',s:'Bills',     p:'Buffalo',     n:'Buffalo Bills',      conf:'AFC',div:'AFC East', elo:1586}, // seed 6 AFC · 12-5
-  {c:'MIA',s:'Dolphins',  p:'Miami',  n:'Miami Dolphins',     conf:'AFC',div:'AFC East', elo:1412}, // no playoffs
-  {c:'NE', s:'Patriots',  p:'New England',  n:'New England Patriots',conf:'AFC',div:'AFC East',elo:1615}, // seed 2 AFC · 14-3 · SB LX finalista
-  {c:'NYJ',s:'Jets',      p:'NY Jets',      n:'New York Jets',      conf:'AFC',div:'AFC East', elo:1410}, // no playoffs
+  {c:'BUF',s:'Bills',     p:'Buffalo',     n:'Buffalo Bills',      conf:'AFC',div:'AFC East', elo:1602}, // seed 6 AFC · 12-5
+  {c:'MIA',s:'Dolphins',  p:'Miami',  n:'Miami Dolphins',     conf:'AFC',div:'AFC East', elo:1395}, // no playoffs
+  {c:'NE', s:'Patriots',  p:'New England',  n:'New England Patriots',conf:'AFC',div:'AFC East',elo:1632}, // seed 2 AFC · 14-3 · SB LX finalista
+  {c:'NYJ',s:'Jets',      p:'NY Jets',      n:'New York Jets',      conf:'AFC',div:'AFC East', elo:1427}, // no playoffs
   // AFC North
-  {c:'BAL',s:'Ravens',    p:'Baltimore',    n:'Baltimore Ravens',   conf:'AFC',div:'AFC North',elo:1543}, // no playoffs
-  {c:'CIN',s:'Bengals',   p:'Cincinnati',   n:'Cincinnati Bengals', conf:'AFC',div:'AFC North',elo:1510}, // no playoffs
-  {c:'CLE',s:'Browns',    p:'Cleveland',    n:'Cleveland Browns',   conf:'AFC',div:'AFC North',elo:1443}, // no playoffs
-  {c:'PIT',s:'Steelers',  p:'Pittsburgh',  n:'Pittsburgh Steelers',conf:'AFC',div:'AFC North',elo:1517}, // seed 4 AFC · 10-7
+  {c:'BAL',s:'Ravens',    p:'Baltimore',    n:'Baltimore Ravens',   conf:'AFC',div:'AFC North',elo:1561}, // no playoffs
+  {c:'CIN',s:'Bengals',   p:'Cincinnati',   n:'Cincinnati Bengals', conf:'AFC',div:'AFC North',elo:1527}, // no playoffs
+  {c:'CLE',s:'Browns',    p:'Cleveland',    n:'Cleveland Browns',   conf:'AFC',div:'AFC North',elo:1426}, // no playoffs
+  {c:'PIT',s:'Steelers',  p:'Pittsburgh',  n:'Pittsburgh Steelers',conf:'AFC',div:'AFC North',elo:1534}, // seed 4 AFC · 10-7
   // AFC South
-  {c:'HOU',s:'Texans',    p:'Houston',    n:'Houston Texans',     conf:'AFC',div:'AFC South',elo:1477}, // seed 5 AFC · 12-5
-  {c:'IND',s:'Colts',     p:'Indianapolis',     n:'Indianapolis Colts', conf:'AFC',div:'AFC South',elo:1461}, // no playoffs
-  {c:'JAX',s:'Jaguars',   p:'Jacksonville',   n:'Jacksonville Jaguars',conf:'AFC',div:'AFC South',elo:1632}, // seed 3 AFC · 13-4
-  {c:'TEN',s:'Titans',    p:'Tennessee',    n:'Tennessee Titans',   conf:'AFC',div:'AFC South',elo:1355}, // no playoffs
+  {c:'HOU',s:'Texans',    p:'Houston',    n:'Houston Texans',     conf:'AFC',div:'AFC South',elo:1501}, // seed 5 AFC · 12-5
+  {c:'IND',s:'Colts',     p:'Indianapolis',     n:'Indianapolis Colts', conf:'AFC',div:'AFC South',elo:1444}, // no playoffs
+  {c:'JAX',s:'Jaguars',   p:'Jacksonville',   n:'Jacksonville Jaguars',conf:'AFC',div:'AFC South',elo:1639}, // seed 3 AFC · 13-4
+  {c:'TEN',s:'Titans',    p:'Tennessee',    n:'Tennessee Titans',   conf:'AFC',div:'AFC South',elo:1331}, // no playoffs
   // AFC West
-  {c:'DEN',s:'Broncos',   p:'Denver',   n:'Denver Broncos',     conf:'AFC',div:'AFC West', elo:1535}, // seed 1 AFC · 14-3
+  {c:'DEN',s:'Broncos',   p:'Denver',   n:'Denver Broncos',     conf:'AFC',div:'AFC West', elo:1552}, // seed 1 AFC · 14-3
   {c:'KC', s:'Chiefs',    p:'Kansas City',    n:'Kansas City Chiefs', conf:'AFC',div:'AFC West', elo:1544}, // no playoffs (caída)
-  {c:'LV', s:'Raiders',   p:'Las Vegas',   n:'Las Vegas Raiders',  conf:'AFC',div:'AFC West', elo:1486}, // no playoffs
-  {c:'LAC',s:'Chargers',  p:'LA Chargers',  n:'LA Chargers',        conf:'AFC',div:'AFC West', elo:1450}, // seed 7 AFC · 11-6
+  {c:'LV', s:'Raiders',   p:'Las Vegas',   n:'Las Vegas Raiders',  conf:'AFC',div:'AFC West', elo:1469}, // no playoffs
+  {c:'LAC',s:'Chargers',  p:'LA Chargers',  n:'LA Chargers',        conf:'AFC',div:'AFC West', elo:1433}, // seed 7 AFC · 11-6
   // NFC East
-  {c:'DAL',s:'Cowboys',   p:'Dallas',   n:'Dallas Cowboys',     conf:'NFC',div:'NFC East', elo:1476}, // no playoffs
+  {c:'DAL',s:'Cowboys',   p:'Dallas',   n:'Dallas Cowboys',     conf:'NFC',div:'NFC East', elo:1448}, // no playoffs
   {c:'NYG',s:'Giants',    p:'NY Giants',    n:'New York Giants',    conf:'NFC',div:'NFC East', elo:1439}, // no playoffs
-  {c:'PHI',s:'Eagles',    p:'Philadelphia',    n:'Philadelphia Eagles',conf:'NFC',div:'NFC East', elo:1520}, // seed 3 NFC · 11-6
+  {c:'PHI',s:'Eagles',    p:'Philadelphia',    n:'Philadelphia Eagles',conf:'NFC',div:'NFC East', elo:1513}, // seed 3 NFC · 11-6
   {c:'WAS',s:'Commanders',p:'Washington',n:'Washington Commanders',conf:'NFC',div:'NFC East',elo:1417}, // no playoffs
   // NFC North
-  {c:'CHI',s:'Bears',     p:'Chicago',     n:'Chicago Bears',      conf:'NFC',div:'NFC North',elo:1591}, // seed 2 NFC · 11-6
-  {c:'DET',s:'Lions',     p:'Detroit',     n:'Detroit Lions',      conf:'NFC',div:'NFC North',elo:1496}, // no playoffs
-  {c:'GB', s:'Packers',   p:'Green Bay',   n:'Green Bay Packers',  conf:'NFC',div:'NFC North',elo:1466}, // seed 7 NFC · 9-7-1
-  {c:'MIN',s:'Vikings',   p:'Minnesota',   n:'Minnesota Vikings',  conf:'NFC',div:'NFC North',elo:1572}, // no playoffs
+  {c:'CHI',s:'Bears',     p:'Chicago',     n:'Chicago Bears',      conf:'NFC',div:'NFC North',elo:1553}, // seed 2 NFC · 11-6
+  {c:'DET',s:'Lions',     p:'Detroit',     n:'Detroit Lions',      conf:'NFC',div:'NFC North',elo:1522}, // no playoffs
+  {c:'GB', s:'Packers',   p:'Green Bay',   n:'Green Bay Packers',  conf:'NFC',div:'NFC North',elo:1504}, // seed 7 NFC · 9-7-1
+  {c:'MIN',s:'Vikings',   p:'Minnesota',   n:'Minnesota Vikings',  conf:'NFC',div:'NFC North',elo:1589}, // no playoffs
   // NFC South
-  {c:'ATL',s:'Falcons',   p:'Atlanta',   n:'Atlanta Falcons',    conf:'NFC',div:'NFC South',elo:1460}, // no playoffs
+  {c:'ATL',s:'Falcons',   p:'Atlanta',   n:'Atlanta Falcons',    conf:'NFC',div:'NFC South',elo:1474}, // no playoffs
   {c:'CAR',s:'Panthers',  p:'Carolina',  n:'Carolina Panthers',  conf:'NFC',div:'NFC South',elo:1483}, // seed 4 NFC · 8-9
-  {c:'NO', s:'Saints',    p:'New Orleans',    n:'New Orleans Saints', conf:'NFC',div:'NFC South',elo:1434}, // no playoffs
-  {c:'TB', s:'Buccaneers',p:'Tampa Bay',n:'Tampa Bay Buccaneers',conf:'NFC',div:'NFC South',elo:1400}, // no playoffs
+  {c:'NO', s:'Saints',    p:'New Orleans',    n:'New Orleans Saints', conf:'NFC',div:'NFC South',elo:1384}, // no playoffs
+  {c:'TB', s:'Buccaneers',p:'Tampa Bay',n:'Tampa Bay Buccaneers',conf:'NFC',div:'NFC South',elo:1428}, // no playoffs
   // NFC West
-  {c:'ARI',s:'Cardinals', p:'Arizona', n:'Arizona Cardinals',  conf:'NFC',div:'NFC West', elo:1384}, // no playoffs
-  {c:'LAR',s:'Rams',      p:'LA Rams',      n:'LA Rams',            conf:'NFC',div:'NFC West', elo:1611}, // seed 5 NFC · 12-5
-  {c:'SEA',s:'Seahawks',  p:'Seattle',  n:'Seattle Seahawks',   conf:'NFC',div:'NFC West', elo:1676}, // seed 1 NFC · 14-3 · SB LX campeón
-  {c:'SF', s:'49ers',     p:'San Francisco',     n:'San Francisco 49ers',conf:'NFC',div:'NFC West', elo:1629}, // seed 6 NFC · 12-5
+  {c:'ARI',s:'Cardinals', p:'Arizona', n:'Arizona Cardinals',  conf:'NFC',div:'NFC West', elo:1358}, // no playoffs
+  {c:'LAR',s:'Rams',      p:'LA Rams',      n:'LA Rams',            conf:'NFC',div:'NFC West', elo:1595}, // seed 5 NFC · 12-5
+  {c:'SEA',s:'Seahawks',  p:'Seattle',  n:'Seattle Seahawks',   conf:'NFC',div:'NFC West', elo:1659}, // seed 1 NFC · 14-3 · SB LX campeón
+  {c:'SF', s:'49ers',     p:'San Francisco',     n:'San Francisco 49ers',conf:'NFC',div:'NFC West', elo:1646}, // seed 6 NFC · 12-5
 ];
 const ELO_BASE=JSON.parse(JSON.stringify(TEAMS_NFL.map(t=>({c:t.c,elo:t.elo}))));
 const IDX_NFL={};TEAMS_NFL.forEach((t,i)=>IDX_NFL[t.c]=i);
@@ -931,7 +931,7 @@ function renderWeek(){
       <span class="sc">${tV.c} ${predScV} · ${tH.c} ${predScH}</span>
       ${mk?`<span class="mk">mercado ${mk.sp>0?'+'+mk.sp:mk.sp} ${tH.c}${mk.est?' *':''}</span>`:''}
       ${mk&&mk.note?`<span class="mk">${mk.note}</span>`:''}
-      ${mk&&mk.alerta?`<span class="alerta">⚠ ${mk.alerta}</span>`:''}
+      ${mk&&mk.alerta?`<span class="alerta">⚠ ${mk.alerta.txt}</span>`:''}
       <span class="res-inp" title="Marcador final">
         <input type="number" min="0" max="99" placeholder="–" value="${res&&res.v!=null?res.v:''}"
                oninput="setRes2(${i},'v',this.value)"><span class="dash">–</span><input
@@ -989,11 +989,13 @@ function renderPool(games){
 
     // ¿el Elo solo respalda al no-favorito? señal independiente del mercado
     const eloApoyaDog = mk ? ((r.eloSpread>=0) !== favEsVis) : false;
-    // ¿el favorito arrastra una lesión que el mercado puede no haber digerido?
-    const lesionFav = !!(mk && mk.alerta);
+    // La lesión solo abarata el desvío si el golpeado es el FAVORITO.
+    // Si el lesionado es del underdog, el favorito queda más sólido, no menos.
+    const al = mk&&mk.alerta ? mk.alerta : null;
+    const lesionFav = !!(al && al.team===fav.c);
 
     cand.push({i, fav, dog, conf, costo, eloApoyaDog, lesionFav,
-               alerta: mk?mk.alerta:null,
+               alerta: al?al.txt:null,
                prioridad: costo - (eloApoyaDog?0.14:0) - (lesionFav?0.20:0)});
   });
 
@@ -1642,7 +1644,7 @@ const W4_RESULTS=[
   [14,24],  // Denver @ San Francisco
   [23,30],  // LA Chargers @ Seattle
   [26,32],  // Detroit @ Carolina
-  null,     // Atlanta @ New Orleans — desempate
+  [45,24],  // Atlanta @ New Orleans — desempate: 69 pts
 ];
 W4_RESULTS.forEach(function(r,i){ if(r) weekRes[4][i]={v:r[0], h:r[1]}; });
 
@@ -1690,28 +1692,89 @@ const W5_SCHEDULE=[
 ];
 W5_SCHEDULE.forEach(function(g){weekGames[5].push(g);});
 
+/* Resultados Semana 5 — completa (8-12 oct) */
+const W5_RESULTS=[
+  [24,16],  // Tampa Bay @ Dallas
+  [17,19],  // Philadelphia vs Jacksonville (Londres)
+  [26, 3],  // Houston @ Tennessee
+  [31,24],  // Cincinnati @ Miami
+  [17,45],  // Las Vegas @ New England
+  [23,13],  // Minnesota @ New Orleans
+  [12,17],  // Cleveland @ NY Jets
+  [22,34],  // Indianapolis @ Pittsburgh
+  [27,27],  // NY Giants @ Washington — EMPATE
+  [23,17],  // Denver @ LA Chargers
+  [ 7,31],  // Chicago @ Green Bay
+  [45,21],  // Detroit @ Arizona
+  [32,29],  // San Francisco @ Seattle
+  [30,23],  // Baltimore @ Atlanta (TC)
+  [37,34],  // Buffalo @ LA Rams (TC) — desempate: 71 pts
+];
+W5_RESULTS.forEach(function(r,i){ if(r) weekRes[5][i]={v:r[0], h:r[1]}; });
+
 /* Líneas Semana 5 — recogidas el 5-oct-2026, ninguna estimada.
    alerta = lesión confirmada que el mercado puede no haber digerido */
 const MARKET_W5={
   'TB@DAL' :{sp: -9.5, ou:47.5},
   'PHI@JAX':{sp: -3.5, ou:42.5, note:'Londres · sitio neutral'},
   'HOU@TEN':{sp:  6.5, ou:39.5},   // Houston favorita de visita
-  'CIN@MIA':{sp:  7.5, ou:42.5, alerta:'Chase y Higgins (WR) en duda'},
+  'CIN@MIA':{sp:  7.5, ou:42.5, alerta:{txt:'Chase y Higgins (WR) en duda', team:'CIN'}},
   'LV@NE'  :{sp: -3.5, ou:45.5},
   'MIN@NO' :{sp:  1.5, ou:42.5},   // Minnesota favorita de visita
   'CLE@NYJ':{sp: -1.5, ou:40.5},
   'IND@PIT':{sp: -2.5, ou:44.5},
   'NYG@WAS':{sp: -3.0, ou:44.5},
   'DEN@LAC':{sp:  3.5, ou:43.5},   // Denver favorita de visita
-  'CHI@GB' :{sp:  1.5, ou:44.5, alerta:'Caleb Williams (QB) DESCARTADO'},
+  'CHI@GB' :{sp:  1.5, ou:44.5, alerta:{txt:'Caleb Williams (QB) DESCARTADO', team:'CHI'}},
   'DET@ARI':{sp:  5.5, ou:53.5},   // Detroit favorita de visita
   'SF@SEA' :{sp: -3.0, ou:46.5},
-  'BAL@ATL':{sp:  3.5, ou:46.5, alerta:'Lamar Jackson (QB) en duda · tobillo'},
+  'BAL@ATL':{sp:  3.5, ou:46.5, alerta:{txt:'Lamar Jackson (QB) en duda · tobillo', team:'BAL'}},
   'BUF@LAR':{sp: -2.5, ou:53.5},
 };
 
-/* Arranca en la Semana 5 */
-curWeek=5;
+/* ══════════════════════════════════════════════════════
+   SEMANA 6 — 15-19 oct 2026 · SOLO 14 PARTIDOS
+   Descansan Cincinnati, Detroit, Miami y Minnesota.
+   Houston-Jacksonville se juega en Wembley: neutral.
+   ══════════════════════════════════════════════════════ */
+const W6_SCHEDULE=[
+  {hc:'SEA',ac:'DEN',ha:'a',day:'Thursday, Oct. 15', time:'8:15 pm'},
+  {hc:'HOU',ac:'JAX',ha:'n',day:'Sunday, Oct. 18',   time:'9:30 am'},
+  {hc:'BAL',ac:'CLE',ha:'a',day:'Sunday, Oct. 18',   time:'1:00 pm'},
+  {hc:'CAR',ac:'PHI',ha:'a',day:'Sunday, Oct. 18',   time:'1:00 pm'},
+  {hc:'CHI',ac:'ATL',ha:'a',day:'Sunday, Oct. 18',   time:'1:00 pm'},
+  {hc:'NO', ac:'NYG',ha:'a',day:'Sunday, Oct. 18',   time:'1:00 pm'},
+  {hc:'NYJ',ac:'NE', ha:'a',day:'Sunday, Oct. 18',   time:'1:00 pm'},
+  {hc:'PIT',ac:'TB', ha:'a',day:'Sunday, Oct. 18',   time:'1:00 pm'},
+  {hc:'TEN',ac:'IND',ha:'a',day:'Sunday, Oct. 18',   time:'1:00 pm'},
+  {hc:'ARI',ac:'LAR',ha:'a',day:'Sunday, Oct. 18',   time:'4:05 pm'},
+  {hc:'BUF',ac:'LV', ha:'a',day:'Sunday, Oct. 18',   time:'4:25 pm'},
+  {hc:'LAC',ac:'KC', ha:'a',day:'Sunday, Oct. 18',   time:'4:25 pm'},
+  {hc:'DAL',ac:'GB', ha:'a',day:'Sunday, Oct. 18',   time:'8:20 pm'},
+  {hc:'WAS',ac:'SF', ha:'a',day:'Monday, Oct. 19',   time:'8:15 pm'},
+];
+W6_SCHEDULE.forEach(function(g){weekGames[6].push(g);});
+
+/* Líneas Semana 6 — recogidas el 13-oct-2026 */
+const MARKET_W6={
+  'SEA@DEN':{sp:  3.0, ou:41.5},   // Seattle favorita de visita
+  'HOU@JAX':{sp: -3.0, ou:43.5, note:'Wembley · sitio neutral'},
+  'BAL@CLE':{sp:  4.0, ou:41.0, alerta:{txt:'Lamar Jackson (QB) sin entrenar · en duda', team:'BAL'}},
+  'CAR@PHI':{sp: -1.5, ou:43.0},
+  'CHI@ATL':{sp:  3.5, ou:47.5, alerta:{txt:'Penix (QB ATL) costillas · Williams vuelve por Chicago', team:'ATL'}},
+  'NO@NYG' :{sp: -1.5, ou:45.0},
+  'NYJ@NE' :{sp: -7.5, ou:43.5},
+  'PIT@TB' :{sp:  3.0, ou:40.5, alerta:{txt:'Baker Mayfield (QB TB) pulgar', team:'TB'}},
+  'TEN@IND':{sp: -7.0, ou:44.0},
+  'ARI@LAR':{sp:-12.5, ou:52.5},
+  'BUF@LV' :{sp:  6.0, ou:52.5},   // Buffalo favorita de visita
+  'LAC@KC' :{sp: -8.5, ou:43.0},
+  'DAL@GB' :{sp: -1.5, ou:52.0},
+  'WAS@SF' :{sp: -7.5, ou:50.5},
+};
+
+/* Arranca en la Semana 6 */
+curWeek=6;
 
 /* ══════════════════════════════════════════════════════
    MERCADO / CONSENSO DE ESPECIALISTAS — Semana 1 2026
@@ -1757,7 +1820,8 @@ function mkt(g){
           : curWeek===2 ? MARKET_W2
           : curWeek===3 ? MARKET_W3
           : curWeek===4 ? MARKET_W4
-          : curWeek===5 ? MARKET_W5 : null;
+          : curWeek===5 ? MARKET_W5
+          : curWeek===6 ? MARKET_W6 : null;
   return M ? (M[g.hc+'@'+g.ac]||null) : null;
 }
 
@@ -1785,6 +1849,11 @@ const H2H={
     tot:[39,65,50,37,34,36],
     det:['nov-23 ATL 24-15','ene-24 NO 48-17','sep-24 ATL 26-24',
          'nov-24 NO 20-17','nov-25 ATL 24-10','ene-26 ATL 19-17'],
+  },
+  'WAS@SF':{
+    desc:'3 enfrentamientos, el más reciente de dic-2023 · muestra vieja',
+    tot:[38,57,37],
+    det:['dic-20 WAS 23-15','dic-22 SF 37-20','dic-23 SF 27-10'],
   },
 };
 
