@@ -1837,6 +1837,32 @@ const MARKET_W7={
   'DAL@PHI':{sp:  4.5, ou:44.5, alerta:{txt:'Jalen Hurts (QB PHI) FUERA la temporada · coágulos', team:'PHI'}},
 };
 
+/* ══════════════════════════════════════════════════════
+   PICKS RECOMENDADOS SEMANA 7
+   Los 14 del motor con los dos desvíos aplicados:
+     fila 4  Baltimore -> CINCINNATI  (Lamar Jackson en duda)
+     fila 11 Detroit   -> GREEN BAY   (sorpresa más respaldada)
+   'away' = el de la izquierda en la hoja · 'home' = el de la derecha
+   ══════════════════════════════════════════════════════ */
+const W7_PICKS=[
+  'home',  //  1 New England at Chicago        -> Chicago
+  'away',  //  2 Pittsburgh vs New Orleans     -> Pittsburgh
+  'away',  //  3 San Francisco at Atlanta      -> San Francisco
+  'away',  //  4 Cincinnati at Baltimore       -> CINCINNATI  (desvío)
+  'home',  //  5 Tampa Bay at Carolina         -> Carolina
+  'home',  //  6 NY Giants at Houston          -> Houston
+  'home',  //  7 Indianapolis at Minnesota     -> Minnesota
+  'home',  //  8 Miami at NY Jets              -> NY Jets
+  'away',  //  9 Cleveland at Tennessee        -> Cleveland
+  'away',  // 10 Denver at Arizona             -> Denver
+  'away',  // 11 Green Bay at Detroit          -> GREEN BAY   (desvío)
+  'away',  // 12 LA Rams at Las Vegas          -> LA Rams
+  'home',  // 13 Kansas City at Seattle        -> Seattle
+  'away',  // 14 Dallas at Philadelphia        -> Dallas
+];
+W7_PICKS.forEach(function(p,i){ weekPicks[7][i]=p; });
+tbUser[7]=45;          // desempate Dallas at Philadelphia
+
 /* Arranca en la Semana 7 */
 curWeek=7;
 
