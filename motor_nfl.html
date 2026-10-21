@@ -234,7 +234,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
   <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
   <div class="sub">Elo calibrado <b>mezclado con las líneas de las casas de apuestas</b> · Spread/Total/Win% · Márgenes vía distribución normal · σ=13.45.</div>
   <div class="sub" style="margin-top:6px;color:#7d8a9a">
-    <span class="flag">Estado de datos</span> Elo calibrado con las Semanas 1-6 completas (93 partidos · motor 57-35, 62%) · Semana 4 cargada con líneas del 28-sep · editable en pestaña Equipos.
+    <span class="flag">Estado de datos</span> Elo calibrado con las Semanas 1-6 completas (93 partidos · motor 57-35, 62%) · Semana 7 cargada con líneas del 21-oct · Semana 4 cargada con líneas del 28-sep · editable en pestaña Equipos.
     <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
   </div>
 </header>
@@ -990,13 +990,15 @@ function renderPool(games){
     // ¿el Elo solo respalda al no-favorito? señal independiente del mercado
     const eloApoyaDog = mk ? ((r.eloSpread>=0) !== favEsVis) : false;
     // La lesión solo abarata el desvío si el golpeado es el FAVORITO.
-    // Si el lesionado es del underdog, el favorito queda más sólido, no menos.
+    // Si el lesionado es del underdog, el favorito queda más sólido:
+    // desviarse hacia un equipo tocado es peor de lo que sugiere el costo.
     const al = mk&&mk.alerta ? mk.alerta : null;
     const lesionFav = !!(al && al.team===fav.c);
+    const lesionDog = !!(al && al.team===dog.c);
 
-    cand.push({i, fav, dog, conf, costo, eloApoyaDog, lesionFav,
+    cand.push({i, fav, dog, conf, costo, eloApoyaDog, lesionFav, lesionDog,
                alerta: al?al.txt:null,
-               prioridad: costo - (eloApoyaDog?0.14:0) - (lesionFav?0.20:0)});
+               prioridad: costo - (eloApoyaDog?0.14:0) - (lesionFav?0.20:0) + (lesionDog?0.20:0)});
   });
 
   if(!cand.length){ box.style.display='none'; return; }
@@ -1024,6 +1026,7 @@ function renderPool(games){
                               :`${c.fav.p} → ${c.dog.p}`}
           <span class="why">${c.fav.p} va al ${Math.round(c.conf*100)}%${
             c.lesionFav?' · <b style="color:var(--loss)">'+c.alerta+'</b>':''}${
+            c.lesionDog?' · <b style="color:var(--draw)">ojo: '+c.alerta+'</b>':''}${
             c.eloApoyaDog?' · el Elo respalda a '+c.dog.p+', el mercado no':''}</span></div>
         <div class="pool-cost">−${c.costo.toFixed(2)}</div>
       </div>`;}).join('')}
@@ -1792,8 +1795,50 @@ const MARKET_W6={
   'WAS@SF' :{sp: -7.5, ou:50.5},
 };
 
-/* Arranca en la Semana 6 */
-curWeek=6;
+/* ══════════════════════════════════════════════════════
+   SEMANA 7 — 22-26 oct 2026 · 14 PARTIDOS
+   Descansan Buffalo, Jacksonville, LA Chargers y Washington.
+   Pittsburgh-New Orleans se juega en el Stade de France
+   (Saint-Denis), primer partido de la NFL en París: neutral.
+   ══════════════════════════════════════════════════════ */
+const W7_SCHEDULE=[
+  {hc:'NE', ac:'CHI',ha:'a',day:'Thursday, Oct. 22', time:'8:15 pm'},
+  {hc:'PIT',ac:'NO', ha:'n',day:'Sunday, Oct. 25',   time:'9:30 am'},
+  {hc:'SF', ac:'ATL',ha:'a',day:'Sunday, Oct. 25',   time:'1:00 pm'},
+  {hc:'CIN',ac:'BAL',ha:'a',day:'Sunday, Oct. 25',   time:'1:00 pm'},
+  {hc:'TB', ac:'CAR',ha:'a',day:'Sunday, Oct. 25',   time:'1:00 pm'},
+  {hc:'NYG',ac:'HOU',ha:'a',day:'Sunday, Oct. 25',   time:'1:00 pm'},
+  {hc:'IND',ac:'MIN',ha:'a',day:'Sunday, Oct. 25',   time:'1:00 pm'},
+  {hc:'MIA',ac:'NYJ',ha:'a',day:'Sunday, Oct. 25',   time:'1:00 pm'},
+  {hc:'CLE',ac:'TEN',ha:'a',day:'Sunday, Oct. 25',   time:'1:00 pm'},
+  {hc:'DEN',ac:'ARI',ha:'a',day:'Sunday, Oct. 25',   time:'4:05 pm'},
+  {hc:'GB', ac:'DET',ha:'a',day:'Sunday, Oct. 25',   time:'4:25 pm'},
+  {hc:'LAR',ac:'LV', ha:'a',day:'Sunday, Oct. 25',   time:'4:25 pm'},
+  {hc:'KC', ac:'SEA',ha:'a',day:'Sunday, Oct. 25',   time:'8:20 pm'},
+  {hc:'DAL',ac:'PHI',ha:'a',day:'Monday, Oct. 26',   time:'8:15 pm'},
+];
+W7_SCHEDULE.forEach(function(g){weekGames[7].push(g);});
+
+/* Líneas Semana 7 — recogidas el 21-oct-2026 */
+const MARKET_W7={
+  'NE@CHI' :{sp: -3.0, ou:50.5, alerta:{txt:'Drake Maye (QB NE) hombro · sin confirmar', team:'NE'}},
+  'PIT@NO' :{sp:  3.5, ou:44.5, note:'París · Stade de France · sitio neutral'},
+  'SF@ATL' :{sp:  3.5, ou:50.5, alerta:{txt:'Mike Evans (SF) tendón de Aquiles', team:'SF'}},
+  'CIN@BAL':{sp: -3.0, ou:51.5, alerta:{txt:'Lamar Jackson (BAL) tobillo · en duda', team:'BAL'}},
+  'TB@CAR' :{sp: -3.5, ou:44.5, alerta:{txt:'Baker Mayfield (TB) vuelve del pulgar', team:'TB'}},
+  'NYG@HOU':{sp: -9.0, ou:43.5, alerta:{txt:'Jaxson Dart (QB NYG) FUERA la temporada · rodilla', team:'NYG'}},
+  'IND@MIN':{sp: -6.0, ou:41.5},
+  'MIA@NYJ':{sp: -4.5, ou:38.5},
+  'CLE@TEN':{sp:  1.5, ou:37.5},   // Cleveland favorita de visita
+  'DEN@ARI':{sp:  4.5, ou:43.5},   // Denver favorita de visita
+  'GB@DET' :{sp: -3.0, ou:53.0},
+  'LAR@LV' :{sp:  5.0, ou:48.0, alerta:{txt:'Davante Adams (LAR) FUERA 6-10 semanas', team:'LAR'}},
+  'KC@SEA' :{sp: -2.5, ou:42.5},
+  'DAL@PHI':{sp:  4.5, ou:44.5, alerta:{txt:'Jalen Hurts (QB PHI) FUERA la temporada · coágulos', team:'PHI'}},
+};
+
+/* Arranca en la Semana 7 */
+curWeek=7;
 
 /* ══════════════════════════════════════════════════════
    MERCADO / CONSENSO DE ESPECIALISTAS — Semana 1 2026
@@ -1840,7 +1885,8 @@ function mkt(g){
           : curWeek===3 ? MARKET_W3
           : curWeek===4 ? MARKET_W4
           : curWeek===5 ? MARKET_W5
-          : curWeek===6 ? MARKET_W6 : null;
+          : curWeek===6 ? MARKET_W6
+          : curWeek===7 ? MARKET_W7 : null;
   return M ? (M[g.hc+'@'+g.ac]||null) : null;
 }
 
@@ -1873,6 +1919,11 @@ const H2H={
     desc:'3 enfrentamientos, el más reciente de dic-2023 · muestra vieja',
     tot:[38,57,37],
     det:['dic-20 WAS 23-15','dic-22 SF 37-20','dic-23 SF 27-10'],
+  },
+  'DAL@PHI':{
+    desc:'4 enfrentamientos 2024-2025 · Philadelphia 3-1',
+    tot:[40,48,44,45],
+    det:['nov-24 PHI 34-6','dic-24 PHI 41-7','sep-25 PHI 24-20','nov-25 DAL 24-21'],
   },
 };
 
