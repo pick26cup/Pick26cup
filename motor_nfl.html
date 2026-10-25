@@ -1863,6 +1863,29 @@ const W7_PICKS=[
 W7_PICKS.forEach(function(p,i){ weekPicks[7][i]=p; });
 tbUser[7]=45;          // desempate Dallas at Philadelphia
 
+/* ══════════════════════════════════════════════════════
+   SEMANA 8 — 29 oct a 2 nov 2026 · 14 PARTIDOS
+   Descansan Houston, New Orleans, NY Giants y San Francisco.
+   Líneas y lesiones se cargan el miércoles, cuando existen.
+   ══════════════════════════════════════════════════════ */
+const W8_SCHEDULE=[
+  {hc:'CAR',ac:'GB', ha:'a',day:'Thursday, Oct. 29', time:'8:15 pm'},
+  {hc:'BAL',ac:'BUF',ha:'a',day:'Sunday, Nov. 1',    time:'1:00 pm'},
+  {hc:'TEN',ac:'CIN',ha:'a',day:'Sunday, Nov. 1',    time:'1:00 pm'},
+  {hc:'ARI',ac:'DAL',ha:'a',day:'Sunday, Nov. 1',    time:'1:00 pm'},
+  {hc:'MIN',ac:'DET',ha:'a',day:'Sunday, Nov. 1',    time:'1:00 pm'},
+  {hc:'IND',ac:'JAX',ha:'a',day:'Sunday, Nov. 1',    time:'1:00 pm'},
+  {hc:'LV', ac:'NYJ',ha:'a',day:'Sunday, Nov. 1',    time:'1:00 pm'},
+  {hc:'CLE',ac:'PIT',ha:'a',day:'Sunday, Nov. 1',    time:'1:00 pm'},
+  {hc:'ATL',ac:'TB', ha:'a',day:'Sunday, Nov. 1',    time:'1:00 pm'},
+  {hc:'LAC',ac:'LAR',ha:'a',day:'Sunday, Nov. 1',    time:'4:05 pm'},
+  {hc:'NE', ac:'MIA',ha:'a',day:'Sunday, Nov. 1',    time:'4:25 pm'},
+  {hc:'KC', ac:'DEN',ha:'a',day:'Sunday, Nov. 1',    time:'4:25 pm'},
+  {hc:'PHI',ac:'WAS',ha:'a',day:'Sunday, Nov. 1',    time:'8:20 pm'},
+  {hc:'CHI',ac:'SEA',ha:'a',day:'Monday, Nov. 2',    time:'8:15 pm'},
+];
+W8_SCHEDULE.forEach(function(g){weekGames[8].push(g);});
+
 /* Arranca en la Semana 7 */
 curWeek=7;
 
