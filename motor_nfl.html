@@ -1961,6 +1961,31 @@ const W8_PICKS=[
 W8_PICKS.forEach(function(p,i){ weekPicks[8][i]=p; });
 tbUser[8]=46;          // desempate Chicago at Seattle
 
+/* ══════════════════════════════════════════════════════
+   SEMANA 9 — 5-9 nov 2026 · 15 PARTIDOS
+   Solo descansan Pittsburgh y Tennessee.
+   Cincinnati-Atlanta se juega en MADRID: sitio neutral.
+   Líneas y lesiones se cargan el miércoles.
+   ══════════════════════════════════════════════════════ */
+const W9_SCHEDULE=[
+  {hc:'JAX',ac:'BAL',ha:'a',day:'Thursday, Nov. 5', time:'8:15 pm'},
+  {hc:'CIN',ac:'ATL',ha:'n',day:'Sunday, Nov. 8',   time:'9:30 am'},
+  {hc:'DAL',ac:'IND',ha:'a',day:'Sunday, Nov. 8',   time:'1:00 pm'},
+  {hc:'NYJ',ac:'KC', ha:'a',day:'Sunday, Nov. 8',   time:'1:00 pm'},
+  {hc:'DET',ac:'MIA',ha:'a',day:'Sunday, Nov. 8',   time:'1:00 pm'},
+  {hc:'CLE',ac:'NO', ha:'a',day:'Sunday, Nov. 8',   time:'1:00 pm'},
+  {hc:'NYG',ac:'PHI',ha:'a',day:'Sunday, Nov. 8',   time:'1:00 pm'},
+  {hc:'LAR',ac:'WAS',ha:'a',day:'Sunday, Nov. 8',   time:'1:00 pm'},
+  {hc:'DEN',ac:'CAR',ha:'a',day:'Sunday, Nov. 8',   time:'1:00 pm'},
+  {hc:'LV', ac:'SF', ha:'a',day:'Sunday, Nov. 8',   time:'1:00 pm'},
+  {hc:'HOU',ac:'LAC',ha:'a',day:'Sunday, Nov. 8',   time:'4:05 pm'},
+  {hc:'ARI',ac:'SEA',ha:'a',day:'Sunday, Nov. 8',   time:'4:25 pm'},
+  {hc:'GB', ac:'NE', ha:'a',day:'Sunday, Nov. 8',   time:'4:25 pm'},
+  {hc:'TB', ac:'CHI',ha:'a',day:'Sunday, Nov. 8',   time:'8:20 pm'},
+  {hc:'BUF',ac:'MIN',ha:'a',day:'Monday, Nov. 9',   time:'8:15 pm'},
+];
+W9_SCHEDULE.forEach(function(g){weekGames[9].push(g);});
+
 /* Arranca en la Semana 8 */
 curWeek=8;
 
