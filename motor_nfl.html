@@ -234,7 +234,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
   <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
   <div class="sub">Elo calibrado <b>mezclado con las líneas de las casas de apuestas</b> · Spread/Total/Win% · Márgenes vía distribución normal · σ=13.45.</div>
   <div class="sub" style="margin-top:6px;color:#7d8a9a">
-    <span class="flag">Estado de datos</span> Elo calibrado con las Semanas 1-9 completas (136 partidos · motor 90-46, 66%) · Semana 4 cargada con líneas del 28-sep · editable en pestaña Equipos.
+    <span class="flag">Estado de datos</span> Elo calibrado con las Semanas 1-9 completas (136 partidos · motor 90-45, 67%) · Semana 10 cargada con líneas del 10-nov · Semana 4 cargada con líneas del 28-sep · editable en pestaña Equipos.
     <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
   </div>
 </header>
@@ -2067,8 +2067,71 @@ const W9_PICKS=[
 W9_PICKS.forEach(function(p,i){ weekPicks[9][i]=p; });
 tbUser[9]=47;          // desempate Buffalo at Minnesota
 
-/* Arranca en la Semana 9 */
-curWeek=9;
+/* ══════════════════════════════════════════════════════
+   SEMANA 10 — 12-16 nov 2026 · 14 PARTIDOS
+   Descansan Chicago, Denver, Philadelphia y Tampa Bay.
+   New England-Detroit se juega en MÚNICH: sitio neutral.
+   ══════════════════════════════════════════════════════ */
+const W10_SCHEDULE=[
+  {hc:'WAS',ac:'NYG',ha:'a',day:'Thursday, Nov. 12', time:'8:15 pm'},
+  {hc:'NE', ac:'DET',ha:'n',day:'Sunday, Nov. 15',   time:'9:30 am'},
+  {hc:'KC', ac:'ATL',ha:'a',day:'Sunday, Nov. 15',   time:'1:00 pm'},
+  {hc:'BUF',ac:'NYJ',ha:'a',day:'Sunday, Nov. 15',   time:'1:00 pm'},
+  {hc:'CAR',ac:'NO', ha:'a',day:'Sunday, Nov. 15',   time:'1:00 pm'},
+  {hc:'HOU',ac:'CLE',ha:'a',day:'Sunday, Nov. 15',   time:'1:00 pm'},
+  {hc:'MIN',ac:'GB', ha:'a',day:'Sunday, Nov. 15',   time:'1:00 pm'},
+  {hc:'MIA',ac:'IND',ha:'a',day:'Sunday, Nov. 15',   time:'1:00 pm'},
+  {hc:'JAX',ac:'TEN',ha:'a',day:'Sunday, Nov. 15',   time:'1:00 pm'},
+  {hc:'LAR',ac:'ARI',ha:'a',day:'Sunday, Nov. 15',   time:'4:05 pm'},
+  {hc:'SEA',ac:'LV', ha:'a',day:'Sunday, Nov. 15',   time:'4:05 pm'},
+  {hc:'SF', ac:'DAL',ha:'a',day:'Sunday, Nov. 15',   time:'4:25 pm'},
+  {hc:'PIT',ac:'CIN',ha:'a',day:'Sunday, Nov. 15',   time:'8:20 pm'},
+  {hc:'LAC',ac:'BAL',ha:'a',day:'Monday, Nov. 16',   time:'8:15 pm'},
+];
+W10_SCHEDULE.forEach(function(g){weekGames[10].push(g);});
+
+/* Líneas Semana 10 — recogidas el 10-nov-2026 */
+const MARKET_W10={
+  'WAS@NYG':{sp: -1.5, ou:42.5},
+  'NE@DET' :{sp: -2.5, ou:51.0, note:'Múnich · sitio neutral'},
+  'KC@ATL' :{sp:  3.5, ou:46.0, alerta:{txt:'Patrick Mahomes (codo) en duda · día a día', team:'KC', tipo:'baja'}},
+  'BUF@NYJ':{sp:  8.0, ou:51.5},   // Buffalo favorita de visita
+  'CAR@NO' :{sp: -1.5, ou:47.5, est:'sp'},  // las casas discrepan de lado
+  'HOU@CLE':{sp:  4.5, ou:39.5},   // Houston favorita de visita
+  'MIN@GB' :{sp: -3.0, ou:42.5},
+  'MIA@IND':{sp: -2.0, ou:40.5},
+  'JAX@TEN':{sp:  9.5, ou:46.5},   // Jacksonville favorita de visita
+  'LAR@ARI':{sp:  7.5, ou:44.5},   // LA Rams favorita de visita
+  'SEA@LV' :{sp:  3.5, ou:43.5},   // Seattle favorita de visita
+  'SF@DAL' :{sp:  4.5, ou:55.5},   // San Francisco favorita · total más alto
+  'PIT@CIN':{sp: -3.5, ou:48.5},
+  'LAC@BAL':{sp: -5.5, ou:38.5},
+};
+
+/* ══════════════════════════════════════════════════════
+   PICKS SEMANA 10 — los 14 con CUATRO desvíos
+   ══════════════════════════════════════════════════════ */
+const W10_PICKS=[
+  'home',    //  1 Washington at NY Giants      -> NY Giants
+  'away',    //  2 New England vs Detroit       -> NEW ENGLAND    (desvío)
+  'home',    //  3 Kansas City at Atlanta       -> ATLANTA        (desvío)
+  'away',    //  4 Buffalo at NY Jets           -> Buffalo
+  'away',    //  5 Carolina at New Orleans      -> CAROLINA       (desvío)
+  'away',    //  6 Houston at Cleveland         -> Houston
+  'home',    //  7 Minnesota at Green Bay       -> Green Bay
+  'away',    //  8 Miami at Indianapolis        -> MIAMI          (desvío)
+  'away',    //  9 Jacksonville at Tennessee    -> Jacksonville
+  'away',    // 10 LA Rams at Arizona           -> LA Rams
+  'away',    // 11 Seattle at Las Vegas         -> Seattle
+  'away',    // 12 San Francisco at Dallas      -> San Francisco
+  'home',    // 13 Pittsburgh at Cincinnati     -> Cincinnati
+  'home',    // 14 LA Chargers at Baltimore     -> Baltimore
+];
+W10_PICKS.forEach(function(p,i){ weekPicks[10][i]=p; });
+tbUser[10]=41;         // desempate LA Chargers at Baltimore
+
+/* Arranca en la Semana 10 */
+curWeek=10;
 
 /* ══════════════════════════════════════════════════════
    MERCADO / CONSENSO DE ESPECIALISTAS — Semana 1 2026
@@ -2118,7 +2181,8 @@ function mkt(g){
           : curWeek===6 ? MARKET_W6
           : curWeek===7 ? MARKET_W7
           : curWeek===8 ? MARKET_W8
-          : curWeek===9 ? MARKET_W9 : null;
+          : curWeek===9 ? MARKET_W9
+          : curWeek===10 ? MARKET_W10 : null;
   return M ? (M[g.hc+'@'+g.ac]||null) : null;
 }
 
@@ -2161,6 +2225,12 @@ const H2H={
     desc:'4 enfrentamientos, el más reciente de nov-2022 · muestra vieja',
     tot:[52,33,33,63],
     det:['dic-10 MIN 38-14','oct-14 BUF 17-16','sep-18 BUF 27-6','nov-22 MIN 33-30'],
+  },
+  'LAC@BAL':{
+    desc:'6 enfrentamientos 2014-2024 · Baltimore 5-1, gana 5 seguidos',
+    tot:[67,55,32,40,30,53],
+    det:['nov-14 LAC 34-33','nov-15 BAL 29-26','dic-18 BAL 22-10',
+         'oct-21 BAL 34-6','nov-23 BAL 20-10','nov-24 BAL 30-23'],
   },
 };
 
