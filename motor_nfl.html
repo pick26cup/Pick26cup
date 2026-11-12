@@ -2094,7 +2094,7 @@ W10_SCHEDULE.forEach(function(g){weekGames[10].push(g);});
 const MARKET_W10={
   'WAS@NYG':{sp: -1.5, ou:42.5},
   'NE@DET' :{sp: -2.5, ou:51.0, note:'Múnich · sitio neutral'},
-  'KC@ATL' :{sp:  3.5, ou:46.0, alerta:{txt:'Patrick Mahomes (codo) en duda · día a día', team:'KC', tipo:'baja'}},
+  'KC@ATL' :{sp:  3.5, ou:46.0, alerta:{txt:'Mahomes entrenó COMPLETO el miércoles · sin daño mayor en el codo', team:'KC', tipo:'vuelve'}},
   'BUF@NYJ':{sp:  8.0, ou:51.5},   // Buffalo favorita de visita
   'CAR@NO' :{sp: -1.5, ou:47.5, est:'sp'},  // las casas discrepan de lado
   'HOU@CLE':{sp:  4.5, ou:39.5},   // Houston favorita de visita
@@ -2105,16 +2105,16 @@ const MARKET_W10={
   'SEA@LV' :{sp:  3.5, ou:43.5},   // Seattle favorita de visita
   'SF@DAL' :{sp:  4.5, ou:55.5},   // San Francisco favorita · total más alto
   'PIT@CIN':{sp: -3.5, ou:48.5},
-  'LAC@BAL':{sp: -5.5, ou:38.5},
+  'LAC@BAL':{sp: -5.5, ou:38.5, alerta:{txt:'Lamar Jackson Y Huntley en IR · Fagnano de titular', team:'BAL', tipo:'baja'}},
 };
 
 /* ══════════════════════════════════════════════════════
    PICKS SEMANA 10 — los 14 con CUATRO desvíos
    ══════════════════════════════════════════════════════ */
 const W10_PICKS=[
-  'home',    //  1 Washington at NY Giants      -> NY Giants
+  'away',    //  1 Washington at NY Giants      -> WASHINGTON     (desvío)
   'away',    //  2 New England vs Detroit       -> NEW ENGLAND    (desvío)
-  'home',    //  3 Kansas City at Atlanta       -> ATLANTA        (desvío)
+  'away',    //  3 Kansas City at Atlanta       -> Kansas City
   'away',    //  4 Buffalo at NY Jets           -> Buffalo
   'away',    //  5 Carolina at New Orleans      -> CAROLINA       (desvío)
   'away',    //  6 Houston at Cleveland         -> Houston
