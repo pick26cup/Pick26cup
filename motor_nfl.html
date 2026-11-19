@@ -2173,18 +2173,18 @@ W11_SCHEDULE.forEach(function(g){weekGames[11].push(g);});
 
 /* Líneas Semana 11 — recogidas el 17-nov-2026 */
 const MARKET_W11={
-  'IND@HOU':{sp:-11.0, ou:44.5},
+  'IND@HOU':{sp:-11.0, ou:44.5, alerta:{txt:'Indianapolis sin sus dos tackles titulares ni Charvarius Ward', team:'IND', tipo:'baja'}},
   'BAL@CAR':{sp: -2.5, ou:44.5},
   'NO@CHI' :{sp:-10.5, ou:48.5},
-  'TB@DET' :{sp: -6.0, ou:46.5},
+  'TB@DET' :{sp: -6.0, ou:46.5, alerta:{txt:'Baker Mayfield (pie) apunta a no jugar · firmaron a Cooper Rush', team:'TB', tipo:'baja'}},
   'TEN@DAL':{sp: -8.0, ou:53.5},
   'MIA@BUF':{sp:-16.5, ou:46.0},
   'ARI@KC' :{sp:-16.5, ou:41.0},
-  'PIT@PHI':{sp:  4.5, ou:38.5},   // Pittsburgh favorita de visita · total más bajo
+  'PIT@PHI':{sp:  4.5, ou:38.5, alerta:{txt:'Joe Milton arranca por Philadelphia', team:'PHI', tipo:'baja'}},   // total más bajo
   'JAX@NYG':{sp:  6.0, ou:46.5},   // Jacksonville favorita de visita
-  'NYJ@LAC':{sp: -3.0, ou:40.5},
+  'NYJ@LAC':{sp: -3.0, ou:40.5, alerta:{txt:'Geno Smith (tobillo) en duda por NY Jets', team:'NYJ', tipo:'baja'}},
   'LV@DEN' :{sp:-10.0, ou:40.5},
-  'MIN@SF' :{sp: -3.0, ou:46.5},
+  'MIN@SF' :{sp: -3.0, ou:46.5, alerta:{txt:'Kyler Murray decisión a última hora · no entrenó el miércoles', team:'MIN', tipo:'baja'}},
   'CIN@WAS':{sp:  4.5, ou:52.0},   // Cincinnati favorita de visita
 };
 
@@ -2199,12 +2199,12 @@ const W11_PICKS=[
   'home',    //  5 Tennessee at Dallas          -> Dallas
   'home',    //  6 Miami at Buffalo             -> Buffalo
   'home',    //  7 Arizona at Kansas City       -> Kansas City
-  'home',    //  8 Pittsburgh at Philadelphia   -> PHILADELPHIA   (desvío)
-  'away',    //  9 Jacksonville at NY Giants    -> Jacksonville
+  'away',    //  8 Pittsburgh at Philadelphia   -> Pittsburgh
+  'home',    //  9 Jacksonville at NY Giants    -> NY GIANTS      (desvío)
   'away',    // 10 NY Jets at LA Chargers       -> NY JETS        (desvío)
   'home',    // 11 Las Vegas at Denver          -> Denver
-  'away',    // 12 Minnesota at San Francisco   -> MINNESOTA      (desvío)
-  'away',    // 13 Cincinnati at Washington     -> Cincinnati
+  'home',    // 12 Minnesota at San Francisco   -> San Francisco
+  'home',    // 13 Cincinnati at Washington     -> WASHINGTON     (desvío)
 ];
 W11_PICKS.forEach(function(p,i){ weekPicks[11][i]=p; });
 tbUser[11]=52;         // desempate Cincinnati at Washington
