@@ -234,7 +234,7 @@ select.team-sel:focus{outline:none;border-color:var(--amber)}
   <h1>Motor <b>Elo → Spread</b> · NFL 2026</h1>
   <div class="sub">Elo calibrado <b>mezclado con las líneas de las casas de apuestas</b> · Spread/Total/Win% · Márgenes vía distribución normal · σ=13.45.</div>
   <div class="sub" style="margin-top:6px;color:#7d8a9a">
-    <span class="flag">Estado de datos</span> Elo calibrado con las Semanas 1-11 completas (163 partidos · motor 108-54, 67%) · Semana 4 cargada con líneas del 28-sep · editable en pestaña Equipos.
+    <span class="flag">Estado de datos</span> Elo calibrado con las Semanas 1-11 completas (163 partidos · motor 108-54, 67%) · Semana 12 cargada con líneas del 25-nov · Semana 4 cargada con líneas del 28-sep · editable en pestaña Equipos.
     <span class="flag afc">AFC</span><span class="flag nfc">NFC</span>
   </div>
 </header>
@@ -2227,8 +2227,77 @@ const W11_PICKS=[
 W11_PICKS.forEach(function(p,i){ weekPicks[11][i]=p; });
 tbUser[11]=52;         // desempate Cincinnati at Washington
 
-/* Arranca en la Semana 11 */
-curWeek=11;
+/* ══════════════════════════════════════════════════════
+   SEMANA 12 — 25 nov a 30 nov 2026 · 16 PARTIDOS
+   SIN DESCANSOS: juegan los 32 equipos.
+   Semana de Acción de Gracias, repartida en cinco días.
+   ══════════════════════════════════════════════════════ */
+const W12_SCHEDULE=[
+  {hc:'GB', ac:'LAR',ha:'a',day:'Wednesday, Nov. 25', time:'8:00 pm'},
+  {hc:'CHI',ac:'DET',ha:'a',day:'Thursday, Nov. 26',  time:'1:00 pm'},
+  {hc:'PHI',ac:'DAL',ha:'a',day:'Thursday, Nov. 26',  time:'4:30 pm'},
+  {hc:'KC', ac:'BUF',ha:'a',day:'Thursday, Nov. 26',  time:'8:20 pm'},
+  {hc:'DEN',ac:'PIT',ha:'a',day:'Friday, Nov. 27',    time:'3:00 pm'},
+  {hc:'BAL',ac:'HOU',ha:'a',day:'Sunday, Nov. 29',    time:'1:00 pm'},
+  {hc:'NYG',ac:'IND',ha:'a',day:'Sunday, Nov. 29',    time:'1:00 pm'},
+  {hc:'NYJ',ac:'MIA',ha:'a',day:'Sunday, Nov. 29',    time:'1:00 pm'},
+  {hc:'TEN',ac:'JAX',ha:'a',day:'Sunday, Nov. 29',    time:'1:00 pm'},
+  {hc:'ATL',ac:'MIN',ha:'a',day:'Sunday, Nov. 29',    time:'1:00 pm'},
+  {hc:'NO', ac:'CIN',ha:'a',day:'Sunday, Nov. 29',    time:'1:00 pm'},
+  {hc:'WAS',ac:'ARI',ha:'a',day:'Sunday, Nov. 29',    time:'4:05 pm'},
+  {hc:'NE', ac:'LAC',ha:'a',day:'Sunday, Nov. 29',    time:'4:05 pm'},
+  {hc:'SEA',ac:'SF', ha:'a',day:'Sunday, Nov. 29',    time:'4:25 pm'},
+  {hc:'LV', ac:'CLE',ha:'a',day:'Sunday, Nov. 29',    time:'8:20 pm'},
+  {hc:'CAR',ac:'TB', ha:'a',day:'Monday, Nov. 30',    time:'8:15 pm'},
+];
+W12_SCHEDULE.forEach(function(g){weekGames[12].push(g);});
+
+/* Líneas Semana 12 — recogidas el 25-nov-2026 */
+const MARKET_W12={
+  'GB@LAR' :{sp: -2.5, ou:44.5},
+  'CHI@DET':{sp:  2.0, ou:55.5},   // Chicago favorita de visita · total más alto
+  'PHI@DAL':{sp: -8.5, ou:48.0},
+  'KC@BUF' :{sp: -3.0, ou:48.5},
+  'DEN@PIT':{sp:  3.0, ou:37.0},   // Denver favorita de visita
+  'BAL@HOU':{sp: -6.5, ou:46.5},
+  'NYG@IND':{sp:  6.5, ou:42.0},   // NY Giants favorita de visita
+  'NYJ@MIA':{sp:  3.5, ou:41.0},   // NY Jets favorita de visita
+  'TEN@JAX':{sp:-14.5, ou:48.0},
+  'ATL@MIN':{sp: -7.0, ou:41.5},
+  'NO@CIN' :{sp:-10.0, ou:51.0},
+  'WAS@ARI':{sp:  7.0, ou:41.0},   // Washington favorita de visita
+  'NE@LAC' :{sp: -1.0, ou:36.0},   // total más bajo de la semana
+  'SEA@SF' :{sp: -3.0, ou:46.0},
+  'LV@CLE' :{sp: -4.5, ou:41.0},
+  'CAR@TB' :{sp: -3.0, ou:43.5},
+};
+
+/* ══════════════════════════════════════════════════════
+   PICKS SEMANA 12 — los 16 con CUATRO desvíos
+   ══════════════════════════════════════════════════════ */
+const W12_PICKS=[
+  'home',    //  1 Green Bay at LA Rams        -> LA Rams
+  'home',    //  2 Chicago at Detroit          -> DETROIT        (desvío)
+  'home',    //  3 Philadelphia at Dallas      -> Dallas
+  'home',    //  4 Kansas City at Buffalo      -> Buffalo
+  'home',    //  5 Denver at Pittsburgh        -> PITTSBURGH     (desvío)
+  'home',    //  6 Baltimore at Houston        -> Houston
+  'away',    //  7 NY Giants at Indianapolis   -> NY Giants
+  'home',    //  8 NY Jets at Miami            -> MIAMI          (desvío)
+  'home',    //  9 Tennessee at Jacksonville   -> Jacksonville
+  'home',    // 10 Atlanta at Minnesota        -> Minnesota
+  'home',    // 11 New Orleans at Cincinnati   -> Cincinnati
+  'away',    // 12 Washington at Arizona       -> Washington
+  'home',    // 13 New England at LA Chargers  -> LA CHARGERS    (desvío)
+  'home',    // 14 Seattle at San Francisco    -> San Francisco
+  'home',    // 15 Las Vegas at Cleveland      -> Cleveland
+  'home',    // 16 Carolina at Tampa Bay       -> Tampa Bay
+];
+W12_PICKS.forEach(function(p,i){ weekPicks[12][i]=p; });
+tbUser[12]=45;         // desempate Carolina at Tampa Bay
+
+/* Arranca en la Semana 12 */
+curWeek=12;
 
 /* ══════════════════════════════════════════════════════
    MERCADO / CONSENSO DE ESPECIALISTAS — Semana 1 2026
@@ -2280,7 +2349,8 @@ function mkt(g){
           : curWeek===8 ? MARKET_W8
           : curWeek===9 ? MARKET_W9
           : curWeek===10 ? MARKET_W10
-          : curWeek===11 ? MARKET_W11 : null;
+          : curWeek===11 ? MARKET_W11
+          : curWeek===12 ? MARKET_W12 : null;
   return M ? (M[g.hc+'@'+g.ac]||null) : null;
 }
 
@@ -2329,6 +2399,12 @@ const H2H={
     tot:[67,55,32,40,30,53],
     det:['nov-14 LAC 34-33','nov-15 BAL 29-26','dic-18 BAL 22-10',
          'oct-21 BAL 34-6','nov-23 BAL 20-10','nov-24 BAL 30-23'],
+  },
+  'CAR@TB':{
+    desc:'5 enfrentamientos 2024-2026 · Tampa Bay gana 4 de 5',
+    tot:[49,62,43,30,56],
+    det:['2024 TB 26-23 (TC)','dic-24 TB 48-14','dic-25 CAR 23-20',
+         'ene-26 TB 16-14','oct-26 TB 43-13'],
   },
 };
 
